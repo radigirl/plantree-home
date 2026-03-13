@@ -1,0 +1,54 @@
+@use '../../../../styles/variables' as *;
+
+:host {
+    display: block;
+}
+
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+    border-radius: $radius-medium;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid $color-border;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04);
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+    min-height: 150px;
+
+    &--clickable {
+        cursor: pointer;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+        }
+    }
+
+    &--featured {
+        background: linear-gradient(135deg, #f3fbf6 0%, #eef8f2 100%);
+        border-color: rgba(46, 125, 90, 0.12);
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: $color-primary-dark;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+}

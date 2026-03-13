@@ -1,0 +1,80 @@
+@use '../../../styles/variables' as *;
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 32px;
+  color: $color-primary-dark;
+}
+
+.page-subtitle {
+  margin-top: 6px;
+  font-size: 16px;
+  color: $color-text-muted;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &__featured {
+    @media (min-width: 768px) {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.today-main-text {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.today-secondary-text {
+  margin: 0;
+  font-size: 14px;
+  color: $color-text-muted;
+}
+
+.today-status-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+
+  &--pending {
+    background: rgba(255, 193, 7, 0.14);
+    color: #9a6a00;
+  }
+
+  &--ready {
+    background: rgba(46, 125, 90, 0.12);
+    color: #2e7d5a;
+  }
+}
+
+.mock-card-text {
+  margin: 0;
+  font-size: 16px;
+  color: $color-text-muted;
+}

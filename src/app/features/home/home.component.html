@@ -1,0 +1,61 @@
+<div class="home-page">
+  <div class="page-header">
+    <h1 class="page-title">Welcome to Plantreeo</h1>
+    <p class="page-subtitle">
+      From plan to pantry, all in one place.
+    </p>
+  </div>
+
+  <div class="home-grid">
+    <app-dashboard-card
+      class="home-grid__featured"
+      title="Today"
+      [featured]="true"
+      (cardClick)="openToday()"
+    >
+      <ng-container [ngSwitch]="todayState">
+        <ng-container *ngSwitchCase="'empty'">
+          <p class="today-main-text">No meals planned</p>
+          <p class="today-secondary-text">Tap to open today's view</p>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'single-not-ready'">
+          <p class="today-main-text">{{ todayMeal.name }}</p>
+          <div class="today-status-badge today-status-badge--pending">
+            {{ todayMeal.status }}
+          </div>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'single-ready'">
+          <p class="today-main-text">{{ todayMeal.name }}</p>
+          <div class="today-status-badge today-status-badge--ready">
+            Ready 🍽
+          </div>
+          <p class="today-secondary-text">Cooked by {{ todayMeal.cook }}</p>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'multiple'">
+          <p class="today-main-text">{{ todayMeal.name }}</p>
+          <div class="today-status-badge today-status-badge--pending">
+            {{ todayMeal.status }}
+          </div>
+          <p class="today-secondary-text">
+            +{{ additionalMealsCount }} more meals
+          </p>
+        </ng-container>
+      </ng-container>
+    </app-dashboard-card>
+
+    <app-dashboard-card title="Week Plan" (cardClick)="openWeekPlan()">
+      <p class="mock-card-text">Week Plan</p>
+    </app-dashboard-card>
+
+    <app-dashboard-card title="Grocery Lists" (cardClick)="openGroceryLists()">
+      <p class="mock-card-text">Grocery Lists</p>
+    </app-dashboard-card>
+
+    <app-dashboard-card title="Week Stats" (cardClick)="openWeekStats()">
+      <p class="mock-card-text">Week Stats</p>
+    </app-dashboard-card>
+  </div>
+</div>

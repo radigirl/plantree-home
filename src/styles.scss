@@ -1,0 +1,42 @@
+@use './styles/variables' as *;
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: $color-background;
+  color: $color-text;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
+  background: $color-background;
+}
+
+.layout {
+  display: block;
+}
+
+.content {
+  margin: 24px 20px 110px;
+  background: $color-surface;
+  border-radius: $radius-large;
+  padding: 24px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  min-height: 120px;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    margin-top: 36px;
+    margin-right: 40px;
+    margin-bottom: 40px;
+    margin-left: 320px;
+    padding: 32px;
+  }
+}

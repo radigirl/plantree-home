@@ -1,0 +1,86 @@
+@use '../../../styles/variables' as *;
+
+.header {
+  background: linear-gradient(
+    180deg,
+    #e8eee6 0%,
+    #d7e1d9 100%
+  );
+  color: $color-primary-dark;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  border-bottom-left-radius: $radius-medium;
+  border-bottom-right-radius: $radius-medium;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+   position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.logo {
+  flex: 0 0 auto;
+  width: 65px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo img {
+  width: 65px;
+  height: 65px;
+  object-fit: contain;
+  display: block;
+}
+
+.title-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.subtitle {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.7;
+  color: rgba(58, 116, 108, 0.8);
+}
+
+.account-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(58, 116, 108, 0.12);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.account-circle lucide-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
+  color: rgba(58, 116, 108, 0.8);
+}
+
+.account-circle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}

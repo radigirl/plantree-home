@@ -1,0 +1,131 @@
+@use '../../../styles/variables' as *;
+
+.navigation {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: linear-gradient(
+  180deg,
+  $color-primary 0%,
+  $color-primary-dark 100%
+);
+  padding: 12px 16px;
+  border-radius: $radius-large;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  z-index: 100;
+}
+
+.nav-item {
+  border: none;
+  background: transparent;
+  color: $color-surface;
+  cursor: pointer;
+
+  border-radius: $radius-medium;
+  padding: 10px 14px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 80px;
+  transition: all 0.2s ease;
+}
+
+.nav-item.active {
+  color: $color-surface;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.nav-item.active lucide-icon {
+  stroke-width: 2.4;
+}
+
+.nav-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+/* Desktop sidebar */
+
+@media (min-width: 1024px) {
+  .navigation {
+    top: 120px;
+    bottom: 24px;
+    left: 24px;
+    right: auto;
+    width: 220px;
+
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 12px;
+
+    padding: 24px 18px;
+  }
+
+  .nav-item {
+    position: relative;
+    background: rgba(255, 255, 255, 0.08);
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+
+    min-width: unset;
+    padding: 12px 16px;
+    text-align: left;
+  }
+
+  .nav-item:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .nav-item.active {
+    background: rgba($color-primary, 0.35);
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 10px;
+    bottom: 10px;
+    width: 4px;
+    border-radius: 999px;
+    background: $color-surface;
+  }
+
+  .nav-icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.2;
+    opacity: 0.75;
+    transition: opacity 0.2s ease;
+  }
+
+  .nav-item:hover .nav-icon {
+    opacity: 1;
+  }
+
+  .nav-item.active .nav-icon {
+    opacity: 1;
+  }
+
+  .nav-label {
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
