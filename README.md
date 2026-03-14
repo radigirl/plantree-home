@@ -1,8 +1,8 @@
-# Plantreeo 🌿
+# Plantree Home 🌿
 
 From plan to pantry.
 
-Plantreeo is a meal planning and grocery coordination app designed for households.
+Plantree Home is a meal planning and grocery coordination app designed for households.
 
 It helps families:
 

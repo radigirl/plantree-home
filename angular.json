@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "plantreeo": {
+    "plantree": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -54,10 +54,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "plantreeo:build:production"
+              "buildTarget": "plantree:build:production"
             },
             "development": {
-              "buildTarget": "plantreeo:build:development"
+              "buildTarget": "plantree:build:development"
             }
           },
           "defaultConfiguration": "development"
