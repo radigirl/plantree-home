@@ -13,41 +13,86 @@
       [featured]="true"
       (cardClick)="openToday()"
     >
-      <ng-container [ngSwitch]="todayState">
-        <ng-container *ngSwitchCase="'empty'">
-          <p class="today-main-text">No meals planned</p>
-          <p class="today-secondary-text">Tap to open today's view</p>
-        </ng-container>
-
-        <ng-container *ngSwitchCase="'single-not-ready'">
-          <p class="today-main-text">{{ todayMeal.name }}</p>
-          <div class="today-status-badge today-status-badge--pending">
-            {{ todayMeal.status }}
+      <ng-container *ngIf="!hasTodayMeals; else todayMealsContent">
+        <div class="today-card today-card--empty">
+          <div class="today-card-body">
+            <p class="today-main-text">Nothing planned yet</p>
+            <p class="today-secondary-text">Add a meal later</p>
           </div>
-        </ng-container>
 
-        <ng-container *ngSwitchCase="'single-ready'">
-          <p class="today-main-text">{{ todayMeal.name }}</p>
-          <div class="today-status-badge today-status-badge--ready">
-            Ready 🍽
+          <div class="today-card-image-wrap">
+            <div class="today-card-image today-card-image--placeholder">
+              <img
+                src="assets/meals/blank-meal.png"
+                alt="Meal placeholder"
+                class="today-meal-image"
+              />
+            </div>
           </div>
-          <p class="today-secondary-text">Cooked by {{ todayMeal.cook }}</p>
-        </ng-container>
-
-        <ng-container *ngSwitchCase="'multiple'">
-          <p class="today-main-text">{{ todayMeal.name }}</p>
-          <div class="today-status-badge today-status-badge--pending">
-            {{ todayMeal.status }}
-          </div>
-          <p class="today-secondary-text">
-            +{{ additionalMealsCount }} more meals
-          </p>
-        </ng-container>
+        </div>
       </ng-container>
+
+      <ng-template #todayMealsContent>
+        <div class="today-card">
+          <div class="today-card-body">
+            <p class="today-main-text">
+              {{ firstTodayMeal?.meal?.name }}
+            </p>
+
+            <div class="today-cook-row">
+              <div class="today-cook-icon">🍳</div>
+
+              <img
+                [src]="firstTodayMeal?.cook?.avatar || 'assets/avatars/avatar-placeholder.png'"
+                class="today-inline-avatar"
+                [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'"
+              />
+
+              <p class="today-secondary-text">
+                {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
+              </p>
+            </div>
+
+            <div class="today-meta-row">
+              <span
+                class="today-status-badge"
+                [ngClass]="todayStatusClass"
+              >
+                {{ todayStatusLabel }}
+              </span>
+
+              <span
+                class="today-time-badge"
+                *ngIf="firstTodayMeal?.meal?.prepTime"
+              >
+                ⏱ {{ firstTodayMeal?.meal?.prepTime }} min
+              </span>
+            </div>
+
+            <p
+              class="today-more-meals"
+              *ngIf="hasMultipleTodayMeals"
+            >
+              +{{ additionalMealsCount }} more meal<span *ngIf="additionalMealsCount > 1">s</span>
+            </p>
+          </div>
+
+          <div class="today-card-image-wrap">
+            <div class="today-card-image">
+              <img
+                [src]="firstTodayMeal?.meal?.image || 'assets/meals/blank-meal.png'"
+                class="today-meal-image"
+                [alt]="firstTodayMeal?.meal?.name || 'Meal image'"
+              />
+            </div>
+          </div>
+        </div>
+      </ng-template>
     </app-dashboard-card>
 
     <app-dashboard-card title="Week Plan" (cardClick)="openWeekPlan()">
-      <p class="mock-card-text">Week Plan</p>
+      <p class="mock-card-text">{{ plannedMealsCount }} meals planned this week</p>
+      <p class="today-secondary-text">{{ emptyDaysCount }} days still empty</p>
     </app-dashboard-card>
 
     <app-dashboard-card title="Grocery Lists" (cardClick)="openGroceryLists()">

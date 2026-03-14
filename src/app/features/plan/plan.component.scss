@@ -1,0 +1,265 @@
+@use '../../../styles/variables' as *;
+
+.plan-page {
+  padding: 16px;
+  background-color: $color-plan-shell;
+  border-radius: $radius-large;
+}
+
+.meal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meal-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid $color-border;
+  border-radius: 20px;
+  background-color: $color-plan-card;
+  box-shadow: 0 3px 10px rgba(46, 58, 50, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .meal-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(46, 58, 50, 0.12);
+    background-color: $color-plan-card-hover;
+  }
+}
+
+.meal-day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-right: 8px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 1px;
+    height: 42px;
+    transform: translateY(-50%);
+    background-color: rgba(92, 143, 134, 0.14);
+    border-radius: 999px;
+  }
+
+  .day {
+    font-size: 0.98rem;
+    font-weight: 500;
+    color: $color-text;
+  }
+
+  .date {
+    font-size: 0.95rem;
+    color: $color-text;
+  }
+}
+
+.meal-info {
+  min-width: 0;
+  padding-left: 4px;
+}
+
+.meal-name {
+  margin: 0 0 6px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: $color-text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meal-cook-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cook-icon {
+  font-size: 0.82rem;
+}
+
+.meal-cook-avatar {
+  display: none;
+}
+
+.meal-cook {
+  margin: 0;
+  font-size: 0.92rem;
+  color: $color-text-muted;
+}
+
+.meal-meta {
+  display: none;
+}
+
+.meal-status,
+.meal-time {
+  font-size: 0.8rem;
+  color: $color-text-muted;
+}
+
+.meal-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: $color-primary-light;
+}
+
+.meal-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.meal-avatar--empty {
+  background: transparent;
+  color: $color-text-muted;
+  opacity: 0.5;
+}
+
+.meal-image,
+.meal-more {
+  display: none;
+}
+
+.meal-empty {
+  margin: 0 0 4px;
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: $color-text-muted;
+  text-align: center;
+}
+
+.meal-empty-subtext {
+  margin: 0;
+  font-size: 0.86rem;
+  color: $color-text-muted;
+  text-align: center;
+}
+
+/* TABLET */
+
+@media (min-width: 768px) {
+
+  .meal-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .meal-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto 1fr auto;
+    align-items: start;
+    gap: 12px;
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .meal-day {
+    align-items: flex-start;
+    padding-right: 0;
+
+    &::after {
+      display: none;
+    }
+  }
+
+  .meal-info {
+    padding-left: 0;
+  }
+
+  .meal-name {
+    font-size: 1.15rem;
+    white-space: normal;
+  }
+
+  .meal-cook-row {
+    gap: 8px;
+  }
+
+  .meal-cook-avatar {
+    display: block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .meal-avatar {
+    display: none;
+  }
+
+  .meal-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .meal-status,
+  .meal-time {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(92, 143, 134, 0.1);
+    font-size: 0.84rem;
+  }
+
+  .meal-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 20px;
+    overflow: hidden;
+    background-color: $color-primary-light;
+  }
+
+  .meal-image-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .meal-more {
+    display: block;
+    font-size: 0.88rem;
+    color: $color-text-muted;
+  }
+}
+
+/* DESKTOP */
+
+@media (min-width: 1024px) {
+
+  .plan-page {
+    padding: 32px;
+  }
+
+  .meal-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .meal-name {
+    font-size: 1.22rem;
+  }
+
+  .meal-more {
+    font-size: 0.9rem;
+  }
+}

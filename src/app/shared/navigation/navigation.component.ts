@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   LucideAngularModule,
   House,
@@ -14,7 +15,15 @@ import {
   styleUrl: './navigation.component.scss'
 })
 export class NavigationComponent {
+
   readonly homeIcon = House;
   readonly planIcon = CalendarDays;
   readonly pantryIcon = Package;
+
+  constructor(private router: Router) {}
+
+  goTo(route: string): void {
+    this.router.navigate([route]);
+  }
+
 }

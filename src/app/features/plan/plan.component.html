@@ -1,0 +1,82 @@
+<div class="plan-page">
+  <div class="meal-list">
+    <div class="meal-card" *ngFor="let item of weekMeals">
+
+      <div class="meal-day">
+        <span class="day">{{ item.day }}</span>
+        <span class="date">{{ item.date }}</span>
+      </div>
+
+      <div class="meal-info">
+
+        <ng-container *ngIf="hasMeals(item); else emptyDay">
+
+          <p class="meal-name">
+            {{ getFirstMeal(item)?.meal?.name }}
+          </p>
+
+          <div class="meal-cook-row">
+            <div class="cook-icon">🍳</div>
+
+            <img
+              [src]="getFirstMeal(item)?.cook?.avatar || 'assets/avatars/avatar-placeholder.png'"
+              class="meal-cook-avatar"
+              [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'"
+            />
+
+            <p class="meal-cook">
+              {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
+            </p>
+          </div>
+
+          <div class="meal-meta" *ngIf="getFirstMeal(item) as firstMeal">
+
+            <span class="meal-status">
+              {{ getStatusLabel(firstMeal.status) }}
+            </span>
+
+            <span class="meal-time">
+              ⏱ {{ firstMeal.meal.prepTime }} min
+            </span>
+
+          </div>
+
+        </ng-container>
+
+        <ng-template #emptyDay>
+          <p class="meal-empty">Nothing planned yet</p>
+          <p class="meal-empty-subtext">Add a meal later</p>
+        </ng-template>
+
+      </div>
+
+      <div class="meal-avatar" *ngIf="hasMeals(item); else emptyAvatar">
+        <img
+          [src]="getFirstMeal(item)?.cook?.avatar || 'assets/avatars/avatar-placeholder.png'"
+          class="meal-avatar-img"
+          [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'"
+        />
+      </div>
+
+      <ng-template #emptyAvatar>
+        <div class="meal-avatar meal-avatar--empty">—</div>
+      </ng-template>
+
+      <div class="meal-image">
+        <img
+          [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/blank-meal.png'"
+          class="meal-image-img"
+          [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'"
+        />
+      </div>
+
+      <p
+        class="meal-more"
+        *ngIf="hasMeals(item) && getAdditionalMealsCount(item) > 0"
+      >
+        +{{ getAdditionalMealsCount(item) }} more meal<span *ngIf="getAdditionalMealsCount(item) > 1">s</span>
+      </p>
+
+    </div>
+  </div>
+</div>

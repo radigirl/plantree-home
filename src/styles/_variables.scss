@@ -12,6 +12,17 @@ $color-text-muted: #6f7b70;
 $color-border: #e7e2d8;
 $color-success: #6fae7a;
 
+$color-surface-soft: #f7f5ef;
+$color-surface-tinted: #eef4f2;
+$color-text-on-primary: #ffffff;
+
+$color-plan-shell: $color-surface;
+$color-plan-card: $color-surface-soft;
+$color-plan-card-hover: $color-primary-light;
+
+$color-button-primary: $color-primary;
+$color-button-primary-hover: $color-primary-dark;
+
 $radius-large: 30px;
 $radius-medium: 20px;
 $radius-small: 12px;
