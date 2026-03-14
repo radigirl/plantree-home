@@ -10,9 +10,9 @@
     gap: 12px;
     padding: 18px;
     border-radius: $radius-medium;
-    background: rgba(255, 255, 255, 0.95);
+    background: #fbfaf7;
     border: 1px solid $color-border;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     transition:
         transform 0.15s ease,
         box-shadow 0.15s ease,
@@ -29,8 +29,8 @@
     }
 
     &--featured {
-        background: linear-gradient(135deg, #f3fbf6 0%, #eef8f2 100%);
-        border-color: rgba(46, 125, 90, 0.12);
+        background: linear-gradient(135deg, #e7f2ec 0%, #dbeae3 100%);
+        border: 2px solid #cfded7;
     }
 
     &__header {

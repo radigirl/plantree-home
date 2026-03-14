@@ -2,9 +2,9 @@
 
 .navigation {
   position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -40,7 +40,7 @@
 .nav-item.active {
   color: $color-surface;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255,255,255,0.12);
   backdrop-filter: blur(4px);
   box-shadow: 0 6px 14px rgba(0,0,0,0.12);
 }
@@ -94,7 +94,7 @@
   }
 
   .nav-item.active {
-    background: rgba($color-primary, 0.35);
+    background: rgba(255,255,255,0.18);
   }
 
   .nav-item.active::before {

@@ -14,6 +14,13 @@ type TodayCardState = 'empty' | 'single-not-ready' | 'single-ready' | 'multiple'
 export class HomeComponent {
   todayState: TodayCardState = 'multiple';
 
+//  TO DO: remove these mocks when real data
+
+  // todayState: TodayCardState = 'empty';
+  // todayState: TodayCardState = 'single-not-ready';
+  // todayState: TodayCardState = 'single-ready';
+  // todayState: TodayCardState = 'multiple';
+
   todayMeal = {
     name: 'Pasta',
     cook: 'Dad',
