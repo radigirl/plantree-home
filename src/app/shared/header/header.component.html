@@ -10,7 +10,43 @@
     </div>
   </div>
 
-  <div class="account-circle">
-    <lucide-icon [img]="userIcon"></lucide-icon>
+  <div class="user-switcher">
+    <button
+      type="button"
+      class="account-circle"
+      (click)="toggleUserMenu()"
+      [attr.aria-expanded]="isUserMenuOpen"
+      aria-label="Open user switcher"
+    >
+      <ng-container *ngIf="currentUser$ | async as currentUser; else fallbackIcon">
+        <img
+          *ngIf="currentUser?.avatar_url; else fallbackIcon"
+          [src]="currentUser.avatar_url"
+          [alt]="currentUser.name || 'Current user'"
+          class="account-avatar"
+        />
+      </ng-container>
+
+      <ng-template #fallbackIcon>
+        <lucide-icon [img]="userIcon"></lucide-icon>
+      </ng-template>
+    </button>
+
+    <div class="user-menu" *ngIf="isUserMenuOpen">
+      <button
+        type="button"
+        class="user-menu-item"
+        *ngFor="let user of users"
+        (click)="selectUser(user)"
+      >
+        <img
+          [src]="user.avatar_url || 'assets/avatars/avatar-placeholder.png'"
+          [alt]="user.name"
+          class="user-menu-avatar"
+        />
+
+        <span>{{ user.name }}</span>
+      </button>
+    </div>
   </div>
 </header>

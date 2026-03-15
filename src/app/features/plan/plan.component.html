@@ -1,5 +1,9 @@
 <div class="plan-page">
-  <div class="meal-list">
+  <div class="plan-loading-shell" *ngIf="isLoading">
+  <app-page-loading></app-page-loading>
+</div>
+
+  <div class="meal-list" *ngIf="!isLoading">
     <div class="meal-card" *ngFor="let item of weekMeals">
 
       <div class="meal-day">
@@ -19,7 +23,7 @@
             <div class="cook-icon">🍳</div>
 
             <img
-              [src]="getFirstMeal(item)?.cook?.avatar || 'assets/avatars/avatar-placeholder.png'"
+              [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
               class="meal-cook-avatar"
               [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'"
             />
@@ -30,7 +34,6 @@
           </div>
 
           <div class="meal-meta" *ngIf="getFirstMeal(item) as firstMeal">
-
             <span class="meal-status">
               {{ getStatusLabel(firstMeal.status) }}
             </span>
@@ -38,7 +41,6 @@
             <span class="meal-time">
               ⏱ {{ firstMeal.meal.prepTime }} min
             </span>
-
           </div>
 
         </ng-container>
@@ -52,7 +54,7 @@
 
       <div class="meal-avatar" *ngIf="hasMeals(item); else emptyAvatar">
         <img
-          [src]="getFirstMeal(item)?.cook?.avatar || 'assets/avatars/avatar-placeholder.png'"
+          [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
           class="meal-avatar-img"
           [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'"
         />

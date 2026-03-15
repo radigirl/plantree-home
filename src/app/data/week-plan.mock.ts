@@ -17,7 +17,7 @@ export const WEEK_PLAN_MOCK: DayPlan[] = [
         cook: {
           id: 'member-1',
           name: 'Dad',
-          avatar: 'assets/avatars/dad.png',
+          avatar_url: 'assets/avatars/dad.png',
         },
         status: 'to-prepare',
       },
@@ -33,7 +33,7 @@ export const WEEK_PLAN_MOCK: DayPlan[] = [
         cook: {
           id: 'member-2',
           name: 'Mom',
-          avatar: 'assets/avatars/mom.png',
+          avatar_url: 'assets/avatars/mom.png',
         },
         status: 'ready-to-serve',
       },
@@ -56,7 +56,7 @@ export const WEEK_PLAN_MOCK: DayPlan[] = [
         cook: {
           id: 'member-2',
           name: 'Mom',
-          avatar: 'assets/avatars/mom.png',
+          avatar_url: 'assets/avatars/mom.png',
         },
         status: 'ready-to-serve',
       },
@@ -79,7 +79,7 @@ export const WEEK_PLAN_MOCK: DayPlan[] = [
         cook: {
           id: 'member-3',
           name: 'Yasen',
-          avatar: 'assets/avatars/yasen.png',
+          avatar_url: 'assets/avatars/yasen.png',
         },
         status: 'in-progress',
       },
@@ -102,7 +102,7 @@ export const WEEK_PLAN_MOCK: DayPlan[] = [
         cook: {
           id: 'member-1',
           name: 'Dad',
-          avatar: 'assets/avatars/dad.png',
+          avatar_url: 'assets/avatars/dad.png',
         },
         status: 'to-prepare',
       },
@@ -125,7 +125,7 @@ export const WEEK_PLAN_MOCK: DayPlan[] = [
         cook: {
           id: 'member-2',
           name: 'Mom',
-          avatar: 'assets/avatars/mom.png',
+          avatar_url: 'assets/avatars/mom.png',
         },
         status: 'in-progress',
       },
@@ -141,7 +141,7 @@ export const WEEK_PLAN_MOCK: DayPlan[] = [
         cook: {
           id: 'member-1',
           name: 'Dad',
-          avatar: 'assets/avatars/dad.png',
+          avatar_url: 'assets/avatars/dad.png',
         },
         status: 'to-prepare',
       },

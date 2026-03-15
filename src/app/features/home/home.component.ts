@@ -1,26 +1,45 @@
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
 import { DashboardCardComponent } from '../../shared/components/dashboard-card/dashboard-card.component';
 import { Router } from '@angular/router';
 import { DayPlan } from '../../models/day-plan.model';
 import { PlannedMeal } from '../../models/planned-meal.model';
 import { MealPlanService } from '../../services/meal-plan.service';
+import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, DashboardCardComponent],
+  imports: [CommonModule, DashboardCardComponent,PageLoadingComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   weekMeals: DayPlan[] = [];
+  isLoading = true;
 
   constructor(
     private router: Router,
-    private mealPlanService: MealPlanService
-  ) {
-    this.weekMeals = this.mealPlanService.getWeekPlan();
+    private mealPlanService: MealPlanService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    await this.loadWeekPlan();
+  }
+
+  async loadWeekPlan(): Promise<void> {
+    this.isLoading = true;
+
+    try {
+      this.weekMeals = await this.mealPlanService.getWeekPlan();
+    } catch (error) {
+      console.error('Error loading home week plan:', error);
+      this.weekMeals = [];
+    }
+
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
   get todayPlan(): DayPlan | undefined {
@@ -98,7 +117,6 @@ export class HomeComponent {
   }
 
   openWeekStats(): void {
-    // TODO: implement stats screen and navigation
     console.log('Week Stats clicked');
   }
 }
