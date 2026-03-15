@@ -10,13 +10,15 @@ import { PageLoadingComponent } from '../../shared/components/page-loading/page-
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, DashboardCardComponent,PageLoadingComponent],
+  imports: [CommonModule, DashboardCardComponent, PageLoadingComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit {
   weekMeals: DayPlan[] = [];
   isLoading = true;
+
+  currentWeekStart: Date = this.getStartOfWeek(new Date());
 
   constructor(
     private router: Router,
@@ -32,7 +34,7 @@ export class HomeComponent implements OnInit {
     this.isLoading = true;
 
     try {
-      this.weekMeals = await this.mealPlanService.getWeekPlan();
+      this.weekMeals = await this.mealPlanService.getWeekPlan(this.currentWeekStart);
     } catch (error) {
       console.error('Error loading home week plan:', error);
       this.weekMeals = [];
@@ -43,7 +45,8 @@ export class HomeComponent implements OnInit {
   }
 
   get todayPlan(): DayPlan | undefined {
-    return this.weekMeals[0];
+    const today = this.formatDateLocal(new Date());
+    return this.weekMeals.find((day) => day.fullDate === today);
   }
 
   get todayMeals(): PlannedMeal[] {
@@ -105,7 +108,8 @@ export class HomeComponent implements OnInit {
   }
 
   openToday(): void {
-    this.router.navigate(['/today']);
+    const today = this.formatDateLocal(new Date());
+    this.router.navigate(['/plan/day', today]);
   }
 
   openWeekPlan(): void {
@@ -118,5 +122,24 @@ export class HomeComponent implements OnInit {
 
   openWeekStats(): void {
     console.log('Week Stats clicked');
+  }
+
+  getStartOfWeek(date: Date): Date {
+    const result = new Date(date);
+    const day = result.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+
+    result.setDate(result.getDate() + diff);
+    result.setHours(0, 0, 0, 0);
+
+    return result;
+  }
+
+  private formatDateLocal(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }

@@ -7,49 +7,68 @@ import { SupabaseService } from './supabase.service';
   providedIn: 'root',
 })
 export class MealPlanService {
+  constructor(private supabaseService: SupabaseService) {}
 
-  constructor(private supabaseService: SupabaseService) { }
+  async getWeekPlan(weekStart: Date): Promise<DayPlan[]> {
+    const monday = new Date(weekStart);
 
-  async getWeekPlan(): Promise<DayPlan[]> {
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const startDate = this.formatDateLocal(monday);
+    const endDate = this.formatDateLocal(sunday);
 
     const { data, error } = await this.supabaseService.supabase
       .from('planned_meals')
       .select(`
-    id,
-    planned_date,
-    status,
-    meal:meals!planned_meals_meal_id_fkey (
-      id,
-      name,
-      prep_time,
-      ingredients,
-      image_url
-    ),
-    cook:users!planned_meals_cook_user_id_fkey (
-      id,
-      name,
-      avatar_url
-    )
-  `)
-      .order('planned_date', { ascending: true });
+        id,
+        planned_date,
+        status,
+        created_at,
+        meal:meals!planned_meals_meal_id_fkey (
+          id,
+          name,
+          prep_time,
+          ingredients,
+          image_url
+        ),
+        cook:users!planned_meals_cook_user_id_fkey (
+          id,
+          name,
+          avatar_url
+        )
+      `)
+      .gte('planned_date', startDate)
+      .lte('planned_date', endDate)
+      .order('planned_date', { ascending: true })
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching week plan:', error);
       return [];
     }
 
-    const grouped = new Map<string, DayPlan>();
+    const week: DayPlan[] = [];
 
-    for (const item of data ?? []) {
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
 
-      const plannedDate = new Date(item.planned_date);
-      const dayKey = item.planned_date;
-
-      const dayLabel = plannedDate.toLocaleDateString('en-US', {
-        weekday: 'short'
+      const label = date.toLocaleDateString('en-US', {
+        weekday: 'short',
       });
 
-      const dayDate = plannedDate.getDate();
+      week.push({
+        day: label,
+        date: date.getDate(),
+        fullDate: this.formatDateLocal(date),
+        meals: [],
+      });
+    }
+
+    for (const item of data ?? []) {
+      const plannedDate = new Date(item.planned_date);
+      const dayIndex = (plannedDate.getDay() + 6) % 7;
 
       const mealData = Array.isArray(item.meal) ? item.meal[0] : item.meal;
       const cookData = Array.isArray(item.cook) ? item.cook[0] : item.cook;
@@ -66,26 +85,90 @@ export class MealPlanService {
           name: mealData.name,
           prepTime: mealData.prep_time,
           ingredients: mealData.ingredients ?? [],
-          image: mealData.image_url
+          image: mealData.image_url,
         },
         cook: {
           id: String(cookData.id),
           name: cookData.name,
-          avatar_url: cookData.avatar_url
-        }
+          avatar_url: cookData.avatar_url,
+        },
       };
 
-      if (!grouped.has(dayKey)) {
-        grouped.set(dayKey, {
-          day: dayLabel,
-          date: dayDate,
-          meals: [plannedMeal]
-        });
-      } else {
-        grouped.get(dayKey)?.meals.push(plannedMeal);
-      }
+      week[dayIndex].meals.push(plannedMeal);
     }
 
-    return Array.from(grouped.values());
+    return week;
+  }
+
+  async getMealsForDate(date: string): Promise<PlannedMeal[]> {
+    const { data, error } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .select(`
+        id,
+        planned_date,
+        status,
+        created_at,
+        meal:meals!planned_meals_meal_id_fkey (
+          id,
+          name,
+          prep_time,
+          ingredients,
+          image_url
+        ),
+        cook:users!planned_meals_cook_user_id_fkey (
+          id,
+          name,
+          avatar_url
+        )
+      `)
+      .eq('planned_date', date)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching meals for date:', error);
+      return [];
+    }
+
+    const meals: PlannedMeal[] = [];
+
+    for (const item of data ?? []) {
+      const mealData = Array.isArray(item.meal) ? item.meal[0] : item.meal;
+      const cookData = Array.isArray(item.cook) ? item.cook[0] : item.cook;
+
+      if (!mealData) {
+        continue;
+      }
+
+      const plannedMeal: PlannedMeal = {
+        id: item.id,
+        status: item.status,
+        meal: {
+          id: mealData.id,
+          name: mealData.name,
+          prepTime: mealData.prep_time,
+          ingredients: mealData.ingredients ?? [],
+          image: mealData.image_url,
+        },
+        cook: cookData
+          ? {
+              id: String(cookData.id),
+              name: cookData.name,
+              avatar_url: cookData.avatar_url,
+            }
+          : undefined,
+      };
+
+      meals.push(plannedMeal);
+    }
+
+    return meals;
+  }
+
+  private formatDateLocal(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }

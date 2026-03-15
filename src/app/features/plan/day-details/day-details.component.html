@@ -1,0 +1,70 @@
+<div class="day-details-page">
+  <div class="day-loading-shell" *ngIf="isLoading">
+    <app-page-loading></app-page-loading>
+  </div>
+
+  <div class="day-details-shell" *ngIf="!isLoading">
+    <a routerLink="/plan" class="back-link">
+      <span class="back-link__arrow">←</span>
+      <span>Back to plan</span>
+    </a>
+
+    <div class="day-details-header">
+      <h1 class="day-details-title">{{ getDisplayDate() }}</h1>
+
+      <p class="day-details-subtitle" *ngIf="meals.length > 0">
+        {{ getMealCountLabel() }}
+      </p>
+
+      <p class="day-details-subtitle" *ngIf="meals.length === 0">
+        No meals planned yet
+      </p>
+    </div>
+
+    <div class="day-details-empty" *ngIf="meals.length === 0">
+      <p class="day-details-empty-text">No meals planned for this day yet.</p>
+    </div>
+
+    <div class="day-details-list" *ngIf="meals.length > 0">
+      <div class="day-details-card" *ngFor="let meal of meals">
+        <div class="meal-info">
+          <p class="meal-name">
+            {{ meal.meal.name }}
+          </p>
+
+          <div class="meal-cook-row">
+            <div class="cook-icon">🍳</div>
+
+            <img
+              [src]="meal.cook?.avatar_url || 'assets/avatars/mom.png'"
+              class="meal-cook-avatar"
+              [alt]="meal.cook?.name || 'Cook avatar'"
+            />
+
+            <p class="meal-cook">
+              {{ meal.cook?.name || 'Unassigned' }}
+            </p>
+          </div>
+
+          <div class="meal-meta">
+            <span class="meal-status">
+              {{ getStatusLabel(meal.status) }}
+            </span>
+
+            <span class="meal-time">
+              ⏱ {{ meal.meal.prepTime }} min
+            </span>
+          </div>
+        </div>
+
+        <div class="meal-image">
+          <img
+            [src]="meal.meal.image || 'assets/meals/blank-meal.png'"
+            class="meal-image-img"
+            [alt]="meal.meal.name || 'Meal image'"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
