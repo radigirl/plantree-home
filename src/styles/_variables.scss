@@ -1,3 +1,23 @@
+/* LAYOUT */
+
+// Header
+$layout-header-height-mobile: 175px;
+$layout-header-height-desktop: 70px;
+
+// Mobile / Tablet
+$layout-gap-top-mobile: 24px;
+$layout-padding-mobile: 24px;
+$layout-bottom-nav-height: 96px;
+$layout-bottom-safe-space: 24px;
+
+// Desktop
+$layout-gap-top-desktop: 36px;
+$layout-gap-bottom-desktop: 40px;
+$layout-padding-desktop: 32px;
+
+// Sidebar
+$layout-sidebar-width: 320px;
+
 /* COLORS */
 
 $color-primary: #5c8f86;

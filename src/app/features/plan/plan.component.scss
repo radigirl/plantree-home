@@ -6,7 +6,6 @@ $week-nav-height: 60px;
 
 .plan-page {
   padding: 16px;
-  padding-bottom: 120px;
   background-color: $color-plan-shell;
   border-radius: $radius-large;
 }
@@ -492,7 +491,6 @@ $week-nav-height: 60px;
 @media (min-width: 1024px) {
   .plan-page {
     padding: 32px;
-    padding-bottom: 32px;
   }
 
   .weekday-strip {

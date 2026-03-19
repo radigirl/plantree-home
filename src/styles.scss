@@ -14,7 +14,7 @@ body {
 
 app-root {
   display: block;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: $color-background;
 }
 
@@ -23,20 +23,35 @@ app-root {
 }
 
 .content {
-  margin: 24px 20px 110px;
+  position: relative;
+  margin: $layout-gap-top-mobile 20px 20px;
   background: $color-surface;
   border-radius: $radius-large;
-  padding: 24px;
+  padding: $layout-padding-mobile;
+  padding-bottom: calc(
+    #{$layout-bottom-nav-height} + #{$layout-bottom-safe-space}
+  );
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-  min-height: 120px;
+  box-sizing: border-box;
+
+  min-height: calc(
+    100dvh - #{$layout-header-height-mobile} - #{$layout-gap-top-mobile} - 20px
+  );
 }
 
 @media (min-width: 1024px) {
   .content {
-    margin-top: 36px;
+    margin-top: $layout-gap-top-desktop;
     margin-right: 40px;
-    margin-bottom: 40px;
-    margin-left: 320px;
-    padding: 32px;
+    margin-bottom: $layout-gap-bottom-desktop;
+    margin-left: $layout-sidebar-width;
+    padding: $layout-padding-desktop;
+
+    min-height: calc(
+      100dvh
+      - #{$layout-header-height-desktop}
+      - #{$layout-gap-top-desktop}
+      - #{$layout-gap-bottom-desktop}
+    );
   }
 }

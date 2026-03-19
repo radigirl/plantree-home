@@ -1,5 +1,5 @@
 export interface FamilyMember {
-  id: string;
+  id: number;
   name: string;
   avatar_url?: string;
 }

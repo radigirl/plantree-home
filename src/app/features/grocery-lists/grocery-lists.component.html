@@ -1,4 +1,46 @@
 <section class="grocery-lists-page">
-  <h1>Grocery Lists</h1>
-  <p>This is the Grocery Lists screen.</p>
+  <div class="grocery-lists-container">
+    <div class="grocery-lists-loading-shell" *ngIf="isLoading">
+      <app-page-loading></app-page-loading>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+      <div class="grocery-lists-header">
+        <h1>Grocery Lists</h1>
+
+        <button *ngIf="!isCreatingList" type="button" class="new-list-button" (click)="startCreateList()">
+          + New List
+        </button>
+      </div>
+
+      <div *ngIf="isCreatingList" class="create-list-row">
+        <input type="text" placeholder="Enter list name" [(ngModel)]="newListName" class="create-list-input" />
+
+        <div class="create-list-actions">
+          <button type="button" class="save-button" (click)="saveNewList()">
+            Save
+          </button>
+
+          <button type="button" class="cancel-button" (click)="cancelCreateList()">
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      <p *ngIf="error" class="grocery-error">{{ error }}</p>
+
+      <ng-container *ngIf="!error && groceryLists.length > 0; else noLists">
+        <div class="grocery-lists-list">
+          <button type="button" class="grocery-list-card" *ngFor="let list of groceryLists" (click)="openList(list)">
+            <span class="grocery-list-name">{{ list.name }}</span>
+            <span class="grocery-list-status">{{ list.status }}</span>
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-template #noLists>
+        <p class="grocery-empty">No grocery lists found.</p>
+      </ng-template>
+    </ng-container>
+  </div>
 </section>

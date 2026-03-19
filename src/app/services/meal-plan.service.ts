@@ -88,7 +88,7 @@ export class MealPlanService {
           image: mealData.image_url,
         },
         cook: {
-          id: String(cookData.id),
+          id: cookData.id,
           name: cookData.name,
           avatar_url: cookData.avatar_url,
         },
@@ -151,7 +151,7 @@ export class MealPlanService {
         },
         cook: cookData
           ? {
-              id: String(cookData.id),
+              id: cookData.id,
               name: cookData.name,
               avatar_url: cookData.avatar_url,
             }

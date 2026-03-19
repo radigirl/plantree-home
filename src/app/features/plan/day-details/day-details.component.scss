@@ -2,7 +2,6 @@
 
 .day-details-page {
   padding: 16px;
-  padding-bottom: 120px;
   background-color: $color-plan-shell;
   border-radius: $radius-large;
 }
@@ -166,7 +165,6 @@
 @media (min-width: 768px) {
   .day-details-page {
     padding: 24px;
-    padding-bottom: 120px;
   }
 
   .day-details-shell {
@@ -202,7 +200,6 @@
 @media (min-width: 1200px) {
   .day-details-page {
     padding: 32px;
-    padding-bottom: 32px;
   }
 
   .day-details-shell {

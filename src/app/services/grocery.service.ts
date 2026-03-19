@@ -1,0 +1,163 @@
+import { Injectable } from '@angular/core';
+import { SupabaseService } from './supabase.service';
+import { GroceryList } from '../models/grocery-list.model';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class GroceryService {
+  constructor(private supabaseService: SupabaseService) { }
+
+  async getGroceryLists(): Promise<GroceryList[]> {
+    const { data, error } = await this.supabaseService.supabase
+      .from('grocery_lists')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching grocery lists:', error);
+      return [];
+    }
+
+    return (data ?? []) as GroceryList[];
+  }
+
+  async getGroceryListById(id: string): Promise<GroceryList | null> {
+    const { data, error } = await this.supabaseService.supabase
+      .from('grocery_lists')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching grocery list by id:', error);
+      return null;
+    }
+
+    return data as GroceryList;
+  }
+
+  async createGroceryList(
+    name: string,
+    createdByUserId: number
+  ): Promise<GroceryList | null> {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      return null;
+    }
+
+    const { data, error } = await this.supabaseService.supabase
+      .from('grocery_lists')
+      .insert([
+        {
+          name: trimmedName,
+          status: 'active',
+          created_by_user_id: createdByUserId,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating grocery list:', error);
+      return null;
+    }
+
+    return data as GroceryList;
+  }
+
+  async getItemsByListId(listId: string): Promise<any[]> {
+  const { data, error } = await this.supabaseService.supabase
+    .from('grocery_list_items')
+    .select(`
+      *,
+      addedBy:users!grocery_list_items_added_by_user_id_fkey (
+        id,
+        name,
+        avatar_url
+      ),
+      boughtBy:users!grocery_list_items_bought_by_user_id_fkey (
+        id,
+        name,
+        avatar_url
+      )
+    `)
+    .eq('grocery_list_id', listId)
+    .order('created_at', { ascending: true })
+    .order('id', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching grocery items:', error);
+    return [];
+  }
+
+  console.log('GROCERY ITEMS WITH USERS:', data);
+
+  return data ?? [];
+}
+
+  async createGroceryItem(
+    listId: string,
+    name: string,
+    addedByUserId: number
+  ): Promise<any | null> {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      return null;
+    }
+
+    const { data, error } = await this.supabaseService.supabase
+      .from('grocery_list_items')
+      .insert([
+        {
+          grocery_list_id: listId,
+          name: trimmedName,
+          status: 'needed',
+          added_by_user_id: addedByUserId,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating grocery item:', error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async updateGroceryItemStatus(
+    itemId: string,
+    status: 'needed' | 'bought',
+    boughtByUserId?: number
+  ): Promise<boolean> {
+    const payload =
+      status === 'bought'
+        ? {
+          status,
+          bought_by_user_id: boughtByUserId ?? null,
+          bought_at: new Date().toISOString(),
+        }
+        : {
+          status,
+          bought_by_user_id: null,
+          bought_at: null,
+        };
+
+    const { error } = await this.supabaseService.supabase
+      .from('grocery_list_items')
+      .update(payload)
+      .eq('id', itemId);
+
+    if (error) {
+      console.error('Error updating grocery item status:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+}
