@@ -10,14 +10,15 @@
   gap: 12px;
   padding: 18px;
   border-radius: $radius-medium;
-  background: #fbfaf7;
-  border: 1px solid $color-border;
+  background: var(--dashboard-card-bg, #fbfaf7);
+  border: 1px solid var(--dashboard-card-border, #{$color-border});
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
-    border-color 0.15s ease;
-  min-height: 150px;
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+  min-height: 128px;
   overflow: visible;
 
   &--clickable {

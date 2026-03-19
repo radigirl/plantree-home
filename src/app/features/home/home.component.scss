@@ -3,9 +3,10 @@
 .home-page {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
 }
 
+/* kept for later use, currently commented in HTML */
 .page-header {
   display: flex;
   flex-direction: column;
@@ -27,16 +28,14 @@
 .home-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 16px;
 
-  @media (min-width: 768px) {
+  @media (min-width: 420px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   &__featured {
-    @media (min-width: 768px) {
-      grid-column: 1 / -1;
-    }
+    grid-column: 1 / -1;
   }
 }
 
@@ -44,8 +43,9 @@
 
 .today-card {
   display: grid;
-  gap: 16px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
 }
 
 .today-card-body {
@@ -53,8 +53,8 @@
 }
 
 .today-main-text {
-  margin: 0 0 12px;
-  font-size: 1.5rem;
+  margin: 0 0 10px;
+  font-size: 1.45rem;
   font-weight: 700;
   line-height: 1.15;
   color: $color-primary-dark;
@@ -63,13 +63,22 @@
 .today-cook-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 10px;
 }
 
+.today-cook-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .today-cook-icon {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .today-inline-avatar {
@@ -78,6 +87,7 @@
   border-radius: 50%;
   object-fit: cover;
   background-color: $color-primary-light;
+  flex-shrink: 0;
 }
 
 .today-secondary-text {
@@ -90,7 +100,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .today-status-badge,
@@ -100,8 +110,9 @@
   min-height: 30px;
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .today-status-badge {
@@ -138,11 +149,11 @@
 
 .today-card-image {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 20px;
+  border-radius: 18px;
   overflow: hidden;
   background-color: $color-primary-light;
   box-shadow: 0 8px 18px rgba(46, 58, 50, 0.08);
+  aspect-ratio: 4 / 3;
 }
 
 .today-meal-image {
@@ -152,28 +163,62 @@
 }
 
 .today-card-image--placeholder {
-  background: rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.35);
 }
 
-/* OTHER CARDS */
+/* SUMMARY / NAVIGATION CARDS */
 
-.mock-card-text {
-  margin: 0 0 8px;
-  font-size: 16px;
+.summary-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+}
+
+.summary-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 88px;
+  justify-content: center;
+}
+
+.summary-card-main {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $color-primary-dark;
+  line-height: 1.25;
+}
+
+.summary-card-secondary {
+  margin: 0;
+  font-size: 0.9rem;
   color: $color-text-muted;
+  line-height: 1.35;
+}
+
+.summary-card--lists {
+  --dashboard-card-bg: #f6f3ec;;
+  --dashboard-card-border: #eadcbc;
+}
+
+.summary-card--week {
+  --dashboard-card-bg: #eef5f3;
+  --dashboard-card-border: #cfe3de;
+}
+
+.summary-card--stats {
+  --dashboard-card-bg: #f7f9f8;
+  --dashboard-card-border: #ddd4ef;
 }
 
 /* MOBILE */
 
 @media (max-width: 767px) {
-
-  .today-card {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
   .today-main-text {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 
   .today-inline-avatar {
@@ -187,18 +232,25 @@
 
   .today-status-badge,
   .today-time-badge {
-    font-size: 0.8rem;
+    font-size: 0.79rem;
   }
 
+  .summary-card-content {
+    min-height: 82px;
+  }
 }
 
 /* TABLET */
 
 @media (min-width: 768px) {
+  .home-grid {
+    gap: 18px;
+  }
 
   .today-card {
-    grid-template-columns: 1fr 260px;
-    gap: 32px;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 24px;
+    align-items: center;
   }
 
   .today-card-image-wrap {
@@ -206,28 +258,31 @@
   }
 
   .today-card-image {
-    width: 260px;
-    max-width: 260px;
+    width: 220px;
+    max-width: 220px;
+    aspect-ratio: 1 / 1;
   }
 
   .today-main-text {
-    font-size: 1.9rem;
+    font-size: 1.75rem;
   }
 
+  .summary-card-content {
+    min-height: 96px;
+  }
 }
 
 /* DESKTOP */
 
 @media (min-width: 1024px) {
-
   .today-card {
-    grid-template-columns: 1fr 280px;
-    gap: 40px;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 28px;
   }
 
   .today-card-image {
-    width: 280px;
-    max-width: 280px;
+    width: 240px;
+    max-width: 240px;
   }
 
   .today-card-body {
@@ -237,7 +292,7 @@
   }
 
   .today-main-text {
-    font-size: 2rem;
+    font-size: 1.9rem;
   }
 
   .today-secondary-text {
@@ -246,11 +301,10 @@
 
   .today-status-badge,
   .today-time-badge {
-    font-size: 0.88rem;
+    font-size: 0.84rem;
   }
 
   .today-more-meals {
     font-size: 0.95rem;
   }
-
 }

@@ -1,7 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
 import { GroceryService } from '../../../services/grocery.service';
 import { GroceryList } from '../../../models/grocery-list.model';
@@ -14,19 +20,21 @@ import { UserStateService } from '../../../services/user.state.service';
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
 })
-export class GroceryListDetailsComponent implements OnInit {
+export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   isLoading = true;
   groceryList: GroceryList | null = null;
   groceryItems: any[] = [];
   error = '';
   newItemName = '';
 
+  private itemsChannel: RealtimeChannel | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private groceryService: GroceryService,
     private userStateService: UserStateService,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {}
 
   async ngOnInit(): Promise<void> {
     const listId = this.route.snapshot.paramMap.get('id');
@@ -39,6 +47,10 @@ export class GroceryListDetailsComponent implements OnInit {
     }
 
     await this.loadGroceryList(listId);
+  }
+
+  ngOnDestroy(): void {
+    this.itemsChannel?.unsubscribe();
   }
 
   async loadGroceryList(listId: string): Promise<void> {
@@ -54,6 +66,7 @@ export class GroceryListDetailsComponent implements OnInit {
       }
 
       this.groceryItems = await this.groceryService.getItemsByListId(listId);
+      this.subscribeToGroceryItems(listId);
     } catch (error) {
       console.error('Error loading grocery list:', error);
       this.error = 'Could not load grocery list.';
@@ -61,6 +74,31 @@ export class GroceryListDetailsComponent implements OnInit {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  subscribeToGroceryItems(listId: string): void {
+    this.itemsChannel?.unsubscribe();
+
+    this.itemsChannel = this.groceryService.supabase
+      .channel(`grocery-list-items-${listId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'grocery_list_items',
+          filter: `grocery_list_id=eq.${listId}`,
+        },
+        async () => {
+          if (!this.groceryList) {
+            return;
+          }
+
+          this.groceryItems = await this.groceryService.getItemsByListId(listId);
+          this.cdr.detectChanges();
+        }
+      )
+      .subscribe();
   }
 
   async addItem(): Promise<void> {
@@ -86,13 +124,14 @@ export class GroceryListDetailsComponent implements OnInit {
     }
 
     this.newItemName = '';
-    this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+    this.groceryItems = await this.groceryService.getItemsByListId(
+      this.groceryList.id
+    );
     this.cdr.detectChanges();
   }
 
   async toggleItem(item: any): Promise<void> {
     const nextStatus = item.status === 'bought' ? 'needed' : 'bought';
-
     const currentUser = this.userStateService.getCurrentUser();
     const boughtByUserId = currentUser?.id ?? 1;
 
@@ -106,7 +145,9 @@ export class GroceryListDetailsComponent implements OnInit {
       return;
     }
 
-    this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+    this.groceryItems = await this.groceryService.getItemsByListId(
+      this.groceryList.id
+    );
     this.cdr.detectChanges();
   }
 

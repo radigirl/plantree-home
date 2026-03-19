@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:gh": "ng build --base-href \"https://radigirl.github.io/plantree-home/\"",
+    "deploy:gh": "npx angular-cli-ghpages --dir=dist/plantree/browser",
+    "redeploy": "npm run build:gh && npm run deploy:gh"
   },
   "private": true,
   "packageManager": "npm@11.11.0",

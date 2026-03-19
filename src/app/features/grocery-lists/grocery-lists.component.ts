@@ -1,11 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { GroceryService } from '../../services/grocery.service';
 import { GroceryList } from '../../models/grocery-list.model';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import { UserStateService } from '../../services/user.state.service';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-grocery-lists',
@@ -14,7 +20,7 @@ import { Router } from '@angular/router';
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
 })
-export class GroceryListsComponent implements OnInit {
+export class GroceryListsComponent implements OnInit, OnDestroy {
   isLoading = true;
   groceryLists: GroceryList[] = [];
   error = '';
@@ -22,15 +28,22 @@ export class GroceryListsComponent implements OnInit {
   isCreatingList = false;
   newListName = '';
 
+  private listsChannel: RealtimeChannel | null = null;
+
   constructor(
     private groceryService: GroceryService,
     private userStateService: UserStateService,
     private cdr: ChangeDetectorRef,
     private router: Router
-  ) { }
+  ) {}
 
   async ngOnInit(): Promise<void> {
     await this.loadGroceryLists();
+    this.subscribeToGroceryLists();
+  }
+
+  ngOnDestroy(): void {
+    this.listsChannel?.unsubscribe();
   }
 
   async loadGroceryLists(): Promise<void> {
@@ -47,6 +60,26 @@ export class GroceryListsComponent implements OnInit {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  subscribeToGroceryLists(): void {
+    this.listsChannel?.unsubscribe();
+
+    this.listsChannel = this.groceryService.supabase
+      .channel('grocery-lists')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'grocery_lists',
+        },
+        async () => {
+          this.groceryLists = await this.groceryService.getGroceryLists();
+          this.cdr.detectChanges();
+        }
+      )
+      .subscribe();
   }
 
   startCreateList(): void {
@@ -84,11 +117,11 @@ export class GroceryListsComponent implements OnInit {
     this.isCreatingList = false;
     this.newListName = '';
 
-    await this.loadGroceryLists();
+    this.groceryLists = await this.groceryService.getGroceryLists();
+    this.cdr.detectChanges();
   }
 
   openList(list: GroceryList): void {
     this.router.navigate(['/grocery-lists', list.id]);
   }
-
 }

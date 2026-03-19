@@ -1,18 +1,24 @@
 <app-page-loading *ngIf="isLoading"></app-page-loading>
 
-
 <div *ngIf="!isLoading">
-
   <div class="home-page">
+
+    <!--
     <div class="page-header">
       <h1 class="page-title">Welcome to Plantree</h1>
       <p class="page-subtitle">
         From plan to pantry, all in one place.
       </p>
     </div>
+    -->
 
     <div class="home-grid">
-      <app-dashboard-card class="home-grid__featured" title="Today" [featured]="true" (cardClick)="openToday()">
+      <app-dashboard-card
+        class="home-grid__featured"
+        title="Today"
+        [featured]="true"
+        (cardClick)="openToday()"
+      >
         <ng-container *ngIf="!hasTodayMeals; else todayMealsContent">
           <div class="today-card today-card--empty">
             <div class="today-card-body">
@@ -22,7 +28,11 @@
 
             <div class="today-card-image-wrap">
               <div class="today-card-image today-card-image--placeholder">
-                <img src="assets/meals/blank-meal.png" alt="Meal placeholder" class="today-meal-image" />
+                <img
+                  src="assets/meals/blank-meal.png"
+                  alt="Meal placeholder"
+                  class="today-meal-image"
+                />
               </div>
             </div>
           </div>
@@ -36,14 +46,19 @@
               </p>
 
               <div class="today-cook-row">
-                <div class="today-cook-icon">🍳</div>
+                <div class="today-cook-info">
+                  <div class="today-cook-icon">🍳</div>
 
-                <img [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
-                  class="today-inline-avatar" [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'" />
+                  <img
+                    [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
+                    class="today-inline-avatar"
+                    [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'"
+                  />
 
-                <p class="today-secondary-text">
-                  {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
-                </p>
+                  <p class="today-secondary-text">
+                    {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
+                  </p>
+                </div>
               </div>
 
               <div class="today-meta-row">
@@ -63,25 +78,48 @@
 
             <div class="today-card-image-wrap">
               <div class="today-card-image">
-                <img [src]="firstTodayMeal?.meal?.image || 'assets/meals/blank-meal.png'" class="today-meal-image"
-                  [alt]="firstTodayMeal?.meal?.name || 'Meal image'" />
+                <img
+                  [src]="firstTodayMeal?.meal?.image || 'assets/meals/blank-meal.png'"
+                  class="today-meal-image"
+                  [alt]="firstTodayMeal?.meal?.name || 'Meal image'"
+                />
               </div>
             </div>
           </div>
         </ng-template>
       </app-dashboard-card>
 
-      <app-dashboard-card title="Week Plan" (cardClick)="openWeekPlan()">
-        <p class="mock-card-text">{{ plannedMealsCount }} meals planned this week</p>
-        <p class="today-secondary-text">{{ emptyDaysCount }} days still empty</p>
+      <app-dashboard-card
+        class="summary-card summary-card--lists"
+        title="Grocery Lists"
+        (cardClick)="openGroceryLists()"
+      >
+        <div class="summary-card-content">
+          <p class="summary-card-main">Open your lists</p>
+          <p class="summary-card-secondary">Check what to buy next</p>
+        </div>
       </app-dashboard-card>
 
-      <app-dashboard-card title="Grocery Lists" (cardClick)="openGroceryLists()">
-        <p class="mock-card-text">Grocery Lists</p>
+      <app-dashboard-card
+        class="summary-card summary-card--week"
+        title="Week Plan"
+        (cardClick)="openWeekPlan()"
+      >
+        <div class="summary-card-content">
+          <p class="summary-card-main">{{ plannedMealsCount }} meals planned</p>
+          <p class="summary-card-secondary">{{ emptyDaysCount }} days still empty</p>
+        </div>
       </app-dashboard-card>
 
-      <app-dashboard-card title="Week Stats" (cardClick)="openWeekStats()">
-        <p class="mock-card-text">Week Stats</p>
+      <app-dashboard-card
+        class="summary-card summary-card--stats"
+        title="Week Stats"
+        (cardClick)="openWeekStats()"
+      >
+        <div class="summary-card-content">
+          <p class="summary-card-main">View your weekly progress</p>
+          <p class="summary-card-secondary">Meals, activity and balance</p>
+        </div>
       </app-dashboard-card>
     </div>
   </div>

@@ -8,6 +8,10 @@ import { GroceryList } from '../models/grocery-list.model';
 export class GroceryService {
   constructor(private supabaseService: SupabaseService) { }
 
+  get supabase() {
+  return this.supabaseService.supabase;
+}
+
   async getGroceryLists(): Promise<GroceryList[]> {
     const { data, error } = await this.supabaseService.supabase
       .from('grocery_lists')
