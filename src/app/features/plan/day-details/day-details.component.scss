@@ -1,4 +1,5 @@
 @use '../../../../styles/variables' as *;
+@use 'sass:color';
 
 .day-details-page {
   padding: 16px;
@@ -58,10 +59,110 @@
   color: $color-text-muted;
 }
 
+.day-details-past-note {
+  margin: 0 0 16px;
+  font-size: 0.92rem;
+  color: $color-text-muted;
+}
+
+.day-details-actions {
+  margin-bottom: 16px;
+}
+
+.add-meal-button,
+.save-button,
+.cancel-button {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.add-meal-button,
+.save-button {
+  background-color: $color-button-primary;
+  color: $color-text-on-primary;
+}
+
+.add-meal-button:hover,
+.save-button:hover {
+  background-color: $color-button-primary-hover;
+}
+
+.add-meal-button:disabled,
+.add-meal-button--disabled {
+  background-color: $color-border;
+  color: $color-text-muted;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.add-meal-button:disabled:hover,
+.add-meal-button--disabled:hover {
+  background-color: $color-border;
+}
+
+.cancel-button {
+  background-color: $color-primary-light;
+  color: $color-text;
+}
+
+.cancel-button:hover {
+  opacity: 0.9;
+}
+
+.add-meal-form {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid $color-border;
+  border-radius: 24px;
+  background-color: $color-surface;
+}
+
+.add-meal-field {
+  display: grid;
+  gap: 6px;
+}
+
+.add-meal-field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $color-text;
+}
+
+.add-meal-field input,
+.add-meal-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid $color-border;
+  border-radius: $radius-small;
+  font: inherit;
+  color: $color-text;
+  background: $color-surface;
+  outline: none;
+}
+
+.add-meal-field input:focus,
+.add-meal-field select:focus {
+  border-color: $color-primary-soft;
+}
+
+.add-meal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .day-details-list {
   display: grid;
   grid-template-columns: 1fr;
   gap: 18px;
+  align-items: stretch;
 }
 
 .day-details-card {
@@ -73,6 +174,8 @@
   border-radius: 24px;
   background-color: $color-plan-card;
   box-shadow: 0 3px 10px rgba(46, 58, 50, 0.04);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .day-details-empty {
@@ -84,6 +187,8 @@
   border: 1px dashed $color-border;
   border-radius: 24px;
   background-color: $color-surface;
+  position: relative;
+  overflow: hidden;
 }
 
 .day-details-empty-text {
@@ -104,6 +209,7 @@
   line-height: 1.25;
   font-weight: 700;
   color: $color-text;
+  word-break: break-word;
 }
 
 .meal-cook-row {
@@ -157,6 +263,7 @@
 }
 
 .meal-image-img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -179,7 +286,12 @@
     font-size: 1.8rem;
   }
 
+  .add-meal-form {
+    padding: 20px;
+  }
+
   .day-details-list {
+    grid-template-columns: 1fr;
     gap: 20px;
   }
 
@@ -213,7 +325,7 @@
   .day-details-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 24px;
-    align-items: start;
+    align-items: stretch;
   }
 
   .day-details-card {
@@ -223,4 +335,51 @@
   .meal-image {
     aspect-ratio: 4 / 3;
   }
+}
+
+.day-details-shell--past {
+  position: relative;
+}
+
+.day-details-shell--past .day-details-card,
+.day-details-shell--past .day-details-empty,
+.day-details-shell--past .add-meal-form {
+  position: relative;
+  background-color: $color-background;
+  border-color: color.adjust($color-border, $lightness: -2%);
+}
+
+.day-details-shell--past .day-details-card::after,
+.day-details-shell--past .day-details-empty::after,
+.day-details-shell--past .add-meal-form::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.day-details-shell--past .day-details-card > *,
+.day-details-shell--past .day-details-empty > *,
+.day-details-shell--past .add-meal-form > * {
+  position: relative;
+  z-index: 0;
+}
+
+.day-details-shell--past .day-details-title,
+.day-details-shell--past .day-details-subtitle,
+.day-details-shell--past .meal-name,
+.day-details-shell--past .meal-cook,
+.day-details-shell--past .meal-status,
+.day-details-shell--past .meal-time,
+.day-details-shell--past .day-details-empty-text,
+.day-details-shell--past .day-details-past-note {
+  color: $color-text-muted;
+}
+
+.day-details-shell--past .meal-image-img,
+.day-details-shell--past .meal-cook-avatar {
+  filter: saturate(0.88);
 }

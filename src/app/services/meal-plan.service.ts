@@ -7,7 +7,7 @@ import { SupabaseService } from './supabase.service';
   providedIn: 'root',
 })
 export class MealPlanService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private supabaseService: SupabaseService) { }
 
   async getWeekPlan(weekStart: Date): Promise<DayPlan[]> {
     const monday = new Date(weekStart);
@@ -151,10 +151,10 @@ export class MealPlanService {
         },
         cook: cookData
           ? {
-              id: cookData.id,
-              name: cookData.name,
-              avatar_url: cookData.avatar_url,
-            }
+            id: cookData.id,
+            name: cookData.name,
+            avatar_url: cookData.avatar_url,
+          }
           : undefined,
       };
 
@@ -163,6 +163,80 @@ export class MealPlanService {
 
     return meals;
   }
+
+  async createMealAndPlan(
+    name: string,
+    prepTime: number | null,
+    cookUserId: number | null,
+    date: string
+  ): Promise<void> {
+    // create meal
+    const mealId = crypto.randomUUID();
+
+    const { error: mealError } = await this.supabaseService.supabase
+      .from('meals')
+      .insert({
+        id: mealId,
+        name: name,
+        prep_time: prepTime ?? null,
+        ingredients: [],
+      });
+
+    if (mealError) {
+      console.error('Error creating meal:', mealError);
+      throw mealError;
+    }
+
+    // create planned meal
+    const plannedId = crypto.randomUUID();
+
+    const { error: planError } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .insert({
+        id: plannedId,
+        meal_id: mealId,
+        cook_user_id: cookUserId,
+        planned_date: date,
+        status: 'to-prepare',
+      });
+
+    if (planError) {
+      console.error('Error creating planned meal:', planError);
+      throw planError;
+    }
+  }
+
+  async updatePlannedMealStatus(
+  plannedMealId: string,
+  status: 'to-prepare' | 'in-progress' | 'ready-to-serve'
+): Promise<void> {
+  console.log('Updating planned meal', { plannedMealId, status });
+
+  const { data, error } = await this.supabaseService.supabase
+    .from('planned_meals')
+    .update({ status })
+    .eq('id', plannedMealId)
+    .select();
+
+  if (error) {
+    console.error('Error updating planned meal status:', error);
+    throw error;
+  }
+
+  console.log('Updated rows:', data);
+}
+
+async deletePlannedMeal(plannedMealId: string): Promise<void> {
+  const { error } = await this.supabaseService.supabase
+    .from('planned_meals')
+    .delete()
+    .eq('id', plannedMealId);
+
+  if (error) {
+    console.error('Error deleting planned meal:', error);
+    throw error;
+  }
+}
 
   private formatDateLocal(date: Date): string {
     const year = date.getFullYear();

@@ -28,27 +28,18 @@
   </div>
 
   <div class="weekday-strip" *ngIf="!isLoading">
-    <div
-      class="weekday-pill"
-      *ngFor="let item of weekMeals; let i = index"
-      [class.weekday-pill--today]="isTodayIndex(i)"
-      [class.weekday-pill--past]="isPastDayIndex(i)"
-      (click)="scrollToDay(i)"
-    >
+    <div class="weekday-pill" *ngFor="let item of weekMeals; let i = index"
+      [class.weekday-pill--today]="isTodayIndex(i)" [class.weekday-pill--past]="isPastDayIndex(i)"
+      (click)="scrollToDay(i)">
       <span class="weekday-name">{{ item.day }}</span>
       <span class="weekday-date">{{ item.date }}</span>
     </div>
   </div>
 
   <div class="meal-list" *ngIf="!isLoading">
-    <div
-      #mealCard
-      class="meal-card"
-      *ngFor="let item of weekMeals; let i = index"
-      [class.meal-card--past]="isPastDayIndex(i)"
-      [class.meal-card--today]="isTodayIndex(i)"
-      [routerLink]="['/plan/day', item.fullDate]"
-    >
+    <div #mealCard class="meal-card" *ngFor="let item of weekMeals; let i = index"
+      [class.meal-card--past]="isPastDayIndex(i)" [class.meal-card--today]="isTodayIndex(i)"
+      [routerLink]="['/plan/day', item.fullDate]">
       <div class="meal-day">
         <span class="day">{{ item.day }}</span>
         <span class="date">{{ item.date }}</span>
@@ -63,11 +54,8 @@
           <div class="meal-cook-row">
             <div class="cook-icon">🍳</div>
 
-            <img
-              [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/mom.png'"
-              class="meal-cook-avatar"
-              [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'"
-            />
+            <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/mom.png'" class="meal-cook-avatar"
+              [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
 
             <p class="meal-cook">
               {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
@@ -79,15 +67,12 @@
               {{ getStatusLabel(firstMeal.status) }}
             </span>
 
-            <span class="meal-time">
+            <span class="meal-time" *ngIf="firstMeal.meal.prepTime != null">
               ⏱ {{ firstMeal.meal.prepTime }} min
             </span>
           </div>
 
-          <p
-            class="meal-more"
-            *ngIf="getAdditionalMealsCount(item) > 0"
-          >
+          <p class="meal-more" *ngIf="getAdditionalMealsCount(item) > 0">
             +{{ getAdditionalMealsCount(item) }} more meal<span *ngIf="getAdditionalMealsCount(item) > 1">s</span>
             <span class="meal-more__arrow">→</span>
           </p>
@@ -101,11 +86,8 @@
       </div>
 
       <div class="meal-avatar" *ngIf="hasMeals(item); else emptyAvatar">
-        <img
-          [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/mom.png'"
-          class="meal-avatar-img"
-          [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'"
-        />
+        <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/mom.png'" class="meal-avatar-img"
+          [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
       </div>
 
       <ng-template #emptyAvatar>
@@ -113,11 +95,8 @@
       </ng-template>
 
       <div class="meal-image">
-        <img
-          [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/blank-meal.png'"
-          class="meal-image-img"
-          [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'"
-        />
+        <img [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/blank-meal.png'" class="meal-image-img"
+          [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
       </div>
     </div>
   </div>

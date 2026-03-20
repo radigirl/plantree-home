@@ -3,7 +3,11 @@
     <app-page-loading></app-page-loading>
   </div>
 
-  <div class="day-details-shell" *ngIf="!isLoading">
+  <div
+    class="day-details-shell"
+    *ngIf="!isLoading"
+    [class.day-details-shell--past]="isPastDate()"
+  >
     <a routerLink="/plan" class="back-link">
       <span class="back-link__arrow">←</span>
       <span>Back to plan</span>
@@ -19,6 +23,66 @@
       <p class="day-details-subtitle" *ngIf="meals.length === 0">
         No meals planned yet
       </p>
+    </div>
+
+    <p class="day-details-past-note" *ngIf="isPastDate()">
+      This day has already passed. Meals can be viewed, but new meals cannot be added.
+    </p>
+
+    <div class="day-details-actions">
+      <button
+        type="button"
+        class="add-meal-button"
+        *ngIf="!isAddingMeal"
+        [disabled]="isPastDate()"
+        [class.add-meal-button--disabled]="isPastDate()"
+        (click)="startAddMeal()"
+      >
+        + Add meal
+      </button>
+    </div>
+
+    <div class="add-meal-form" *ngIf="isAddingMeal">
+      <div class="add-meal-field">
+        <label for="mealName">Meal name</label>
+        <input
+          id="mealName"
+          type="text"
+          [(ngModel)]="newMealName"
+          placeholder="Enter meal name"
+        />
+      </div>
+
+      <div class="add-meal-field">
+        <label for="cook">Cook</label>
+        <select id="cook" [(ngModel)]="selectedCookId">
+          <option [ngValue]="null">Unassigned</option>
+          <option *ngFor="let user of availableUsers" [ngValue]="user.id">
+            {{ user.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="add-meal-field">
+        <label for="prepTime">Prep time (minutes)</label>
+        <input
+          id="prepTime"
+          type="number"
+          min="0"
+          [(ngModel)]="newPrepTime"
+          placeholder="Optional"
+        />
+      </div>
+
+      <div class="add-meal-actions">
+        <button type="button" class="save-button" (click)="saveMeal()">
+          Save
+        </button>
+
+        <button type="button" class="cancel-button" (click)="cancelAddMeal()">
+          Cancel
+        </button>
+      </div>
     </div>
 
     <div class="day-details-empty" *ngIf="meals.length === 0">
@@ -51,7 +115,7 @@
               {{ getStatusLabel(meal.status) }}
             </span>
 
-            <span class="meal-time">
+            <span class="meal-time" *ngIf="meal.meal.prepTime != null">
               ⏱ {{ meal.meal.prepTime }} min
             </span>
           </div>
