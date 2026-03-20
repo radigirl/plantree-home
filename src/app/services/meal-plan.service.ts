@@ -85,7 +85,9 @@ export class MealPlanService {
           name: mealData.name,
           prepTime: mealData.prep_time,
           ingredients: mealData.ingredients ?? [],
-          image: mealData.image_url,
+          image: mealData.image_url?.startsWith('assets/')
+            ? mealData.image_url
+            : this.supabaseService.getMealImageUrl(mealData.image_url),
         },
         cook: {
           id: cookData.id,
@@ -147,7 +149,9 @@ export class MealPlanService {
           name: mealData.name,
           prepTime: mealData.prep_time,
           ingredients: mealData.ingredients ?? [],
-          image: mealData.image_url,
+          image: mealData.image_url?.startsWith('assets/')
+            ? mealData.image_url
+            : this.supabaseService.getMealImageUrl(mealData.image_url),
         },
         cook: cookData
           ? {
@@ -168,18 +172,19 @@ export class MealPlanService {
     name: string,
     prepTime: number | null,
     cookUserId: number | null,
-    date: string
+    date: string,
+    imagePath?: string | null
   ): Promise<void> {
-    // create meal
     const mealId = crypto.randomUUID();
 
     const { error: mealError } = await this.supabaseService.supabase
       .from('meals')
       .insert({
         id: mealId,
-        name: name,
+        name,
         prep_time: prepTime ?? null,
         ingredients: [],
+        image_url: imagePath ?? null,
       });
 
     if (mealError) {
@@ -187,7 +192,6 @@ export class MealPlanService {
       throw mealError;
     }
 
-    // create planned meal
     const plannedId = crypto.randomUUID();
 
     const { error: planError } = await this.supabaseService.supabase
@@ -207,36 +211,155 @@ export class MealPlanService {
   }
 
   async updatePlannedMealStatus(
-  plannedMealId: string,
-  status: 'to-prepare' | 'in-progress' | 'ready-to-serve'
-): Promise<void> {
-  console.log('Updating planned meal', { plannedMealId, status });
+    plannedMealId: string,
+    status: 'to-prepare' | 'in-progress' | 'ready-to-serve'
+  ): Promise<void> {
+    const { data, error } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .update({ status })
+      .eq('id', plannedMealId)
+      .select();
 
-  const { data, error } = await this.supabaseService.supabase
-    .from('planned_meals')
-    .update({ status })
-    .eq('id', plannedMealId)
-    .select();
+    if (error) {
+      console.error('Error updating planned meal status:', error);
+      throw error;
+    }
 
-  if (error) {
-    console.error('Error updating planned meal status:', error);
-    throw error;
+    console.log('Updated rows:', data);
   }
 
-  console.log('Updated rows:', data);
-}
+  async deletePlannedMeal(plannedMealId: string): Promise<void> {
+    const { data: plannedMeal, error: fetchPlannedError } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .select('meal_id')
+      .eq('id', plannedMealId)
+      .single();
 
-async deletePlannedMeal(plannedMealId: string): Promise<void> {
-  const { error } = await this.supabaseService.supabase
-    .from('planned_meals')
-    .delete()
-    .eq('id', plannedMealId);
+    if (fetchPlannedError) {
+      console.error('Error fetching planned meal before delete:', fetchPlannedError);
+      throw fetchPlannedError;
+    }
 
-  if (error) {
-    console.error('Error deleting planned meal:', error);
-    throw error;
+    const mealId = plannedMeal?.meal_id;
+
+    let imagePath: string | null = null;
+
+    if (mealId) {
+      const { data: mealData, error: fetchMealError } = await this.supabaseService.supabase
+        .from('meals')
+        .select('image_url')
+        .eq('id', mealId)
+        .single();
+
+      if (fetchMealError) {
+        console.error('Error fetching meal image before delete:', fetchMealError);
+        throw fetchMealError;
+      }
+
+      imagePath = mealData?.image_url ?? null;
+    }
+
+    if (imagePath && imagePath.startsWith('meals/')) {
+      try {
+        await this.supabaseService.deleteMealImage(imagePath);
+      } catch (error) {
+        console.error('Error deleting meal image during delete:', error);
+      }
+    }
+
+    const { error: deletePlannedError } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .delete()
+      .eq('id', plannedMealId);
+
+    if (deletePlannedError) {
+      console.error('Error deleting planned meal:', deletePlannedError);
+      throw deletePlannedError;
+    }
+
+    if (mealId) {
+      const { error: deleteMealError } = await this.supabaseService.supabase
+        .from('meals')
+        .delete()
+        .eq('id', mealId);
+
+      if (deleteMealError) {
+        console.error('Error deleting meal row:', deleteMealError);
+        throw deleteMealError;
+      }
+    }
   }
-}
+
+  async updateMealDetails(
+    mealId: string,
+    name: string,
+    prepTime: number | null,
+    imagePath?: string
+  ): Promise<void> {
+    const { data: existingMeal, error: fetchError } = await this.supabaseService.supabase
+      .from('meals')
+      .select('image_url')
+      .eq('id', mealId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching existing meal image:', fetchError);
+      throw fetchError;
+    }
+
+    const oldImagePath = existingMeal?.image_url ?? null;
+
+    if (
+      imagePath &&
+      oldImagePath &&
+      oldImagePath !== imagePath &&
+      oldImagePath.startsWith('meals/')
+    ) {
+      try {
+        await this.supabaseService.deleteMealImage(oldImagePath);
+      } catch (error) {
+        console.error('Error deleting old meal image during update:', error);
+      }
+    }
+
+    const payload: {
+      name: string;
+      prep_time: number | null;
+      image_url?: string | null;
+    } = {
+      name,
+      prep_time: prepTime ?? null,
+    };
+
+    if (imagePath !== undefined) {
+      payload.image_url = imagePath;
+    }
+
+    const { error } = await this.supabaseService.supabase
+      .from('meals')
+      .update(payload)
+      .eq('id', mealId);
+
+    if (error) {
+      console.error('Error updating meal details:', error);
+      throw error;
+    }
+  }
+
+  async updatePlannedMealCook(
+    plannedMealId: string,
+    cookUserId: number | null
+  ): Promise<void> {
+    const { error } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .update({ cook_user_id: cookUserId })
+      .eq('id', plannedMealId);
+
+    if (error) {
+      console.error('Error updating planned meal cook:', error);
+      throw error;
+    }
+  }
 
   private formatDateLocal(date: Date): string {
     const year = date.getFullYear();
@@ -245,43 +368,4 @@ async deletePlannedMeal(plannedMealId: string): Promise<void> {
 
     return `${year}-${month}-${day}`;
   }
-
- async updateMealDetails(
-  mealId: string,
-  name: string,
-  prepTime: number | null
-): Promise<void> {
-  console.log('Updating meals row with id:', mealId);
-
-  const { data, error } = await this.supabaseService.supabase
-    .from('meals')
-    .update({
-      name,
-      prep_time: prepTime,
-    })
-    .eq('id', mealId)
-    .select();
-
-  console.log('Updated meal rows:', data);
-
-  if (error) {
-    console.error('Error updating meal details:', error);
-    throw error;
-  }
-}
-
-async updatePlannedMealCook(
-  plannedMealId: string,
-  cookUserId: number | null
-): Promise<void> {
-  const { error } = await this.supabaseService.supabase
-    .from('planned_meals')
-    .update({ cook_user_id: cookUserId })
-    .eq('id', plannedMealId);
-
-  if (error) {
-    console.error('Error updating planned meal cook:', error);
-    throw error;
-  }
-}
 }

@@ -3,11 +3,7 @@
     <app-page-loading></app-page-loading>
   </div>
 
-  <div
-    class="day-details-shell"
-    *ngIf="!isLoading"
-    [class.day-details-shell--past]="isPastDate()"
-  >
+  <div class="day-details-shell" *ngIf="!isLoading" [class.day-details-shell--past]="isPastDate()">
     <a routerLink="/plan" class="back-link">
       <span class="back-link__icon">←</span>
       <span>Back to plan</span>
@@ -30,27 +26,16 @@
     </p>
 
     <div class="day-details-actions">
-      <button
-        type="button"
-        class="add-meal-button"
-        *ngIf="!isAddingMeal && !isEditingMeal"
-        [disabled]="isPastDate()"
-        [class.add-meal-button--disabled]="isPastDate()"
-        (click)="startAddMeal()"
-      >
+      <button type="button" class="add-meal-button" *ngIf="!isAddingMeal && !isEditingMeal" [disabled]="isPastDate()"
+        [class.add-meal-button--disabled]="isPastDate()" (click)="startAddMeal()">
         + Add meal
       </button>
     </div>
 
-    <div class="add-meal-form" *ngIf="isAddingMeal || isEditingMeal">
+    <div class="add-meal-form" *ngIf="isAddingMeal || isEditingMeal" #mealFormContainer>
       <div class="add-meal-field">
         <label for="mealName">Meal name</label>
-        <input
-          id="mealName"
-          type="text"
-          [(ngModel)]="newMealName"
-          placeholder="Enter meal name"
-        />
+        <input id="mealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
       </div>
 
       <div class="add-meal-field">
@@ -65,21 +50,24 @@
 
       <div class="add-meal-field">
         <label for="prepTime">Prep time (minutes)</label>
-        <input
-          id="prepTime"
-          type="number"
-          min="0"
-          [(ngModel)]="newPrepTime"
-          placeholder="Optional"
-        />
+        <input id="prepTime" type="number" min="0" [(ngModel)]="newPrepTime" placeholder="Optional" />
+      </div>
+
+      <div class="add-meal-field">
+        <label for="mealImage">Meal photo</label>
+        <input id="mealImage" type="file" accept="image/*" (change)="onMealImageSelected($event)" />
+
+        <div class="meal-image-preview" *ngIf="selectedImagePreview">
+          <img [src]="selectedImagePreview" alt="Selected meal preview" class="meal-image-preview__img" />
+
+          <button type="button" class="cancel-button" (click)="removeSelectedMealImage()">
+            Remove photo
+          </button>
+        </div>
       </div>
 
       <div class="add-meal-actions">
-        <button
-          type="button"
-          class="save-button"
-          (click)="isEditingMeal ? updateMeal() : saveMeal()"
-        >
+        <button type="button" class="save-button" (click)="isEditingMeal ? updateMeal() : saveMeal()">
           {{ isEditingMeal ? 'Update' : 'Save' }}
         </button>
 
@@ -96,42 +84,24 @@
     <div class="day-details-list" *ngIf="meals.length > 0">
       <div class="day-details-card" *ngFor="let meal of meals">
         <div class="meal-menu-wrapper">
-          <button
-            type="button"
-            class="meal-menu-button"
-            [disabled]="isPastDate()"
-            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"
-            aria-label="Meal actions"
-          >
+          <button type="button" class="meal-menu-button" [disabled]="isPastDate()"
+            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)" aria-label="Meal actions">
             ⋯
           </button>
 
-          <div
-            class="meal-menu-dropdown"
-            *ngIf="openMealMenuId === meal.id && !isPastDate()"
-          >
-            <button
-              type="button"
-              class="meal-menu-item"
-              *ngIf="getPrimaryActionLabel(meal.status)"
-              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)"
-            >
+          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isPastDate()">
+            <button type="button" class="meal-menu-item" *ngIf="getPrimaryActionLabel(meal.status)"
+              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)">
               {{ getPrimaryActionLabel(meal.status) }}
             </button>
 
-            <button
-              type="button"
-              class="meal-menu-item"
-              (click)="$event.stopPropagation(); closeMealMenu(); onEditMeal(meal)"
-            >
+            <button type="button" class="meal-menu-item"
+              (click)="$event.stopPropagation(); closeMealMenu(); onEditMeal(meal)">
               Edit
             </button>
 
-            <button
-              type="button"
-              class="meal-menu-item meal-menu-item--danger"
-              (click)="$event.stopPropagation(); closeMealMenu(); onDeleteMeal(meal)"
-            >
+            <button type="button" class="meal-menu-item meal-menu-item--danger"
+              (click)="$event.stopPropagation(); closeMealMenu(); onDeleteMeal(meal)">
               Delete
             </button>
           </div>
@@ -147,11 +117,8 @@
               <div class="meal-cook-row">
                 <span class="meal-cook-label">Cook:</span>
 
-                <img
-                  [src]="meal.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-                  class="meal-cook-avatar"
-                  [alt]="meal.cook?.name || 'Cook avatar'"
-                />
+                <img [src]="meal.cook?.avatar_url || 'assets/avatars/unassigned.png'" class="meal-cook-avatar"
+                  [alt]="meal.cook?.name || 'Cook avatar'" />
 
                 <p class="meal-cook">
                   {{ meal.cook?.name || 'Unassigned' }}
@@ -174,11 +141,8 @@
           </div>
 
           <div class="meal-image">
-            <img
-              [src]="meal.meal.image || 'assets/meals/blank-meal.png'"
-              class="meal-image-img"
-              [alt]="meal.meal.name || 'Meal image'"
-            />
+            <img [src]="meal.meal.image || 'assets/meals/blank-meal.png'" class="meal-image-img"
+              [alt]="meal.meal.name || 'Meal image'" />
           </div>
         </div>
       </div>

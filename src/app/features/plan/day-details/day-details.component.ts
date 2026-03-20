@@ -4,6 +4,7 @@ import {
   ElementRef,
   HostListener,
   OnInit,
+  ViewChild,
 } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -40,13 +41,17 @@ export class DayDetailsComponent implements OnInit {
   availableUsers: FamilyMember[] = [];
   openMealMenuId: string | null = null;
 
+  selectedImageFile: File | null = null;
+  selectedImagePreview: string | null = null;
+
+  @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
+
   constructor(
     private route: ActivatedRoute,
     private mealPlanService: MealPlanService,
     private userStateService: UserStateService,
     private supabaseService: SupabaseService,
-    private cdr: ChangeDetectorRef,
-    private elementRef: ElementRef
+    private cdr: ChangeDetectorRef
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -117,6 +122,8 @@ export class DayDetailsComponent implements OnInit {
 
     this.newMealName = '';
     this.newPrepTime = null;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
 
     const currentUser = this.userStateService.getCurrentUser();
     this.selectedCookId = currentUser?.id ?? null;
@@ -131,19 +138,64 @@ export class DayDetailsComponent implements OnInit {
     this.newPrepTime = null;
     this.selectedCookId = null;
     this.openMealMenuId = null;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+  }
+
+  onMealImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (!file) {
+      this.selectedImageFile = null;
+      this.selectedImagePreview = null;
+      return;
+    }
+
+    this.selectedImageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.selectedImagePreview = reader.result as string;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeSelectedMealImage(): void {
+    this.selectedImageFile = null;
+
+    if (!this.isEditingMeal) {
+      this.selectedImagePreview = null;
+    }
   }
 
   async saveMeal(): Promise<void> {
+    console.log('saving meal');
+
     if (!this.date || !this.newMealName.trim()) {
       return;
     }
 
     try {
+      let imagePath: string | null = null;
+
+      if (this.selectedImageFile) {
+        const extension = this.selectedImageFile.name.split('.').pop() || 'jpg';
+        const fileName = `${crypto.randomUUID()}.${extension}`;
+
+        imagePath = await this.supabaseService.uploadMealImage(
+          this.selectedImageFile,
+          fileName
+        );
+      }
+
       await this.mealPlanService.createMealAndPlan(
         this.newMealName.trim(),
         this.newPrepTime,
         this.selectedCookId,
-        this.date
+        this.date,
+        imagePath
       );
 
       this.cancelAddMeal();
@@ -166,10 +218,23 @@ export class DayDetailsComponent implements OnInit {
     }
 
     try {
+      let imagePath: string | undefined;
+
+      if (this.selectedImageFile) {
+        const extension = this.selectedImageFile.name.split('.').pop() || 'jpg';
+        const fileName = `${crypto.randomUUID()}.${extension}`;
+
+        imagePath = await this.supabaseService.uploadMealImage(
+          this.selectedImageFile,
+          fileName
+        );
+      }
+
       await this.mealPlanService.updateMealDetails(
         this.editingMealId,
         this.newMealName.trim(),
-        this.newPrepTime
+        this.newPrepTime,
+        imagePath
       );
 
       await this.mealPlanService.updatePlannedMealCook(
@@ -185,6 +250,15 @@ export class DayDetailsComponent implements OnInit {
       this.cdr.detectChanges();
     }
   }
+
+  private scrollFormIntoView(): void {
+  setTimeout(() => {
+    this.mealFormContainer?.nativeElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }, 0);
+}
 
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
@@ -295,7 +369,12 @@ export class DayDetailsComponent implements OnInit {
     this.newMealName = meal.meal.name ?? '';
     this.newPrepTime = meal.meal.prepTime ?? null;
     this.selectedCookId = meal.cook?.id ?? null;
+
+    this.selectedImageFile = null;
+    this.selectedImagePreview = meal.meal.image ?? null;
+
     this.closeMealMenu();
+    this.scrollFormIntoView();
   }
 
   async onDeleteMeal(meal: PlannedMeal): Promise<void> {
