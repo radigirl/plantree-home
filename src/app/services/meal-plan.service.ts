@@ -245,4 +245,43 @@ async deletePlannedMeal(plannedMealId: string): Promise<void> {
 
     return `${year}-${month}-${day}`;
   }
+
+ async updateMealDetails(
+  mealId: string,
+  name: string,
+  prepTime: number | null
+): Promise<void> {
+  console.log('Updating meals row with id:', mealId);
+
+  const { data, error } = await this.supabaseService.supabase
+    .from('meals')
+    .update({
+      name,
+      prep_time: prepTime,
+    })
+    .eq('id', mealId)
+    .select();
+
+  console.log('Updated meal rows:', data);
+
+  if (error) {
+    console.error('Error updating meal details:', error);
+    throw error;
+  }
+}
+
+async updatePlannedMealCook(
+  plannedMealId: string,
+  cookUserId: number | null
+): Promise<void> {
+  const { error } = await this.supabaseService.supabase
+    .from('planned_meals')
+    .update({ cook_user_id: cookUserId })
+    .eq('id', plannedMealId);
+
+  if (error) {
+    console.error('Error updating planned meal cook:', error);
+    throw error;
+  }
+}
 }
