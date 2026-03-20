@@ -6,7 +6,7 @@
 
     <ng-container *ngIf="!isLoading">
       <a routerLink="/grocery-lists" class="back-link">
-        <span class="back-link__arrow">←</span>
+        <span class="back-link__icon">←</span>
         <span>Back to grocery lists</span>
       </a>
 
@@ -19,41 +19,21 @@
         </div>
 
         <div class="add-item-row">
-          <input
-            type="text"
-            [(ngModel)]="newItemName"
-            placeholder="Add item"
-            class="add-item-input"
-          />
-          <button
-            type="button"
-            class="add-item-button"
-            (click)="addItem()"
-          >
+          <input type="text" [(ngModel)]="newItemName" placeholder="Add item" class="add-item-input" />
+          <button type="button" class="add-item-button" (click)="addItem()">
             Add
           </button>
         </div>
 
         <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list">
-          <button
-            type="button"
-            class="grocery-item"
-            *ngFor="let item of groceryItems"
-            (click)="toggleItem(item)"
-          >
+          <button type="button" class="grocery-item" *ngFor="let item of groceryItems" (click)="toggleItem(item)">
             <span class="grocery-item-left">
-              <span
-                class="grocery-item-checkbox"
-                [class.grocery-item-checkbox--checked]="item.status === 'bought'"
-              >
+              <span class="grocery-item-checkbox" [class.grocery-item-checkbox--checked]="item.status === 'bought'">
                 {{ item.status === 'bought' ? '✓' : '' }}
               </span>
 
               <span class="grocery-item-content" *ngIf="getItemMetaParts(item) as meta">
-                <span
-                  class="grocery-item-name"
-                  [class.grocery-item-name--bought]="item.status === 'bought'"
-                >
+                <span class="grocery-item-name" [class.grocery-item-name--bought]="item.status === 'bought'">
                   {{ item.name }}
                 </span>
 

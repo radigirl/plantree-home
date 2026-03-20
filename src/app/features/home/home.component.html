@@ -46,19 +46,17 @@
               </p>
 
               <div class="today-cook-row">
-                <div class="today-cook-info">
-                  <div class="today-cook-icon">🍳</div>
+                <span class="today-cook-label">Cook:</span>
 
-                  <img
-                    [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
-                    class="today-inline-avatar"
-                    [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'"
-                  />
+                <img
+                  [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
+                  class="today-inline-avatar"
+                  [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'"
+                />
 
-                  <p class="today-secondary-text">
-                    {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
-                  </p>
-                </div>
+                <p class="today-secondary-text">
+                  {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
+                </p>
               </div>
 
               <div class="today-meta-row">
@@ -67,7 +65,8 @@
                 </span>
 
                 <span class="today-time-badge" *ngIf="firstTodayMeal?.meal?.prepTime">
-                  ⏱ {{ firstTodayMeal?.meal?.prepTime }} min
+                  <span class="today-time-icon">◷</span>
+                  {{ firstTodayMeal?.meal?.prepTime }} min
                 </span>
               </div>
 

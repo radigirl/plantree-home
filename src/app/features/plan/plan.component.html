@@ -52,10 +52,10 @@
           </p>
 
           <div class="meal-cook-row">
-            <div class="cook-icon">🍳</div>
+            <span class="meal-cook-label">Cook:</span>
 
-            <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/mom.png'" class="meal-cook-avatar"
-              [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
+            <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
+              class="meal-cook-avatar" [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
 
             <p class="meal-cook">
               {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
@@ -68,13 +68,18 @@
             </span>
 
             <span class="meal-time" *ngIf="firstMeal.meal.prepTime != null">
-              ⏱ {{ firstMeal.meal.prepTime }} min
+              <span class="meal-time-icon">◷</span>
+              {{ firstMeal.meal.prepTime }} min
             </span>
           </div>
 
-          <p class="meal-more" *ngIf="getAdditionalMealsCount(item) > 0">
-            +{{ getAdditionalMealsCount(item) }} more meal<span *ngIf="getAdditionalMealsCount(item) > 1">s</span>
-            <span class="meal-more__arrow">→</span>
+          <p class="meal-more" [class.meal-more--hidden]="getAdditionalMealsCount(item) === 0">
+            <ng-container *ngIf="getAdditionalMealsCount(item) > 0">
+              <span class="meal-more__text">
+                +{{ getAdditionalMealsCount(item) }} more meal<span *ngIf="getAdditionalMealsCount(item) > 1">s</span>
+              </span>
+              <span class="meal-more__arrow">→</span>
+            </ng-container>
           </p>
         </ng-container>
 
@@ -85,16 +90,7 @@
         </ng-template>
       </div>
 
-      <div class="meal-avatar" *ngIf="hasMeals(item); else emptyAvatar">
-        <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/mom.png'" class="meal-avatar-img"
-          [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
-      </div>
-
-      <ng-template #emptyAvatar>
-        <div class="meal-avatar meal-avatar--empty">—</div>
-      </ng-template>
-
-      <div class="meal-image">
+      <div class="meal-image" *ngIf="hasMeals(item)">
         <img [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/blank-meal.png'" class="meal-image-img"
           [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
       </div>
