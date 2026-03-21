@@ -75,30 +75,26 @@
 
       <app-dashboard-card class="summary-card summary-card--week" title="Week Plan" (cardClick)="openWeekPlan()">
         <div class="summary-card-content">
-          <p class="summary-card-main">{{ plannedMealsCount }} meals planned</p>
-          <p class="summary-card-secondary">{{ emptyDaysCount }} days still empty</p>
+          <p class="summary-card-main"> • {{ plannedMealsCount }} planned</p>
         </div>
       </app-dashboard-card>
 
       <app-dashboard-card class="summary-card summary-card--meals" title="My Meals" (cardClick)="openMeals()">
         <div class="summary-card-content">
-          <p class="summary-card-main">Browse your meals</p>
-          <p class="summary-card-secondary">Create and reuse favorites</p>
+          <p class="summary-card-main">Browse & reuse</p>
         </div>
       </app-dashboard-card>
 
-      <!-- <app-dashboard-card class="summary-card summary-card--lists" title="Grocery Lists"
+      <app-dashboard-card class="summary-card summary-card--lists" title="Grocery Lists"
         (cardClick)="openGroceryLists()">
         <div class="summary-card-content">
           <p class="summary-card-main">Open your lists</p>
-          <p class="summary-card-secondary">Check what to buy next</p>
         </div>
-      </app-dashboard-card> -->
+      </app-dashboard-card>
 
       <app-dashboard-card class="summary-card summary-card--stats" title="Week Stats" (cardClick)="openWeekStats()">
         <div class="summary-card-content">
-          <p class="summary-card-main">View your weekly progress</p>
-          <p class="summary-card-secondary">Meals, activity and balance</p>
+          <p class="summary-card-main">This week</p>
         </div>
       </app-dashboard-card>
     </div>
