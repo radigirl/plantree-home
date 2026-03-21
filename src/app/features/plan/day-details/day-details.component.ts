@@ -17,6 +17,7 @@ import { MealPlanService } from '../../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
 import { UserStateService } from '../../../services/user.state.service';
 import { SupabaseService } from '../../../services/supabase.service';
+import { Location } from '@angular/common';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type ChangeMealMode = 'existing' | 'new';
@@ -62,8 +63,9 @@ export class DayDetailsComponent implements OnInit {
     private userStateService: UserStateService,
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
-    private router: Router
-  ) {}
+    private router: Router,
+    private location: Location
+  ) { }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -95,6 +97,10 @@ export class DayDetailsComponent implements OnInit {
     await this.loadMealsForDate(this.date);
   }
 
+  goBack(): void {
+    this.location.back();
+  }
+
   async loadUsers(): Promise<void> {
     try {
       const users = await this.supabaseService.getUsers();
@@ -121,22 +127,22 @@ export class DayDetailsComponent implements OnInit {
   }
 
   async loadAvailableMeals(): Promise<void> {
-  try {
-    const currentUser = this.userStateService.getCurrentUser();
+    try {
+      const currentUser = this.userStateService.getCurrentUser();
 
-    if (!currentUser) {
+      if (!currentUser) {
+        this.availableMeals = [];
+        return;
+      }
+
+      this.availableMeals = await this.mealPlanService.getAvailableMealsForPlanning(
+        currentUser.id
+      );
+    } catch (error) {
+      console.error('Error loading available meals:', error);
       this.availableMeals = [];
-      return;
     }
-
-    this.availableMeals = await this.mealPlanService.getAvailableMealsForPlanning(
-      currentUser.id
-    );
-  } catch (error) {
-    console.error('Error loading available meals:', error);
-    this.availableMeals = [];
   }
-}
 
   async startAddMeal(): Promise<void> {
     if (this.isPastDate()) {
@@ -425,6 +431,23 @@ export class DayDetailsComponent implements OnInit {
     });
   }
 
+  getDayName(): string {
+    if (!this.date) return '';
+
+    const date = new Date(this.date);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  }
+
+  getShortDate(): string {
+    if (!this.date) return '';
+
+    const date = new Date(this.date);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
   isPastDate(): boolean {
     if (!this.date) {
       return false;
@@ -526,12 +549,12 @@ export class DayDetailsComponent implements OnInit {
   }
 
   openMealDetails(meal: PlannedMeal): void {
-  this.router.navigate(['/meal', meal.meal.id], {
-    queryParams: {
-      source: 'plan',
-      name: meal.meal.name,
-    },
-  });
-}
+    this.router.navigate(['/meal', meal.meal.id], {
+      queryParams: {
+        source: 'plan',
+        name: meal.meal.name,
+      },
+    });
+  }
 
 }

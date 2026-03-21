@@ -2,6 +2,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  HostListener,
   OnInit,
   QueryList,
   ViewChildren,
@@ -24,6 +25,7 @@ export class PlanComponent implements OnInit {
   weekMeals: DayPlan[] = [];
   isLoading = true;
   currentWeekStart: Date = this.getStartOfWeek(new Date());
+  showTodayButton = window.innerWidth >= 768;
 
   @ViewChildren('mealCard') mealCards!: QueryList<ElementRef<HTMLElement>>;
 
@@ -33,10 +35,15 @@ export class PlanComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    await this.loadWeekPlan();
+    await this.loadWeekPlan(true);
   }
 
-  async loadWeekPlan(): Promise<void> {
+  @HostListener('window:resize')
+  onResize(): void {
+    this.showTodayButton = window.innerWidth >= 768;
+  }
+
+  async loadWeekPlan(scrollToTodayAfterLoad = false): Promise<void> {
     this.isLoading = true;
 
     try {
@@ -49,6 +56,15 @@ export class PlanComponent implements OnInit {
 
     this.isLoading = false;
     this.cdr.detectChanges();
+
+    if (scrollToTodayAfterLoad) {
+      setTimeout(() => {
+        const todayIndex = this.getTodayIndexInCurrentWeek();
+        if (todayIndex !== -1) {
+          this.scrollToDay(todayIndex);
+        }
+      }, 50);
+    }
   }
 
   getFirstMeal(day: DayPlan): PlannedMeal | undefined {
@@ -90,7 +106,7 @@ export class PlanComponent implements OnInit {
     previousWeek.setHours(0, 0, 0, 0);
     this.currentWeekStart = previousWeek;
 
-    await this.loadWeekPlan();
+    await this.loadWeekPlan(false);
   }
 
   async goToNextWeek(): Promise<void> {
@@ -99,7 +115,7 @@ export class PlanComponent implements OnInit {
     nextWeek.setHours(0, 0, 0, 0);
     this.currentWeekStart = nextWeek;
 
-    await this.loadWeekPlan();
+    await this.loadWeekPlan(false);
   }
 
   async goToToday(): Promise<void> {
@@ -109,7 +125,7 @@ export class PlanComponent implements OnInit {
 
     if (!sameWeek) {
       this.currentWeekStart = todayWeekStart;
-      await this.loadWeekPlan();
+      await this.loadWeekPlan(false);
     }
 
     setTimeout(() => {
@@ -129,21 +145,25 @@ export class PlanComponent implements OnInit {
     const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
 
     if (startMonth === endMonth) {
-      return `Week of ${startMonth} ${start.getDate()}–${end.getDate()}`;
+      return `${startMonth} ${start.getDate()}–${end.getDate()}`;
     }
 
-    return `Week of ${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}`;
+    return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}`;
   }
 
   scrollToDay(index: number): void {
     const card = this.mealCards?.toArray()[index]?.nativeElement;
 
-    if (card) {
-      card.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }
+    if (!card) return;
+
+    const cardRect = card.getBoundingClientRect();
+    const absoluteTop = window.scrollY + cardRect.top;
+    const offset = window.innerHeight * 0.3;
+
+    window.scrollTo({
+      top: Math.max(absoluteTop - offset, 0),
+      behavior: 'smooth',
+    });
   }
 
   isTodayIndex(index: number): boolean {

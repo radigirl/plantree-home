@@ -1,33 +1,29 @@
 @use '../../../styles/variables' as *;
-@use 'sass:color';
-
-$header-offset: 88px;
-$week-nav-height: 60px;
 
 .plan-page {
-  padding: 16px;
-  background-color: $color-plan-shell;
-  border-radius: $radius-large;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .plan-loading-shell {
+  min-height: 320px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 240px;
+  justify-content: center;
 }
 
 .week-navigation {
-  position: sticky;
-  top: $header-offset;
-  z-index: 20;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
-  padding: 8px 0;
-  background-color: $color-plan-shell;
+  padding: 12px 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(207, 222, 215, 0.85);
+  box-shadow: 0 8px 24px rgba(46, 58, 50, 0.04);
+  backdrop-filter: blur(10px);
 }
 
 .week-navigation__side {
@@ -41,215 +37,174 @@ $week-nav-height: 60px;
 }
 
 .week-navigation__center {
+  display: flex;
+  justify-content: center;
   min-width: 0;
 }
 
 .week-label {
+  margin: 0;
   text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  color: $color-text;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: $color-primary-dark;
+}
+
+.week-nav-btn,
+.today-btn {
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(207, 222, 215, 0.95);
+  background: rgba(255, 252, 247, 0.72);
+  color: $color-primary-dark;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .week-nav-btn {
-  width: 36px;
-  height: 36px;
-  border: 1px solid $color-border;
-  border-radius: 10px;
-  background: $color-surface;
-  color: $color-text;
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 42px;
+  min-width: 42px;
   padding: 0;
-}
-
-.week-nav-btn:hover {
-  background: $color-plan-card-hover;
-}
-
-.week-nav-btn:active {
-  transform: translateY(1px);
+  font-size: 1.8rem;
+  line-height: 1;
 }
 
 .today-btn {
-  display: none;
-  height: 36px;
-  padding: 0 14px;
-  border: 1px solid $color-primary;
-  border-radius: 10px;
-  background: $color-surface;
-  color: $color-primary-dark;
-  font-size: 0.92rem;
+  padding: 0 16px;
+  font-size: 0.95rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+.week-nav-btn:hover,
 .today-btn:hover {
-  background: $color-primary-light;
+  background: rgba(231, 242, 236, 0.95);
+  border-color: rgba(92, 143, 134, 0.45);
+  transform: translateY(-1px);
 }
 
-.weekday-strip {
-  display: none;
+.week-nav-btn:active,
+.today-btn:active {
+  transform: scale(0.98);
 }
 
 .meal-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
 
 .meal-card {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border: 1px solid $color-border;
-  border-radius: 22px;
-  background-color: $color-plan-card;
-  box-shadow: 0 3px 10px rgba(46, 58, 50, 0.04);
+  border-radius: 24px;
+  background: rgba(251, 248, 241, 0.82);
+  border: 1px solid rgba(224, 216, 198, 0.9);
+  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.03);
+  cursor: pointer;
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease,
-    opacity 0.2s ease,
-    border-color 0.2s ease;
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.meal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(46, 58, 50, 0.06);
+}
+
+.meal-card:active {
+  transform: scale(0.99);
 }
 
 .meal-card--today {
-  border-color: rgba(92, 143, 134, 0.4);
-  box-shadow: 0 6px 18px rgba(92, 143, 134, 0.08);
+  border-color: rgba(161, 196, 187, 0.95);
+  background: rgba(252, 249, 243, 0.94);
+  box-shadow: 0 10px 24px rgba(92, 143, 134, 0.08);
 }
 
 .meal-card--past {
-  background-color: $color-background;
-  border-color: color.adjust($color-border, $lightness: -2%);
-}
-
-.meal-card--past .meal-day,
-.meal-card--past .meal-info,
-.meal-card--past .meal-image {
-  opacity: 0.82;
-}
-
-.meal-card--past .meal-name,
-.meal-card--past .day,
-.meal-card--past .date,
-.meal-card--past .meal-cook,
-.meal-card--past .meal-cook-label,
-.meal-card--past .meal-empty,
-.meal-card--past .meal-more,
-.meal-card--past .meal-status,
-.meal-card--past .meal-time,
-.meal-card--past .meal-more__arrow {
-  color: $color-text-muted;
-}
-
-.meal-card--past .meal-image-img,
-.meal-card--past .meal-cook-avatar {
-  filter: saturate(0.88);
-}
-
-@media (hover: hover) {
-  .meal-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(46, 58, 50, 0.12);
-    background-color: $color-plan-card-hover;
-  }
-
-  .meal-card--past:hover {
-    transform: none;
-    box-shadow: 0 3px 10px rgba(46, 58, 50, 0.04);
-    background-color: $color-background;
-  }
+  opacity: 0.9;
 }
 
 .meal-day {
-  display: inline-flex;
+  display: flex;
   align-items: baseline;
-  gap: 6px;
-  min-width: 68px;
-  padding-right: 12px;
-  position: relative;
+  gap: 8px;
+  min-width: 0;
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: 0;
-    width: 1px;
-    height: 34px;
-    transform: translateY(-50%);
-    background-color: rgba(92, 143, 134, 0.14);
-    border-radius: 999px;
-  }
+.day {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
 
-  .day {
-    font-size: 1rem;
-    font-weight: 600;
-    color: $color-text;
-  }
-
-  .date {
-    font-size: 0.92rem;
-    color: $color-text-muted;
-  }
+.date {
+  font-size: 0.95rem;
+  color: $color-text-muted;
 }
 
 .meal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   min-width: 0;
 }
 
 .meal-name {
-  margin: 0 0 8px;
-  font-size: 1.08rem;
-  line-height: 1.2;
+  margin: 0;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: $color-text;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.15;
+  color: $color-primary-dark;
+  word-break: break-word;
 }
 
 .meal-cook-row {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 8px;
   min-width: 0;
-  margin-bottom: 8px;
 }
 
 .meal-cook-label {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: $color-text-muted;
+  color: $color-primary-dark;
 }
 
 .meal-cook-avatar {
-  display: block;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   object-fit: cover;
+  background: $color-primary-light;
   flex-shrink: 0;
 }
 
 .meal-cook {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: $color-text-muted;
 }
 
 .meal-meta {
-  display: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .meal-status,
@@ -257,260 +212,200 @@ $week-nav-height: 60px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
-  padding: 4px 10px;
+  min-height: 32px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .meal-status {
-  background: rgba(92, 143, 134, 0.1);
+  background: rgba(231, 242, 236, 0.92);
   color: $color-primary-dark;
 }
 
 .meal-time {
   gap: 6px;
-  background: rgba(92, 143, 134, 0.08);
+  background: rgba(237, 242, 239, 0.95);
   color: $color-text-muted;
 }
 
 .meal-time-icon {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   line-height: 1;
   opacity: 0.8;
 }
 
-.meal-image {
-  display: none;
-}
-
 .meal-more {
+  margin: 0;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 6px;
-  font-size: 0.82rem;
-  color: $color-text-muted;
+  font-size: 0.92rem;
   font-weight: 500;
-  line-height: 1.2;
+  color: $color-text-muted;
+}
+
+.meal-more--hidden {
+  display: none;
 }
 
 .meal-more__arrow {
-  line-height: 1;
-  opacity: 0.7;
-  font-size: 0.95em;
+  opacity: 0.8;
 }
 
 .meal-empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60px;
+  min-height: 88px;
 }
 
 .meal-empty {
   margin: 0;
-  font-size: 0.96rem;
+  text-align: center;
+  font-size: 1rem;
   font-weight: 600;
   color: $color-text-muted;
-  text-align: center;
 }
 
-@media (min-width: 768px) {
-  .today-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
+.meal-image {
+  width: 100%;
+  margin-top: auto;
+}
 
-  .weekday-strip {
-    position: sticky;
-    top: calc(#{$header-offset} + #{$week-nav-height});
-    z-index: 19;
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 16px;
-    padding-bottom: 8px;
-    background-color: $color-plan-shell;
-  }
+.meal-image-img {
+  width: 100%;
+  display: block;
+  border-radius: 18px;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
 
-  .weekday-pill {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    padding: 10px 6px;
-    border: 1px solid $color-border;
-    border-radius: 14px;
-    background: rgba(92, 143, 134, 0.08);
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
-  }
-
-  .weekday-pill:hover {
-    background: rgba(92, 143, 134, 0.14);
-    transform: translateY(-1px);
-  }
-
-  .weekday-pill--today {
-    background: $color-primary;
-    border-color: $color-primary;
-    box-shadow: 0 6px 16px rgba(92, 143, 134, 0.18);
-  }
-
-  .weekday-pill--today .weekday-name,
-  .weekday-pill--today .weekday-date {
-    color: $color-text-on-primary;
-  }
-
-  .weekday-pill--past {
-    background: $color-background;
-    opacity: 0.88;
-  }
-
-  .weekday-name {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: $color-text;
-  }
-
-  .weekday-date {
-    font-size: 0.8rem;
-    color: $color-text-muted;
-  }
-
-  .meal-list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 767px) {
+  .plan-page {
     gap: 16px;
   }
 
-  .meal-card {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 14px;
-    padding: 18px;
-    border-radius: 24px;
-  }
-
-  .meal-day {
-    min-width: 0;
-    padding-right: 0;
-    gap: 6px;
-
-    &::after {
-      display: none;
-    }
-
-    .day {
-      font-size: 0.95rem;
-    }
-
-    .date {
-      font-size: 0.88rem;
-    }
-  }
-
-  .meal-info {
-    min-width: 0;
-  }
-
-  .meal-name {
-    margin: 0 0 8px;
-    font-size: 1.15rem;
-    line-height: 1.25;
-    min-height: 48px;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-  }
-
-  .meal-cook-row {
-    margin-bottom: 10px;
-  }
-
-  .meal-cook-avatar {
-    width: 26px;
-    height: 26px;
-  }
-
-  .meal-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .meal-more {
-    margin-top: 10px;
-    font-size: 0.88rem;
-  }
-
-  .meal-image {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 10;
+  .week-navigation {
+    gap: 10px;
+    padding: 12px 14px;
     border-radius: 20px;
-    overflow: hidden;
-    background-color: $color-primary-light;
   }
 
-  .meal-image-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.meal-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 10px;
-  font-size: 0.88rem;
-  color: $color-text-muted;
-  font-weight: 500;
-  line-height: 1.2;
-  min-height: 21px;
-}
-
-.meal-more--hidden {
-  visibility: hidden;
-}
-
-.meal-more__text {
-  display: inline;
-}
-
-.meal-more__arrow {
-  line-height: 1;
-  opacity: 0.7;
-  font-size: 0.95em;
-}
-
-@media (min-width: 1024px) {
-  .plan-page {
-    padding: 32px;
+  .week-navigation__side {
+    gap: 8px;
   }
 
-  .weekday-strip {
+  .week-label {
+    font-size: 1.15rem;
+  }
+
+  .week-nav-btn {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    font-size: 1.6rem;
+  }
+
+  .today-btn {
     display: none;
+  }
+
+  .meal-list {
+    gap: 14px;
+  }
+
+  .meal-card {
+    padding: 15px;
+    border-radius: 22px;
+    gap: 12px;
   }
 
   .meal-name {
     font-size: 1.2rem;
   }
 
-  .meal-more {
-    font-size: 0.9rem;
+  .meal-cook-label,
+  .meal-cook {
+    font-size: 0.92rem;
   }
 
-  .meal-image {
-    aspect-ratio: 1 / 1;
+  .meal-status,
+  .meal-time {
+    min-height: 30px;
+    padding: 4px 11px;
+    font-size: 0.8rem;
+  }
+
+  .meal-more {
+    font-size: 0.88rem;
+  }
+
+  .meal-empty-state {
+    min-height: 80px;
+  }
+
+  .meal-empty {
+    font-size: 0.96rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .week-navigation {
+    padding: 13px 18px;
+  }
+
+  .week-label {
+    font-size: 1.25rem;
+  }
+
+  .meal-list {
+    gap: 18px;
+  }
+
+  .meal-card {
+    padding: 17px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .plan-page {
+    gap: 22px;
+  }
+
+  .week-navigation {
+    padding: 14px 20px;
+    border-radius: 24px;
+  }
+
+  .week-label {
+    font-size: 1.3rem;
+  }
+
+  .meal-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    align-items: stretch;
+  }
+
+  .meal-card {
+    height: auto;
+    min-height: 0;
+  }
+
+  .meal-name {
+    font-size: 1.15rem;
+  }
+
+  .meal-empty-state {
+    min-height: 100px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .meal-list {
+    gap: 20px;
   }
 }

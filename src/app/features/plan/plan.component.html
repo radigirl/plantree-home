@@ -21,25 +21,26 @@
         ›
       </button>
 
-      <button type="button" class="today-btn" (click)="goToToday()">
+      <button
+        type="button"
+        class="today-btn"
+        (click)="goToToday()"
+        *ngIf="showTodayButton"
+      >
         Today
       </button>
     </div>
   </div>
 
-  <div class="weekday-strip" *ngIf="!isLoading">
-    <div class="weekday-pill" *ngFor="let item of weekMeals; let i = index"
-      [class.weekday-pill--today]="isTodayIndex(i)" [class.weekday-pill--past]="isPastDayIndex(i)"
-      (click)="scrollToDay(i)">
-      <span class="weekday-name">{{ item.day }}</span>
-      <span class="weekday-date">{{ item.date }}</span>
-    </div>
-  </div>
-
   <div class="meal-list" *ngIf="!isLoading">
-    <div #mealCard class="meal-card" *ngFor="let item of weekMeals; let i = index"
-      [class.meal-card--past]="isPastDayIndex(i)" [class.meal-card--today]="isTodayIndex(i)"
-      [routerLink]="['/plan/day', item.fullDate]">
+    <div
+      #mealCard
+      class="meal-card"
+      *ngFor="let item of weekMeals; let i = index"
+      [class.meal-card--past]="isPastDayIndex(i)"
+      [class.meal-card--today]="isTodayIndex(i)"
+      [routerLink]="['/plan/day', item.fullDate]"
+    >
       <div class="meal-day">
         <span class="day">{{ item.day }}</span>
         <span class="date">{{ item.date }}</span>
@@ -54,8 +55,11 @@
           <div class="meal-cook-row">
             <span class="meal-cook-label">Cook:</span>
 
-            <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-              class="meal-cook-avatar" [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
+            <img
+              [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
+              class="meal-cook-avatar"
+              [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'"
+            />
 
             <p class="meal-cook">
               {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
@@ -91,8 +95,11 @@
       </div>
 
       <div class="meal-image" *ngIf="hasMeals(item)">
-        <img [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/blank-meal.png'" class="meal-image-img"
-          [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
+        <img
+          [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/blank-meal.png'"
+          class="meal-image-img"
+          [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'"
+        />
       </div>
     </div>
   </div>

@@ -4,21 +4,14 @@
   </div>
 
   <div class="day-details-shell" *ngIf="!isLoading" [class.day-details-shell--past]="isPastDate()">
-    <a routerLink="/plan" class="back-link">
+    <button type="button" class="back-link" (click)="goBack()">
       <span class="back-link__icon">←</span>
-      <span>Back to plan</span>
-    </a>
+      <span>Back</span>
+    </button>
 
-    <div class="day-details-header">
-      <h1 class="day-details-title">{{ getDisplayDate() }}</h1>
-
-      <p class="day-details-subtitle" *ngIf="meals.length > 0">
-        {{ getMealCountLabel() }}
-      </p>
-
-      <p class="day-details-subtitle" *ngIf="meals.length === 0">
-        No meals planned yet
-      </p>
+    <div class="day-details-date">
+      <span class="day-name">{{ getDayName() }}</span>
+      <span class="day-date">{{ getShortDate() }}</span>
     </div>
 
     <p class="day-details-past-note" *ngIf="isPastDate()">
@@ -37,7 +30,6 @@
         <label>{{ getFormTitle() }}</label>
       </div>
 
-      <!-- ADD -->
       <ng-container *ngIf="formMode === 'add'">
         <div class="add-meal-field" *ngIf="availableMeals.length > 0">
           <label for="addMealMode">How would you like to add it?</label>
@@ -115,7 +107,6 @@
         </div>
       </ng-container>
 
-      <!-- EDIT COOK -->
       <ng-container *ngIf="formMode === 'edit-cook'">
         <div class="add-meal-field">
           <label for="editCook">Cook</label>
@@ -138,7 +129,6 @@
         </div>
       </ng-container>
 
-      <!-- CHANGE MEAL -->
       <ng-container *ngIf="formMode === 'change-meal'">
         <div class="add-meal-field">
           <label for="changeMealMode">How would you like to change it?</label>
