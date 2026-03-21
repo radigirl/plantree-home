@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
+  HostListener,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -28,6 +29,10 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   isCreatingList = false;
   newListName = '';
 
+  openMenuListId: string | null = null;
+  editingListId: string | null = null;
+  editListName = '';
+
   private listsChannel: RealtimeChannel | null = null;
 
   constructor(
@@ -36,6 +41,11 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openMenuListId = null;
+  }
 
   async ngOnInit(): Promise<void> {
     await this.loadGroceryLists();
@@ -52,7 +62,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     try {
       this.groceryLists = await this.groceryService.getGroceryLists();
-      console.log('GROCERY LISTS:', this.groceryLists);
     } catch (error) {
       console.error('Error loading grocery lists:', error);
       this.error = 'Could not load grocery lists.';
@@ -86,6 +95,10 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.isCreatingList = true;
     this.newListName = '';
     this.error = '';
+
+    this.openMenuListId = null;
+    this.editingListId = null;
+    this.editListName = '';
   }
 
   cancelCreateList(): void {
@@ -117,7 +130,89 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.isCreatingList = false;
     this.newListName = '';
 
-    this.groceryLists = await this.groceryService.getGroceryLists();
+    this.groceryLists = [created, ...this.groceryLists];
+    this.cdr.detectChanges();
+  }
+
+  toggleActionsMenu(event: Event, list: GroceryList): void {
+    event.stopPropagation();
+    this.openMenuListId = this.openMenuListId === list.id ? null : list.id;
+  }
+
+  startEditList(event: Event, list: GroceryList): void {
+    event.stopPropagation();
+
+    this.isCreatingList = false;
+    this.newListName = '';
+    this.editingListId = list.id;
+    this.editListName = list.name;
+    this.openMenuListId = null;
+    this.error = '';
+  }
+
+  async saveEditedList(): Promise<void> {
+    const trimmedName = this.editListName.trim();
+
+    if (!this.editingListId || !trimmedName) {
+      return;
+    }
+
+    const success = await this.groceryService.updateGroceryListName(
+      this.editingListId,
+      trimmedName
+    );
+
+    if (!success) {
+      this.error = 'Could not update grocery list.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.groceryLists = this.groceryLists.map((list) =>
+      list.id === this.editingListId
+        ? { ...list, name: trimmedName }
+        : list
+    );
+
+    this.editingListId = null;
+    this.editListName = '';
+    this.cdr.detectChanges();
+  }
+
+  cancelEditList(): void {
+    this.editingListId = null;
+    this.editListName = '';
+  }
+
+  async deleteList(event: Event, list: GroceryList): Promise<void> {
+    event.stopPropagation();
+
+    const confirmed = window.confirm(`Delete "${list.name}"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    const success = await this.groceryService.deleteGroceryList(list.id);
+
+    if (!success) {
+      this.error = 'Could not delete grocery list.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.groceryLists = this.groceryLists.filter(
+      (currentList) => currentList.id !== list.id
+    );
+
+    if (this.openMenuListId === list.id) {
+      this.openMenuListId = null;
+    }
+
+    if (this.editingListId === list.id) {
+      this.editingListId = null;
+      this.editListName = '';
+    }
+
     this.cdr.detectChanges();
   }
 

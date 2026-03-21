@@ -6,11 +6,11 @@ import { GroceryList } from '../models/grocery-list.model';
   providedIn: 'root',
 })
 export class GroceryService {
-  constructor(private supabaseService: SupabaseService) { }
+  constructor(private supabaseService: SupabaseService) {}
 
   get supabase() {
-  return this.supabaseService.supabase;
-}
+    return this.supabaseService.supabase;
+  }
 
   async getGroceryLists(): Promise<GroceryList[]> {
     const { data, error } = await this.supabaseService.supabase
@@ -71,35 +71,72 @@ export class GroceryService {
     return data as GroceryList;
   }
 
-  async getItemsByListId(listId: string): Promise<any[]> {
-  const { data, error } = await this.supabaseService.supabase
-    .from('grocery_list_items')
-    .select(`
-      *,
-      addedBy:users!grocery_list_items_added_by_user_id_fkey (
-        id,
-        name,
-        avatar_url
-      ),
-      boughtBy:users!grocery_list_items_bought_by_user_id_fkey (
-        id,
-        name,
-        avatar_url
-      )
-    `)
-    .eq('grocery_list_id', listId)
-    .order('created_at', { ascending: true })
-    .order('id', { ascending: true });
+  async updateGroceryListName(
+    listId: string,
+    newName: string
+  ): Promise<boolean> {
+    const trimmedName = newName.trim();
 
-  if (error) {
-    console.error('Error fetching grocery items:', error);
-    return [];
+    if (!trimmedName) {
+      return false;
+    }
+
+    const { error } = await this.supabase
+      .from('grocery_lists')
+      .update({ name: trimmedName })
+      .eq('id', listId);
+
+    if (error) {
+      console.error('Error updating grocery list:', error);
+      return false;
+    }
+
+    return true;
   }
 
-  console.log('GROCERY ITEMS WITH USERS:', data);
+  async deleteGroceryList(listId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('grocery_lists')
+      .delete()
+      .eq('id', listId);
 
-  return data ?? [];
-}
+    if (error) {
+      console.error('Error deleting grocery list:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async getItemsByListId(listId: string): Promise<any[]> {
+    const { data, error } = await this.supabaseService.supabase
+      .from('grocery_list_items')
+      .select(`
+        *,
+        addedBy:users!grocery_list_items_added_by_user_id_fkey (
+          id,
+          name,
+          avatar_url
+        ),
+        boughtBy:users!grocery_list_items_bought_by_user_id_fkey (
+          id,
+          name,
+          avatar_url
+        )
+      `)
+      .eq('grocery_list_id', listId)
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching grocery items:', error);
+      return [];
+    }
+
+    console.log('GROCERY ITEMS WITH USERS:', data);
+
+    return data ?? [];
+  }
 
   async createGroceryItem(
     listId: string,
@@ -141,15 +178,15 @@ export class GroceryService {
     const payload =
       status === 'bought'
         ? {
-          status,
-          bought_by_user_id: boughtByUserId ?? null,
-          bought_at: new Date().toISOString(),
-        }
+            status,
+            bought_by_user_id: boughtByUserId ?? null,
+            bought_at: new Date().toISOString(),
+          }
         : {
-          status,
-          bought_by_user_id: null,
-          bought_at: null,
-        };
+            status,
+            bought_by_user_id: null,
+            bought_at: null,
+          };
 
     const { error } = await this.supabaseService.supabase
       .from('grocery_list_items')
@@ -164,4 +201,40 @@ export class GroceryService {
     return true;
   }
 
+  async updateGroceryItemName(
+    itemId: string,
+    newName: string
+  ): Promise<boolean> {
+    const trimmedName = newName.trim();
+
+    if (!trimmedName) {
+      return false;
+    }
+
+    const { error } = await this.supabase
+      .from('grocery_list_items')
+      .update({ name: trimmedName })
+      .eq('id', itemId);
+
+    if (error) {
+      console.error('Error updating grocery item name:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async deleteGroceryItem(itemId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('grocery_list_items')
+      .delete()
+      .eq('id', itemId);
+
+    if (error) {
+      console.error('Error deleting grocery item:', error);
+      return false;
+    }
+
+    return true;
+  }
 }

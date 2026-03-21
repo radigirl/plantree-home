@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
+  HostListener,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -27,6 +28,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   error = '';
   newItemName = '';
 
+  openItemMenuId: string | null = null;
+  editingItemId: string | null = null;
+  editItemName = '';
+
   private itemsChannel: RealtimeChannel | null = null;
 
   constructor(
@@ -35,6 +40,11 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     private userStateService: UserStateService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openItemMenuId = null;
+  }
 
   async ngOnInit(): Promise<void> {
     const listId = this.route.snapshot.paramMap.get('id');
@@ -131,6 +141,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async toggleItem(item: any): Promise<void> {
+    if (this.editingItemId === item.id) {
+      return;
+    }
+
     const nextStatus = item.status === 'bought' ? 'needed' : 'bought';
     const currentUser = this.userStateService.getCurrentUser();
     const boughtByUserId = currentUser?.id ?? 1;
@@ -151,18 +165,78 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  getUserLabel(user?: { id?: number; name?: string }): string {
-    const currentUser = this.userStateService.getCurrentUser();
+  toggleItemMenu(event: Event, item: any): void {
+    event.stopPropagation();
+    this.openItemMenuId = this.openItemMenuId === item.id ? null : item.id;
+  }
 
-    if (!user) {
-      return 'Someone';
+  startEditItem(event: Event, item: any): void {
+    event.stopPropagation();
+    this.openItemMenuId = null;
+    this.editingItemId = item.id;
+    this.editItemName = item.name;
+  }
+
+  async saveEditedItem(): Promise<void> {
+    const trimmedName = this.editItemName.trim();
+
+    if (!this.editingItemId || !trimmedName) {
+      return;
     }
 
-    if (currentUser?.id === user.id) {
-      return 'You';
+    const success = await this.groceryService.updateGroceryItemName(
+      this.editingItemId,
+      trimmedName
+    );
+
+    if (!success) {
+      this.error = 'Could not update grocery item.';
+      this.cdr.detectChanges();
+      return;
     }
 
-    return user.name || 'Someone';
+    this.groceryItems = this.groceryItems.map((item) =>
+      item.id === this.editingItemId ? { ...item, name: trimmedName } : item
+    );
+
+    this.editingItemId = null;
+    this.editItemName = '';
+    this.cdr.detectChanges();
+  }
+
+  cancelEditItem(): void {
+    this.editingItemId = null;
+    this.editItemName = '';
+  }
+
+  async deleteItem(event: Event, item: any): Promise<void> {
+    event.stopPropagation();
+
+    const confirmed = window.confirm(`Delete "${item.name}"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    const success = await this.groceryService.deleteGroceryItem(item.id);
+
+    if (!success) {
+      this.error = 'Could not delete grocery item.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.groceryItems = this.groceryItems.filter(
+      (currentItem) => currentItem.id !== item.id
+    );
+
+    this.openItemMenuId = null;
+
+    if (this.editingItemId === item.id) {
+      this.editingItemId = null;
+      this.editItemName = '';
+    }
+
+    this.cdr.detectChanges();
   }
 
   getItemMetaParts(item: any) {

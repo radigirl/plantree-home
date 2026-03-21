@@ -14,7 +14,7 @@
     <ng-container *ngIf="!error && groceryList">
       <div class="grocery-list-details-card">
         <div class="grocery-list-details-header">
-          <h1>{{ groceryList.name }}</h1>
+          <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
           <span class="grocery-list-status">{{ groceryList.status | titlecase }}</span>
         </div>
 
@@ -32,13 +32,12 @@
         </div>
 
         <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list">
-          <button
-            type="button"
+          <div
             class="grocery-item"
             *ngFor="let item of groceryItems"
-            (click)="toggleItem(item)"
+            [class.grocery-item--editing]="editingItemId === item.id"
           >
-            <span class="grocery-item-left">
+            <div class="grocery-item-left" (click)="toggleItem(item)">
               <span
                 class="grocery-item-checkbox"
                 [class.grocery-item-checkbox--checked]="item.status === 'bought'"
@@ -46,33 +45,97 @@
                 {{ item.status === 'bought' ? '✓' : '' }}
               </span>
 
-              <span class="grocery-item-content" *ngIf="getItemMetaParts(item) as meta">
-                <span
-                  class="grocery-item-name"
-                  [class.grocery-item-name--bought]="item.status === 'bought'"
+              <ng-container *ngIf="editingItemId !== item.id; else editMode">
+                <span class="grocery-item-content" *ngIf="getItemMetaParts(item) as meta">
+                  <span
+                    class="grocery-item-name"
+                    [class.grocery-item-name--bought]="item.status === 'bought'"
+                  >
+                    {{ item.name }}
+                  </span>
+
+                  <span class="grocery-item-status">
+                    <span>
+                      Added by
+                      <strong *ngIf="meta.isAddedByYou; else addedName">You</strong>
+                      <ng-template #addedName>{{ meta.addedByName }}</ng-template>
+                    </span>
+
+                    <span *ngIf="meta.isBought">
+                      &nbsp;·&nbsp;
+                      Bought by
+                      <strong *ngIf="meta.isBoughtByYou; else boughtName">You</strong>
+                      <ng-template #boughtName>{{ meta.boughtByName }}</ng-template>
+                    </span>
+                  </span>
+                </span>
+              </ng-container>
+
+              <ng-template #editMode>
+                <div class="grocery-item-edit" (click)="$event.stopPropagation()">
+                  <input
+                    type="text"
+                    [(ngModel)]="editItemName"
+                    class="grocery-item-edit-input"
+                  />
+
+                  <div class="grocery-item-edit-actions">
+                    <button
+                      type="button"
+                      class="grocery-item-edit-save"
+                      (click)="saveEditedItem()"
+                    >
+                      Save
+                    </button>
+
+                    <button
+                      type="button"
+                      class="grocery-item-edit-cancel"
+                      (click)="cancelEditItem()"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </ng-template>
+            </div>
+
+            <div
+              class="grocery-item-actions-wrapper"
+              *ngIf="editingItemId !== item.id"
+            >
+              <button
+                type="button"
+                class="grocery-item-actions"
+                (click)="toggleItemMenu($event, item)"
+                aria-label="Open grocery item actions"
+              >
+                ⋯
+              </button>
+
+              <div
+                *ngIf="openItemMenuId === item.id"
+                class="grocery-item-menu"
+                (click)="$event.stopPropagation()"
+              >
+                <button
+                  type="button"
+                  class="grocery-item-menu-item"
+                  (click)="startEditItem($event, item)"
                 >
-                  {{ item.name }}
-                </span>
+                  Edit
+                </button>
 
-                <span class="grocery-item-status">
-                  <span>
-                    Added by
-                    <strong *ngIf="meta.isAddedByYou; else addedName">You</strong>
-                    <ng-template #addedName>{{ meta.addedByName }}</ng-template>
-                  </span>
-
-                  <span *ngIf="meta.isBought">
-                    &nbsp;·&nbsp;
-                    Bought by
-                    <strong *ngIf="meta.isBoughtByYou; else boughtName">You</strong>
-                    <ng-template #boughtName>{{ meta.boughtByName }}</ng-template>
-                  </span>
-                </span>
-              </span>
-            </span>
-
-            <span class="grocery-item-actions" aria-hidden="true">⋯</span>
-          </button>
+                <button
+                  type="button"
+                  class="grocery-item-menu-item grocery-item-menu-item--danger"
+                  (click)="deleteItem($event, item)"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <ng-template #noItems>

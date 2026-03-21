@@ -20,6 +20,7 @@
 }
 
 .grocery-title {
+  margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -32,6 +33,17 @@
   background: $color-button-primary;
   color: $color-text-on-primary;
   font-weight: 600;
+  font: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.primary-button:hover {
+  opacity: 0.95;
+}
+
+.primary-button:active {
+  transform: scale(0.98);
 }
 
 .secondary-button {
@@ -39,23 +51,58 @@
   border-radius: 999px;
   background: $color-primary-light;
   border: 1px solid rgba(92, 143, 134, 0.2);
+  color: $color-primary-dark;
+  font-weight: 600;
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
 
-/* CREATE CARD */
+.secondary-button:hover {
+  background: rgba(92, 143, 134, 0.12);
+}
+
+.secondary-button:active {
+  transform: scale(0.98);
+}
+
+/* CREATE / EDIT CARD */
 .create-list-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
-
   padding: 16px;
   border-radius: 22px;
   border: 1px solid $color-border;
   background: $color-surface;
 }
 
+.create-list-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid $color-border;
+  background: #fff;
+  color: $color-primary-dark;
+  font: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.create-list-input:focus {
+  border-color: rgba(92, 143, 134, 0.45);
+  box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.08);
+}
+
 .create-actions {
   display: flex;
   gap: 10px;
+}
+
+.create-actions .primary-button,
+.create-actions .secondary-button {
+  min-width: 110px;
 }
 
 /* LIST */
@@ -70,14 +117,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   padding: 16px;
   border-radius: 20px;
   border: 1px solid $color-border;
   background: $color-plan-card;
-
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
+  position: relative;
+  overflow: visible;
 }
 
 .grocery-card:hover {
@@ -88,11 +135,17 @@
 .grocery-card-left {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
 }
 
 .grocery-card-name {
+  font-size: 1rem;
   font-weight: 600;
+  color: $color-primary-dark;
+  line-height: 1.2;
+  word-break: break-word;
 }
 
 .grocery-card-status {
@@ -100,9 +153,99 @@
   color: $color-text-muted;
 }
 
+/* ACTIONS */
+.grocery-card-actions-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
 .grocery-card-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(92, 143, 134, 0.08);
+  box-shadow: none;
   font-size: 20px;
-  opacity: 0.6;
+  line-height: 1;
+  color: $color-text-muted;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.grocery-card-actions:hover {
+  background: rgba(92, 143, 134, 0.14);
+}
+
+.grocery-card-actions:focus,
+.grocery-card-actions:active {
+  outline: none;
+  background: rgba(92, 143, 134, 0.14);
+  box-shadow: none;
+}
+
+.grocery-card-menu {
+  position: absolute;
+  top: 50%;
+  right: 44px;
+  transform: translateY(-50%);
+  z-index: 30;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  min-width: 84px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid $color-border;
+  background: $color-surface;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+.grocery-card-menu-item {
+  width: 100%;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: $color-primary-dark;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.grocery-card-menu-item:hover,
+.grocery-card-menu-item:focus,
+.grocery-card-menu-item:active {
+  outline: none;
+  background: rgba(92, 143, 134, 0.08);
+}
+
+.grocery-card-menu-item--danger {
+  color: $color-primary-dark;
+}
+
+.grocery-card-menu-item--danger:hover,
+.grocery-card-menu-item--danger:focus,
+.grocery-card-menu-item--danger:active {
+  background: rgba(92, 143, 134, 0.08);
+  color: $color-primary-dark;
 }
 
 /* EMPTY */
@@ -120,7 +263,6 @@
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 600;
-
   background: rgba(92, 143, 134, 0.1);
   color: $color-primary-dark;
 }
@@ -137,7 +279,6 @@
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
-
   background: rgba(92, 143, 134, 0.08);
   color: $color-primary-dark;
 }
@@ -157,5 +298,16 @@
 
   .primary-button {
     width: 100%;
+  }
+
+  .create-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .create-actions .primary-button,
+  .create-actions .secondary-button {
+    flex: 1;
+    width: auto;
   }
 }
