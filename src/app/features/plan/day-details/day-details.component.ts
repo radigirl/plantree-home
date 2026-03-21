@@ -18,6 +18,9 @@ import { PageLoadingComponent } from '../../../shared/components/page-loading/pa
 import { UserStateService } from '../../../services/user.state.service';
 import { SupabaseService } from '../../../services/supabase.service';
 
+type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
+type ChangeMealMode = 'existing' | 'new';
+
 @Component({
   selector: 'app-day-details',
   standalone: true,
@@ -30,8 +33,9 @@ export class DayDetailsComponent implements OnInit {
   meals: PlannedMeal[] = [];
   isLoading = true;
 
-  isAddingMeal = false;
-  isEditingMeal = false;
+  isFormOpen = false;
+  formMode: DayDetailsFormMode = 'add';
+
   editingPlannedMealId: string | null = null;
   editingMealId: string | null = null;
 
@@ -43,6 +47,10 @@ export class DayDetailsComponent implements OnInit {
 
   selectedImageFile: File | null = null;
   selectedImagePreview: string | null = null;
+
+  availableMeals: { id: string; name: string; prepTime?: number; image?: string }[] = [];
+  changeMealMode: ChangeMealMode = 'existing';
+  selectedExistingMealId: string | null = null;
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -109,13 +117,13 @@ export class DayDetailsComponent implements OnInit {
     }
   }
 
-  startAddMeal(): void {
+  async startAddMeal(): Promise<void> {
     if (this.isPastDate()) {
       return;
     }
 
-    this.isAddingMeal = true;
-    this.isEditingMeal = false;
+    this.isFormOpen = true;
+    this.formMode = 'add';
     this.editingPlannedMealId = null;
     this.editingMealId = null;
     this.openMealMenuId = null;
@@ -127,11 +135,71 @@ export class DayDetailsComponent implements OnInit {
 
     const currentUser = this.userStateService.getCurrentUser();
     this.selectedCookId = currentUser?.id ?? null;
+
+    this.selectedExistingMealId = null;
+    this.changeMealMode = 'existing';
+
+    this.scrollFormIntoView();
+  }
+
+  async onEditCook(meal: PlannedMeal): Promise<void> {
+    if (this.isPastDate()) {
+      return;
+    }
+
+    this.isFormOpen = true;
+    this.formMode = 'edit-cook';
+    this.editingPlannedMealId = meal.id;
+    this.editingMealId = meal.meal.id;
+    this.selectedCookId = meal.cook?.id ?? null;
+
+    this.newMealName = '';
+    this.newPrepTime = null;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+    this.selectedExistingMealId = null;
+
+    this.closeMealMenu();
+    this.scrollFormIntoView();
+  }
+
+  async onChangeMeal(meal: PlannedMeal): Promise<void> {
+    if (this.isPastDate()) {
+      return;
+    }
+
+    this.isFormOpen = true;
+    this.formMode = 'change-meal';
+    this.editingPlannedMealId = meal.id;
+    this.editingMealId = meal.meal.id;
+
+    this.newMealName = meal.meal.name ?? '';
+    this.newPrepTime = meal.meal.prepTime ?? null;
+    this.selectedCookId = meal.cook?.id ?? null;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = meal.meal.image ?? null;
+
+    this.changeMealMode = 'existing';
+    this.selectedExistingMealId = meal.meal.id;
+
+    await this.loadAvailableMeals();
+
+    this.closeMealMenu();
+    this.scrollFormIntoView();
+  }
+
+  async loadAvailableMeals(): Promise<void> {
+    try {
+      this.availableMeals = await this.mealPlanService.getAvailableMealsForPlanning();
+    } catch (error) {
+      console.error('Error loading available meals:', error);
+      this.availableMeals = [];
+    }
   }
 
   cancelAddMeal(): void {
-    this.isAddingMeal = false;
-    this.isEditingMeal = false;
+    this.isFormOpen = false;
+    this.formMode = 'add';
     this.editingPlannedMealId = null;
     this.editingMealId = null;
     this.newMealName = '';
@@ -140,6 +208,8 @@ export class DayDetailsComponent implements OnInit {
     this.openMealMenuId = null;
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
+    this.changeMealMode = 'existing';
+    this.selectedExistingMealId = null;
   }
 
   onMealImageSelected(event: Event): void {
@@ -165,14 +235,12 @@ export class DayDetailsComponent implements OnInit {
   removeSelectedMealImage(): void {
     this.selectedImageFile = null;
 
-    if (!this.isEditingMeal) {
+    if (this.formMode !== 'change-meal' || this.changeMealMode !== 'new') {
       this.selectedImagePreview = null;
     }
   }
 
   async saveMeal(): Promise<void> {
-    console.log('saving meal');
-
     if (!this.date || !this.newMealName.trim()) {
       return;
     }
@@ -207,36 +275,12 @@ export class DayDetailsComponent implements OnInit {
     }
   }
 
-  async updateMeal(): Promise<void> {
-    if (
-      !this.date ||
-      !this.editingMealId ||
-      !this.editingPlannedMealId ||
-      !this.newMealName.trim()
-    ) {
+  async saveEditCook(): Promise<void> {
+    if (!this.date || !this.editingPlannedMealId) {
       return;
     }
 
     try {
-      let imagePath: string | undefined;
-
-      if (this.selectedImageFile) {
-        const extension = this.selectedImageFile.name.split('.').pop() || 'jpg';
-        const fileName = `${crypto.randomUUID()}.${extension}`;
-
-        imagePath = await this.supabaseService.uploadMealImage(
-          this.selectedImageFile,
-          fileName
-        );
-      }
-
-      await this.mealPlanService.updateMealDetails(
-        this.editingMealId,
-        this.newMealName.trim(),
-        this.newPrepTime,
-        imagePath
-      );
-
       await this.mealPlanService.updatePlannedMealCook(
         this.editingPlannedMealId,
         this.selectedCookId
@@ -245,20 +289,71 @@ export class DayDetailsComponent implements OnInit {
       this.cancelAddMeal();
       await this.loadMealsForDate(this.date);
     } catch (error) {
-      console.error('Error updating meal:', error);
+      console.error('Error updating planned meal cook:', error);
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  async saveChangeMeal(): Promise<void> {
+    if (!this.date || !this.editingPlannedMealId) {
+      return;
+    }
+
+    try {
+      if (this.changeMealMode === 'existing') {
+        if (!this.selectedExistingMealId) {
+          return;
+        }
+
+        await this.mealPlanService.updatePlannedMealMeal(
+          this.editingPlannedMealId,
+          this.selectedExistingMealId,
+          this.selectedCookId
+        );
+      } else {
+        if (!this.newMealName.trim()) {
+          return;
+        }
+
+        let imagePath: string | null = null;
+
+        if (this.selectedImageFile) {
+          const extension = this.selectedImageFile.name.split('.').pop() || 'jpg';
+          const fileName = `${crypto.randomUUID()}.${extension}`;
+
+          imagePath = await this.supabaseService.uploadMealImage(
+            this.selectedImageFile,
+            fileName
+          );
+        }
+
+        await this.mealPlanService.createMealAndReplacePlannedMeal(
+          this.editingPlannedMealId,
+          this.newMealName.trim(),
+          this.newPrepTime,
+          this.selectedCookId,
+          imagePath
+        );
+      }
+
+      this.cancelAddMeal();
+      await this.loadMealsForDate(this.date);
+    } catch (error) {
+      console.error('Error changing planned meal meal:', error);
     } finally {
       this.cdr.detectChanges();
     }
   }
 
   private scrollFormIntoView(): void {
-  setTimeout(() => {
-    this.mealFormContainer?.nativeElement.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  }, 0);
-}
+    setTimeout(() => {
+      this.mealFormContainer?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 0);
+  }
 
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
@@ -317,6 +412,17 @@ export class DayDetailsComponent implements OnInit {
     }
   }
 
+  getFormTitle(): string {
+    switch (this.formMode) {
+      case 'edit-cook':
+        return 'Edit cook';
+      case 'change-meal':
+        return 'Change meal';
+      default:
+        return 'Add meal';
+    }
+  }
+
   toggleMealMenu(mealId: string): void {
     if (this.isPastDate()) {
       return;
@@ -357,47 +463,27 @@ export class DayDetailsComponent implements OnInit {
     }
   }
 
-  onEditMeal(meal: PlannedMeal): void {
-    if (this.isPastDate()) {
+  async onRemoveMeal(meal: PlannedMeal): Promise<void> {
+    if (!this.date || this.isPastDate()) {
       return;
     }
 
-    this.isAddingMeal = false;
-    this.isEditingMeal = true;
-    this.editingPlannedMealId = meal.id;
-    this.editingMealId = meal.meal.id;
-    this.newMealName = meal.meal.name ?? '';
-    this.newPrepTime = meal.meal.prepTime ?? null;
-    this.selectedCookId = meal.cook?.id ?? null;
+    const confirmed = window.confirm(
+      `Remove "${meal.meal.name}" from this day?`
+    );
 
-    this.selectedImageFile = null;
-    this.selectedImagePreview = meal.meal.image ?? null;
+    if (!confirmed) {
+      return;
+    }
 
-    this.closeMealMenu();
-    this.scrollFormIntoView();
+    try {
+      await this.mealPlanService.deletePlannedMeal(meal.id);
+      this.meals = this.meals.filter((item) => item.id !== meal.id);
+      this.closeMealMenu();
+    } catch (error) {
+      console.error('Error removing planned meal:', error);
+    } finally {
+      this.cdr.detectChanges();
+    }
   }
-
-  async onDeleteMeal(meal: PlannedMeal): Promise<void> {
-  if (!this.date || this.isPastDate()) {
-    return;
-  }
-
-  const confirmed = window.confirm(
-    `Are you sure you want to delete "${meal.meal.name}"?`
-  );
-
-  if (!confirmed) {
-    return;
-  }
-
-  try {
-    await this.mealPlanService.deletePlannedMeal(meal.id);
-    this.meals = this.meals.filter((item) => item.id !== meal.id);
-    this.closeMealMenu();
-  } catch (error) {
-    console.error('Error deleting meal:', error);
-  } finally {
-    this.cdr.detectChanges();
-  }
-}
 }
