@@ -246,33 +246,43 @@ export class MealPlanService {
     }
   }
 
-  async getAvailableMealsForPlanning(): Promise<
-    { id: string; name: string; prepTime?: number; image?: string }[]
-  > {
-    const { data, error } = await this.supabaseService.supabase
-      .from('meals')
-      .select(`
-        id,
-        name,
-        prep_time,
-        image_url,
-        is_archived
-      `)
-      .eq('is_archived', false)
-      .order('created_at', { ascending: false });
+  async getAvailableMealsForPlanning(userId: number): Promise<
+  { id: string; name: string; prepTime?: number; image?: string }[]
+> {
+  const { data, error } = await this.supabaseService.supabase
+    .from('meals')
+    .select(`
+      id,
+      name,
+      prep_time,
+      image_url,
+      is_archived
+    `)
+    .eq('is_archived', false)
+    .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching available meals:', error);
-      return [];
-    }
+  if (error) {
+    console.error('Error fetching available meals:', error);
+    return [];
+  }
 
-    return (data ?? []).map((item) => ({
+  const { data: hiddenData } = await this.supabaseService.supabase
+    .from('user_meals')
+    .select('meal_id')
+    .eq('user_id', userId)
+    .eq('is_hidden', true);
+
+  const hiddenIds = new Set(hiddenData?.map((h) => h.meal_id));
+
+  return (data ?? [])
+    .filter((item) => !hiddenIds.has(item.id))
+    .map((item) => ({
       id: item.id,
       name: item.name,
       prepTime: item.prep_time ?? undefined,
       image: this.supabaseService.getMealImageUrl(item.image_url) ?? undefined,
     }));
-  }
+}
 
   async updatePlannedMealMeal(
     plannedMealId: string,

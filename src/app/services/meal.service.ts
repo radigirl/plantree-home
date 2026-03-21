@@ -10,31 +10,42 @@ export type MealUsageAction = 'delete' | 'archive' | 'cancel';
 export class MealsService {
   constructor(private supabaseService: SupabaseService) {}
 
-  async getMeals(includeArchived = false): Promise<Meal[]> {
-    let query = this.supabaseService.supabase
-      .from('meals')
-      .select(`
-        id,
-        name,
-        prep_time,
-        ingredients,
-        image_url,
-        is_archived
-      `)
-      .order('created_at', { ascending: false });
+  async getMeals(userId: number, includeArchived = false): Promise<Meal[]> {
+  let query = this.supabaseService.supabase
+    .from('meals')
+    .select(`
+      id,
+      name,
+      prep_time,
+      ingredients,
+      image_url,
+      is_archived
+    `)
+    .order('created_at', { ascending: false });
 
-    if (!includeArchived) {
-      query = query.eq('is_archived', false);
-    }
+  if (!includeArchived) {
+    query = query.eq('is_archived', false);
+  }
 
-    const { data, error } = await query;
+  const { data: mealsData, error } = await query;
 
-    if (error) {
-      console.error('Error fetching meals:', error);
-      return [];
-    }
+  if (error) {
+    console.error('Error fetching meals:', error);
+    return [];
+  }
 
-    return (data ?? []).map((item) => {
+  // get hidden meals for this user
+  const { data: hiddenData } = await this.supabaseService.supabase
+    .from('user_meals')
+    .select('meal_id')
+    .eq('user_id', userId)
+    .eq('is_hidden', true);
+
+  const hiddenIds = new Set(hiddenData?.map((h) => h.meal_id));
+
+  return (mealsData ?? [])
+    .filter((item) => !hiddenIds.has(item.id))
+    .map((item) => {
       const imageUrl = this.supabaseService.getMealImageUrl(item.image_url);
 
       return {
@@ -45,7 +56,7 @@ export class MealsService {
         image: imageUrl ?? undefined,
       };
     });
-  }
+}
 
   async createMeal(
     name: string,
@@ -233,4 +244,22 @@ export class MealsService {
       throw deleteMealError;
     }
   }
+
+  async hideMealForUser(mealId: string, userId: number): Promise<void> {
+  const { error } = await this.supabaseService.supabase
+    .from('user_meals')
+    .upsert({
+      user_id: userId,
+      meal_id: mealId,
+      is_hidden: true,
+    });
+
+  if (error) {
+    console.error('Error hiding meal for user:', error);
+    throw error;
+  }
+}
+
+
+
 }

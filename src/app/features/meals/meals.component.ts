@@ -13,6 +13,7 @@ import { Meal } from '../../models/meal.model';
 import { MealsService } from '../../services/meal.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
+import { UserStateService } from '../../services/user.state.service';
 
 @Component({
   selector: 'app-meals',
@@ -43,7 +44,8 @@ export class MealsComponent implements OnInit {
   constructor(
     private mealsService: MealsService,
     private supabaseService: SupabaseService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private userStateService: UserStateService
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -66,18 +68,24 @@ export class MealsComponent implements OnInit {
   }
 
   async loadMeals(): Promise<void> {
-    this.isLoading = true;
+  this.isLoading = true;
 
-    try {
-      this.meals = await this.mealsService.getMeals();
-    } catch (error) {
-      console.error('Error loading meals:', error);
+  try {
+    const user = this.userStateService.getCurrentUser();
+    if (!user) {
       this.meals = [];
-    } finally {
-      this.isLoading = false;
-      this.cdr.detectChanges();
+      return;
     }
+
+    this.meals = await this.mealsService.getMeals(user.id);
+  } catch (error) {
+    console.error('Error loading meals:', error);
+    this.meals = [];
+  } finally {
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
+}
 
   get hasMeals(): boolean {
     return this.meals.length > 0;
@@ -231,59 +239,29 @@ export class MealsComponent implements OnInit {
   }
 
   async onDeleteMeal(meal: Meal): Promise<void> {
-    this.closeMealMenu();
+  this.closeMealMenu();
 
-    try {
-      const isUsed = await this.mealsService.isMealUsedInPlan(meal.id);
+  try {
+    const user = this.userStateService.getCurrentUser();
+    if (!user) return;
 
-      if (!isUsed) {
-        const confirmed = window.confirm(
-          `Delete "${meal.name}" permanently? This will also delete its photo.`
-        );
+    const confirmed = window.confirm(
+      `Remove "${meal.name}" from your My Meals?\n\nYou can still access it through other users or past plans.`
+    );
 
-        if (!confirmed) {
-          return;
-        }
-
-        await this.mealsService.deleteUnusedMeal(meal.id);
-        await this.loadMeals();
-        return;
-      }
-
-      const choice = window.prompt(
-        `"${meal.name}" is used in your plan history.\n\nType one of these options:\n- archive\n- delete\n- cancel`,
-        'archive'
-      );
-
-      const normalizedChoice = choice?.trim().toLowerCase();
-
-      if (normalizedChoice === 'archive') {
-        await this.mealsService.archiveMeal(meal.id);
-        await this.loadMeals();
-        return;
-      }
-
-      if (normalizedChoice === 'delete') {
-        const confirmedDeleteEverywhere = window.confirm(
-          `Delete "${meal.name}" everywhere?\n\nThis will permanently remove it from all past, current, and future plans, delete the meal itself, and delete its photo. This cannot be undone.`
-        );
-
-        if (!confirmedDeleteEverywhere) {
-          return;
-        }
-
-        await this.mealsService.deleteMealEverywhere(meal.id);
-        await this.loadMeals();
-        return;
-      }
-
+    if (!confirmed) {
       return;
-    } catch (error) {
-      console.error('Error handling meal delete flow:', error);
-    } finally {
-      this.cdr.detectChanges();
     }
+
+    await this.mealsService.hideMealForUser(meal.id, user.id);
+
+    await this.loadMeals();
+  } catch (error) {
+    console.error('Error hiding meal:', error);
+  } finally {
+    this.cdr.detectChanges();
   }
+}
 
   toggleMealMenu(mealId: string): void {
     this.openMealMenuId = this.openMealMenuId === mealId ? null : mealId;

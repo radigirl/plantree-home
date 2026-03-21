@@ -120,13 +120,22 @@ export class DayDetailsComponent implements OnInit {
   }
 
   async loadAvailableMeals(): Promise<void> {
-    try {
-      this.availableMeals = await this.mealPlanService.getAvailableMealsForPlanning();
-    } catch (error) {
-      console.error('Error loading available meals:', error);
+  try {
+    const currentUser = this.userStateService.getCurrentUser();
+
+    if (!currentUser) {
       this.availableMeals = [];
+      return;
     }
+
+    this.availableMeals = await this.mealPlanService.getAvailableMealsForPlanning(
+      currentUser.id
+    );
+  } catch (error) {
+    console.error('Error loading available meals:', error);
+    this.availableMeals = [];
   }
+}
 
   async startAddMeal(): Promise<void> {
     if (this.isPastDate()) {
