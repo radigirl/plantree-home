@@ -338,6 +338,29 @@ export class MealPlanService {
     }
   }
 
+  async createPlannedMealFromExistingMeal(
+  mealId: string,
+  cookUserId: number | null,
+  date: string
+): Promise<void> {
+  const plannedId = crypto.randomUUID();
+
+  const { error } = await this.supabaseService.supabase
+    .from('planned_meals')
+    .insert({
+      id: plannedId,
+      meal_id: mealId,
+      cook_user_id: cookUserId,
+      planned_date: date,
+      status: 'to-prepare',
+    });
+
+  if (error) {
+    console.error('Error creating planned meal from existing meal:', error);
+    throw error;
+  }
+}
+
   private formatDateLocal(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

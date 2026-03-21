@@ -45,62 +45,94 @@
 
       <!-- ADD -->
       <ng-container *ngIf="formMode === 'add'">
-        <div class="add-meal-field">
-          <label for="mealName">Meal name</label>
-          <input
-            id="mealName"
-            type="text"
-            [(ngModel)]="newMealName"
-            placeholder="Enter meal name"
-          />
-        </div>
-
-        <div class="add-meal-field">
-          <label for="cook">Cook</label>
-          <select id="cook" [(ngModel)]="selectedCookId">
-            <option [ngValue]="null">Unassigned</option>
-            <option *ngFor="let user of availableUsers" [ngValue]="user.id">
-              {{ user.name }}
-            </option>
+        <div class="add-meal-field" *ngIf="availableMeals.length > 0">
+          <label for="addMealMode">How would you like to add it?</label>
+          <select id="addMealMode" [(ngModel)]="addMealMode">
+            <option value="existing">Choose from My Meals</option>
+            <option value="new">Create new meal</option>
           </select>
         </div>
 
-        <div class="add-meal-field">
-          <label for="prepTime">Prep time (minutes)</label>
-          <input
-            id="prepTime"
-            type="number"
-            min="0"
-            [(ngModel)]="newPrepTime"
-            placeholder="Optional"
-          />
-        </div>
+        <ng-container *ngIf="addMealMode === 'existing' && availableMeals.length > 0">
+          <div class="add-meal-field">
+            <label for="existingAddMeal">Saved meals</label>
+            <select id="existingAddMeal" [(ngModel)]="selectedExistingMealId">
+              <option [ngValue]="null">Select a meal</option>
+              <option *ngFor="let meal of availableMeals" [ngValue]="meal.id">
+                {{ meal.name }}
+              </option>
+            </select>
+          </div>
 
-        <div class="add-meal-field">
-          <label for="mealImage">Meal photo</label>
-          <input
-            id="mealImage"
-            type="file"
-            accept="image/*"
-            (change)="onMealImageSelected($event)"
-          />
+          <div class="add-meal-field">
+            <label for="addExistingCook">Cook</label>
+            <select id="addExistingCook" [(ngModel)]="selectedCookId">
+              <option [ngValue]="null">Unassigned</option>
+              <option *ngFor="let user of availableUsers" [ngValue]="user.id">
+                {{ user.name }}
+              </option>
+            </select>
+          </div>
+        </ng-container>
 
-          <div class="meal-image-preview" *ngIf="selectedImagePreview">
-            <img
-              [src]="selectedImagePreview"
-              alt="Selected meal preview"
-              class="meal-image-preview__img"
+        <ng-container *ngIf="addMealMode === 'new' || availableMeals.length === 0">
+          <div class="add-meal-field">
+            <label for="mealName">Meal name</label>
+            <input
+              id="mealName"
+              type="text"
+              [(ngModel)]="newMealName"
+              placeholder="Enter meal name"
+            />
+          </div>
+
+          <div class="add-meal-field">
+            <label for="cook">Cook</label>
+            <select id="cook" [(ngModel)]="selectedCookId">
+              <option [ngValue]="null">Unassigned</option>
+              <option *ngFor="let user of availableUsers" [ngValue]="user.id">
+                {{ user.name }}
+              </option>
+            </select>
+          </div>
+
+          <div class="add-meal-field">
+            <label for="prepTime">Prep time (minutes)</label>
+            <input
+              id="prepTime"
+              type="number"
+              min="0"
+              [(ngModel)]="newPrepTime"
+              placeholder="Optional"
+            />
+          </div>
+
+          <div class="add-meal-field">
+            <label for="mealImage">Meal photo</label>
+            <input
+              id="mealImage"
+              type="file"
+              accept="image/*"
+              (change)="onMealImageSelected($event)"
             />
 
-            <button
-              type="button"
-              class="cancel-button"
-              (click)="removeSelectedMealImage()"
-            >
-              Remove photo
-            </button>
+            <div class="meal-image-preview" *ngIf="selectedImagePreview">
+              <img
+                [src]="selectedImagePreview"
+                alt="Selected meal preview"
+                class="meal-image-preview__img"
+              />
+
+              <button
+                type="button"
+                class="cancel-button"
+                (click)="removeSelectedMealImage()"
+              >
+                Remove photo
+              </button>
+            </div>
           </div>
-        </div>
+        </ng-container>
 
         <div class="add-meal-actions">
           <button type="button" class="save-button" (click)="saveMeal()">
