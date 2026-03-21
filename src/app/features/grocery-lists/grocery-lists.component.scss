@@ -1,203 +1,161 @@
 @use '../../../styles/variables' as *;
 
+:host {
+  display: block;
+  width: 100%;
+}
+
 .grocery-lists-page {
-  padding: 24px;
-}
-
-.grocery-lists-container {
-  position: relative;
-}
-
-/* Loading */
-.grocery-lists-loading-shell {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-bottom: 24px;
-  box-sizing: border-box;
-}
-
-/* Header */
-.grocery-lists-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 16px;
-  margin-bottom: 24px;
-
-  h1 {
-    margin: 0;
-    font-size: 2rem;
-    line-height: 1.1;
-    color: $color-primary-dark;
-  }
+  width: 100%;
 }
 
-/* Create row */
-.create-list-row {
+/* HEADER */
+.grocery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grocery-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* BUTTONS */
+.primary-button {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
+  background: $color-button-primary;
+  color: $color-text-on-primary;
+  font-weight: 600;
+}
+
+.secondary-button {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: $color-primary-light;
+  border: 1px solid rgba(92, 143, 134, 0.2);
+}
+
+/* CREATE CARD */
+.create-list-card {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 24px;
+
   padding: 16px;
-  border-radius: $radius-medium;
-  background: rgba(92, 143, 134, 0.06);
-  border: 1px solid rgba(92, 143, 134, 0.12);
-}
-
-.create-list-input {
-  width: 100%;
+  border-radius: 22px;
   border: 1px solid $color-border;
-  border-radius: 14px;
-  padding: 12px 14px;
-  font: inherit;
-  color: $color-text;
   background: $color-surface;
-  box-sizing: border-box;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-
-  &::placeholder {
-    color: $color-text-muted;
-  }
-
-  &:focus {
-    border-color: rgba(92, 143, 134, 0.45);
-    box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.12);
-  }
 }
 
-.create-list-actions {
+.create-actions {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
-/* Buttons */
-.new-list-button,
-.save-button,
-.cancel-button {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 16px;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
+/* LIST */
+.grocery-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.new-list-button {
-  background: $color-button-primary;
-  color: $color-text-on-primary;
-  box-shadow: 0 8px 18px rgba(92, 143, 134, 0.18);
+/* CARD */
+.grocery-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-  &:hover {
-    background: $color-button-primary-hover;
-    transform: translateY(-1px);
-  }
-}
-
-.save-button {
-  background: $color-button-primary;
-  color: $color-text-on-primary;
-
-  &:hover {
-    background: $color-button-primary-hover;
-    transform: translateY(-1px);
-  }
-}
-
-.cancel-button {
-  background: rgba(255, 255, 255, 0.7);
-  color: $color-text;
+  padding: 16px;
+  border-radius: 20px;
   border: 1px solid $color-border;
+  background: $color-plan-card;
 
-  &:hover {
-    background: $color-surface;
-  }
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
 }
 
-/* Error / empty */
-.grocery-error,
-.grocery-empty {
-  margin: 0;
-  font-size: 0.95rem;
+.grocery-card:hover {
+  background: rgba(92, 143, 134, 0.05);
+  transform: translateY(-1px);
+}
+
+.grocery-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grocery-card-name {
+  font-weight: 600;
+}
+
+.grocery-card-status {
+  font-size: 0.85rem;
   color: $color-text-muted;
 }
 
-.grocery-error {
-  color: #a65a5a;
-  margin-bottom: 16px;
+.grocery-card-actions {
+  font-size: 20px;
+  opacity: 0.6;
 }
 
-/* List */
-.grocery-lists-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* EMPTY */
+.grocery-empty {
+  text-align: center;
+  color: $color-text-muted;
 }
 
-/* Card */
-.grocery-list-card {
-  width: 100%;
-  border: 1px solid $color-border;
-  border-radius: 20px;
-  padding: 16px 18px;
-  text-align: left;
-  background: $color-surface-soft;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(46, 58, 50, 0.04);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.grocery-list-card:hover {
-  transform: translateY(-2px);
-  background: $color-plan-card-hover;
-  box-shadow: 0 10px 22px rgba(46, 58, 50, 0.1);
-}
-
-.grocery-list-name {
-  font-weight: 700;
-  font-size: 1rem;
-  color: $color-text;
-}
-
-.grocery-list-status {
+.list-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
-  padding: 4px 10px;
+  min-height: 28px;
+  padding: 4px 12px;
   border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+
   background: rgba(92, 143, 134, 0.1);
   color: $color-primary-dark;
-  font-size: 0.84rem;
-  font-weight: 600;
-  text-transform: capitalize;
-  white-space: nowrap;
 }
 
-/* Tablet+ */
-@media (min-width: 768px) {
-  .create-list-row {
-    padding: 18px;
+.grocery-card-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+
+  background: rgba(92, 143, 134, 0.08);
+  color: $color-primary-dark;
+}
+
+.grocery-card-status-pill--active {
+  background: rgba(92, 143, 134, 0.12);
+  color: $color-primary-dark;
+}
+
+/* MOBILE */
+@media (max-width: 767px) {
+  .grocery-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 
-  .grocery-list-card {
-    padding: 18px 20px;
-  }
-
-  .grocery-list-name {
-    font-size: 1.05rem;
+  .primary-button {
+    width: 100%;
   }
 }

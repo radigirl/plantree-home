@@ -1,41 +1,60 @@
 @use '../../../../styles/variables' as *;
 
+:host {
+  display: block;
+  width: 100%;
+}
+
 .grocery-list-details-page {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .grocery-list-details-loading-shell {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 24px;
-  box-sizing: border-box;
+  min-height: 240px;
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
-  padding: 8px 12px;
-  border: 1px solid rgba(92, 143, 134, 0.14);
-  border-radius: 999px;
-  background-color: rgba(255, 255, 255, 0.72);
+  width: fit-content;
+  padding: 0;
+  border: none;
+  background: transparent;
   text-decoration: none;
-  color: $color-text;
+  color: $color-primary-dark;
   font-size: 0.95rem;
   font-weight: 600;
-  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  margin-bottom: 4px;
 }
 
 .back-link:hover {
-  background-color: rgba(92, 143, 134, 0.08);
-  border-color: rgba(92, 143, 134, 0.22);
+  opacity: 0.85;
+  transform: translateX(-1px);
 }
 
 .back-link__icon {
   line-height: 1;
-  font-size: 0.95rem;
+  font-size: 1rem;
+}
+
+.grocery-list-details-card {
+  width: 100%;
+  border: 1px solid $color-border;
+  border-radius: 24px;
+  background: $color-plan-card;
+  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.05);
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .grocery-list-details-header {
@@ -43,13 +62,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 
   h1 {
     margin: 0;
-    font-size: 2rem;
-    line-height: 1.1;
+    font-size: 1.4rem;
+    line-height: 1.15;
     color: $color-primary-dark;
+    word-break: break-word;
   }
 }
 
@@ -58,13 +78,12 @@
   align-items: center;
   justify-content: center;
   min-height: 30px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(92, 143, 134, 0.1);
+  background: rgba(231, 242, 236, 0.92);
   color: $color-primary-dark;
   font-size: 0.84rem;
   font-weight: 600;
-  text-transform: capitalize;
   white-space: nowrap;
 }
 
@@ -110,19 +129,22 @@
 }
 
 .add-item-button {
+  height: 44px;
   border: none;
   border-radius: 999px;
-  padding: 10px 16px;
+  padding: 0 18px;
   font: inherit;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   background: $color-button-primary;
   color: $color-text-on-primary;
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.18s ease;
 
   &:hover {
     background: $color-button-primary-hover;
     transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(92, 143, 134, 0.16);
   }
 }
 
@@ -137,7 +159,7 @@
   border: 1px solid $color-border;
   border-radius: 18px;
   padding: 14px 16px;
-  background: $color-surface-soft;
+  background: $color-surface;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -148,6 +170,7 @@
     background-color 0.2s ease,
     box-shadow 0.2s ease,
     transform 0.15s ease;
+  box-sizing: border-box;
 
   &:hover {
     background: $color-plan-card-hover;
@@ -183,6 +206,13 @@
   background: $color-primary;
 }
 
+.grocery-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
 .grocery-item-name {
   font-size: 1rem;
   font-weight: 600;
@@ -198,16 +228,8 @@
   color: $color-text-muted;
 }
 
-.grocery-item-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
 .grocery-item-status {
   display: block;
-  flex-shrink: 1;
   font-size: 0.84rem;
   font-weight: 500;
   color: $color-primary-dark;
@@ -219,21 +241,74 @@
   }
 }
 
+.grocery-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(207, 222, 215, 0.95);
+
+  font-size: 1.2rem;
+  color: $color-text-muted;
+
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.grocery-item-actions:hover {
+  background: rgba(92, 143, 134, 0.08);
+  transform: scale(1.05);
+}
+
 @media (max-width: 767px) {
+  .back-link {
+    font-size: 0.94rem;
+  }
+
+  .grocery-list-details-card {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
   .grocery-list-details-header {
     align-items: flex-start;
 
     h1 {
-      font-size: 1.8rem;
+      font-size: 1.25rem;
     }
   }
 
+  .add-item-row {
+    flex-direction: column;
+  }
+
+  .add-item-button {
+    width: 100%;
+  }
+
   .grocery-item {
-    align-items: center;
     gap: 12px;
   }
 
   .grocery-item-status {
     font-size: 0.8rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grocery-list-details-page {
+    width: clamp(640px, 56vw, 860px);
+    margin: 0 auto;
+  }
+
+  .grocery-list-details-card {
+    padding: 18px;
+  }
+
+  .grocery-list-details-header h1 {
+    font-size: 1.35rem;
   }
 }

@@ -1,30 +1,17 @@
 @use '../../../styles/variables' as *;
 
+:host {
+  display: block;
+  width: 100%;
+}
+
 .meal-details-page {
-  padding: 16px;
-  background-color: $color-plan-shell;
-  border-radius: $radius-large;
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  padding: 8px 12px;
-  border: 1px solid rgba(92, 143, 134, 0.14);
-  border-radius: 999px;
-  background-color: rgba(255, 255, 255, 0.72);
-  text-decoration: none;
-  color: $color-text;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
-}
-
-.back-link:hover {
-  background-color: rgba(92, 143, 134, 0.08);
-  border-color: rgba(92, 143, 134, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .meal-details-loading {
@@ -34,22 +21,55 @@
   min-height: 240px;
 }
 
-.day-details-card {
-  position: relative;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid $color-border;
-  border-radius: 26px;
-  background-color: $color-plan-card;
-  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.05);
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $color-primary-dark;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  margin-bottom: 4px;
 }
 
-.meal-details-eyebrow {
-  margin: 0 0 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: $color-text-muted;
+.back-link:hover {
+  opacity: 0.85;
+  transform: translateX(-1px);
+}
+
+.back-link__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.meal-details-card-shell {
+  width: 100%;
+}
+
+.meal-details-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid $color-border;
+  border-radius: 24px;
+  background-color: $color-plan-card;
+  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.05);
+  box-sizing: border-box;
+}
+
+.meal-details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .meal-details-header-row {
@@ -57,15 +77,15 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
 }
 
 .meal-details-title {
-  margin: 0 0 6px;
-  font-size: 1.7rem;
-  line-height: 1.2;
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1.15;
   font-weight: 700;
   color: $color-text;
+  word-break: break-word;
 }
 
 .meal-details-subtitle {
@@ -74,22 +94,55 @@
   color: $color-text-muted;
 }
 
+.edit-meal-button,
+.save-button,
+.cancel-button {
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.edit-meal-button,
+.save-button {
+  background: rgba(92, 143, 134, 0.95);
+  color: #fff;
+}
+
+.edit-meal-button:hover,
+.save-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(92, 143, 134, 0.16);
+}
+
+.cancel-button {
+  background: rgba(255, 252, 247, 0.9);
+  border-color: rgba(207, 222, 215, 0.95);
+  color: $color-primary-dark;
+}
+
+.cancel-button:hover {
+  background: rgba(248, 244, 236, 0.95);
+}
+
 .meal-image {
-  display: block;
   width: 100%;
-  max-width: 560px;
-  aspect-ratio: 16 / 10;
-  border-radius: 20px;
-  overflow: hidden;
-  background-color: $color-primary-light;
-  margin-bottom: 18px;
 }
 
 .meal-image-img {
   display: block;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 16 / 10;
   object-fit: cover;
+  border-radius: 18px;
 }
 
 .meal-details-meta {
@@ -97,7 +150,6 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 22px;
 }
 
 .meal-status,
@@ -105,36 +157,39 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
-  padding: 4px 12px;
+  min-height: 34px;
+  padding: 5px 14px;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .meal-status {
-  background: rgba(92, 143, 134, 0.1);
+  background: rgba(231, 242, 236, 0.92);
   color: $color-primary-dark;
 }
 
 .meal-time {
   gap: 6px;
-  background: rgba(92, 143, 134, 0.08);
+  background: rgba(237, 242, 239, 0.95);
   color: $color-text-muted;
 }
 
 .meal-time-icon {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   line-height: 1;
   opacity: 0.8;
 }
 
 .meal-details-section {
-  padding-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .meal-details-section h3 {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 1.05rem;
   font-weight: 700;
   color: $color-text;
@@ -157,10 +212,17 @@
   line-height: 1.45;
 }
 
+.meal-details-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: $color-text;
+}
+
 .add-meal-form {
-  display: grid;
-  gap: 14px;
-  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding: 16px;
   border: 1px solid $color-border;
   border-radius: 24px;
@@ -168,12 +230,13 @@
 }
 
 .add-meal-field {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .add-meal-field label {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: $color-text;
 }
@@ -189,6 +252,7 @@
   color: $color-text;
   background: $color-surface;
   outline: none;
+  box-sizing: border-box;
 }
 
 .add-meal-field input:focus,
@@ -202,37 +266,6 @@
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 4px;
-}
-
-.save-button,
-.cancel-button {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 16px;
-  font-weight: 600;
-  font: inherit;
-  cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.save-button {
-  background-color: $color-button-primary;
-  color: $color-text-on-primary;
-}
-
-.save-button:hover {
-  background-color: $color-button-primary-hover;
-}
-
-.cancel-button {
-  background-color: $color-primary-light;
-  border: 1px solid rgba(92, 143, 134, 0.18);
-  color: $color-primary-dark;
-}
-
-.cancel-button:hover {
-  background-color: rgba(92, 143, 134, 0.16);
-  border-color: rgba(92, 143, 134, 0.28);
 }
 
 .meal-image-preview {
@@ -253,49 +286,60 @@
 }
 
 @media (max-width: 767px) {
+  .meal-details-page {
+    gap: 16px;
+  }
+
+  .back-link {
+    font-size: 0.94rem;
+  }
+
+  .meal-details-card {
+    padding: 15px;
+    border-radius: 22px;
+    gap: 14px;
+  }
+
   .meal-details-header-row {
     flex-direction: column;
-    align-items: stretch;
-  }
-
-  .save-button {
-    align-self: flex-start;
-  }
-
-  .meal-image {
-    max-width: 100%;
-  }
-}
-
-@media (min-width: 768px) {
-  .meal-details-page {
-    padding: 24px;
-  }
-
-  .day-details-card {
-    padding: 24px;
+    align-items: flex-start;
   }
 
   .meal-details-title {
-    font-size: 1.9rem;
+    font-size: 1.25rem;
   }
 
-  .add-meal-form {
-    padding: 20px;
+  .edit-meal-button,
+  .save-button,
+  .cancel-button {
+    height: 40px;
+    padding: 0 14px;
+    font-size: 0.92rem;
+  }
+
+  .meal-status,
+  .meal-time {
+    min-height: 32px;
+    padding: 4px 12px;
+    font-size: 0.84rem;
   }
 }
 
-@media (min-width: 1440px) {
+@media (min-width: 1024px) {
   .meal-details-page {
-    padding: 32px;
+    width: clamp(640px, 56vw, 860px);
+    margin: 0 auto;
   }
 
-  .day-details-card {
-    max-width: 1040px;
-    padding: 28px;
+   .meal-image-img {
+    aspect-ratio: 16 / 8.8;
+  }
+
+  .meal-details-card {
+    padding: 18px;
   }
 
   .meal-details-title {
-    font-size: 2rem;
+    font-size: 1.35rem;
   }
 }
