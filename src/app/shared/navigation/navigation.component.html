@@ -9,6 +9,11 @@
     <span class="nav-label">Plan</span>
   </button>
 
+  <button class="nav-item" (click)="goTo('/grocery-lists')">
+    <lucide-icon [img]="groceryListsIcon" class="nav-icon"></lucide-icon>
+    <span class="nav-label">Grocery Lists</span>
+  </button>
+
   <button class="nav-item" (click)="goTo('/pantry')">
     <lucide-icon [img]="pantryIcon" class="nav-icon"></lucide-icon>
     <span class="nav-label">Pantry</span>

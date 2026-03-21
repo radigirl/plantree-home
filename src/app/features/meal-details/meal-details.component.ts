@@ -88,18 +88,6 @@ export class MealDetailsComponent implements OnInit {
     }
   }
 
-  get sourceLabel(): string {
-    if (this.source === 'plan') {
-      return 'Opened from Plan';
-    }
-
-    if (this.source === 'my-meals') {
-      return 'Opened from My Meals';
-    }
-
-    return 'Opened from unknown source';
-  }
-
   get backLink(): string {
     if (this.source === 'my-meals') {
       return '/meals';
