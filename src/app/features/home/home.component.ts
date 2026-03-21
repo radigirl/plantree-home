@@ -142,4 +142,9 @@ export class HomeComponent implements OnInit {
 
     return `${year}-${month}-${day}`;
   }
+
+  openMeals(): void {
+  this.router.navigate(['/meals']);
+}
+
 }

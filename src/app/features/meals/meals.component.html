@@ -1,0 +1,165 @@
+<app-page-loading *ngIf="isLoading"></app-page-loading>
+
+<div *ngIf="!isLoading" class="meals-page">
+  <div class="meals-shell">
+    <div class="meals-header">
+      <h1 class="meals-title">My Meals</h1>
+      <p class="meals-subtitle">Create and manage your saved meals</p>
+    </div>
+
+    <div class="meals-actions">
+      <button
+        type="button"
+        class="add-meal-button"
+        *ngIf="!isAddingMeal && !isEditingMeal"
+        (click)="startAddMeal()"
+      >
+        + Add meal
+      </button>
+    </div>
+
+    <div class="add-meal-form" *ngIf="isAddingMeal || isEditingMeal" #mealFormContainer>
+      <div class="add-meal-field">
+        <label for="mealName">Meal name</label>
+        <input
+          id="mealName"
+          type="text"
+          [(ngModel)]="newMealName"
+          placeholder="Enter meal name"
+        />
+      </div>
+
+      <div class="add-meal-field">
+        <label for="prepTime">Prep time (minutes)</label>
+        <input
+          id="prepTime"
+          type="number"
+          min="0"
+          [(ngModel)]="newPrepTime"
+          placeholder="Optional"
+        />
+      </div>
+
+      <div class="add-meal-field">
+        <label for="ingredients">Ingredients</label>
+        <input
+          id="ingredients"
+          type="text"
+          [(ngModel)]="newIngredientsText"
+          placeholder="e.g. Pasta, Tomato sauce, Parmesan"
+        />
+      </div>
+
+      <div class="add-meal-field">
+        <label for="mealImage">Meal photo</label>
+        <input
+          id="mealImage"
+          type="file"
+          accept="image/*"
+          (change)="onMealImageSelected($event)"
+        />
+
+        <div class="meal-image-preview" *ngIf="selectedImagePreview">
+          <img
+            [src]="selectedImagePreview"
+            alt="Selected meal preview"
+            class="meal-image-preview__img"
+          />
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="removeSelectedMealImage()"
+          >
+            Remove photo
+          </button>
+        </div>
+      </div>
+
+      <div class="add-meal-actions">
+        <button
+          type="button"
+          class="save-button"
+          (click)="isEditingMeal ? updateMeal() : saveMeal()"
+        >
+          {{ isEditingMeal ? 'Update' : 'Save' }}
+        </button>
+
+        <button
+          type="button"
+          class="cancel-button"
+          (click)="cancelMealForm()"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div class="meals-empty" *ngIf="!hasMeals">
+      <p class="meals-empty-text">No saved meals yet.</p>
+    </div>
+
+    <div class="meals-list" *ngIf="hasMeals">
+      <div class="day-details-card" *ngFor="let meal of meals; trackBy: trackByMealId">
+        <div class="meal-menu-wrapper">
+          <button
+            type="button"
+            class="meal-menu-button"
+            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"
+          >
+            ⋯
+          </button>
+
+          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id">
+            <button
+              type="button"
+              class="meal-menu-item"
+              (click)="$event.stopPropagation(); onEditMeal(meal)"
+            >
+              Edit
+            </button>
+
+            <button
+              type="button"
+              class="meal-menu-item meal-menu-item--danger"
+              (click)="$event.stopPropagation(); onDeleteMeal(meal)"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <div class="meal-main">
+          <div class="meal-info">
+            <div class="meal-title-block">
+              <p class="meal-name">
+                {{ meal.name }}
+              </p>
+            </div>
+
+            <div class="meal-meta-row">
+              <div class="meal-meta">
+                <span class="meal-time" *ngIf="meal.prepTime != null">
+                  <span class="meal-time-icon">◷</span>
+                  {{ meal.prepTime }} min
+                </span>
+
+                <span class="meal-status" *ngIf="meal.ingredients?.length">
+                  {{ meal.ingredients?.length }} ingredient<span *ngIf="(meal.ingredients?.length ?? 0) > 1">s</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="meal-image">
+            <img
+              [src]="meal.image || 'assets/meals/blank-meal.png'"
+              class="meal-image-img"
+              [alt]="meal.name"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
