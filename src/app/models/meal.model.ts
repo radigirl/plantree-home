@@ -3,6 +3,7 @@ export interface Meal {
   name: string;
 
   prepTime?: number;        // minutes
-  ingredients?: string[];   // ingredient names
-  image?: string;           // meal picture URL
+  ingredients?: string[];
+  image?: string;
+  instructions?: string;     
 }

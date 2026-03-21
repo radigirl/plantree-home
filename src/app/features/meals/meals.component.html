@@ -8,12 +8,7 @@
     </div>
 
     <div class="meals-actions">
-      <button
-        type="button"
-        class="add-meal-button"
-        *ngIf="!isAddingMeal && !isEditingMeal"
-        (click)="startAddMeal()"
-      >
+      <button type="button" class="add-meal-button" *ngIf="!isAddingMeal && !isEditingMeal" (click)="startAddMeal()">
         + Add meal
       </button>
     </div>
@@ -21,75 +16,45 @@
     <div class="add-meal-form" *ngIf="isAddingMeal || isEditingMeal" #mealFormContainer>
       <div class="add-meal-field">
         <label for="mealName">Meal name</label>
-        <input
-          id="mealName"
-          type="text"
-          [(ngModel)]="newMealName"
-          placeholder="Enter meal name"
-        />
+        <input id="mealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
       </div>
 
       <div class="add-meal-field">
         <label for="prepTime">Prep time (minutes)</label>
-        <input
-          id="prepTime"
-          type="number"
-          min="0"
-          [(ngModel)]="newPrepTime"
-          placeholder="Optional"
-        />
+        <input id="prepTime" type="number" min="0" [(ngModel)]="newPrepTime" placeholder="Optional" />
       </div>
 
       <div class="add-meal-field">
         <label for="ingredients">Ingredients</label>
-        <input
-          id="ingredients"
-          type="text"
-          [(ngModel)]="newIngredientsText"
-          placeholder="e.g. Pasta, Tomato sauce, Parmesan"
-        />
+        <input id="ingredients" type="text" [(ngModel)]="newIngredientsText"
+          placeholder="e.g. Pasta, Tomato sauce, Parmesan" />
+      </div>
+
+      <div class="add-meal-field">
+        <label for="newMealInstructions">Instructions</label>
+        <textarea id="newMealInstructions" [(ngModel)]="newInstructions" rows="4"
+          placeholder="e.g. Cook pasta, prepare sauce, mix and serve."></textarea>
       </div>
 
       <div class="add-meal-field">
         <label for="mealImage">Meal photo</label>
-        <input
-          id="mealImage"
-          type="file"
-          accept="image/*"
-          (change)="onMealImageSelected($event)"
-        />
+        <input id="mealImage" type="file" accept="image/*" (change)="onMealImageSelected($event)" />
 
         <div class="meal-image-preview" *ngIf="selectedImagePreview">
-          <img
-            [src]="selectedImagePreview"
-            alt="Selected meal preview"
-            class="meal-image-preview__img"
-          />
+          <img [src]="selectedImagePreview" alt="Selected meal preview" class="meal-image-preview__img" />
 
-          <button
-            type="button"
-            class="cancel-button"
-            (click)="removeSelectedMealImage()"
-          >
+          <button type="button" class="cancel-button" (click)="removeSelectedMealImage()">
             Remove photo
           </button>
         </div>
       </div>
 
       <div class="add-meal-actions">
-        <button
-          type="button"
-          class="save-button"
-          (click)="isEditingMeal ? updateMeal() : saveMeal()"
-        >
+        <button type="button" class="save-button" (click)="isEditingMeal ? updateMeal() : saveMeal()">
           {{ isEditingMeal ? 'Update' : 'Save' }}
         </button>
 
-        <button
-          type="button"
-          class="cancel-button"
-          (click)="cancelMealForm()"
-        >
+        <button type="button" class="cancel-button" (click)="cancelMealForm()">
           Cancel
         </button>
       </div>
@@ -100,30 +65,16 @@
     </div>
 
     <div class="meals-list" *ngIf="hasMeals">
-      <div class="day-details-card" *ngFor="let meal of meals; trackBy: trackByMealId">
-        <div class="meal-menu-wrapper">
-          <button
-            type="button"
-            class="meal-menu-button"
-            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"
-          >
+      <div class="day-details-card" *ngFor="let meal of meals; trackBy: trackByMealId" (click)="openMealDetails(meal)">
+        <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
+          <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal.id)">
             ⋯
           </button>
 
           <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id">
-            <button
-              type="button"
-              class="meal-menu-item"
-              (click)="$event.stopPropagation(); onEditMeal(meal)"
-            >
-              Edit
-            </button>
 
-            <button
-              type="button"
-              class="meal-menu-item meal-menu-item--danger"
-              (click)="$event.stopPropagation(); onDeleteMeal(meal)"
-            >
+            <button type="button" class="meal-menu-item meal-menu-item--danger"
+              (click)="$event.stopPropagation(); onDeleteMeal(meal)">
               Remove from My Meals
             </button>
           </div>
@@ -152,11 +103,7 @@
           </div>
 
           <div class="meal-image">
-            <img
-              [src]="meal.image || 'assets/meals/blank-meal.png'"
-              class="meal-image-img"
-              [alt]="meal.name"
-            />
+            <img [src]="meal.image || 'assets/meals/blank-meal.png'" class="meal-image-img" [alt]="meal.name" />
           </div>
         </div>
       </div>

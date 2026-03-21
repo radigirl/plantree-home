@@ -378,4 +378,41 @@ export class MealPlanService {
 
     return `${year}-${month}-${day}`;
   }
+
+  async getMealById(mealId: string): Promise<{
+  id: string;
+  name: string;
+  prepTime?: number;
+  ingredients?: string[];
+  image?: string;
+  instructions?: string;
+} | null> {
+  const { data, error } = await this.supabaseService.supabase
+    .from('meals')
+    .select(`
+      id,
+      name,
+      prep_time,
+      ingredients,
+      image_url,
+      instructions
+    `)
+    .eq('id', mealId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching meal by id:', error);
+    return null;
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    prepTime: data.prep_time ?? undefined,
+    ingredients: data.ingredients ?? [],
+    image: this.supabaseService.getMealImageUrl(data.image_url) ?? undefined,
+    instructions: data.instructions ?? undefined,
+  };
+}
+
 }

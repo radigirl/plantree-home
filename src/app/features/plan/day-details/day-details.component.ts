@@ -6,7 +6,7 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -61,7 +61,8 @@ export class DayDetailsComponent implements OnInit {
     private mealPlanService: MealPlanService,
     private userStateService: UserStateService,
     private supabaseService: SupabaseService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -523,4 +524,14 @@ export class DayDetailsComponent implements OnInit {
       this.cdr.detectChanges();
     }
   }
+
+  openMealDetails(meal: PlannedMeal): void {
+  this.router.navigate(['/meal', meal.meal.id], {
+    queryParams: {
+      source: 'plan',
+      name: meal.meal.name,
+    },
+  });
+}
+
 }

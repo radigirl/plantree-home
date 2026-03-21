@@ -14,6 +14,7 @@ import { MealsService } from '../../services/meal.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import { UserStateService } from '../../services/user.state.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-meals',
@@ -33,6 +34,7 @@ export class MealsComponent implements OnInit {
   newMealName = '';
   newPrepTime: number | null = null;
   newIngredientsText = '';
+  newInstructions = '';
 
   selectedImageFile: File | null = null;
   selectedImagePreview: string | null = null;
@@ -45,7 +47,8 @@ export class MealsComponent implements OnInit {
     private mealsService: MealsService,
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
-    private userStateService: UserStateService
+    private userStateService: UserStateService,
+    private router: Router
   ) {}
 
   @HostListener('document:click', ['$event'])
@@ -106,23 +109,8 @@ export class MealsComponent implements OnInit {
     this.newIngredientsText = '';
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
+    this.newInstructions = '';
 
-    this.scrollFormIntoView();
-  }
-
-  onEditMeal(meal: Meal): void {
-    this.isAddingMeal = false;
-    this.isEditingMeal = true;
-    this.editingMealId = meal.id;
-
-    this.newMealName = meal.name ?? '';
-    this.newPrepTime = meal.prepTime ?? null;
-    this.newIngredientsText = (meal.ingredients ?? []).join(', ');
-
-    this.selectedImageFile = null;
-    this.selectedImagePreview = meal.image ?? null;
-
-    this.closeMealMenu();
     this.scrollFormIntoView();
   }
 
@@ -191,7 +179,8 @@ export class MealsComponent implements OnInit {
         this.newMealName.trim(),
         this.newPrepTime,
         this.parseIngredients(this.newIngredientsText),
-        imagePath
+        imagePath,
+        this.newInstructions  
       );
 
       this.cancelMealForm();
@@ -226,7 +215,8 @@ export class MealsComponent implements OnInit {
         this.newMealName.trim(),
         this.newPrepTime,
         this.parseIngredients(this.newIngredientsText),
-        imagePath
+        imagePath,
+        null
       );
 
       this.cancelMealForm();
@@ -286,4 +276,14 @@ export class MealsComponent implements OnInit {
       });
     }, 0);
   }
+
+  openMealDetails(meal: Meal): void {
+  this.router.navigate(['/meal', meal.id], {
+    queryParams: {
+      source: 'my-meals',
+      name: meal.name,
+    },
+  });
+}
+
 }

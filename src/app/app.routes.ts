@@ -17,4 +17,5 @@ export const routes: Routes = [
   { path: 'grocery-lists', component: GroceryListsComponent },
   { path: 'grocery-lists/:id', component: GroceryListDetailsComponent },
   { path: 'meals', component: MealsComponent },
+  { path: 'meal/:id', loadComponent: () => import('./features/meal-details/meal-details.component').then(m => m.MealDetailsComponent) }
 ];

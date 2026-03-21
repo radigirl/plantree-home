@@ -16,8 +16,5 @@ export class AppComponent implements OnInit {
     
   async ngOnInit(): Promise<void> {
     const users = await this.supabase.getUsers();
-    console.log('Users from Supabase:', users);
   }
-
-
 }
