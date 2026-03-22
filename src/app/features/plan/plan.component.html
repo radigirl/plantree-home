@@ -21,27 +21,16 @@
         ›
       </button>
 
-      <button
-        type="button"
-        class="today-btn"
-        (click)="goToToday()"
-        *ngIf="showTodayButton"
-      >
+      <button type="button" class="today-btn" (click)="goToToday()" *ngIf="showTodayButton">
         Today
       </button>
     </div>
   </div>
 
   <div class="meal-list" *ngIf="!isLoading">
-    <div
-      #mealCard
-      class="meal-card"
-      *ngFor="let item of weekMeals; let i = index"
-      [class.meal-card--past]="isPastDayIndex(i)"
-      [class.meal-card--today]="isTodayIndex(i)"
-      [class.meal-card--empty]="!hasMeals(item)"
-      [routerLink]="['/plan/day', item.fullDate]"
-    >
+    <div #mealCard class="meal-card" *ngFor="let item of weekMeals; let i = index"
+      [class.meal-card--past]="isPastDayIndex(i)" [class.meal-card--today]="isTodayIndex(i)"
+      [class.meal-card--empty]="!hasMeals(item)" [routerLink]="['/plan/day', item.fullDate]">
       <div class="meal-day">
         <span class="day">{{ item.day }}</span>
         <span class="date">{{ item.date }}</span>
@@ -56,11 +45,8 @@
           <div class="meal-cook-row">
             <span class="meal-cook-label">Cook:</span>
 
-            <img
-              [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-              class="meal-cook-avatar"
-              [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'"
-            />
+            <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
+              class="meal-cook-avatar" [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
 
             <p class="meal-cook">
               {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
@@ -91,17 +77,18 @@
         <ng-template #emptyDay>
           <div class="meal-empty-row">
             <span class="meal-empty-text">No meal planned</span>
+
+            <button type="button" class="meal-add-btn" *ngIf="!isPastDayIndex(i)"
+              (click)="onAddMealClick($event, item.fullDate)">
+              + Add meal
+            </button>
           </div>
         </ng-template>
-      </div>
 
-      <div class="meal-image" *ngIf="hasMeals(item)">
-        <img
-          [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/blank-meal.png'"
-          class="meal-image-img"
-          [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'"
-        />
+        <div class="meal-image" *ngIf="hasMeals(item)">
+          <img [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/default-meal.png'" class="meal-image-img"
+            [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
+        </div>
       </div>
     </div>
   </div>
-</div>

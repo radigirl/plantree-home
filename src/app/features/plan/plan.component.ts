@@ -8,7 +8,7 @@ import {
   ViewChildren,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { DayPlan } from '../../models/day-plan.model';
 import { PlannedMeal } from '../../models/planned-meal.model';
 import { MealPlanService } from '../../services/meal-plan.service';
@@ -31,7 +31,8 @@ export class PlanComponent implements OnInit {
 
   constructor(
     private mealPlanService: MealPlanService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router:Router
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -66,6 +67,14 @@ export class PlanComponent implements OnInit {
       }, 50);
     }
   }
+
+  onAddMealClick(event: MouseEvent, date: string): void {
+  event.stopPropagation();
+
+  this.router.navigate(['/plan/day', date], {
+    queryParams: { add: 'true' }
+  });
+}
 
   getFirstMeal(day: DayPlan): PlannedMeal | undefined {
     return day.meals[0];

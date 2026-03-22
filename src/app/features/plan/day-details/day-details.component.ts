@@ -83,19 +83,28 @@ export class DayDetailsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.date = this.route.snapshot.paramMap.get('date');
+  this.date = this.route.snapshot.paramMap.get('date');
+  const shouldOpenAddForm =
+    this.route.snapshot.queryParamMap.get('add') === 'true';
 
-    await this.loadUsers();
+  await this.loadUsers();
 
-    if (!this.date) {
-      this.isLoading = false;
-      this.meals = [];
-      this.cdr.detectChanges();
-      return;
-    }
-
-    await this.loadMealsForDate(this.date);
+  if (!this.date) {
+    this.isLoading = false;
+    this.meals = [];
+    this.cdr.detectChanges();
+    return;
   }
+
+  await this.loadMealsForDate(this.date);
+
+  if (shouldOpenAddForm && !this.isPastDate() && !this.isFormOpen) {
+  setTimeout(async () => {
+    await this.startAddMeal();
+    this.cdr.detectChanges();
+  }, 0);
+}
+}
 
   goBack(): void {
     this.location.back();
@@ -150,6 +159,8 @@ export class DayDetailsComponent implements OnInit {
     }
 
     this.isFormOpen = true;
+    this.cdr.detectChanges();
+
     this.formMode = 'add';
     this.editingPlannedMealId = null;
     this.editingMealId = null;

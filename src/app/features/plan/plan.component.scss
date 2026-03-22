@@ -1,17 +1,10 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/breakpoints' as *;
 
 .plan-page {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-@media (max-width: 767px) {
-  .plan-page {
-    margin-left: -8px;
-    margin-right: -8px;
-    margin-top: -15px;
-  }
 }
 
 .plan-loading-shell {
@@ -41,7 +34,6 @@
   gap: 10px;
   width: 34px;
   height: 34px;
-  
 }
 
 .week-navigation__side--right {
@@ -149,7 +141,56 @@
 }
 
 .meal-card--past {
-  opacity: 0.9;
+  background: rgba(245, 241, 234, 0.78);
+  border-color: rgba(214, 205, 188, 0.9);
+  box-shadow: none;
+}
+
+.meal-card--past .day,
+.meal-card--past .meal-name,
+.meal-card--past .meal-cook-label {
+  color: rgba($color-primary-dark, 0.58);
+}
+
+.meal-card--past .date,
+.meal-card--past .meal-cook,
+.meal-card--past .meal-empty-text,
+.meal-card--past .meal-more {
+  color: rgba($color-text-muted, 0.72);
+}
+
+.meal-card--past .meal-status,
+.meal-card--past .meal-time {
+  opacity: 0.72;
+}
+
+.meal-card--past .meal-image-img,
+.meal-card--past .meal-cook-avatar {
+  opacity: 0.72;
+  filter: grayscale(0.18);
+}
+
+.meal-empty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.meal-add-btn {
+  border: none;
+  background: rgba(92, 143, 134, 0.12);
+  color: $color-primary-dark;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(92, 143, 134, 0.18);
+  }
 }
 
 .meal-day {
@@ -284,11 +325,6 @@
   color: $color-text-muted;
 }
 
-.meal-empty-row {
-  display: flex;
-  align-items: center;
-}
-
 .meal-empty-text {
   margin: 0;
   font-size: 1rem;
@@ -309,18 +345,27 @@
   object-fit: cover;
 }
 
-@media (max-width: 767px) {
+@include mobile {
   .plan-page {
+    margin-left: -8px;
+    margin-right: -8px;
+    margin-top: -15px;
     gap: 16px;
   }
 
   .week-navigation {
+    position: fixed;
+    top: 90px;
+    left: 8px;
+    right: 8px;
+    z-index: 30;
+
     gap: 8px;
     padding: 8px 12px;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.24);
+    background: rgba(245, 242, 236, 0.96);
     border: 1px solid rgba(207, 222, 215, 0.7);
-    box-shadow: none;
+    box-shadow: 0 6px 16px rgba(46, 58, 50, 0.05);
     backdrop-filter: none;
   }
 
@@ -347,6 +392,7 @@
 
   .meal-list {
     gap: 12px;
+    padding-top: 53px;
   }
 
   .meal-card {
@@ -370,15 +416,12 @@
   }
 
   .meal-card--empty .meal-empty-row {
-    display: flex;
-    align-items: center;
     justify-content: flex-start;
   }
 
   .meal-card--empty .meal-empty-text {
     font-size: 0.92rem;
     font-weight: 500;
-    color: $color-text-muted;
     opacity: 0.9;
   }
 
@@ -427,7 +470,7 @@
   }
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
+@include tablet {
   .week-navigation {
     padding: 13px 18px;
   }
@@ -445,7 +488,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@include desktop {
   .plan-page {
     gap: 22px;
   }
@@ -477,9 +520,21 @@
   .meal-empty-state {
     min-height: 100px;
   }
+
+  .meal-add-btn {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 14px;
+    background: rgba(92, 143, 134, 0.16);
+
+    &:hover {
+      background: rgba(92, 143, 134, 0.22);
+      transform: translateY(-1px);
+    }
+  }
 }
 
-@media (min-width: 1280px) {
+@include desktop-xl {
   .meal-list {
     gap: 20px;
   }
