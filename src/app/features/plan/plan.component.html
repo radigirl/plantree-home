@@ -39,6 +39,7 @@
       *ngFor="let item of weekMeals; let i = index"
       [class.meal-card--past]="isPastDayIndex(i)"
       [class.meal-card--today]="isTodayIndex(i)"
+      [class.meal-card--empty]="!hasMeals(item)"
       [routerLink]="['/plan/day', item.fullDate]"
     >
       <div class="meal-day">
@@ -88,8 +89,8 @@
         </ng-container>
 
         <ng-template #emptyDay>
-          <div class="meal-empty-state">
-            <p class="meal-empty">No meal planned</p>
+          <div class="meal-empty-row">
+            <span class="meal-empty-text">No meal planned</span>
           </div>
         </ng-template>
       </div>
