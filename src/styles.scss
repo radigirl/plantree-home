@@ -26,23 +26,23 @@ app-root {
   position: relative;
   margin: 0;
   margin-bottom: 16px;
-  background: $color-surface;
-  border-radius: $radius-large;
+  background: $color-background;
   padding: $layout-padding-mobile;
   padding-bottom: calc(#{$layout-bottom-nav-height} + env(safe-area-inset-bottom));
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
   min-height: calc(100dvh - #{$layout-header-height-mobile} - #{$layout-bottom-nav-height} - env(safe-area-inset-bottom));
 }
 
 @media (min-width: 1024px) {
   .content {
+    background: $color-surface;
+    border-radius: $radius-large;
     margin-top: $layout-gap-top-desktop;
     margin-right: 40px;
     margin-bottom: $layout-gap-bottom-desktop;
     margin-left: $layout-sidebar-width;
     padding: $layout-padding-desktop;
-
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
     min-height: calc(100dvh - #{$layout-header-height-desktop} - #{$layout-gap-top-desktop} - #{$layout-gap-bottom-desktop});
   }
 }
