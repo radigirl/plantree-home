@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DashboardCardComponent } from '../../shared/components/dashboard-card/dashboard-card.component';
 import { Router } from '@angular/router';
 import { DayPlan } from '../../models/day-plan.model';
 import { PlannedMeal } from '../../models/planned-meal.model';
@@ -10,7 +9,7 @@ import { PageLoadingComponent } from '../../shared/components/page-loading/page-
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, DashboardCardComponent, PageLoadingComponent],
+  imports: [CommonModule, PageLoadingComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

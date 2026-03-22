@@ -2,101 +2,140 @@
 
 <div *ngIf="!isLoading">
   <div class="home-page">
-
-    <!--
-    <div class="page-header">
-      <h1 class="page-title">Welcome to Plantree</h1>
-      <p class="page-subtitle">
-        From plan to pantry, all in one place.
-      </p>
-    </div>
-    -->
-
     <div class="home-grid">
-      <app-dashboard-card class="home-grid__featured" title="Today" [featured]="true" (cardClick)="openToday()">
-        <ng-container *ngIf="!hasTodayMeals; else todayMealsContent">
-          <div class="today-card today-card--empty">
-            <div class="today-card-body">
-              <p class="today-main-text">Nothing planned yet</p>
-              <p class="today-secondary-text">Add a meal later</p>
-            </div>
 
-            <div class="today-card-image-wrap">
-              <div class="today-card-image today-card-image--placeholder">
-                <img src="assets/meals/blank-meal.png" alt="Meal placeholder" class="today-meal-image" />
+      <!-- TODAY CARD -->
+      <article
+        class="card home-grid__featured"
+        (click)="openToday()"
+      >
+        <div class="card__header">
+          <h3 class="card__title">Today</h3>
+        </div>
+
+        <div class="card__content">
+          <ng-container *ngIf="!hasTodayMeals; else todayMealsContent">
+            <div class="today-card today-card--empty">
+              <div class="today-card-body">
+                <p class="today-main-text">Nothing planned yet</p>
+                <p class="today-secondary-text">Add a meal later</p>
+              </div>
+
+              <div class="today-card-image-wrap">
+                <div class="today-card-image today-card-image--placeholder">
+                  <img
+                    src="assets/meals/blank-meal.png"
+                    alt="Meal placeholder"
+                    class="today-meal-image"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </ng-container>
+          </ng-container>
 
-        <ng-template #todayMealsContent>
-          <div class="today-card">
-            <div class="today-card-body">
-              <p class="today-main-text">
-                {{ firstTodayMeal?.meal?.name }}
-              </p>
+          <ng-template #todayMealsContent>
+            <div class="today-card">
+              <div class="today-card-body">
+                <p class="today-main-text">
+                  {{ firstTodayMeal?.meal?.name }}
+                </p>
 
-              <div class="today-cook-row">
-                <span class="today-cook-label">Cook:</span>
+                <div class="today-cook-row">
+                  <span class="today-cook-label">Cook:</span>
 
-                <img [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
-                  class="today-inline-avatar" [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'" />
+                  <img
+                    [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
+                    class="today-inline-avatar"
+                    [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'"
+                  />
 
-                <p class="today-secondary-text">
-                  {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
+                  <p class="today-secondary-text">
+                    {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
+                  </p>
+                </div>
+
+                <div class="today-meta-row">
+                  <span class="today-status-badge" [ngClass]="todayStatusClass">
+                    {{ todayStatusLabel }}
+                  </span>
+
+                  <span class="today-time-badge" *ngIf="firstTodayMeal?.meal?.prepTime">
+                    <span class="today-time-icon">◷</span>
+                    {{ firstTodayMeal?.meal?.prepTime }} min
+                  </span>
+                </div>
+
+                <p class="today-more-meals" *ngIf="hasMultipleTodayMeals">
+                  +{{ additionalMealsCount }} more meal<span *ngIf="additionalMealsCount > 1">s</span>
                 </p>
               </div>
 
-              <div class="today-meta-row">
-                <span class="today-status-badge" [ngClass]="todayStatusClass">
-                  {{ todayStatusLabel }}
-                </span>
-
-                <span class="today-time-badge" *ngIf="firstTodayMeal?.meal?.prepTime">
-                  <span class="today-time-icon">◷</span>
-                  {{ firstTodayMeal?.meal?.prepTime }} min
-                </span>
-              </div>
-
-              <p class="today-more-meals" *ngIf="hasMultipleTodayMeals">
-                +{{ additionalMealsCount }} more meal<span *ngIf="additionalMealsCount > 1">s</span>
-              </p>
-            </div>
-
-            <div class="today-card-image-wrap">
-              <div class="today-card-image">
-                <img [src]="firstTodayMeal?.meal?.image || 'assets/meals/blank-meal.png'" class="today-meal-image"
-                  [alt]="firstTodayMeal?.meal?.name || 'Meal image'" />
+              <div class="today-card-image-wrap">
+                <div class="today-card-image">
+                  <img
+                    [src]="firstTodayMeal?.meal?.image || 'assets/meals/blank-meal.png'"
+                    class="today-meal-image"
+                    [alt]="firstTodayMeal?.meal?.name || 'Meal image'"
+                  />
+                </div>
               </div>
             </div>
+          </ng-template>
+        </div>
+      </article>
+
+      <!-- WEEK PLAN -->
+      <article class="card card--week" (click)="openWeekPlan()">
+        <div class="card__header">
+          <h3 class="card__title">Week Plan</h3>
+        </div>
+
+        <div class="card__content">
+          <div class="summary-card-content">
+            <p class="summary-card-main">• {{ plannedMealsCount }} planned</p>
           </div>
-        </ng-template>
-      </app-dashboard-card>
-
-      <app-dashboard-card class="summary-card summary-card--week" title="Week Plan" (cardClick)="openWeekPlan()">
-        <div class="summary-card-content">
-          <p class="summary-card-main"> • {{ plannedMealsCount }} planned</p>
         </div>
-      </app-dashboard-card>
+      </article>
 
-      <app-dashboard-card class="summary-card summary-card--meals" title="My Meals" (cardClick)="openMeals()">
-        <div class="summary-card-content">
-          <p class="summary-card-main">Browse & reuse</p>
+      <!-- MY MEALS -->
+      <article class="card card--meals" (click)="openMeals()">
+        <div class="card__header">
+          <h3 class="card__title">My Meals</h3>
         </div>
-      </app-dashboard-card>
 
-      <app-dashboard-card class="summary-card summary-card--lists" title="Grocery Lists"
-        (cardClick)="openGroceryLists()">
-        <div class="summary-card-content">
-          <p class="summary-card-main">Open your lists</p>
+        <div class="card__content">
+          <div class="summary-card-content">
+            <p class="summary-card-main">Browse & Reuse</p>
+          </div>
         </div>
-      </app-dashboard-card>
+      </article>
 
-      <app-dashboard-card class="summary-card summary-card--stats" title="Week Stats" (cardClick)="openWeekStats()">
-        <div class="summary-card-content">
-          <p class="summary-card-main">This week</p>
+      <!-- GROCERY LISTS -->
+      <article class="card card--lists" (click)="openGroceryLists()">
+        <div class="card__header">
+          <h3 class="card__title">Grocery Lists</h3>
         </div>
-      </app-dashboard-card>
+
+        <div class="card__content">
+          <div class="summary-card-content">
+            <p class="summary-card-main">Open your lists</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- WEEK STATS -->
+      <article class="card card--stats" (click)="openWeekStats()">
+        <div class="card__header">
+          <h3 class="card__title">Week Stats</h3>
+        </div>
+
+        <div class="card__content">
+          <div class="summary-card-content">
+            <p class="summary-card-main">This week</p>
+          </div>
+        </div>
+      </article>
+
     </div>
   </div>
 </div>

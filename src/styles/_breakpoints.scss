@@ -1,0 +1,82 @@
+// =====================================
+// Breakpoints (Design System)
+// =====================================
+
+// Small phones (larger mobile screens)
+$bp-mobile-sm: 360px;
+
+// Mobile
+$bp-mobile: 767px;
+
+// Tablet
+$bp-tablet: 768px;
+
+// Desktop
+$bp-desktop: 1024px;
+$bp-desktop-xl: 1440px;
+
+
+
+// =====================================
+// Mixins
+// =====================================
+
+// Mobile only: 0 → 767
+@mixin mobile {
+  @media (max-width: $bp-mobile) {
+    @content;
+  }
+}
+
+// Small mobile and up (>=360)
+@mixin mobile-sm-up {
+  @media (min-width: $bp-mobile-sm) {
+    @content;
+  }
+}
+
+// Tablet only: 768 → 1023
+@mixin tablet {
+  @media (min-width: $bp-tablet) and (max-width: $bp-desktop - 1) {
+    @content;
+  }
+}
+
+// Desktop only: 1024+
+@mixin desktop {
+  @media (min-width: $bp-desktop) {
+    @content;
+  }
+}
+
+@mixin desktop-xl {
+  @media (min-width: $bp-desktop-xl) {
+    @content;
+  }
+}
+
+
+// =====================================
+// Common helpers
+// =====================================
+
+// Tablet and up (>=768)
+@mixin tablet-up {
+  @media (min-width: $bp-tablet) {
+    @content;
+  }
+}
+
+// Desktop and up (>=1024)
+@mixin desktop-up {
+  @media (min-width: $bp-desktop) {
+    @content;
+  }
+}
+
+// Mobile only (alias for clarity)
+@mixin mobile-only {
+  @media (max-width: $bp-mobile) {
+    @content;
+  }
+}
