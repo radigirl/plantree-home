@@ -30,7 +30,8 @@ export class MealPlanService {
           name,
           prep_time,
           ingredients,
-          image_url
+          image_url,
+          instructions
         ),
         cook:users!planned_meals_cook_user_id_fkey (
           id,
@@ -86,6 +87,7 @@ export class MealPlanService {
           prepTime: mealData.prep_time,
           ingredients: mealData.ingredients ?? [],
           image: this.supabaseService.getMealImageUrl(mealData.image_url) ?? undefined,
+          instructions: mealData.instructions ?? undefined,
         },
         cook: {
           id: cookData.id,
@@ -113,7 +115,8 @@ export class MealPlanService {
           name,
           prep_time,
           ingredients,
-          image_url
+          image_url,
+          instructions
         ),
         cook:users!planned_meals_cook_user_id_fkey (
           id,
@@ -148,6 +151,7 @@ export class MealPlanService {
           prepTime: mealData.prep_time,
           ingredients: mealData.ingredients ?? [],
           image: this.supabaseService.getMealImageUrl(mealData.image_url) ?? undefined,
+          instructions: mealData.instructions ?? undefined,
         },
         cook: cookData
           ? {
@@ -247,42 +251,42 @@ export class MealPlanService {
   }
 
   async getAvailableMealsForPlanning(userId: number): Promise<
-  { id: string; name: string; prepTime?: number; image?: string }[]
-> {
-  const { data, error } = await this.supabaseService.supabase
-    .from('meals')
-    .select(`
-      id,
-      name,
-      prep_time,
-      image_url,
-      is_archived
-    `)
-    .eq('is_archived', false)
-    .order('created_at', { ascending: false });
+    { id: string; name: string; prepTime?: number; image?: string }[]
+  > {
+    const { data, error } = await this.supabaseService.supabase
+      .from('meals')
+      .select(`
+        id,
+        name,
+        prep_time,
+        image_url,
+        is_archived
+      `)
+      .eq('is_archived', false)
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching available meals:', error);
-    return [];
+    if (error) {
+      console.error('Error fetching available meals:', error);
+      return [];
+    }
+
+    const { data: hiddenData } = await this.supabaseService.supabase
+      .from('user_meals')
+      .select('meal_id')
+      .eq('user_id', userId)
+      .eq('is_hidden', true);
+
+    const hiddenIds = new Set(hiddenData?.map((h) => h.meal_id));
+
+    return (data ?? [])
+      .filter((item) => !hiddenIds.has(item.id))
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        prepTime: item.prep_time ?? undefined,
+        image: this.supabaseService.getMealImageUrl(item.image_url) ?? undefined,
+      }));
   }
-
-  const { data: hiddenData } = await this.supabaseService.supabase
-    .from('user_meals')
-    .select('meal_id')
-    .eq('user_id', userId)
-    .eq('is_hidden', true);
-
-  const hiddenIds = new Set(hiddenData?.map((h) => h.meal_id));
-
-  return (data ?? [])
-    .filter((item) => !hiddenIds.has(item.id))
-    .map((item) => ({
-      id: item.id,
-      name: item.name,
-      prepTime: item.prep_time ?? undefined,
-      image: this.supabaseService.getMealImageUrl(item.image_url) ?? undefined,
-    }));
-}
 
   async updatePlannedMealMeal(
     plannedMealId: string,
@@ -349,27 +353,27 @@ export class MealPlanService {
   }
 
   async createPlannedMealFromExistingMeal(
-  mealId: string,
-  cookUserId: number | null,
-  date: string
-): Promise<void> {
-  const plannedId = crypto.randomUUID();
+    mealId: string,
+    cookUserId: number | null,
+    date: string
+  ): Promise<void> {
+    const plannedId = crypto.randomUUID();
 
-  const { error } = await this.supabaseService.supabase
-    .from('planned_meals')
-    .insert({
-      id: plannedId,
-      meal_id: mealId,
-      cook_user_id: cookUserId,
-      planned_date: date,
-      status: 'to-prepare',
-    });
+    const { error } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .insert({
+        id: plannedId,
+        meal_id: mealId,
+        cook_user_id: cookUserId,
+        planned_date: date,
+        status: 'to-prepare',
+      });
 
-  if (error) {
-    console.error('Error creating planned meal from existing meal:', error);
-    throw error;
+    if (error) {
+      console.error('Error creating planned meal from existing meal:', error);
+      throw error;
+    }
   }
-}
 
   private formatDateLocal(date: Date): string {
     const year = date.getFullYear();
@@ -380,39 +384,38 @@ export class MealPlanService {
   }
 
   async getMealById(mealId: string): Promise<{
-  id: string;
-  name: string;
-  prepTime?: number;
-  ingredients?: string[];
-  image?: string;
-  instructions?: string;
-} | null> {
-  const { data, error } = await this.supabaseService.supabase
-    .from('meals')
-    .select(`
-      id,
-      name,
-      prep_time,
-      ingredients,
-      image_url,
-      instructions
-    `)
-    .eq('id', mealId)
-    .single();
+    id: string;
+    name: string;
+    prepTime?: number;
+    ingredients?: string[];
+    image?: string;
+    instructions?: string;
+  } | null> {
+    const { data, error } = await this.supabaseService.supabase
+      .from('meals')
+      .select(`
+        id,
+        name,
+        prep_time,
+        ingredients,
+        image_url,
+        instructions
+      `)
+      .eq('id', mealId)
+      .single();
 
-  if (error) {
-    console.error('Error fetching meal by id:', error);
-    return null;
+    if (error) {
+      console.error('Error fetching meal by id:', error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      prepTime: data.prep_time ?? undefined,
+      ingredients: data.ingredients ?? [],
+      image: this.supabaseService.getMealImageUrl(data.image_url) ?? undefined,
+      instructions: data.instructions ?? undefined,
+    };
   }
-
-  return {
-    id: data.id,
-    name: data.name,
-    prepTime: data.prep_time ?? undefined,
-    ingredients: data.ingredients ?? [],
-    image: this.supabaseService.getMealImageUrl(data.image_url) ?? undefined,
-    instructions: data.instructions ?? undefined,
-  };
-}
-
 }

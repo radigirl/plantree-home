@@ -17,11 +17,11 @@ import { MealPlanService } from '../../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
 import { UserStateService } from '../../../services/user.state.service';
 import { SupabaseService } from '../../../services/supabase.service';
-import { Location } from '@angular/common';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type ChangeMealMode = 'existing' | 'new';
 type AddMealMode = 'existing' | 'new';
+
 
 @Component({
   selector: 'app-day-details',
@@ -54,6 +54,7 @@ export class DayDetailsComponent implements OnInit {
   changeMealMode: ChangeMealMode = 'existing';
   addMealMode: AddMealMode = 'new';
   selectedExistingMealId: string | null = null;
+  expandedMealId: string | null = null;
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -64,7 +65,6 @@ export class DayDetailsComponent implements OnInit {
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
     private router: Router,
-    private location: Location
   ) { }
 
   @HostListener('document:click', ['$event'])
@@ -104,10 +104,6 @@ export class DayDetailsComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
-  }
-
-  goBack(): void {
-    this.location.back();
   }
 
   async loadUsers(): Promise<void> {
@@ -151,6 +147,10 @@ export class DayDetailsComponent implements OnInit {
       console.error('Error loading available meals:', error);
       this.availableMeals = [];
     }
+  }
+
+  toggleMeal(mealId: string): void {
+    this.expandedMealId = this.expandedMealId === mealId ? null : mealId;
   }
 
   async startAddMeal(): Promise<void> {

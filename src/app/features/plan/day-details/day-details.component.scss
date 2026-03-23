@@ -1,4 +1,5 @@
 @use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
 
 :host {
   display: block;
@@ -33,30 +34,12 @@
   opacity: 0.96;
 }
 
-.back-link {
-  display: inline-flex;
+.day-details-header {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  width: fit-content;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: $color-primary-dark;
-  font-size: 0.98rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: opacity 0.18s ease, transform 0.18s ease;
-  margin-bottom: 4px;
-}
-
-.back-link:hover {
-  opacity: 0.85;
-  transform: translateX(-1px);
-}
-
-.back-link__icon {
-  font-size: 1.1rem;
-  line-height: 1;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
 }
 
 .day-details-date {
@@ -65,6 +48,7 @@
   align-items: baseline;
   font-size: 1.05rem;
   font-weight: 600;
+  min-width: 0;
 }
 
 .day-name {
@@ -74,6 +58,12 @@
 .day-date {
   color: $color-text-muted;
   font-weight: 500;
+}
+
+.day-details-past-note {
+  margin: 0;
+  font-size: 0.92rem;
+  color: $color-text-muted;
 }
 
 .add-meal-button,
@@ -102,6 +92,14 @@
 .save-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 22px rgba(92, 143, 134, 0.16);
+}
+
+.add-meal-button--inline {
+  height: 38px;
+  padding: 0 13px;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cancel-button {
@@ -245,6 +243,11 @@
   box-shadow: 0 12px 26px rgba(46, 58, 50, 0.06);
 }
 
+.day-details-card.expanded {
+  border-color: rgba(207, 222, 215, 0.95);
+  box-shadow: 0 12px 28px rgba(46, 58, 50, 0.06);
+}
+
 .day-details-shell--past .day-details-card {
   cursor: default;
 }
@@ -326,6 +329,7 @@
 }
 
 .meal-title-block {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -339,6 +343,19 @@
   font-weight: 700;
   color: $color-primary-dark;
   word-break: break-word;
+}
+
+.meal-chevron {
+  position: absolute;
+  right: 0;
+  top: 2px;
+  font-size: 1.1rem;
+  color: $color-text-muted;
+  transition: transform 0.2s ease;
+}
+
+.day-details-card.expanded .meal-chevron {
+  transform: rotate(180deg);
 }
 
 .meal-cook-row {
@@ -411,6 +428,19 @@
   opacity: 0.8;
 }
 
+.meal-tap-hint,
+.meal-collapse-hint {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: $color-text-muted;
+  opacity: 0.82;
+}
+
+.meal-collapse-hint {
+  opacity: 0.72;
+}
+
 .meal-image {
   width: 100%;
   margin-top: 2px;
@@ -424,17 +454,101 @@
   object-fit: cover;
 }
 
-@media (max-width: 767px) {
+/* EXPANDABLE SECTION */
+
+.meal-expanded {
+  overflow: hidden;
+  animation: expandFade 0.25s ease;
+}
+
+@keyframes expandFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.meal-expanded-content {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(207, 222, 215, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.meal-ingredients,
+.meal-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.meal-ingredients-title,
+.meal-instructions-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.meal-ingredients-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meal-ingredients-list li {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: $color-text-muted;
+}
+
+.meal-ingredients-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: $color-text-muted;
+  opacity: 0.7;
+}
+
+.meal-instructions-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: $color-text-muted;
+  white-space: pre-line;
+}
+
+@include mobile {
   .day-details-page {
     gap: 16px;
+    margin-left: -8px;
+    margin-right: -8px;
   }
 
   .day-details-shell {
     gap: 14px;
   }
 
-  .back-link {
-    font-size: 0.94rem;
+  .day-details-header {
+    gap: 10px;
+  }
+
+  .day-details-date {
+    font-size: 1rem;
+  }
+
+  .add-meal-button--inline {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 0.84rem;
   }
 
   .add-meal-form {
@@ -463,6 +577,22 @@
     font-size: 0.84rem;
   }
 
+  .meal-tap-hint,
+  .meal-collapse-hint {
+    font-size: 0.8rem;
+  }
+
+  .meal-ingredients-title,
+  .meal-instructions-title {
+    font-size: 0.92rem;
+  }
+
+  .meal-ingredients-list li,
+  .meal-instructions-text,
+  .meal-ingredients-empty {
+    font-size: 0.88rem;
+  }
+
   .meal-menu-wrapper {
     top: 12px;
     right: 12px;
@@ -475,7 +605,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@include desktop {
   .day-details-page {
     width: clamp(640px, 56vw, 860px);
     margin: 0 auto;
@@ -483,10 +613,6 @@
 
   .day-details-shell {
     gap: 18px;
-  }
-
-  .back-link {
-    font-size: 0.96rem;
   }
 
   .day-details-card {
