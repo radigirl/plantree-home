@@ -431,18 +431,18 @@
 }
 
 .meal-status--to-prepare {
-  background: rgba(235, 239, 236, 0.95);
-  color: $color-text-muted;
+  background: $status-to-prepare-bg;
+  color: $status-to-prepare-text;
 }
 
 .meal-status--in-progress {
-  background: rgba(245, 236, 214, 0.95);
-  color: $color-primary-dark;
+  background: $status-in-progress-bg;
+  color: $status-in-progress-text;
 }
 
 .meal-status--ready-to-serve {
-  background: rgba(214, 240, 223, 0.98);
-  color: $color-primary-dark;
+  background: $status-ready-bg;
+  color: $status-ready-text;
   box-shadow: 0 2px 8px rgba(92, 143, 134, 0.08);
 }
 
@@ -514,6 +514,7 @@
   color: $color-text-muted;
   opacity: 0.75;
 }
+
 .meal-collapse-hint {
   opacity: 0.9;
 }
@@ -647,23 +648,23 @@
     font-size: 0.95rem;
   }
 
-.meal-time,
-.meal-status,
-.meal-action-button {
-  min-height: 28px;
-  padding: 3px 9px;
-  font-size: 0.76rem;
-}
+  .meal-time,
+  .meal-status,
+  .meal-action-button {
+    min-height: 28px;
+    padding: 3px 9px;
+    font-size: 0.76rem;
+  }
 
-.meal-action-button {
-  height: 26px;
-  padding: 0 2px;
-  font-size: 0.76rem;
-}
+  .meal-action-button {
+    height: 26px;
+    padding: 0 2px;
+    font-size: 0.76rem;
+  }
 
-.meal-action-icon {
-  font-size: 0.68rem;
-}
+  .meal-action-icon {
+    font-size: 0.68rem;
+  }
 
   .meal-tap-hint,
   .meal-collapse-hint {

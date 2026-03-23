@@ -127,7 +127,6 @@
   align-items: start;
 }
 
-/* ✅ NEW */
 .today-card--empty:active {
   transform: scale(0.98);
 }
@@ -145,7 +144,6 @@
   word-break: break-word;
 }
 
-/* ✅ NEW */
 .today-empty-title {
   margin: 0 0 6px;
   font-size: 1.1rem;
@@ -154,7 +152,6 @@
   color: $color-primary-dark;
 }
 
-/* ✅ NEW */
 .today-empty-action {
   display: inline-flex;
   align-items: center;
@@ -196,52 +193,64 @@
 
 .today-meta-row {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 6px;
 }
 
-.today-status-badge,
+.meal-status,
 .today-time-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 30px;
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 0.82rem;
-  font-weight: 500;
-  white-space: nowrap;
   line-height: 1;
-}
-
-.today-status-badge {
-  &--pending {
-    background: rgba(209, 180, 106, 0.22);
-    color: #9a6a00;
-  }
-
-  &--progress {
-    background: rgba(92, 143, 134, 0.18);
-    color: $color-primary-dark;
-  }
-
-  &--ready {
-    background: rgba(111, 174, 122, 0.18);
-    color: #3f7a4a;
-  }
+  white-space: nowrap;
 }
 
 .today-time-badge {
-  gap: 6px;
-  background: rgba(92, 143, 134, 0.1);
+  gap: 5px;
+  background: rgba(237, 242, 239, 0.95);
   color: $color-text-muted;
+  opacity: 0.82;
 }
 
 .today-time-icon {
   font-size: 0.9rem;
   line-height: 1;
   opacity: 0.8;
+}
+
+.meal-status {
+  font-weight: 500;
+  color: $color-primary-dark;
+  opacity: 1;
+}
+
+.meal-status--to-prepare {
+  background: $status-to-prepare-bg;
+  color: $status-to-prepare-text;
+}
+
+.meal-status--in-progress {
+  background: $status-in-progress-bg;
+  color: $status-in-progress-text;
+}
+
+.meal-status--ready-to-serve {
+  background: $status-ready-bg;
+  color: $status-ready-text;
+}
+
+.today-time-badge {
+  gap: 5px;
+  background: rgba(237, 242, 239, 0.95);
+  color: $color-text-muted;
+  opacity: 0.82;
 }
 
 .today-more-meals {
@@ -297,12 +306,10 @@
     font-size: 1.3rem;
   }
 
-  /* ✅ NEW */
   .today-empty-title {
     font-size: 1rem;
   }
 
-  /* ✅ NEW */
   .today-empty-action {
     font-size: 0.88rem;
   }
@@ -317,9 +324,9 @@
     font-size: 0.9rem;
   }
 
-  .today-status-badge,
+  .meal-status,
   .today-time-badge {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
   }
 
   .card--week,
@@ -374,6 +381,7 @@
 
 /* Desktop and up */
 @include desktop {
+
   .card--week,
   .card--meals,
   .card--lists,
@@ -414,7 +422,7 @@
     font-size: 1rem;
   }
 
-  .today-status-badge,
+  .meal-status,
   .today-time-badge {
     font-size: 0.82rem;
   }
@@ -426,6 +434,7 @@
 
 /* Extra large screens */
 @include desktop-xl {
+
   .card--week,
   .card--meals,
   .card--lists,

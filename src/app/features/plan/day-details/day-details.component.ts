@@ -18,6 +18,8 @@ import { PageLoadingComponent } from '../../../shared/components/page-loading/pa
 import { UserStateService } from '../../../services/user.state.service';
 import { SupabaseService } from '../../../services/supabase.service';
 
+import { MEAL_STATUS_LABELS, getNextStatus } from '../../../shared/utils/meal.utils';
+
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type ChangeMealMode = 'existing' | 'new';
 type AddMealMode = 'existing' | 'new';
@@ -451,13 +453,7 @@ export class DayDetailsComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      'to-prepare': 'To prepare',
-      'in-progress': 'In progress',
-      'ready-to-serve': 'Ready',
-    };
-
-    return map[status] || status;
+    return MEAL_STATUS_LABELS[status] || status;
   }
 
   getMealCountLabel(): string {
@@ -568,15 +564,11 @@ export class DayDetailsComponent implements OnInit {
       return;
     }
 
-    let nextStatus: 'to-prepare' | 'in-progress' | 'ready-to-serve' | null = null;
-
-    if (meal.status === 'to-prepare') {
-      nextStatus = 'in-progress';
-    } else if (meal.status === 'in-progress') {
-      nextStatus = 'ready-to-serve';
-    } else if (meal.status === 'ready-to-serve') {
-      nextStatus = 'to-prepare';
-    }
+    const nextStatus = getNextStatus(meal.status) as
+      | 'to-prepare'
+      | 'in-progress'
+      | 'ready-to-serve'
+      | null;
 
     if (!nextStatus) {
       return;

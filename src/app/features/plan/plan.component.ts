@@ -95,7 +95,7 @@ export class PlanComponent implements OnInit {
     const map: Record<string, string> = {
       'to-prepare': 'To prepare',
       'in-progress': 'In progress',
-      'ready-to-serve': 'Ready to serve',
+      'ready-to-serve': 'Ready',
     };
 
     return map[status] || status;

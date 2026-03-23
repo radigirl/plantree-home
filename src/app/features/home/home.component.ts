@@ -5,6 +5,7 @@ import { DayPlan } from '../../models/day-plan.model';
 import { PlannedMeal } from '../../models/planned-meal.model';
 import { MealPlanService } from '../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
+import { getStatusLabel } from '../../shared/utils/meal.utils';
 
 @Component({
   selector: 'app-home',
@@ -64,35 +65,14 @@ export class HomeComponent implements OnInit {
     return this.todayMeals[0];
   }
 
-  get todayStatusLabel(): string {
-    if (!this.firstTodayMeal) {
-      return '';
-    }
-
-    switch (this.firstTodayMeal.status) {
-      case 'ready-to-serve':
-        return 'Ready to serve';
-      case 'in-progress':
-        return 'In progress';
-      default:
-        return 'To prepare';
-    }
+ get todayStatusLabel(): string {
+  if (!this.firstTodayMeal) {
+    return '';
   }
 
-  get todayStatusClass(): string {
-    if (!this.firstTodayMeal) {
-      return '';
-    }
+  return getStatusLabel(this.firstTodayMeal.status);
+}
 
-    switch (this.firstTodayMeal.status) {
-      case 'ready-to-serve':
-        return 'today-status-badge--ready';
-      case 'in-progress':
-        return 'today-status-badge--progress';
-      default:
-        return 'today-status-badge--pending';
-    }
-  }
 
   get additionalMealsCount(): number {
     return Math.max(this.todayMeals.length - 1, 0);

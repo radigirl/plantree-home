@@ -63,3 +63,21 @@ $color-button-primary-hover: $color-primary-dark;
 $radius-large: 30px;
 $radius-medium: 20px;
 $radius-small: 12px;
+
+
+
+/* Status chips */
+
+$status-to-prepare-bg: rgba(245, 236, 214, 0.95);
+$status-to-prepare-text: $color-primary-dark;
+
+$status-in-progress-bg: rgba(221, 234, 241, 0.95);
+$status-in-progress-text: $color-primary-dark;
+
+$status-ready-bg: rgba(214, 240, 223, 0.98);
+$status-ready-text: $color-primary-dark;
+
+
+$meal-chip-height: 28px;
+$meal-chip-padding-x: 9px;
+$meal-chip-font-size: 0.78rem;

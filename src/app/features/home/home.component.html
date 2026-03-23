@@ -45,13 +45,13 @@
                 </div>
 
                 <div class="today-meta-row">
-                  <span class="today-status-badge" [ngClass]="todayStatusClass">
-                    {{ todayStatusLabel }}
-                  </span>
-
-                  <span class="today-time-badge" *ngIf="firstTodayMeal?.meal?.prepTime">
+                  <span class="today-time-badge" *ngIf="firstTodayMeal?.meal?.prepTime != null">
                     <span class="today-time-icon">◷</span>
                     {{ firstTodayMeal?.meal?.prepTime }} min
+                  </span>
+
+                  <span class="meal-status" [ngClass]="'meal-status--' + firstTodayMeal?.status">
+                    {{ todayStatusLabel }}
                   </span>
                 </div>
 
