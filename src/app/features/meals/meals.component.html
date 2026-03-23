@@ -124,28 +124,49 @@
         </div>
 
         <div class="meal-expanded" *ngIf="expandedMealId === meal.id">
+
           <div class="meal-expanded-content">
-            <div class="meal-ingredients" *ngIf="meal.ingredients?.length">
-              <p class="meal-ingredients-title">Ingredients</p>
 
-              <ul class="meal-ingredients-list">
-                <li *ngFor="let ingredient of meal.ingredients">
-                  {{ ingredient }}
-                </li>
-              </ul>
-            </div>
-
-            <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length">
-              No ingredients added
+            <!-- BOTH EMPTY -->
+            <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length && !meal.instructions">
+              No recipe details added
             </p>
 
-            <div class="meal-instructions" *ngIf="meal.instructions">
-              <p class="meal-instructions-title">Instructions</p>
-              <p class="meal-instructions-text">
-                {{ meal.instructions }}
-              </p>
-            </div>
+            <!-- NORMAL STRUCTURE -->
+            <ng-container *ngIf="meal.ingredients?.length || meal.instructions">
+
+              <!-- INGREDIENTS -->
+              <div class="meal-ingredients">
+                <p class="meal-ingredients-title">Ingredients</p>
+
+                <ul class="meal-ingredients-list" *ngIf="meal.ingredients?.length">
+                  <li *ngFor="let ingredient of meal.ingredients">
+                    {{ ingredient }}
+                  </li>
+                </ul>
+
+                <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length">
+                  No ingredients added
+                </p>
+              </div>
+
+              <!-- INSTRUCTIONS -->
+              <div class="meal-instructions">
+                <p class="meal-instructions-title">Instructions</p>
+
+                <p class="meal-instructions-text" *ngIf="meal.instructions">
+                  {{ meal.instructions }}
+                </p>
+
+                <p class="meal-ingredients-empty" *ngIf="!meal.instructions">
+                  No instructions added
+                </p>
+              </div>
+
+            </ng-container>
+
           </div>
+
         </div>
       </div>
     </div>

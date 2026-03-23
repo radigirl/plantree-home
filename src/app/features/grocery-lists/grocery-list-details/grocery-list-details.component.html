@@ -12,7 +12,7 @@
     <p *ngIf="error" class="grocery-error">{{ error }}</p>
 
     <ng-container *ngIf="!error && groceryList">
-      <div class="grocery-list-details-card">
+
         <div class="grocery-list-details-header">
           <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
           <span class="grocery-list-status">{{ groceryList.status | titlecase }}</span>
@@ -141,7 +141,7 @@
         <ng-template #noItems>
           <p class="grocery-empty">No items yet.</p>
         </ng-template>
-      </div>
+     
     </ng-container>
   </ng-container>
 </section>

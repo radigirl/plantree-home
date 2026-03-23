@@ -1,123 +1,92 @@
-<section class="grocery-lists-page">
-  <div *ngIf="isLoading" class="grocery-loading">
+<section class="lists-page">
+  <div *ngIf="isLoading" class="lists-loading">
     <app-page-loading></app-page-loading>
   </div>
 
   <ng-container *ngIf="!isLoading">
-    <!-- HEADER -->
-    <div class="grocery-header">
-      <h1 class="grocery-title">Grocery Lists</h1>
 
-      <button
-        *ngIf="!isCreatingList"
-        type="button"
-        class="primary-button"
-        (click)="startCreateList()"
-      >
-        + New List
+    <!-- HEADER -->
+    <div class="lists-header">
+      <h1 class="lists-title">Grocery Lists</h1>
+
+      <button *ngIf="!isCreatingList" type="button" class="add-button" (click)="startCreateList()">
+        + Add list
       </button>
     </div>
 
+    <!-- CREATE / EDIT -->
     <!-- CREATE -->
-    <div *ngIf="isCreatingList" class="create-list-card">
-      <input
-        type="text"
-        placeholder="Enter list name"
-        [(ngModel)]="newListName"
-        class="create-list-input"
-      />
+    <div *ngIf="isCreatingList" class="list-form-card">
+      <input type="text" placeholder="Enter list name" [(ngModel)]="newListName" class="list-form-input" />
 
-      <div class="create-actions">
-        <button class="primary-button" (click)="saveNewList()">
+      <div class="list-form-actions">
+        <button class="save-button" (click)="saveNewList()">
           Save
         </button>
 
-        <button class="secondary-button" (click)="cancelCreateList()">
+        <button class="cancel-button" (click)="cancelCreateList()">
           Cancel
         </button>
       </div>
     </div>
 
     <!-- EDIT -->
-    <div *ngIf="editingListId !== null" class="create-list-card">
-      <input
-        type="text"
-        placeholder="Edit list name"
-        [(ngModel)]="editListName"
-        class="create-list-input"
-      />
+    <div *ngIf="editingListId !== null" class="list-form-card">
+      <input type="text" placeholder="Edit list name" [(ngModel)]="editListName" class="list-form-input" />
 
-      <div class="create-actions">
-        <button class="primary-button" (click)="saveEditedList()">
+      <div class="list-form-actions">
+        <button class="save-button" (click)="saveEditedList()">
           Save
         </button>
 
-        <button class="secondary-button" (click)="cancelEditList()">
+        <button class="cancel-button" (click)="cancelEditList()">
           Cancel
         </button>
       </div>
     </div>
 
-    <p *ngIf="error" class="grocery-error">{{ error }}</p>
+    <p *ngIf="error" class="lists-error">{{ error }}</p>
 
     <!-- LISTS -->
-    <div *ngIf="!error && groceryLists.length > 0; else empty" class="grocery-list">
-      <div
-        class="grocery-card"
-        *ngFor="let list of groceryLists"
-        (click)="openList(list)"
-      >
-        <div class="grocery-card-left">
-          <span class="grocery-card-name">{{ list.name }}</span>
+    <div *ngIf="!error && groceryLists.length > 0; else empty" class="lists-list">
 
-          <span
-            class="grocery-card-status-pill"
-            [ngClass]="{
-              'grocery-card-status-pill--active':
-                list.status && list.status.toLowerCase() === 'active'
-            }"
-          >
-            {{ list.status }}
-          </span>
-        </div>
-
-        <div class="grocery-card-actions-wrapper">
-          <button
-            type="button"
-            class="grocery-card-actions"
-            (click)="toggleActionsMenu($event, list)"
-            aria-label="Open grocery list actions"
-          >
+      <div class="list-card" *ngFor="let list of groceryLists" (click)="openList(list)">
+        <!-- MENU -->
+        <div class="list-menu-wrapper" (click)="$event.stopPropagation()">
+          <button type="button" class="list-menu-button" (click)="toggleActionsMenu($event, list)">
             ⋯
           </button>
 
-          <div
-            *ngIf="openMenuListId === list.id"
-            class="grocery-card-menu"
-            (click)="$event.stopPropagation()"
-          >
-            <button
-              type="button"
-              class="grocery-card-menu-item"
-              (click)="startEditList($event, list)"
-            >
+          <div *ngIf="openMenuListId === list.id" class="list-menu-dropdown">
+            <button type="button" class="list-menu-item" (click)="startEditList($event, list)">
               Edit
             </button>
 
-            <button
-              type="button"
-              class="grocery-card-menu-item grocery-card-menu-item--danger"
-              (click)="deleteList($event, list)"
-            >
+            <button type="button" class="list-menu-item list-menu-item--danger" (click)="deleteList($event, list)">
               Delete
             </button>
           </div>
         </div>
+
+        <!-- CONTENT -->
+        <div class="list-main">
+          <p class="list-name">
+            {{ list.name }}
+          </p>
+
+          <div class="list-meta">
+            <span class="list-status" [ngClass]="'list-status--' + list.status.toLowerCase()">
+              {{ list.status }}
+            </span>
+          </div>
+        </div>
       </div>
+
     </div>
 
     <ng-template #empty>
-      <p class="grocery-empty">No grocery lists found.</p>
+      <p class="lists-empty">No grocery lists yet.</p>
     </ng-template>
+
   </ng-container>
 </section>
