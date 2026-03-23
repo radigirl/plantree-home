@@ -454,7 +454,7 @@ export class DayDetailsComponent implements OnInit {
     const map: Record<string, string> = {
       'to-prepare': 'To prepare',
       'in-progress': 'In progress',
-      'ready-to-serve': 'Ready to serve',
+      'ready-to-serve': 'Ready',
     };
 
     return map[status] || status;
@@ -519,8 +519,24 @@ export class DayDetailsComponent implements OnInit {
         return 'Start cooking';
       case 'in-progress':
         return 'Mark ready';
+      case 'ready-to-serve':
+        return 'Reset';
       default:
         return null;
+    }
+  }
+
+
+  getPrimaryActionIcon(status: string): string {
+    switch (status) {
+      case 'to-prepare':
+        return '▶';
+      case 'in-progress':
+        return '✔';
+      case 'ready-to-serve':
+        return '↺';
+      default:
+        return '';
     }
   }
 
@@ -552,12 +568,14 @@ export class DayDetailsComponent implements OnInit {
       return;
     }
 
-    let nextStatus: 'in-progress' | 'ready-to-serve' | null = null;
+    let nextStatus: 'to-prepare' | 'in-progress' | 'ready-to-serve' | null = null;
 
     if (meal.status === 'to-prepare') {
       nextStatus = 'in-progress';
     } else if (meal.status === 'in-progress') {
       nextStatus = 'ready-to-serve';
+    } else if (meal.status === 'ready-to-serve') {
+      nextStatus = 'to-prepare';
     }
 
     if (!nextStatus) {

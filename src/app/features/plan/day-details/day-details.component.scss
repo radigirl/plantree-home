@@ -264,17 +264,27 @@
 }
 
 .meal-menu-button {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1px solid rgba(207, 222, 215, 0.95);
-  background: rgba(255, 252, 247, 0.88);
-  color: $color-primary-dark;
-  font-size: 1.5rem;
-  line-height: 1;
+  border: none;
+  background: rgba(251, 248, 241, 0.96);
+  color: $color-text-muted;
+  font-size: 1.4rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+  opacity: 0.9;
+}
+
+.meal-menu-button:hover {
+  background: rgba(207, 222, 215, 0.35);
+  opacity: 1;
+}
+
+.meal-menu-button:active {
+  transform: scale(0.92);
 }
 
 .meal-menu-button:disabled {
@@ -291,7 +301,8 @@
   flex-direction: column;
   padding: 8px;
   border-radius: 16px;
-  background: rgba(255, 252, 247, 0.98);
+  backdrop-filter: blur(12px);
+  background: rgba(255, 252, 247, 0.92);
   border: 1px solid rgba(207, 222, 215, 0.95);
   box-shadow: 0 14px 28px rgba(46, 58, 50, 0.12);
 }
@@ -345,19 +356,6 @@
   word-break: break-word;
 }
 
-.meal-chevron {
-  position: absolute;
-  right: 0;
-  top: 2px;
-  font-size: 1.1rem;
-  color: $color-text-muted;
-  transition: transform 0.2s ease;
-}
-
-.day-details-card.expanded .meal-chevron {
-  transform: rotate(180deg);
-}
-
 .meal-cook-row {
   display: inline-flex;
   align-items: center;
@@ -394,38 +392,102 @@
 
 .meal-meta {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.meal-status,
-.meal-time {
+.meal-time,
+.meal-status {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  padding: 5px 14px;
+  min-height: 28px;
+  padding: 3px 9px;
   border-radius: 999px;
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   line-height: 1;
   white-space: nowrap;
-}
-
-.meal-status {
-  background: rgba(231, 242, 236, 0.92);
-  color: $color-primary-dark;
+  flex-shrink: 0;
 }
 
 .meal-time {
-  gap: 6px;
+  gap: 5px;
   background: rgba(237, 242, 239, 0.95);
   color: $color-text-muted;
+  opacity: 0.82;
 }
 
 .meal-time-icon {
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   line-height: 1;
-  opacity: 0.8;
+  opacity: 0.75;
+}
+
+.meal-status {
+  color: $color-primary-dark;
+  font-weight: 500;
+  opacity: 1;
+}
+
+.meal-status--to-prepare {
+  background: rgba(235, 239, 236, 0.95);
+  color: $color-text-muted;
+}
+
+.meal-status--in-progress {
+  background: rgba(245, 236, 214, 0.95);
+  color: $color-primary-dark;
+}
+
+.meal-status--ready-to-serve {
+  background: rgba(214, 240, 223, 0.98);
+  color: $color-primary-dark;
+  box-shadow: 0 2px 8px rgba(92, 143, 134, 0.08);
+}
+
+.meal-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: $color-primary-dark;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease,
+    opacity 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  opacity: 0.92;
+}
+
+.meal-action-button:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.meal-action-button:active {
+  transform: scale(0.98);
+}
+
+.meal-action-icon {
+  font-size: 0.72rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.meal-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
 }
 
 .meal-tap-hint,
@@ -437,8 +499,23 @@
   opacity: 0.82;
 }
 
+.meal-recipe-toggle p {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.meal-tap-hint,
 .meal-collapse-hint {
-  opacity: 0.72;
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: $color-text-muted;
+  opacity: 0.75;
+}
+.meal-collapse-hint {
+  opacity: 0.9;
 }
 
 .meal-image {
@@ -570,12 +647,23 @@
     font-size: 0.95rem;
   }
 
-  .meal-status,
-  .meal-time {
-    min-height: 32px;
-    padding: 4px 12px;
-    font-size: 0.84rem;
-  }
+.meal-time,
+.meal-status,
+.meal-action-button {
+  min-height: 28px;
+  padding: 3px 9px;
+  font-size: 0.76rem;
+}
+
+.meal-action-button {
+  height: 26px;
+  padding: 0 2px;
+  font-size: 0.76rem;
+}
+
+.meal-action-icon {
+  font-size: 0.68rem;
+}
 
   .meal-tap-hint,
   .meal-collapse-hint {

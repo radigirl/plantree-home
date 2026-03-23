@@ -10,14 +10,8 @@
         <span class="day-date">{{ getShortDate() }}</span>
       </div>
 
-      <button
-        type="button"
-        class="add-meal-button add-meal-button--inline"
-        *ngIf="!isFormOpen"
-        [disabled]="isPastDate()"
-        [class.add-meal-button--disabled]="isPastDate()"
-        (click)="openAddMealFromDay()"
-      >
+      <button type="button" class="add-meal-button add-meal-button--inline" *ngIf="!isFormOpen"
+        [disabled]="isPastDate()" [class.add-meal-button--disabled]="isPastDate()" (click)="openAddMealFromDay()">
         + Add meal
       </button>
     </div>
@@ -213,57 +207,30 @@
     </div>
 
     <div class="day-details-list" *ngIf="meals.length > 0">
-      <div
-        class="day-details-card"
-        [class.expanded]="expandedMealId === meal.id"
-        *ngFor="let meal of meals"
-        (click)="toggleMeal(meal.id)"
-      >
+      <div class="day-details-card" [class.expanded]="expandedMealId === meal.id" *ngFor="let meal of meals"
+        (click)="toggleMeal(meal.id)">
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
-          <button
-            type="button"
-            class="meal-menu-button"
-            [disabled]="isPastDate()"
-            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"
-            aria-label="Meal actions"
-          >
+          <button type="button" class="meal-menu-button" [disabled]="isPastDate()"
+            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)" aria-label="Meal actions">
             ⋯
           </button>
 
-          <div
-            class="meal-menu-dropdown"
-            *ngIf="openMealMenuId === meal.id && !isPastDate()"
-          >
-            <button
-              type="button"
-              class="meal-menu-item"
-              *ngIf="getPrimaryActionLabel(meal.status)"
-              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)"
-            >
+          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isPastDate()">
+            <button type="button" class="meal-menu-item" *ngIf="getPrimaryActionLabel(meal.status)"
+              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)">
               {{ getPrimaryActionLabel(meal.status) }}
             </button>
 
-            <button
-              type="button"
-              class="meal-menu-item"
-              (click)="$event.stopPropagation(); onChangeMeal(meal)"
-            >
+            <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); onChangeMeal(meal)">
               Change meal
             </button>
 
-            <button
-              type="button"
-              class="meal-menu-item"
-              (click)="$event.stopPropagation(); onEditCook(meal)"
-            >
+            <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); onEditCook(meal)">
               Edit cook
             </button>
 
-            <button
-              type="button"
-              class="meal-menu-item meal-menu-item--danger"
-              (click)="$event.stopPropagation(); onRemoveMeal(meal)"
-            >
+            <button type="button" class="meal-menu-item meal-menu-item--danger"
+              (click)="$event.stopPropagation(); onRemoveMeal(meal)">
               Remove
             </button>
           </div>
@@ -276,19 +243,10 @@
                 {{ meal.meal.name }}
               </p>
 
-              <span class="meal-chevron">
-                {{ expandedMealId === meal.id ? '⌃' : '⌄' }}
-              </span>
-
               <div class="meal-cook-row">
                 <span class="meal-cook-label">Cook:</span>
-
-                <img
-                  [src]="meal.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-                  class="meal-cook-avatar"
-                  [alt]="meal.cook?.name || 'Cook avatar'"
-                />
-
+                <img [src]="meal.cook?.avatar_url || 'assets/avatars/unassigned.png'" class="meal-cook-avatar"
+                  [alt]="meal.cook?.name || 'Cook avatar'" />
                 <p class="meal-cook">
                   {{ meal.cook?.name || 'Unassigned' }}
                 </p>
@@ -297,32 +255,39 @@
 
             <div class="meal-meta-row">
               <div class="meal-meta">
-                <span class="meal-status">
-                  {{ getStatusLabel(meal.status) }}
-                </span>
-
                 <span class="meal-time" *ngIf="meal.meal.prepTime != null">
                   <span class="meal-time-icon">◷</span>
                   {{ meal.meal.prepTime }} min
                 </span>
+
+                <span class="meal-status" [ngClass]="'meal-status--' + meal.status">
+                  {{ getStatusLabel(meal.status) }}
+                </span>
               </div>
             </div>
 
-            <p class="meal-tap-hint" *ngIf="expandedMealId !== meal.id">
-              View recipe
-            </p>
-
-            <p class="meal-collapse-hint" *ngIf="expandedMealId === meal.id">
-              Click card again to close
-            </p>
+            <div class="meal-actions-row">
+              <button type="button" class="meal-action-button" *ngIf="getPrimaryActionLabel(meal.status)"
+                (click)="$event.stopPropagation(); onPrimaryAction(meal)">
+                <span class="meal-action-icon">
+                  {{ getPrimaryActionIcon(meal.status) }}
+                </span>
+                {{ getPrimaryActionLabel(meal.status) }}
+              </button>
+              <div class="meal-recipe-toggle">
+                <p class="meal-tap-hint" *ngIf="expandedMealId !== meal.id">
+                  View recipe
+                </p>
+                <p class="meal-collapse-hint" *ngIf="expandedMealId === meal.id">
+                  Hide recipe
+                </p>
+              </div>
+            </div>
           </div>
 
           <div class="meal-image">
-            <img
-              [src]="meal.meal.image || 'assets/meals/default-meal.png'"
-              class="meal-image-img"
-              [alt]="meal.meal.name || 'Meal image'"
-            />
+            <img [src]="meal.meal.image || 'assets/meals/default-meal.png'" class="meal-image-img"
+              [alt]="meal.meal.name || 'Meal image'" />
           </div>
         </div>
 

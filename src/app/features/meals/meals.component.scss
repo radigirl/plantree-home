@@ -1,9 +1,12 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/breakpoints' as *;
 
 .meals-page {
   padding: 16px;
-  background-color: $color-plan-shell;
   border-radius: $radius-large;
+  background: transparent;
+  padding:0;
+
 }
 
 .meals-shell {
@@ -324,6 +327,10 @@
 @media (min-width: 768px) {
   .meals-page {
     padding: 24px;
+    margin-left: -8px;
+    margin-right: -8px;
+    margin-top:-20px;
+    border: 1px solid red;
   }
 
   .meals-header {
