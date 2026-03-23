@@ -19,7 +19,8 @@ export class MealsService {
       prep_time,
       ingredients,
       image_url,
-      is_archived
+      is_archived,
+      instructions
     `)
       .order('created_at', { ascending: false });
 
@@ -54,6 +55,7 @@ export class MealsService {
           prepTime: item.prep_time ?? undefined,
           ingredients: item.ingredients ?? [],
           image: imageUrl ?? undefined,
+          instructions: item.instructions ?? undefined,
         };
       });
   }

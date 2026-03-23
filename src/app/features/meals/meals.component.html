@@ -2,13 +2,14 @@
 
 <div *ngIf="!isLoading" class="meals-page">
   <div class="meals-shell">
-    <div class="meals-header">
-      <h1 class="meals-title">My Meals</h1>
-      <p class="meals-subtitle">Create and manage your saved meals</p>
-    </div>
+    <div class="meals-header-row">
+      <div class="meals-header">
+        <h1 class="meals-title">My Meals</h1>
+        <p class="meals-subtitle">Create and manage your saved meals</p>
+      </div>
 
-    <div class="meals-actions">
-      <button type="button" class="add-meal-button" *ngIf="!isAddingMeal && !isEditingMeal" (click)="startAddMeal()">
+      <button type="button" class="add-meal-button add-meal-button--inline" *ngIf="!isAddingMeal && !isEditingMeal"
+        (click)="startAddMeal()">
         + Add meal
       </button>
     </div>
@@ -65,13 +66,18 @@
     </div>
 
     <div class="meals-list" *ngIf="hasMeals">
-      <div class="day-details-card" *ngFor="let meal of meals; trackBy: trackByMealId" (click)="openMealDetails(meal)">
+      <div class="meal-card" [class.expanded]="expandedMealId === meal.id"
+        *ngFor="let meal of meals; trackBy: trackByMealId" (click)="toggleMeal(meal.id)">
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
-          <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal.id)">
+          <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"
+            aria-label="Meal actions">
             ⋯
           </button>
 
           <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id">
+            <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); startEditMeal(meal)">
+              Edit meal
+            </button>
 
             <button type="button" class="meal-menu-item meal-menu-item--danger"
               (click)="$event.stopPropagation(); onDeleteMeal(meal)">
@@ -95,15 +101,50 @@
                   {{ meal.prepTime }} min
                 </span>
 
-                <span class="meal-status" *ngIf="meal.ingredients?.length">
-                  {{ meal.ingredients?.length }} ingredient<span *ngIf="(meal.ingredients?.length ?? 0) > 1">s</span>
+                <span class="meal-info-chip" *ngIf="meal.ingredients?.length as ingredientsCount">
+                  {{ ingredientsCount }} ingredient<span *ngIf="ingredientsCount > 1">s</span>
                 </span>
               </div>
+            </div>
+
+            <div class="meal-actions-row">
+              <p class="meal-tap-hint" *ngIf="expandedMealId !== meal.id">
+                View recipe
+              </p>
+
+              <p class="meal-collapse-hint" *ngIf="expandedMealId === meal.id">
+                Hide recipe
+              </p>
             </div>
           </div>
 
           <div class="meal-image">
             <img [src]="meal.image || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name" />
+          </div>
+        </div>
+
+        <div class="meal-expanded" *ngIf="expandedMealId === meal.id">
+          <div class="meal-expanded-content">
+            <div class="meal-ingredients" *ngIf="meal.ingredients?.length">
+              <p class="meal-ingredients-title">Ingredients</p>
+
+              <ul class="meal-ingredients-list">
+                <li *ngFor="let ingredient of meal.ingredients">
+                  {{ ingredient }}
+                </li>
+              </ul>
+            </div>
+
+            <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length">
+              No ingredients added
+            </p>
+
+            <div class="meal-instructions" *ngIf="meal.instructions">
+              <p class="meal-instructions-title">Instructions</p>
+              <p class="meal-instructions-text">
+                {{ meal.instructions }}
+              </p>
+            </div>
           </div>
         </div>
       </div>

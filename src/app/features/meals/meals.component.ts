@@ -14,7 +14,6 @@ import { MealsService } from '../../services/meal.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import { UserStateService } from '../../services/user.state.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-meals',
@@ -40,6 +39,7 @@ export class MealsComponent implements OnInit {
   selectedImagePreview: string | null = null;
 
   openMealMenuId: string | null = null;
+  expandedMealId: string | null = null;
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -48,8 +48,7 @@ export class MealsComponent implements OnInit {
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
     private userStateService: UserStateService,
-    private router: Router
-  ) {}
+  ) { }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -71,24 +70,24 @@ export class MealsComponent implements OnInit {
   }
 
   async loadMeals(): Promise<void> {
-  this.isLoading = true;
+    this.isLoading = true;
 
-  try {
-    const user = this.userStateService.getCurrentUser();
-    if (!user) {
+    try {
+      const user = this.userStateService.getCurrentUser();
+      if (!user) {
+        this.meals = [];
+        return;
+      }
+
+      this.meals = await this.mealsService.getMeals(user.id);
+    } catch (error) {
+      console.error('Error loading meals:', error);
       this.meals = [];
-      return;
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
     }
-
-    this.meals = await this.mealsService.getMeals(user.id);
-  } catch (error) {
-    console.error('Error loading meals:', error);
-    this.meals = [];
-  } finally {
-    this.isLoading = false;
-    this.cdr.detectChanges();
   }
-}
 
   get hasMeals(): boolean {
     return this.meals.length > 0;
@@ -180,7 +179,7 @@ export class MealsComponent implements OnInit {
         this.newPrepTime,
         this.parseIngredients(this.newIngredientsText),
         imagePath,
-        this.newInstructions  
+        this.newInstructions
       );
 
       this.cancelMealForm();
@@ -216,7 +215,7 @@ export class MealsComponent implements OnInit {
         this.newPrepTime,
         this.parseIngredients(this.newIngredientsText),
         imagePath,
-        null
+        this.newInstructions
       );
 
       this.cancelMealForm();
@@ -229,32 +228,36 @@ export class MealsComponent implements OnInit {
   }
 
   async onDeleteMeal(meal: Meal): Promise<void> {
-  this.closeMealMenu();
+    this.closeMealMenu();
 
-  try {
-    const user = this.userStateService.getCurrentUser();
-    if (!user) return;
+    try {
+      const user = this.userStateService.getCurrentUser();
+      if (!user) return;
 
-    const confirmed = window.confirm(
-      `Remove "${meal.name}" from your My Meals?\n\nYou can still access it through other users or past plans.`
-    );
+      const confirmed = window.confirm(
+        `Remove "${meal.name}" from your My Meals?\n\nYou can still access it through other users or past plans.`
+      );
 
-    if (!confirmed) {
-      return;
+      if (!confirmed) {
+        return;
+      }
+
+      await this.mealsService.hideMealForUser(meal.id, user.id);
+
+      await this.loadMeals();
+    } catch (error) {
+      console.error('Error hiding meal:', error);
+    } finally {
+      this.cdr.detectChanges();
     }
-
-    await this.mealsService.hideMealForUser(meal.id, user.id);
-
-    await this.loadMeals();
-  } catch (error) {
-    console.error('Error hiding meal:', error);
-  } finally {
-    this.cdr.detectChanges();
   }
-}
 
   toggleMealMenu(mealId: string): void {
     this.openMealMenuId = this.openMealMenuId === mealId ? null : mealId;
+  }
+
+  toggleMeal(mealId: string): void {
+    this.expandedMealId = this.expandedMealId === mealId ? null : mealId;
   }
 
   closeMealMenu(): void {
@@ -277,13 +280,22 @@ export class MealsComponent implements OnInit {
     }, 0);
   }
 
-  openMealDetails(meal: Meal): void {
-  this.router.navigate(['/meal', meal.id], {
-    queryParams: {
-      source: 'my-meals',
-      name: meal.name,
-    },
-  });
-}
+  startEditMeal(meal: Meal): void {
+    this.isAddingMeal = false;
+    this.isEditingMeal = true;
+    this.editingMealId = meal.id;
+    this.openMealMenuId = null;
+
+    this.newMealName = meal.name ?? '';
+    this.newPrepTime = meal.prepTime ?? null;
+    this.newIngredientsText = (meal.ingredients ?? []).join(', ');
+    this.newInstructions = meal.instructions ?? '';
+
+    this.selectedImageFile = null;
+    this.selectedImagePreview = meal.image ?? null;
+
+    this.scrollFormIntoView();
+  }
+
 
 }
