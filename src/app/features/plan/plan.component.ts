@@ -72,7 +72,10 @@ export class PlanComponent implements OnInit {
   event.stopPropagation();
 
   this.router.navigate(['/plan/day', date], {
-    queryParams: { add: 'true' }
+    queryParams: {
+      add: 'true',
+      source: 'plan'
+    }
   });
 }
 

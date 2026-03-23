@@ -20,7 +20,7 @@
 
     <div class="day-details-actions">
       <button type="button" class="add-meal-button" *ngIf="!isFormOpen" [disabled]="isPastDate()"
-        [class.add-meal-button--disabled]="isPastDate()" (click)="startAddMeal()">
+        [class.add-meal-button--disabled]="isPastDate()" (click)="openAddMealFromDay()">
         + Add meal
       </button>
     </div>

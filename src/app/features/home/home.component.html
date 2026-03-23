@@ -5,29 +5,22 @@
     <div class="home-grid">
 
       <!-- TODAY CARD -->
-      <article
-        class="card home-grid__featured"
-        (click)="openToday()"
-      >
+      <article class="card home-grid__featured" (click)="openToday()">
         <div class="card__header">
-          <h3 class="card__title">Today</h3>
+          <h3 class="card__title">What’s for today?</h3>
         </div>
 
         <div class="card__content">
           <ng-container *ngIf="!hasTodayMeals; else todayMealsContent">
-            <div class="today-card today-card--empty">
+            <div class="today-card today-card--empty" (click)="openToday()">
               <div class="today-card-body">
-                <p class="today-main-text">Nothing planned yet</p>
-                <p class="today-secondary-text">Add a meal later</p>
+                <p class="today-empty-title">No meal planned yet</p>
+                <span class="today-empty-action">+ Add meal</span>
               </div>
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image today-card-image--placeholder">
-                  <img
-                    src="assets/meals/blank-meal.png"
-                    alt="Meal placeholder"
-                    class="today-meal-image"
-                  />
+                  <img src="assets/meals/blank-meal.png" alt="Meal placeholder" class="today-meal-image" />
                 </div>
               </div>
             </div>
@@ -43,11 +36,8 @@
                 <div class="today-cook-row">
                   <span class="today-cook-label">Cook:</span>
 
-                  <img
-                    [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
-                    class="today-inline-avatar"
-                    [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'"
-                  />
+                  <img [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
+                    class="today-inline-avatar" [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'" />
 
                   <p class="today-secondary-text">
                     {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
@@ -72,11 +62,8 @@
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image">
-                  <img
-                    [src]="firstTodayMeal?.meal?.image || 'assets/meals/default-meal.png'"
-                    class="today-meal-image"
-                    [alt]="firstTodayMeal?.meal?.name || 'Meal image'"
-                  />
+                  <img [src]="firstTodayMeal?.meal?.image || 'assets/meals/default-meal.png'" class="today-meal-image"
+                    [alt]="firstTodayMeal?.meal?.name || 'Meal image'" />
                 </div>
               </div>
             </div>
@@ -113,7 +100,7 @@
       <!-- GROCERY LISTS -->
       <article class="card card--lists" (click)="openGroceryLists()">
         <div class="card__header">
-          <h3 class="card__title">Grocery Lists</h3>
+          <h3 class="card__title">Shopping</h3>
         </div>
 
         <div class="card__content">

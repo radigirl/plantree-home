@@ -1,0 +1,21 @@
+{
+  "name": "Plantree",
+  "short_name": "Plantree",
+  "theme_color": "#0f5c4d",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/plantree-home/",
+  "start_url": "/plantree-home/",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

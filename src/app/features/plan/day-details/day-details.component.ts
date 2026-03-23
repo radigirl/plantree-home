@@ -83,28 +83,28 @@ export class DayDetailsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-  this.date = this.route.snapshot.paramMap.get('date');
-  const shouldOpenAddForm =
-    this.route.snapshot.queryParamMap.get('add') === 'true';
+    this.date = this.route.snapshot.paramMap.get('date');
 
-  await this.loadUsers();
+    await this.loadUsers();
 
-  if (!this.date) {
-    this.isLoading = false;
-    this.meals = [];
-    this.cdr.detectChanges();
-    return;
+    if (!this.date) {
+      this.isLoading = false;
+      this.meals = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
+    await this.loadMealsForDate(this.date);
+
+    this.route.queryParamMap.subscribe(async (params) => {
+      const shouldOpenAddForm = params.get('add') === 'true';
+
+      if (shouldOpenAddForm && !this.isPastDate() && !this.isFormOpen) {
+        await this.startAddMeal();
+        this.cdr.detectChanges();
+      }
+    });
   }
-
-  await this.loadMealsForDate(this.date);
-
-  if (shouldOpenAddForm && !this.isPastDate() && !this.isFormOpen) {
-  setTimeout(async () => {
-    await this.startAddMeal();
-    this.cdr.detectChanges();
-  }, 0);
-}
-}
 
   goBack(): void {
     this.location.back();
@@ -230,6 +230,8 @@ export class DayDetailsComponent implements OnInit {
   }
 
   cancelAddMeal(): void {
+    const source = this.getAddSource();
+
     this.isFormOpen = false;
     this.formMode = 'add';
     this.editingPlannedMealId = null;
@@ -243,6 +245,25 @@ export class DayDetailsComponent implements OnInit {
     this.changeMealMode = 'existing';
     this.addMealMode = 'new';
     this.selectedExistingMealId = null;
+
+    if (source === 'plan') {
+      this.router.navigate(['/plan']);
+      return;
+    }
+
+    if (source === 'home') {
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        add: null,
+        source: null
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   onMealImageSelected(event: Event): void {
@@ -399,6 +420,25 @@ export class DayDetailsComponent implements OnInit {
     } finally {
       this.cdr.detectChanges();
     }
+  }
+
+  openAddMealFromDay(): void {
+    if (!this.date || this.isPastDate()) {
+      return;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        add: 'true',
+        source: 'day'
+      },
+      queryParamsHandling: 'merge'
+    });
+  }
+
+  private getAddSource(): string | null {
+    return this.route.snapshot.queryParamMap.get('source');
   }
 
   private scrollFormIntoView(): void {

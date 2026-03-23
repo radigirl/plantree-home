@@ -127,6 +127,11 @@
   align-items: start;
 }
 
+/* ✅ NEW */
+.today-card--empty:active {
+  transform: scale(0.98);
+}
+
 .today-card-body {
   min-width: 0;
 }
@@ -138,6 +143,25 @@
   line-height: 1.15;
   color: $color-primary-dark;
   word-break: break-word;
+}
+
+/* ✅ NEW */
+.today-empty-title {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: $color-primary-dark;
+}
+
+/* ✅ NEW */
+.today-empty-action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: $color-primary-dark;
 }
 
 .today-cook-row {
@@ -271,6 +295,16 @@
 @include mobile {
   .today-main-text {
     font-size: 1.3rem;
+  }
+
+  /* ✅ NEW */
+  .today-empty-title {
+    font-size: 1rem;
+  }
+
+  /* ✅ NEW */
+  .today-empty-action {
+    font-size: 0.88rem;
   }
 
   .today-inline-avatar {

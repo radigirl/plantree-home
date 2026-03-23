@@ -23,7 +23,7 @@ export class HomeComponent implements OnInit {
     private router: Router,
     private mealPlanService: MealPlanService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   async ngOnInit(): Promise<void> {
     await this.loadWeekPlan();
@@ -108,7 +108,15 @@ export class HomeComponent implements OnInit {
 
   openToday(): void {
     const today = this.formatDateLocal(new Date());
-    this.router.navigate(['/plan/day', today]);
+
+    this.router.navigate(['/plan/day', today], {
+      queryParams: this.hasTodayMeals
+        ? {}
+        : {
+          add: 'true',
+          source: 'home'
+        }
+    });
   }
 
   openWeekPlan(): void {
@@ -143,7 +151,7 @@ export class HomeComponent implements OnInit {
   }
 
   openMeals(): void {
-  this.router.navigate(['/meals']);
-}
+    this.router.navigate(['/meals']);
+  }
 
 }

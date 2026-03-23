@@ -1,11 +1,14 @@
 <app-header />
 
 <div class="layout">
-
   <app-navigation />
 
   <main class="content">
+    <div class="update-banner" *ngIf="updateAvailable">
+      <span>A new version is available.</span>
+      <button type="button" (click)="reloadApp()">Refresh</button>
+    </div>
+
     <router-outlet />
   </main>
-
 </div>
