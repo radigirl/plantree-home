@@ -161,19 +161,20 @@ export class PlanComponent implements OnInit {
   }
 
   scrollToDay(index: number): void {
-    const card = this.mealCards?.toArray()[index]?.nativeElement;
+  const card = this.mealCards?.toArray()[index]?.nativeElement;
 
-    if (!card) return;
+  if (!card) return;
 
-    const cardRect = card.getBoundingClientRect();
-    const absoluteTop = window.scrollY + cardRect.top;
-    const offset = window.innerHeight * 0.3;
+  const cardRect = card.getBoundingClientRect();
+  const absoluteTop = window.scrollY + cardRect.top;
 
-    window.scrollTo({
-      top: Math.max(absoluteTop - offset, 0),
-      behavior: 'smooth',
-    });
-  }
+  const TOP_OFFSET = window.innerWidth < 768 ? 90 : 120;
+
+  window.scrollTo({
+    top: Math.max(absoluteTop - TOP_OFFSET, 0),
+    behavior: 'smooth',
+  });
+}
 
   openDatePicker(): void {
   const input = this.datePicker?.nativeElement as HTMLInputElement;
