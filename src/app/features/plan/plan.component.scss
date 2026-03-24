@@ -22,9 +22,7 @@
   padding: 6px 10px;
   border-radius: 16px;
   margin-top: -6px;
-  background: rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(207, 222, 215, 0.6);
-  box-shadow: 0 4px 12px rgba(46, 58, 50, 0.03);
+  background: transparent;
   backdrop-filter: blur(6px);
 }
 
@@ -38,6 +36,7 @@
 .week-navigation__side--right {
   justify-content: flex-end;
   gap: 6px;
+  width: 100%;
 }
 
 .week-navigation__center {
@@ -95,6 +94,31 @@
   padding: 0;
   font-size: 1.1rem;
   line-height: 1;
+}
+
+.today-icon-btn {
+  display: none;
+  border: 1px solid rgba(207, 222, 215, 0.5);
+  background: rgba(255, 252, 247, 0.9);
+  color: $color-primary-dark;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.today-icon-btn:hover {
+  background: rgba(231, 242, 236, 0.95);
+  border-color: rgba(92, 143, 134, 0.45);
+  transform: translateY(-1px);
+}
+
+.today-icon-btn:active {
+  transform: scale(0.98);
 }
 
 .date-picker-input {
@@ -435,26 +459,41 @@
 
   .week-navigation {
     position: static;
+    width: calc(100% + 16px);
     top: 90px;
     left: 8px;
     right: 8px;
     z-index: 30;
     gap: 6px;
-    padding: 6px 10px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(207, 222, 215, 0.35);
-    box-shadow: 0 2px 8px rgba(46, 58, 50, 0.03);
+    padding: 6px 0 10px;
+    box-sizing: border-box;
+    margin-left: -8px;
+    margin-right: -8px;
+    border-radius: 0;
+    background: transparent;
+    border-top: none;
+    border-left: none;
+    border-right: none;
     backdrop-filter: none;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
   }
 
   .week-navigation__side {
+    display: flex;
+    align-items: center;
     gap: 6px;
+    min-width: 0;
+  }
+
+  .week-navigation__side--right {
+    justify-content: flex-end;
   }
 
   .week-label {
-    font-size: 1rem;
-  }
+  font-size: 1rem;
+}
 
   .week-nav-btn,
   .calendar-btn {
@@ -467,25 +506,36 @@
   }
 
   .today-btn {
-    display: none;
-  }
+  display: none;
+}
+
+.today-icon-btn {
+  display: inline-flex;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
 
   .week-strip {
-    margin-top: -4px;
-    padding-left: 8px;
-    padding-right: 8px;
+    margin-top: -12px;
+    margin-left: -8px;
+    margin-right: -8px;
+    padding: 4px 8px 0;
     gap: 8px;
   }
 
   .week-strip__day {
-  padding: 10px 12px;
-  border: 1px solid rgba(207, 222, 215, 0.6);
-}
+    padding: 10px 12px;
+    border: 1px solid rgba(207, 222, 215, 0.6);
+  }
 
   .meal-list {
     gap: 12px;
     padding-top: 0;
-    margin-top: -2px;;
+    margin-top: -2px;
+    ;
   }
 
   .meal-card {
