@@ -480,29 +480,72 @@
 
 @include mobile {
   .meals-page {
-    gap: 16px;
+    gap: 14px;
+    margin-left: -8px;
+    margin-right: -8px;
+    margin-top:-15px;
+    width: calc(100% + 16px);
+    padding:0;
   }
 
   .meals-shell {
-    gap: 14px;
+    gap: 12px;
   }
 
   .meals-header-row {
-    gap: 10px;
+    gap: 8px;
     align-items: center;
   }
 
+  .meals-header {
+    gap: 4px;
+  }
+
   .meals-title {
-    font-size: 1.8rem;
+    font-size: 1.45rem;
+    line-height: 1.05;
   }
 
   .meals-subtitle {
-    font-size: 0.94rem;
+    font-size: 0.88rem;
+    line-height: 1.35;
   }
 
   .add-meal-form {
     padding: 16px;
     border-radius: 22px;
+    gap: 14px;
+  }
+
+  .add-meal-field {
+    gap: 6px;
+  }
+
+  .add-meal-field label {
+    font-size: 0.92rem;
+  }
+
+  .add-meal-field input,
+  .add-meal-field select {
+    min-height: 42px;
+    padding: 0 12px;
+  }
+
+  .add-meal-field textarea {
+    min-height: 96px;
+    padding: 10px 12px;
+  }
+
+  .add-meal-actions {
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  .save-button,
+  .cancel-button {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 0.92rem;
   }
 
   .meal-card {
