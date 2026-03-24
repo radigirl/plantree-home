@@ -57,6 +57,7 @@ export class DayDetailsComponent implements OnInit {
   addMealMode: AddMealMode = 'new';
   selectedExistingMealId: string | null = null;
   expandedMealId: string | null = null;
+  private returnToMealId: string | null = null;
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -181,19 +182,18 @@ export class DayDetailsComponent implements OnInit {
 
     await this.loadAvailableMeals();
     this.addMealMode = this.availableMeals.length > 0 ? 'existing' : 'new';
-
-    this.scrollFormIntoView();
   }
 
   goBack(): void {
-  window.history.back();
-}
+    window.history.back();
+  }
 
   async onEditCook(meal: PlannedMeal): Promise<void> {
     if (this.isPastDate()) {
       return;
     }
 
+    this.returnToMealId = meal.id;
     this.isFormOpen = true;
     this.formMode = 'edit-cook';
     this.editingPlannedMealId = meal.id;
@@ -215,6 +215,7 @@ export class DayDetailsComponent implements OnInit {
       return;
     }
 
+    this.returnToMealId = meal.id;
     this.isFormOpen = true;
     this.formMode = 'change-meal';
     this.editingPlannedMealId = meal.id;
@@ -237,6 +238,8 @@ export class DayDetailsComponent implements OnInit {
 
   cancelAddMeal(): void {
     const source = this.getAddSource();
+    const shouldRestoreToMeal =
+      this.formMode === 'edit-cook' || this.formMode === 'change-meal';
 
     this.isFormOpen = false;
     this.formMode = 'add';
@@ -268,8 +271,15 @@ export class DayDetailsComponent implements OnInit {
         add: null,
         source: null
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
+      replaceUrl: true
     });
+
+    if (shouldRestoreToMeal) {
+      this.restoreToEditedMealCard();
+    } else {
+      this.returnToMealId = null;
+    }
   }
 
   onMealImageSelected(event: Event): void {
@@ -370,6 +380,7 @@ export class DayDetailsComponent implements OnInit {
 
       this.cancelAddMeal();
       await this.loadMealsForDate(this.date);
+      this.restoreToEditedMealCard();
     } catch (error) {
       console.error('Error updating planned meal cook:', error);
     } finally {
@@ -421,6 +432,7 @@ export class DayDetailsComponent implements OnInit {
 
       this.cancelAddMeal();
       await this.loadMealsForDate(this.date);
+      this.restoreToEditedMealCard();
     } catch (error) {
       console.error('Error changing planned meal meal:', error);
     } finally {
@@ -439,7 +451,8 @@ export class DayDetailsComponent implements OnInit {
         add: 'true',
         source: 'day'
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
+      replaceUrl: true
     });
   }
 
@@ -449,9 +462,17 @@ export class DayDetailsComponent implements OnInit {
 
   private scrollFormIntoView(): void {
     setTimeout(() => {
-      this.mealFormContainer?.nativeElement.scrollIntoView({
+      const form = this.mealFormContainer?.nativeElement;
+
+      if (!form) return;
+
+      const rect = form.getBoundingClientRect();
+      const absoluteTop = window.scrollY + rect.top;
+      const topOffset = 140;
+
+      window.scrollTo({
+        top: Math.max(absoluteTop - topOffset, 0),
         behavior: 'smooth',
-        block: 'start',
       });
     }, 0);
   }
@@ -621,5 +642,31 @@ export class DayDetailsComponent implements OnInit {
       },
     });
   }
+
+  private scrollToMealCardInstant(mealId: string): void {
+    const card = document.getElementById(`meal-card-${mealId}`);
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const absoluteTop = window.scrollY + rect.top;
+    const topOffset = 140;
+
+    window.scrollTo(0, Math.max(absoluteTop - topOffset, 0));
+  }
+
+  private restoreToEditedMealCard(): void {
+    if (!this.returnToMealId) {
+      return;
+    }
+
+    const mealId = this.returnToMealId;
+    this.returnToMealId = null;
+
+    setTimeout(() => {
+      this.scrollToMealCardInstant(mealId);
+    }, 0);
+  }
+
+
 
 }

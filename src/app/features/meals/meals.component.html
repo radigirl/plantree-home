@@ -66,7 +66,7 @@
     </div>
 
     <div class="meals-list" *ngIf="hasMeals">
-      <div class="meal-card" [class.expanded]="expandedMealId === meal.id"
+      <div class="meal-card" [attr.id]="'meal-card-' + meal.id" [class.expanded]="expandedMealId === meal.id"
         *ngFor="let meal of meals; trackBy: trackByMealId" (click)="toggleMeal(meal.id)">
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
           <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"

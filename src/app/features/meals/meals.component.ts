@@ -40,6 +40,7 @@ export class MealsComponent implements OnInit {
 
   openMealMenuId: string | null = null;
   expandedMealId: string | null = null;
+  private returnToMealId: string | null = null;
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -109,11 +110,11 @@ export class MealsComponent implements OnInit {
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
     this.newInstructions = '';
-
-    this.scrollFormIntoView();
   }
 
   cancelMealForm(): void {
+    const shouldRestoreToMeal = this.isEditingMeal && !!this.returnToMealId;
+
     this.isAddingMeal = false;
     this.isEditingMeal = false;
     this.editingMealId = null;
@@ -121,11 +122,18 @@ export class MealsComponent implements OnInit {
     this.newMealName = '';
     this.newPrepTime = null;
     this.newIngredientsText = '';
+    this.newInstructions = '';
 
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
 
     this.openMealMenuId = null;
+
+    if (shouldRestoreToMeal) {
+      this.restoreToEditedMealCard();
+    } else {
+      this.returnToMealId = null;
+    }
   }
 
   onMealImageSelected(event: Event): void {
@@ -218,8 +226,22 @@ export class MealsComponent implements OnInit {
         this.newInstructions
       );
 
-      this.cancelMealForm();
+      this.isAddingMeal = false;
+      this.isEditingMeal = false;
+      this.editingMealId = null;
+
+      this.newMealName = '';
+      this.newPrepTime = null;
+      this.newIngredientsText = '';
+      this.newInstructions = '';
+
+      this.selectedImageFile = null;
+      this.selectedImagePreview = null;
+
+      this.openMealMenuId = null;
+
       await this.loadMeals();
+      this.restoreToEditedMealCard();
     } catch (error) {
       console.error('Error updating meal:', error);
     } finally {
@@ -273,10 +295,42 @@ export class MealsComponent implements OnInit {
 
   private scrollFormIntoView(): void {
     setTimeout(() => {
-      this.mealFormContainer?.nativeElement.scrollIntoView({
+      const form = this.mealFormContainer?.nativeElement;
+
+      if (!form) return;
+
+      const rect = form.getBoundingClientRect();
+      const absoluteTop = window.scrollY + rect.top;
+      const topOffset = 140;
+
+      window.scrollTo({
+        top: Math.max(absoluteTop - topOffset, 0),
         behavior: 'smooth',
-        block: 'start',
       });
+    }, 0);
+  }
+
+  private scrollToMealCardInstant(mealId: string): void {
+    const card = document.getElementById(`meal-card-${mealId}`);
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+    const absoluteTop = window.scrollY + rect.top;
+    const topOffset = 200;
+
+    window.scrollTo(0, Math.max(absoluteTop - topOffset, 0));
+  }
+
+  private restoreToEditedMealCard(): void {
+    if (!this.returnToMealId) {
+      return;
+    }
+
+    const mealId = this.returnToMealId;
+    this.returnToMealId = null;
+
+    setTimeout(() => {
+      this.scrollToMealCardInstant(mealId);
     }, 0);
   }
 
@@ -284,6 +338,7 @@ export class MealsComponent implements OnInit {
     this.isAddingMeal = false;
     this.isEditingMeal = true;
     this.editingMealId = meal.id;
+    this.returnToMealId = meal.id;
     this.openMealMenuId = null;
 
     this.newMealName = meal.name ?? '';
