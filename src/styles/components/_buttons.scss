@@ -1,0 +1,38 @@
+@use '../variables' as *;
+
+.button-pill-primary {
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(92, 143, 134, 0.95);
+  color: #fff;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.button-pill-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(92, 143, 134, 0.16);
+}
+
+.button-pill-primary:active {
+  transform: translateY(1px);
+}
+
+.button-pill-primary:focus {
+  outline: none;
+}

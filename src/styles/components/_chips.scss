@@ -1,0 +1,15 @@
+@use '../variables' as *;
+
+.meal-info-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(92, 143, 134, 0.1);
+  color: $color-primary-dark;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+}

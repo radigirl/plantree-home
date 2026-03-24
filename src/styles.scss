@@ -1,4 +1,9 @@
 @use './styles/variables' as *;
+@use './styles/components/chips' as *;
+@use './styles/components/buttons' as *;
+@use './styles/breakpoints' as *;
+@use './styles/components/dropdowns-lists' as *;
+
 
 html,
 body {
@@ -33,9 +38,8 @@ app-root {
   min-height: calc(100dvh - #{$layout-header-height-mobile} - #{$layout-bottom-nav-height} - env(safe-area-inset-bottom));
 }
 
-@media (min-width: 1024px) {
+@include desktop {
   .content {
-    background: $color-surface;
     border-radius: $radius-large;
     margin-top: $layout-gap-top-desktop;
     margin-right: 40px;

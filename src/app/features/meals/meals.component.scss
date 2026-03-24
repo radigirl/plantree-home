@@ -53,7 +53,13 @@
   color: $color-text-muted;
 }
 
-.add-meal-button,
+/* BUTTONS */
+
+.add-meal-button--inline {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .save-button,
 .cancel-button {
   height: 44px;
@@ -69,24 +75,14 @@
     box-shadow 0.18s ease;
 }
 
-.add-meal-button,
 .save-button {
   background: rgba(92, 143, 134, 0.95);
   color: #fff;
 }
 
-.add-meal-button:hover,
 .save-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 22px rgba(92, 143, 134, 0.16);
-}
-
-.add-meal-button--inline {
-  height: 38px;
-  padding: 0 13px;
-  font-size: 0.88rem;
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .cancel-button {
@@ -98,6 +94,8 @@
 .cancel-button:hover {
   background: rgba(248, 244, 236, 0.95);
 }
+
+/* FORM */
 
 .add-meal-form {
   display: flex;
@@ -376,11 +374,6 @@
   opacity: 0.8;
 }
 
-.meal-info-chip {
-  background: rgba(231, 242, 236, 0.7);
-  color: $color-primary-dark;
-}
-
 .meal-actions-row {
   display: flex;
   align-items: center;
@@ -505,12 +498,6 @@
 
   .meals-subtitle {
     font-size: 0.94rem;
-  }
-
-  .add-meal-button--inline {
-    height: 36px;
-    padding: 0 12px;
-    font-size: 0.84rem;
   }
 
   .add-meal-form {

@@ -8,8 +8,8 @@
         <p class="meals-subtitle">Create and manage your saved meals</p>
       </div>
 
-      <button type="button" class="add-meal-button add-meal-button--inline" *ngIf="!isAddingMeal && !isEditingMeal"
-        (click)="startAddMeal()">
+      <button type="button" class="button-pill-primary add-meal-button add-meal-button--inline"
+        *ngIf="!isAddingMeal && !isEditingMeal" (click)="startAddMeal()">
         + Add meal
       </button>
     </div>

@@ -1,0 +1,41 @@
+@use '../variables' as *;
+
+.dropdown-list-surface {
+  z-index: 30;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  width: max-content;
+  padding: 4px;
+  border: 1px solid rgba(92, 143, 134, 0.14);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(28, 44, 41, 0.1);
+}
+
+.dropdown-list-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 28px;
+  width: auto;
+  padding-left: 4px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: $color-primary-dark;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dropdown-list-item:hover {
+  background: rgba(92, 143, 134, 0.08);
+}
+
+.dropdown-list-item--danger {
+  color: #b54747;
+}
