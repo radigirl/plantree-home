@@ -71,7 +71,7 @@
         [class.meal-card--past]="isPastDayIndex(i)"
         [class.meal-card--today]="isTodayIndex(i)"
         [class.meal-card--empty]="!hasMeals(item)"
-        [routerLink]="['/plan/day', item.fullDate]"
+        (click)="openDayDetails(item.fullDate)"
       >
         <div class="meal-day">
           <span class="day">{{ item.day }}</span>

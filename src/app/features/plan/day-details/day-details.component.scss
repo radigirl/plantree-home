@@ -33,7 +33,48 @@
 }
 
 .day-details-shell--past {
-  opacity: 0.96;
+  .day-name,
+  .meal-name,
+  .meal-cook-label,
+  .meal-ingredients-title,
+  .meal-instructions-title {
+    color: rgba($color-primary-dark, 0.48);
+  }
+
+  .day-date,
+  .day-details-past-note,
+  .meal-cook,
+  .meal-tap-hint,
+  .meal-collapse-hint,
+  .meal-ingredients-list li,
+  .meal-instructions-text,
+  .meal-ingredients-empty {
+    color: rgba($color-text-muted, 0.6);
+  }
+
+  .meal-time,
+  .meal-status,
+  .meal-action-button,
+  .meal-menu-button {
+    opacity: 0.58;
+  }
+
+  .meal-image-img,
+  .meal-cook-avatar {
+    opacity: 0.6;
+    filter: grayscale(0.3) brightness(0.96);
+  }
+
+  .day-details-card {
+    background: rgba(245, 241, 234, 0.72);
+    border-color: rgba(214, 205, 188, 0.75);
+    box-shadow: none;
+  }
+}
+
+.day-details-shell--past .day-details-card:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .day-details-header {

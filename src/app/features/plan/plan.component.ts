@@ -37,7 +37,30 @@ export class PlanComponent implements OnInit {
   ) { }
 
   async ngOnInit(): Promise<void> {
-    await this.loadWeekPlan(window.innerWidth < 768);
+    const returnDate = sessionStorage.getItem('planReturnDate');
+
+    if (returnDate) {
+      this.currentWeekStart = this.getStartOfWeek(new Date(returnDate));
+    }
+
+    await this.loadWeekPlan(false);
+
+    if (returnDate) {
+      setTimeout(() => {
+        const returnIndex = this.getDayIndexFromDateString(returnDate);
+
+        if (returnIndex !== -1) {
+          this.scrollToDay(returnIndex);
+        }
+
+        sessionStorage.removeItem('planReturnDate');
+      }, 50);
+    }
+  }
+
+  openDayDetails(date: string): void {
+    sessionStorage.setItem('planReturnDate', date);
+    this.router.navigate(['/plan/day', date]);
   }
 
 
@@ -63,6 +86,23 @@ export class PlanComponent implements OnInit {
         }
       }, 50);
     }
+  }
+
+  private getDayIndexFromDateString(dateString: string): number {
+    const target = new Date(dateString);
+    target.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < this.weekMeals.length; i++) {
+      const itemDate = new Date(this.currentWeekStart);
+      itemDate.setDate(this.currentWeekStart.getDate() + i);
+      itemDate.setHours(0, 0, 0, 0);
+
+      if (itemDate.getTime() === target.getTime()) {
+        return i;
+      }
+    }
+
+    return -1;
   }
 
   onAddMealClick(event: MouseEvent, date: string): void {
@@ -160,32 +200,31 @@ export class PlanComponent implements OnInit {
     return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}`;
   }
 
-  scrollToDay(index: number): void {
+ scrollToDay(index: number): void {
   const card = this.mealCards?.toArray()[index]?.nativeElement;
 
   if (!card) return;
 
   const cardRect = card.getBoundingClientRect();
   const absoluteTop = window.scrollY + cardRect.top;
-
-  const TOP_OFFSET = window.innerWidth < 768 ? 90 : 120;
+  const topOffset = 90;
 
   window.scrollTo({
-    top: Math.max(absoluteTop - TOP_OFFSET, 0),
+    top: Math.max(absoluteTop - topOffset, 0),
     behavior: 'smooth',
   });
 }
 
   openDatePicker(): void {
-  const input = this.datePicker?.nativeElement as HTMLInputElement;
-  if (!input) return;
+    const input = this.datePicker?.nativeElement as HTMLInputElement;
+    if (!input) return;
 
-  if ((input as any).showPicker) {
-    (input as any).showPicker();
-  } else {
-    input.click();
+    if ((input as any).showPicker) {
+      (input as any).showPicker();
+    } else {
+      input.click();
+    }
   }
-}
 
   getCurrentDateInputValue(): string {
     const current = new Date(this.currentWeekStart);

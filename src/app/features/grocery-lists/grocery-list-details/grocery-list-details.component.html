@@ -10,10 +10,10 @@
       <div class="grocery-list-details-shell">
         <div class="grocery-list-details-header">
           <div class="grocery-list-details-header-left">
-            <a routerLink="/grocery-lists" class="back-link">
-              <span class="back-link__icon">←</span>
-              <span class="back-link__text">Back</span>
-            </a>
+            <button type="button" class="back-link" (click)="goBack()">
+  <span class="back-link__icon">←</span>
+  <span class="back-link__text">Back</span>
+</button>
 
             <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
           </div>

@@ -6,7 +6,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
@@ -17,7 +17,7 @@ import { UserStateService } from '../../../services/user.state.service';
 @Component({
   selector: 'app-grocery-list-details',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, PageLoadingComponent],
+  imports: [CommonModule, FormsModule, PageLoadingComponent],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
 })
@@ -253,4 +253,9 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       isBought: item.status === 'bought',
     };
   }
+
+  goBack(): void {
+  window.history.back();
+}
+
 }

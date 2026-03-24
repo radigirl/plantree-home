@@ -244,33 +244,38 @@
 }
 
 .meal-card--past {
-  background: rgba(245, 241, 234, 0.78);
-  border-color: rgba(214, 205, 188, 0.9);
+  background: rgba(245, 241, 234, 0.72);
+  border-color: rgba(214, 205, 188, 0.75);
   box-shadow: none;
 }
 
 .meal-card--past .day,
 .meal-card--past .meal-name,
 .meal-card--past .meal-cook-label {
-  color: rgba($color-primary-dark, 0.58);
+  color: rgba($color-primary-dark, 0.48);
 }
 
 .meal-card--past .date,
 .meal-card--past .meal-cook,
 .meal-card--past .meal-empty-text,
 .meal-card--past .meal-more {
-  color: rgba($color-text-muted, 0.72);
+  color: rgba($color-text-muted, 0.6);
 }
 
 .meal-card--past .meal-status,
 .meal-card--past .meal-time {
-  opacity: 0.72;
+  opacity: 0.58;
 }
 
 .meal-card--past .meal-image-img,
 .meal-card--past .meal-cook-avatar {
-  opacity: 0.72;
-  filter: grayscale(0.18);
+  opacity: 0.6;
+  filter: grayscale(0.3) brightness(0.96);
+}
+
+.meal-card--past:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .meal-empty-row {
