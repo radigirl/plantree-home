@@ -79,7 +79,7 @@
   min-width: 0;
   min-height: 44px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 22px;
   border: 1px solid $color-border;
   background: #fff;
   font: inherit;
@@ -105,7 +105,7 @@
 .grocery-items-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0px;
 }
 
 /* ITEM */
@@ -114,10 +114,10 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 14px 12px 10px;
+  padding: 0 10px;
   border-radius: 16px;
   border: 1px solid $color-border;
-  background: $color-plan-card;
+  background: transparent;
   transition: background 0.2s ease;
 }
 
@@ -144,8 +144,8 @@
 
 /* CHECKBOX */
 .grocery-item-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   border-radius: 6px;
   border: 2px solid $color-primary-dark;
   display: flex;
