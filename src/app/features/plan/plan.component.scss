@@ -32,12 +32,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 34px;
-  height: 34px;
+  min-width: 34px;
 }
 
 .week-navigation__side--right {
   justify-content: flex-end;
+  gap: 6px;
 }
 
 .week-navigation__center {
@@ -51,16 +51,17 @@
 .week-label {
   margin: 0;
   text-align: center;
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.2;
   color: $color-primary-dark;
 }
 
 .week-nav-btn,
-.today-btn {
-  height: 42px;
-  border-radius: 14px;
+.today-btn,
+.calendar-btn {
+  height: 36px;
+  border-radius: 10px;
   border: 1px solid rgba(207, 222, 215, 0.95);
   background: rgba(255, 252, 247, 0.72);
   color: $color-primary-dark;
@@ -75,29 +76,108 @@
 }
 
 .week-nav-btn {
-  width: 42px;
-  min-width: 42px;
+  width: 36px;
+  min-width: 36px;
   padding: 0;
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   line-height: 1;
 }
 
 .today-btn {
-  padding: 0 16px;
-  font-size: 0.95rem;
+  padding: 0 12px;
+  font-size: 0.9rem;
   font-weight: 600;
 }
 
+.calendar-btn {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.date-picker-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
 .week-nav-btn:hover,
-.today-btn:hover {
+.today-btn:hover,
+.calendar-btn:hover {
   background: rgba(231, 242, 236, 0.95);
   border-color: rgba(92, 143, 134, 0.45);
   transform: translateY(-1px);
 }
 
 .week-nav-btn:active,
-.today-btn:active {
+.today-btn:active,
+.calendar-btn:active {
   transform: scale(0.98);
+}
+
+.week-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 4px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.week-strip__day {
+  scroll-snap-align: start;
+  border: 1px solid rgba(207, 222, 215, 0.9);
+  background: rgba(255, 252, 247, 0.8);
+  color: $color-primary-dark;
+  border-radius: 14px;
+  padding: 10px 12px;
+  min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover {
+    background: rgba(231, 242, 236, 0.95);
+    border-color: rgba(92, 143, 134, 0.45);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.week-strip__label {
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.week-strip__date {
+  font-size: 0.8rem;
+  color: $color-text-muted;
+}
+
+.week-strip__day--today {
+  background: rgba(231, 242, 236, 0.95);
+  border-color: rgba(92, 143, 134, 0.55);
+}
+
+.week-strip__day--past {
+  opacity: 0.72;
 }
 
 .meal-list {
@@ -350,22 +430,21 @@
     margin-left: -8px;
     margin-right: -8px;
     margin-top: -15px;
-    gap: 16px;
+    gap: 12px;
   }
 
   .week-navigation {
-    position: fixed;
+    position: static;
     top: 90px;
     left: 8px;
     right: 8px;
     z-index: 30;
-
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 16px;
-    background: rgba(245, 242, 236, 0.96);
-    border: 1px solid rgba(207, 222, 215, 0.7);
-    box-shadow: 0 6px 16px rgba(46, 58, 50, 0.05);
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(207, 222, 215, 0.35);
+    box-shadow: 0 2px 8px rgba(46, 58, 50, 0.03);
     backdrop-filter: none;
   }
 
@@ -374,15 +453,16 @@
   }
 
   .week-label {
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
 
-  .week-nav-btn {
-    width: 38px;
-    min-width: 38px;
-    height: 38px;
-    font-size: 1.5rem;
-    border-radius: 12px;
+  .week-nav-btn,
+  .calendar-btn {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    font-size: 1.05rem;
+    border-radius: 10px;
     background: rgba(255, 252, 247, 0.9);
   }
 
@@ -390,9 +470,22 @@
     display: none;
   }
 
+  .week-strip {
+    margin-top: -4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    gap: 8px;
+  }
+
+  .week-strip__day {
+  padding: 10px 12px;
+  border: 1px solid rgba(207, 222, 215, 0.6);
+}
+
   .meal-list {
     gap: 12px;
-    padding-top: 53px;
+    padding-top: 0;
+    margin-top: -2px;;
   }
 
   .meal-card {
@@ -479,8 +572,13 @@
     font-size: 1.25rem;
   }
 
+  .week-strip {
+    display: flex;
+  }
+
   .meal-list {
     gap: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .meal-card {
@@ -500,6 +598,10 @@
 
   .week-label {
     font-size: 1.3rem;
+  }
+
+  .week-strip {
+    display: none;
   }
 
   .meal-list {

@@ -3,92 +3,111 @@
     <app-page-loading></app-page-loading>
   </div>
 
-  <div class="week-navigation" *ngIf="!isLoading">
-    <div class="week-navigation__side">
-      <button type="button" class="week-nav-btn" (click)="goToPreviousWeek()">
-        ‹
-      </button>
-    </div>
+  <ng-container *ngIf="!isLoading">
+    <div class="week-navigation">
+      <div class="week-navigation__side">
+        <button type="button" class="week-nav-btn" (click)="goToPreviousWeek()">
+          ‹
+        </button>
+      </div>
 
-    <div class="week-navigation__center">
-      <div class="week-label">
-        {{ getWeekLabel() }}
+      <div class="week-navigation__center">
+        <div class="week-label">
+          {{ getWeekLabel() }}
+        </div>
+      </div>
+
+      <div class="week-navigation__side week-navigation__side--right">
+        <button type="button" class="week-nav-btn" (click)="goToNextWeek()">
+          ›
+        </button>
+
+        <button type="button" class="calendar-btn" (click)="openDatePicker()">
+          📅
+        </button>
+
+        <button type="button" class="today-btn" (click)="goToToday()">
+          Today
+        </button>
+
+        <input #datePicker type="date" class="date-picker-input" [value]="getCurrentDateInputValue()"
+          (change)="onDatePicked($event)" />
       </div>
     </div>
 
-    <div class="week-navigation__side week-navigation__side--right">
-      <button type="button" class="week-nav-btn" (click)="goToNextWeek()">
-        ›
-      </button>
-
-      <button type="button" class="today-btn" (click)="goToToday()" *ngIf="showTodayButton">
-        Today
+    <div class="week-strip">
+      <button type="button" class="week-strip__day" *ngFor="let item of weekMeals; let i = index"
+        [class.week-strip__day--today]="isTodayIndex(i)" [class.week-strip__day--past]="isPastDayIndex(i)"
+        (click)="scrollToDay(i)">
+        <span class="week-strip__label">{{ item.day }}</span>
+        <span class="week-strip__date">{{ item.date }}</span>
       </button>
     </div>
-  </div>
 
-  <div class="meal-list" *ngIf="!isLoading">
-    <div #mealCard class="meal-card" *ngFor="let item of weekMeals; let i = index"
-      [class.meal-card--past]="isPastDayIndex(i)" [class.meal-card--today]="isTodayIndex(i)"
-      [class.meal-card--empty]="!hasMeals(item)" [routerLink]="['/plan/day', item.fullDate]">
-      <div class="meal-day">
-        <span class="day">{{ item.day }}</span>
-        <span class="date">{{ item.date }}</span>
-      </div>
+    <div class="meal-list">
+      <div #mealCard class="meal-card" *ngFor="let item of weekMeals; let i = index"
+        [class.meal-card--past]="isPastDayIndex(i)" [class.meal-card--today]="isTodayIndex(i)"
+        [class.meal-card--empty]="!hasMeals(item)" [routerLink]="['/plan/day', item.fullDate]">
+        <div class="meal-day">
+          <span class="day">{{ item.day }}</span>
+          <span class="date">{{ item.date }}</span>
+        </div>
 
-      <div class="meal-info">
-        <ng-container *ngIf="hasMeals(item); else emptyDay">
-          <p class="meal-name">
-            {{ getFirstMeal(item)?.meal?.name }}
-          </p>
-
-          <div class="meal-cook-row">
-            <span class="meal-cook-label">Cook:</span>
-
-            <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-              class="meal-cook-avatar" [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
-
-            <p class="meal-cook">
-              {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
+        <div class="meal-info">
+          <ng-container *ngIf="hasMeals(item); else emptyDay">
+            <p class="meal-name">
+              {{ getFirstMeal(item)?.meal?.name }}
             </p>
-          </div>
 
-          <div class="meal-meta" *ngIf="getFirstMeal(item) as firstMeal">
-            <span class="meal-status">
-              {{ getStatusLabel(firstMeal.status) }}
-            </span>
+            <div class="meal-cook-row">
+              <span class="meal-cook-label">Cook:</span>
 
-            <span class="meal-time" *ngIf="firstMeal.meal.prepTime != null">
-              <span class="meal-time-icon">◷</span>
-              {{ firstMeal.meal.prepTime }} min
-            </span>
-          </div>
+              <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
+                class="meal-cook-avatar" [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
 
-          <p class="meal-more" [class.meal-more--hidden]="getAdditionalMealsCount(item) === 0">
-            <ng-container *ngIf="getAdditionalMealsCount(item) > 0">
-              <span class="meal-more__text">
-                +{{ getAdditionalMealsCount(item) }} more meal<span *ngIf="getAdditionalMealsCount(item) > 1">s</span>
+              <p class="meal-cook">
+                {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
+              </p>
+            </div>
+
+            <div class="meal-meta" *ngIf="getFirstMeal(item) as firstMeal">
+              <span class="meal-status">
+                {{ getStatusLabel(firstMeal.status) }}
               </span>
-              <span class="meal-more__arrow">→</span>
-            </ng-container>
-          </p>
-        </ng-container>
 
-        <ng-template #emptyDay>
-          <div class="meal-empty-row">
-            <span class="meal-empty-text">No meal planned</span>
+              <span class="meal-time" *ngIf="firstMeal.meal.prepTime != null">
+                <span class="meal-time-icon">◷</span>
+                {{ firstMeal.meal.prepTime }} min
+              </span>
+            </div>
 
-            <button type="button" class="meal-add-btn" *ngIf="!isPastDayIndex(i)"
-              (click)="onAddMealClick($event, item.fullDate)">
-              + Add meal
-            </button>
+            <p class="meal-more" [class.meal-more--hidden]="getAdditionalMealsCount(item) === 0">
+              <ng-container *ngIf="getAdditionalMealsCount(item) > 0">
+                <span class="meal-more__text">
+                  +{{ getAdditionalMealsCount(item) }} more meal<span *ngIf="getAdditionalMealsCount(item) > 1">s</span>
+                </span>
+                <span class="meal-more__arrow">→</span>
+              </ng-container>
+            </p>
+          </ng-container>
+
+          <ng-template #emptyDay>
+            <div class="meal-empty-row">
+              <span class="meal-empty-text">No meal planned</span>
+
+              <button type="button" class="meal-add-btn" *ngIf="!isPastDayIndex(i)"
+                (click)="onAddMealClick($event, item.fullDate)">
+                + Add meal
+              </button>
+            </div>
+          </ng-template>
+
+          <div class="meal-image" *ngIf="hasMeals(item)">
+            <img [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/default-meal.png'" class="meal-image-img"
+              [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
           </div>
-        </ng-template>
-
-        <div class="meal-image" *ngIf="hasMeals(item)">
-          <img [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/default-meal.png'" class="meal-image-img"
-            [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
         </div>
       </div>
     </div>
-  </div>
+  </ng-container>
+</div>

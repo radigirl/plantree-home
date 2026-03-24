@@ -2,10 +2,10 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  HostListener,
   OnInit,
   QueryList,
   ViewChildren,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -25,24 +25,21 @@ export class PlanComponent implements OnInit {
   weekMeals: DayPlan[] = [];
   isLoading = true;
   currentWeekStart: Date = this.getStartOfWeek(new Date());
-  showTodayButton = window.innerWidth >= 768;
+  @ViewChild('datePicker') datePicker!: ElementRef<HTMLInputElement>;
+
 
   @ViewChildren('mealCard') mealCards!: QueryList<ElementRef<HTMLElement>>;
 
   constructor(
     private mealPlanService: MealPlanService,
     private cdr: ChangeDetectorRef,
-    private router:Router
-  ) {}
+    private router: Router
+  ) { }
 
   async ngOnInit(): Promise<void> {
-    await this.loadWeekPlan(true);
+    await this.loadWeekPlan(window.innerWidth < 768);
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.showTodayButton = window.innerWidth >= 768;
-  }
 
   async loadWeekPlan(scrollToTodayAfterLoad = false): Promise<void> {
     this.isLoading = true;
@@ -69,15 +66,15 @@ export class PlanComponent implements OnInit {
   }
 
   onAddMealClick(event: MouseEvent, date: string): void {
-  event.stopPropagation();
+    event.stopPropagation();
 
-  this.router.navigate(['/plan/day', date], {
-    queryParams: {
-      add: 'true',
-      source: 'plan'
-    }
-  });
-}
+    this.router.navigate(['/plan/day', date], {
+      queryParams: {
+        add: 'true',
+        source: 'plan'
+      }
+    });
+  }
 
   getFirstMeal(day: DayPlan): PlannedMeal | undefined {
     return day.meals[0];
@@ -176,6 +173,64 @@ export class PlanComponent implements OnInit {
       top: Math.max(absoluteTop - offset, 0),
       behavior: 'smooth',
     });
+  }
+
+  openDatePicker(): void {
+  const input = this.datePicker?.nativeElement as HTMLInputElement;
+  if (!input) return;
+
+  if ((input as any).showPicker) {
+    (input as any).showPicker();
+  } else {
+    input.click();
+  }
+}
+
+  getCurrentDateInputValue(): string {
+    const current = new Date(this.currentWeekStart);
+    return this.formatDateForInput(current);
+  }
+
+  async onDatePicked(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    if (!input.value) return;
+
+    const pickedDate = new Date(`${input.value}T00:00:00`);
+    this.currentWeekStart = this.getStartOfWeek(pickedDate);
+
+    await this.loadWeekPlan(false);
+
+    setTimeout(() => {
+      const pickedIndex = this.getDayIndexInCurrentWeek(pickedDate);
+      if (pickedIndex !== -1) {
+        this.scrollToDay(pickedIndex);
+      }
+    }, 50);
+  }
+
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private getDayIndexInCurrentWeek(date: Date): number {
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < this.weekMeals.length; i++) {
+      const itemDate = new Date(this.currentWeekStart);
+      itemDate.setDate(this.currentWeekStart.getDate() + i);
+      itemDate.setHours(0, 0, 0, 0);
+
+      if (itemDate.getTime() === target.getTime()) {
+        return i;
+      }
+    }
+
+    return -1;
   }
 
   isTodayIndex(index: number): boolean {
