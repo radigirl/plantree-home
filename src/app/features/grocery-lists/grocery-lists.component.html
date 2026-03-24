@@ -9,7 +9,7 @@
     <div class="lists-header">
       <h1 class="lists-title">Grocery Lists</h1>
 
-      <button *ngIf="!isCreatingList" type="button" class="add-button" (click)="startCreateList()">
+      <button *ngIf="!isCreatingList" type="button" class="button-pill-primary add-button" (click)="startCreateList()">
         + Add list
       </button>
     </div>
@@ -50,19 +50,20 @@
     <!-- LISTS -->
     <div *ngIf="!error && groceryLists.length > 0; else empty" class="lists-list">
 
-      <div class="list-card" *ngFor="let list of groceryLists" (click)="openList(list)">
+      <div class="list-card" [class.list-card--menu-open]="openMenuListId === list.id" *ngFor="let list of groceryLists" (click)="openList(list)">
         <!-- MENU -->
         <div class="list-menu-wrapper" (click)="$event.stopPropagation()">
           <button type="button" class="list-menu-button" (click)="toggleActionsMenu($event, list)">
             ⋯
           </button>
 
-          <div *ngIf="openMenuListId === list.id" class="list-menu-dropdown">
-            <button type="button" class="list-menu-item" (click)="startEditList($event, list)">
+          <div *ngIf="openMenuListId === list.id" class="list-menu-dropdown dropdown-list-surface">
+            <button type="button" class="list-menu-item dropdown-list-item" (click)="startEditList($event, list)">
               Edit
             </button>
 
-            <button type="button" class="list-menu-item list-menu-item--danger" (click)="deleteList($event, list)">
+            <button type="button" class="list-menu-item dropdown-list-item dropdown-list-item--danger"
+              (click)="deleteList($event, list)">
               Delete
             </button>
           </div>
@@ -75,7 +76,7 @@
           </p>
 
           <div class="list-meta">
-            <span class="list-status" [ngClass]="'list-status--' + list.status.toLowerCase()">
+            <span class="meal-info-chip list-status" [ngClass]="'list-status--' + list.status.toLowerCase()">
               {{ list.status }}
             </span>
           </div>
