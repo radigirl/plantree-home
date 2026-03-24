@@ -185,6 +185,10 @@ export class DayDetailsComponent implements OnInit {
     this.scrollFormIntoView();
   }
 
+  goBack(): void {
+  window.history.back();
+}
+
   async onEditCook(meal: PlannedMeal): Promise<void> {
     if (this.isPastDate()) {
       return;

@@ -34,7 +34,7 @@ export class HeaderComponent implements OnInit {
     const currentUser = this.userStateService.getCurrentUser();
 
     if (!currentUser && this.users.length > 0) {
-      this.userStateService.setCurrentUser(this.users[0]);
+      this.userStateService.setCurrentUser(this.users[1]); // TO DO: change to 0 temporary
     }
   }
 

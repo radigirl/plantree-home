@@ -7,6 +7,14 @@
   gap: 12px;
 }
 
+.plan-page--hidden {
+  opacity: 0;
+}
+
+.plan-page {
+  transition: opacity 0.18s ease;
+}
+
 .plan-loading-shell {
   min-height: 320px;
   display: flex;
@@ -408,10 +416,6 @@
   font-size: 0.92rem;
   font-weight: 500;
   color: $color-text-muted;
-}
-
-.meal-more--hidden {
-  display: none;
 }
 
 .meal-more__arrow {

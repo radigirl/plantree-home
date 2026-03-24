@@ -24,6 +24,7 @@ import { PageLoadingComponent } from '../../shared/components/page-loading/page-
 export class PlanComponent implements OnInit {
   weekMeals: DayPlan[] = [];
   isLoading = true;
+  isReady = false; // when returning from details
   currentWeekStart: Date = this.getStartOfWeek(new Date());
   @ViewChild('datePicker') datePicker!: ElementRef<HTMLInputElement>;
 
@@ -38,23 +39,18 @@ export class PlanComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     const returnDate = sessionStorage.getItem('planReturnDate');
-
     if (returnDate) {
       this.currentWeekStart = this.getStartOfWeek(new Date(returnDate));
     }
-
     await this.loadWeekPlan(false);
-
     if (returnDate) {
       setTimeout(() => {
         const returnIndex = this.getDayIndexFromDateString(returnDate);
-
         if (returnIndex !== -1) {
-          this.scrollToDay(returnIndex);
+          this.scrollToDayInstant(returnIndex);
         }
-
         sessionStorage.removeItem('planReturnDate');
-      }, 50);
+      }, 0);
     }
   }
 
@@ -62,7 +58,6 @@ export class PlanComponent implements OnInit {
     sessionStorage.setItem('planReturnDate', date);
     this.router.navigate(['/plan/day', date]);
   }
-
 
   async loadWeekPlan(scrollToTodayAfterLoad = false): Promise<void> {
     this.isLoading = true;
@@ -200,19 +195,31 @@ export class PlanComponent implements OnInit {
     return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}`;
   }
 
- scrollToDay(index: number): void {
+  scrollToDay(index: number): void {
+    const card = this.mealCards?.toArray()[index]?.nativeElement;
+
+    if (!card) return;
+
+    const cardRect = card.getBoundingClientRect();
+    const absoluteTop = window.scrollY + cardRect.top;
+    const topOffset = 200;
+
+    window.scrollTo({
+      top: Math.max(absoluteTop - topOffset, 0),
+      behavior: 'smooth',
+    });
+  }
+
+  scrollToDayInstant(index: number): void {
   const card = this.mealCards?.toArray()[index]?.nativeElement;
 
   if (!card) return;
 
   const cardRect = card.getBoundingClientRect();
   const absoluteTop = window.scrollY + cardRect.top;
-  const topOffset = 90;
+  const topOffset = 200;
 
-  window.scrollTo({
-    top: Math.max(absoluteTop - topOffset, 0),
-    behavior: 'smooth',
-  });
+  window.scrollTo(0, Math.max(absoluteTop - topOffset, 0));
 }
 
   openDatePicker(): void {

@@ -5,13 +5,26 @@
 
   <div class="day-details-shell" *ngIf="!isLoading" [class.day-details-shell--past]="isPastDate()">
     <div class="day-details-header">
-      <div class="day-details-date">
-        <span class="day-name">{{ getDayName() }}</span>
-        <span class="day-date">{{ getShortDate() }}</span>
+      <div class="day-details-header-left">
+        <button type="button" class="back-link" (click)="goBack()">
+          <span class="back-link__icon">←</span>
+          <span class="back-link__text">Back</span>
+        </button>
+
+        <div class="day-details-date">
+          <span class="day-name">{{ getDayName() }}</span>
+          <span class="day-date">{{ getShortDate() }}</span>
+        </div>
       </div>
 
-      <button type="button" class="add-meal-button add-meal-button--inline" *ngIf="!isFormOpen"
-        [disabled]="isPastDate()" [class.add-meal-button--disabled]="isPastDate()" (click)="openAddMealFromDay()">
+      <button
+        type="button"
+        class="add-meal-button add-meal-button--inline"
+        *ngIf="!isFormOpen"
+        [disabled]="isPastDate()"
+        [class.add-meal-button--disabled]="isPastDate()"
+        (click)="openAddMealFromDay()"
+      >
         + Add meal
       </button>
     </div>
@@ -207,17 +220,30 @@
     </div>
 
     <div class="day-details-list" *ngIf="meals.length > 0">
-      <div class="day-details-card" [class.expanded]="expandedMealId === meal.id" *ngFor="let meal of meals"
-        (click)="toggleMeal(meal.id)">
+      <div
+        class="day-details-card"
+        [class.expanded]="expandedMealId === meal.id"
+        *ngFor="let meal of meals"
+        (click)="toggleMeal(meal.id)"
+      >
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
-          <button type="button" class="meal-menu-button" [disabled]="isPastDate()"
-            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)" aria-label="Meal actions">
+          <button
+            type="button"
+            class="meal-menu-button"
+            [disabled]="isPastDate()"
+            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"
+            aria-label="Meal actions"
+          >
             ⋯
           </button>
 
           <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isPastDate()">
-            <button type="button" class="meal-menu-item" *ngIf="getPrimaryActionLabel(meal.status)"
-              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)">
+            <button
+              type="button"
+              class="meal-menu-item"
+              *ngIf="getPrimaryActionLabel(meal.status)"
+              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)"
+            >
               {{ getPrimaryActionLabel(meal.status) }}
             </button>
 
@@ -229,8 +255,11 @@
               Edit cook
             </button>
 
-            <button type="button" class="meal-menu-item meal-menu-item--danger"
-              (click)="$event.stopPropagation(); onRemoveMeal(meal)">
+            <button
+              type="button"
+              class="meal-menu-item meal-menu-item--danger"
+              (click)="$event.stopPropagation(); onRemoveMeal(meal)"
+            >
               Remove
             </button>
           </div>
@@ -245,8 +274,11 @@
 
               <div class="meal-cook-row">
                 <span class="meal-cook-label">Cook:</span>
-                <img [src]="meal.cook?.avatar_url || 'assets/avatars/unassigned.png'" class="meal-cook-avatar"
-                  [alt]="meal.cook?.name || 'Cook avatar'" />
+                <img
+                  [src]="meal.cook?.avatar_url || 'assets/avatars/unassigned.png'"
+                  class="meal-cook-avatar"
+                  [alt]="meal.cook?.name || 'Cook avatar'"
+                />
                 <p class="meal-cook">
                   {{ meal.cook?.name || 'Unassigned' }}
                 </p>
@@ -267,8 +299,12 @@
             </div>
 
             <div class="meal-actions-row">
-              <button type="button" class="meal-action-button" *ngIf="getPrimaryActionLabel(meal.status)"
-                (click)="$event.stopPropagation(); onPrimaryAction(meal)">
+              <button
+                type="button"
+                class="meal-action-button"
+                *ngIf="getPrimaryActionLabel(meal.status)"
+                (click)="$event.stopPropagation(); onPrimaryAction(meal)"
+              >
                 <span class="meal-action-icon">
                   {{ getPrimaryActionIcon(meal.status) }}
                 </span>
@@ -286,21 +322,21 @@
           </div>
 
           <div class="meal-image">
-            <img [src]="meal.meal.image || 'assets/meals/default-meal.png'" class="meal-image-img"
-              [alt]="meal.meal.name || 'Meal image'" />
+            <img
+              [src]="meal.meal.image || 'assets/meals/default-meal.png'"
+              class="meal-image-img"
+              [alt]="meal.meal.name || 'Meal image'"
+            />
           </div>
         </div>
 
         <div class="meal-expanded" *ngIf="expandedMealId === meal.id">
-
           <div class="meal-expanded-content">
-
             <p class="meal-ingredients-empty" *ngIf="!meal.meal.ingredients?.length && !meal.meal.instructions">
               No recipe details added
             </p>
 
             <ng-container *ngIf="meal.meal.ingredients?.length || meal.meal.instructions">
-
               <div class="meal-ingredients">
                 <p class="meal-ingredients-title">Ingredients</p>
 
@@ -326,11 +362,8 @@
                   No instructions added
                 </p>
               </div>
-
             </ng-container>
-
           </div>
-
         </div>
       </div>
     </div>

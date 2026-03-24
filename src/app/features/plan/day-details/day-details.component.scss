@@ -1,5 +1,6 @@
 @use '../../../../styles/variables' as *;
 @use '../../../../styles/breakpoints' as *;
+@use '../../../../styles/components/buttons' as *;
 
 :host {
   display: block;
@@ -83,6 +84,14 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
+}
+
+.day-details-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
 }
 
 .day-details-date {
@@ -649,7 +658,7 @@
 
 @include mobile {
   .day-details-page {
-    gap: 16px;
+    gap: 18px;
     margin-left: -8px;
     margin-right: -8px;
     width: calc(100% + 16px);
