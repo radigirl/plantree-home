@@ -40,6 +40,7 @@ app-root {
 
 @include desktop {
   .content {
+    background: $color-surface;
     border-radius: $radius-large;
     margin-top: $layout-gap-top-desktop;
     margin-right: 40px;

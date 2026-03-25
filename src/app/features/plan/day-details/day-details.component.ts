@@ -19,11 +19,11 @@ import { UserStateService } from '../../../services/user.state.service';
 import { SupabaseService } from '../../../services/supabase.service';
 
 import { MEAL_STATUS_LABELS, getNextStatus } from '../../../shared/utils/meal.utils';
+import { filterMealsByQuery } from '../../../shared/utils/meal-search.util';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
-type ChangeMealMode = 'existing' | 'new';
-type AddMealMode = 'existing' | 'new';
-
+type AddMealMode = 'search' | 'new';
+type ChangeMealMode = 'search' | 'create-from-current';
 
 @Component({
   selector: 'app-day-details',
@@ -52,11 +52,32 @@ export class DayDetailsComponent implements OnInit {
   selectedImageFile: File | null = null;
   selectedImagePreview: string | null = null;
 
-  availableMeals: { id: string; name: string; prepTime?: number; image?: string }[] = [];
-  changeMealMode: ChangeMealMode = 'existing';
-  addMealMode: AddMealMode = 'new';
+  mealInstructions = '';
+  changeMealInstructions = '';
+
+  mealIngredientsText = '';
+  changeMealIngredientsText = '';
+
+  availableMeals: {
+    id: string;
+    name: string;
+    prepTime?: number;
+    image?: string;
+    ingredients?: string[];
+    instructions?: string;
+  }[] = [];
+
+  addMealMode: AddMealMode = 'search';
+  changeMealMode: ChangeMealMode = 'search';
   selectedExistingMealId: string | null = null;
   expandedMealId: string | null = null;
+
+  mealSearchQuery = '';
+  changeMealSearchQuery = '';
+
+  showAdvanced = false;
+  showChangeAdvanced = false;
+
   private returnToMealId: string | null = null;
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
@@ -68,7 +89,7 @@ export class DayDetailsComponent implements OnInit {
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
     private router: Router,
-  ) { }
+  ) {}
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -152,6 +173,112 @@ export class DayDetailsComponent implements OnInit {
     }
   }
 
+  get createFromCurrentHasDetails(): boolean {
+    return !!(
+      this.changeMealIngredientsText.trim() ||
+      this.changeMealInstructions.trim()
+    );
+  }
+
+  get newMealHasDetails(): boolean {
+    return !!(
+      this.mealIngredientsText.trim() ||
+      this.mealInstructions.trim()
+    );
+  }
+
+  get filteredAvailableMeals() {
+    return filterMealsByQuery(this.availableMeals, this.mealSearchQuery);
+  }
+
+  get filteredChangeMealOptions() {
+    return filterMealsByQuery(this.availableMeals, this.changeMealSearchQuery);
+  }
+
+  get displayedAvailableMeals() {
+    if (!this.selectedExistingMealId) {
+      return this.filteredAvailableMeals;
+    }
+
+    return this.filteredAvailableMeals.filter(
+      (meal) => meal.id === this.selectedExistingMealId
+    );
+  }
+
+  get displayedChangeMealOptions() {
+    if (!this.selectedExistingMealId) {
+      return this.filteredChangeMealOptions;
+    }
+
+    return this.filteredChangeMealOptions.filter(
+      (meal) => meal.id === this.selectedExistingMealId
+    );
+  }
+
+  clearMealSearch(): void {
+    this.mealSearchQuery = '';
+    this.selectedExistingMealId = null;
+  }
+
+  clearChangeMealSearch(): void {
+    this.changeMealSearchQuery = '';
+    this.selectedExistingMealId = null;
+  }
+
+  selectMealForAdd(mealId: string): void {
+    this.selectedExistingMealId = mealId;
+  }
+
+  selectMealForChange(mealId: string): void {
+    this.selectedExistingMealId = mealId;
+  }
+
+  setAddMealMode(mode: AddMealMode): void {
+    this.addMealMode = mode;
+
+    this.mealSearchQuery = '';
+    this.selectedExistingMealId = null;
+    this.showAdvanced = false;
+
+    if (mode === 'search') {
+      this.newMealName = '';
+      this.newPrepTime = null;
+      this.selectedImagePreview = null;
+      this.selectedImageFile = null;
+      this.mealIngredientsText = '';
+      this.mealInstructions = '';
+    }
+  }
+
+  setChangeMealMode(mode: ChangeMealMode): void {
+    this.changeMealMode = mode;
+
+    this.changeMealSearchQuery = '';
+    this.selectedExistingMealId = null;
+    this.showChangeAdvanced = false;
+
+    if (mode === 'search') {
+      this.newMealName = '';
+      this.newPrepTime = null;
+      this.selectedImagePreview = null;
+      this.selectedImageFile = null;
+      this.changeMealIngredientsText = '';
+      this.changeMealInstructions = '';
+      return;
+    }
+
+    const currentMeal = this.meals.find(
+      (meal) => meal.id === this.editingPlannedMealId
+    )?.meal;
+
+    this.newMealName = currentMeal?.name ?? '';
+    this.newPrepTime = currentMeal?.prepTime ?? null;
+    this.selectedImagePreview = currentMeal?.image ?? null;
+    this.selectedImageFile = null;
+    this.changeMealIngredientsText = (currentMeal?.ingredients ?? []).join('\n');
+    this.changeMealInstructions = currentMeal?.instructions ?? '';
+  }
+
   toggleMeal(mealId: string): void {
     this.expandedMealId = this.expandedMealId === mealId ? null : mealId;
   }
@@ -173,15 +300,22 @@ export class DayDetailsComponent implements OnInit {
     this.newPrepTime = null;
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
+    this.mealInstructions = '';
+    this.changeMealInstructions = '';
+    this.mealIngredientsText = '';
+    this.changeMealIngredientsText = '';
+    this.showAdvanced = false;
+    this.showChangeAdvanced = false;
 
     const currentUser = this.userStateService.getCurrentUser();
     this.selectedCookId = currentUser?.id ?? null;
 
     this.selectedExistingMealId = null;
-    this.changeMealMode = 'existing';
+    this.mealSearchQuery = '';
+    this.changeMealSearchQuery = '';
 
     await this.loadAvailableMeals();
-    this.addMealMode = this.availableMeals.length > 0 ? 'existing' : 'new';
+    this.addMealMode = this.availableMeals.length > 0 ? 'search' : 'new';
   }
 
   goBack(): void {
@@ -205,6 +339,8 @@ export class DayDetailsComponent implements OnInit {
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
     this.selectedExistingMealId = null;
+    this.mealSearchQuery = '';
+    this.changeMealSearchQuery = '';
 
     this.closeMealMenu();
     this.scrollFormIntoView();
@@ -227,8 +363,13 @@ export class DayDetailsComponent implements OnInit {
     this.selectedImageFile = null;
     this.selectedImagePreview = meal.meal.image ?? null;
 
-    this.changeMealMode = 'existing';
+    this.changeMealIngredientsText = (meal.meal.ingredients ?? []).join('\n');
+    this.changeMealInstructions = meal.meal.instructions ?? '';
+
+    this.changeMealMode = 'create-from-current';
     this.selectedExistingMealId = meal.meal.id;
+    this.changeMealSearchQuery = '';
+    this.showChangeAdvanced = false;
 
     await this.loadAvailableMeals();
 
@@ -251,9 +392,19 @@ export class DayDetailsComponent implements OnInit {
     this.openMealMenuId = null;
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
-    this.changeMealMode = 'existing';
-    this.addMealMode = 'new';
+
+    this.mealInstructions = '';
+    this.changeMealInstructions = '';
+    this.mealIngredientsText = '';
+    this.changeMealIngredientsText = '';
+
+    this.changeMealMode = 'search';
+    this.addMealMode = 'search';
     this.selectedExistingMealId = null;
+    this.mealSearchQuery = '';
+    this.changeMealSearchQuery = '';
+    this.showAdvanced = false;
+    this.showChangeAdvanced = false;
 
     if (source === 'plan') {
       this.router.navigate(['/plan']);
@@ -269,10 +420,10 @@ export class DayDetailsComponent implements OnInit {
       relativeTo: this.route,
       queryParams: {
         add: null,
-        source: null
+        source: null,
       },
       queryParamsHandling: 'merge',
-      replaceUrl: true
+      replaceUrl: true,
     });
 
     if (shouldRestoreToMeal) {
@@ -304,15 +455,6 @@ export class DayDetailsComponent implements OnInit {
 
   removeSelectedMealImage(): void {
     this.selectedImageFile = null;
-
-    if (
-      (this.formMode === 'change-meal' && this.changeMealMode !== 'new') ||
-      (this.formMode === 'add' && this.addMealMode !== 'new')
-    ) {
-      this.selectedImagePreview = null;
-      return;
-    }
-
     this.selectedImagePreview = null;
   }
 
@@ -322,7 +464,7 @@ export class DayDetailsComponent implements OnInit {
     }
 
     try {
-      if (this.addMealMode === 'existing') {
+      if (this.addMealMode === 'search') {
         if (!this.selectedExistingMealId) {
           return;
         }
@@ -349,12 +491,19 @@ export class DayDetailsComponent implements OnInit {
           );
         }
 
+        const parsedIngredients = this.mealIngredientsText
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean);
+
         await this.mealPlanService.createMealAndPlan(
           this.newMealName.trim(),
           this.newPrepTime,
           this.selectedCookId,
           this.date,
-          imagePath
+          imagePath,
+          this.mealInstructions.trim() || null,
+          parsedIngredients
         );
       }
 
@@ -394,7 +543,7 @@ export class DayDetailsComponent implements OnInit {
     }
 
     try {
-      if (this.changeMealMode === 'existing') {
+      if (this.changeMealMode === 'search') {
         if (!this.selectedExistingMealId) {
           return;
         }
@@ -421,12 +570,19 @@ export class DayDetailsComponent implements OnInit {
           );
         }
 
+        const parsedIngredients = this.changeMealIngredientsText
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean);
+
         await this.mealPlanService.createMealAndReplacePlannedMeal(
           this.editingPlannedMealId,
           this.newMealName.trim(),
           this.newPrepTime,
           this.selectedCookId,
-          imagePath
+          imagePath,
+          this.changeMealInstructions.trim() || null,
+          parsedIngredients
         );
       }
 
@@ -449,10 +605,10 @@ export class DayDetailsComponent implements OnInit {
       relativeTo: this.route,
       queryParams: {
         add: 'true',
-        source: 'day'
+        source: 'day',
       },
       queryParamsHandling: 'merge',
-      replaceUrl: true
+      replaceUrl: true,
     });
   }
 
@@ -546,7 +702,6 @@ export class DayDetailsComponent implements OnInit {
         return null;
     }
   }
-
 
   getPrimaryActionIcon(status: string): string {
     switch (status) {
@@ -666,7 +821,4 @@ export class DayDetailsComponent implements OnInit {
       this.scrollToMealCardInstant(mealId);
     }, 0);
   }
-
-
-
 }

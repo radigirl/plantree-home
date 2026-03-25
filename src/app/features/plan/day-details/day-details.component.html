@@ -17,8 +17,14 @@
         </div>
       </div>
 
-      <button type="button" class="add-meal-button add-meal-button--inline" *ngIf="!isFormOpen"
-        [disabled]="isPastDate()" [class.add-meal-button--disabled]="isPastDate()" (click)="openAddMealFromDay()">
+      <button
+        type="button"
+        class="add-meal-button add-meal-button--inline"
+        *ngIf="!isFormOpen"
+        [disabled]="isPastDate()"
+        [class.add-meal-button--disabled]="isPastDate()"
+        (click)="openAddMealFromDay()"
+      >
         + Add meal
       </button>
     </div>
@@ -32,34 +38,85 @@
         <label>{{ getFormTitle() }}</label>
       </div>
 
+      <!-- ADD MEAL -->
       <ng-container *ngIf="formMode === 'add'">
         <div class="add-meal-field" *ngIf="availableMeals.length > 0">
-          <label for="addMealMode">How would you like to add it?</label>
-          <select id="addMealMode" [(ngModel)]="addMealMode">
-            <option value="existing">Choose from My Meals</option>
-            <option value="new">Create new meal</option>
-          </select>
+          <label>How would you like to add it?</label>
+
+          <div class="meal-mode-toggle">
+            <button
+              type="button"
+              class="meal-mode-toggle__button"
+              [class.meal-mode-toggle__button--active]="addMealMode === 'search'"
+              (click)="setAddMealMode('search')"
+            >
+              My Meals
+            </button>
+
+            <button
+              type="button"
+              class="meal-mode-toggle__button"
+              [class.meal-mode-toggle__button--active]="addMealMode === 'new'"
+              (click)="setAddMealMode('new')"
+            >
+              New Meal
+            </button>
+          </div>
         </div>
 
-        <ng-container *ngIf="addMealMode === 'existing' && availableMeals.length > 0">
+        <ng-container *ngIf="addMealMode === 'search' && availableMeals.length > 0">
           <div class="add-meal-field">
-            <label for="existingAddMeal">Saved meals</label>
-            <select id="existingAddMeal" [(ngModel)]="selectedExistingMealId">
-              <option [ngValue]="null">Select a meal</option>
-              <option *ngFor="let meal of availableMeals" [ngValue]="meal.id">
-                {{ meal.name }}
-              </option>
-            </select>
+            <label for="mealSearch">Search meals</label>
+
+            <div class="meal-search-input-wrap">
+              <input
+                id="mealSearch"
+                type="text"
+                [(ngModel)]="mealSearchQuery"
+                placeholder="Search by title or ingredient"
+              />
+
+              <button
+                *ngIf="mealSearchQuery || selectedExistingMealId"
+                type="button"
+                class="meal-search-clear"
+                (click)="clearMealSearch()"
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
-          <div class="add-meal-field">
-            <label for="addExistingCook">Cook</label>
-            <select id="addExistingCook" [(ngModel)]="selectedCookId">
-              <option [ngValue]="null">Unassigned</option>
-              <option *ngFor="let user of availableUsers" [ngValue]="user.id">
-                {{ user.name }}
-              </option>
-            </select>
+          <div class="meal-search-results" *ngIf="displayedAvailableMeals.length > 0">
+            <button
+              type="button"
+              class="meal-search-result"
+              *ngFor="let meal of displayedAvailableMeals"
+              [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
+              (click)="selectMealForAdd(meal.id)"
+            >
+              <div class="meal-search-result__image">
+                <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+              </div>
+
+              <div class="meal-search-result__content">
+                <div class="meal-search-result__title">
+                  {{ meal.name }}
+                </div>
+
+                <div class="meal-search-result__meta">
+                  <span *ngIf="meal.prepTime != null">{{ meal.prepTime }} min</span>
+                  <span *ngIf="meal.ingredients?.length">
+                    {{ meal.ingredients?.slice(0, 3)?.join(', ') }}
+                  </span>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div class="add-meal-field" *ngIf="mealSearchQuery && displayedAvailableMeals.length === 0 && !selectedExistingMealId">
+            <p class="meal-search-empty">No meals found.</p>
           </div>
         </ng-container>
 
@@ -67,16 +124,6 @@
           <div class="add-meal-field">
             <label for="mealName">Meal name</label>
             <input id="mealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
-          </div>
-
-          <div class="add-meal-field">
-            <label for="cook">Cook</label>
-            <select id="cook" [(ngModel)]="selectedCookId">
-              <option [ngValue]="null">Unassigned</option>
-              <option *ngFor="let user of availableUsers" [ngValue]="user.id">
-                {{ user.name }}
-              </option>
-            </select>
           </div>
 
           <div class="add-meal-field">
@@ -96,6 +143,50 @@
               </button>
             </div>
           </div>
+
+          <div class="add-meal-field">
+            <button type="button" class="cancel-button" (click)="showAdvanced = !showAdvanced">
+              {{ showAdvanced ? 'Hide details' : 'Add details (optional)' }}
+            </button>
+
+            <p class="meal-details-hint" *ngIf="newMealHasDetails && !showAdvanced">
+              Details already added
+            </p>
+          </div>
+
+          <ng-container *ngIf="showAdvanced">
+            <div class="add-meal-field">
+              <label for="mealIngredients">Ingredients</label>
+              <textarea
+                id="mealIngredients"
+                [(ngModel)]="mealIngredientsText"
+                placeholder="Add one ingredient per line"
+              ></textarea>
+            </div>
+
+            <div class="add-meal-field">
+              <label for="mealInstructions">Instructions</label>
+              <textarea
+                id="mealInstructions"
+                [(ngModel)]="mealInstructions"
+                placeholder="Add instructions"
+              ></textarea>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <ng-container
+          *ngIf="(addMealMode === 'search' && selectedExistingMealId) || addMealMode === 'new' || availableMeals.length === 0"
+        >
+          <div class="add-meal-field">
+            <label for="cook">Cook</label>
+            <select id="cook" [(ngModel)]="selectedCookId">
+              <option [ngValue]="null">Unassigned</option>
+              <option *ngFor="let user of availableUsers" [ngValue]="user.id">
+                {{ user.name }}
+              </option>
+            </select>
+          </div>
         </ng-container>
 
         <div class="add-meal-actions">
@@ -109,6 +200,7 @@
         </div>
       </ng-container>
 
+      <!-- EDIT COOK -->
       <ng-container *ngIf="formMode === 'edit-cook'">
         <div class="add-meal-field">
           <label for="editCook">Cook</label>
@@ -131,51 +223,92 @@
         </div>
       </ng-container>
 
+      <!-- CHANGE MEAL -->
       <ng-container *ngIf="formMode === 'change-meal'">
         <div class="add-meal-field">
-          <label for="changeMealMode">How would you like to change it?</label>
-          <select id="changeMealMode" [(ngModel)]="changeMealMode">
-            <option value="existing">Choose from My Meals</option>
-            <option value="new">Create new meal</option>
-          </select>
+          <label>How would you like to change it?</label>
+
+          <div class="meal-mode-toggle">
+            <button
+              type="button"
+              class="meal-mode-toggle__button"
+              [class.meal-mode-toggle__button--active]="changeMealMode === 'search'"
+              (click)="setChangeMealMode('search')"
+            >
+              My Meals
+            </button>
+
+            <button
+              type="button"
+              class="meal-mode-toggle__button"
+              [class.meal-mode-toggle__button--active]="changeMealMode === 'create-from-current'"
+              (click)="setChangeMealMode('create-from-current')"
+            >
+              Create from current
+            </button>
+          </div>
         </div>
 
-        <ng-container *ngIf="changeMealMode === 'existing'">
+        <ng-container *ngIf="changeMealMode === 'search'">
           <div class="add-meal-field">
-            <label for="existingMeal">Saved meals</label>
-            <select id="existingMeal" [(ngModel)]="selectedExistingMealId">
-              <option [ngValue]="null">Select a meal</option>
-              <option *ngFor="let meal of availableMeals" [ngValue]="meal.id">
-                {{ meal.name }}
-              </option>
-            </select>
+            <label for="changeMealSearch">Search meals</label>
+
+            <div class="meal-search-input-wrap">
+              <input
+                id="changeMealSearch"
+                type="text"
+                [(ngModel)]="changeMealSearchQuery"
+                placeholder="Search by title or ingredient"
+              />
+
+              <button
+                *ngIf="changeMealSearchQuery || selectedExistingMealId"
+                type="button"
+                class="meal-search-clear"
+                (click)="clearChangeMealSearch()"
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
-          <div class="add-meal-field">
-            <label for="changeCook">Cook</label>
-            <select id="changeCook" [(ngModel)]="selectedCookId">
-              <option [ngValue]="null">Unassigned</option>
-              <option *ngFor="let user of availableUsers" [ngValue]="user.id">
-                {{ user.name }}
-              </option>
-            </select>
+          <div class="meal-search-results" *ngIf="displayedChangeMealOptions.length > 0">
+            <button
+              type="button"
+              class="meal-search-result"
+              *ngFor="let meal of displayedChangeMealOptions"
+              [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
+              (click)="selectMealForChange(meal.id)"
+            >
+              <div class="meal-search-result__image">
+                <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+              </div>
+
+              <div class="meal-search-result__content">
+                <div class="meal-search-result__title">
+                  {{ meal.name }}
+                </div>
+
+                <div class="meal-search-result__meta">
+                  <span *ngIf="meal.prepTime != null">{{ meal.prepTime }} min</span>
+                  <span *ngIf="meal.ingredients?.length">
+                    {{ meal.ingredients?.slice(0, 3)?.join(', ') }}
+                  </span>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div class="add-meal-field" *ngIf="changeMealSearchQuery && displayedChangeMealOptions.length === 0 && !selectedExistingMealId">
+            <p class="meal-search-empty">No meals found.</p>
           </div>
         </ng-container>
 
-        <ng-container *ngIf="changeMealMode === 'new'">
+        <ng-container *ngIf="changeMealMode === 'create-from-current'">
           <div class="add-meal-field">
             <label for="newMealName">Meal name</label>
             <input id="newMealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
-          </div>
-
-          <div class="add-meal-field">
-            <label for="newMealCook">Cook</label>
-            <select id="newMealCook" [(ngModel)]="selectedCookId">
-              <option [ngValue]="null">Unassigned</option>
-              <option *ngFor="let user of availableUsers" [ngValue]="user.id">
-                {{ user.name }}
-              </option>
-            </select>
           </div>
 
           <div class="add-meal-field">
@@ -194,6 +327,50 @@
                 Remove photo
               </button>
             </div>
+          </div>
+
+          <div class="add-meal-field">
+            <button type="button" class="cancel-button" (click)="showChangeAdvanced = !showChangeAdvanced">
+              {{ showChangeAdvanced ? 'Hide details' : 'Edit details (optional)' }}
+            </button>
+
+            <p class="meal-details-hint" *ngIf="createFromCurrentHasDetails && !showChangeAdvanced">
+              Details already added
+            </p>
+          </div>
+
+          <ng-container *ngIf="showChangeAdvanced">
+            <div class="add-meal-field">
+              <label for="changeMealIngredients">Ingredients</label>
+              <textarea
+                id="changeMealIngredients"
+                [(ngModel)]="changeMealIngredientsText"
+                placeholder="Add one ingredient per line"
+              ></textarea>
+            </div>
+
+            <div class="add-meal-field">
+              <label for="changeMealInstructions">Instructions</label>
+              <textarea
+                id="changeMealInstructions"
+                [(ngModel)]="changeMealInstructions"
+                placeholder="Add instructions"
+              ></textarea>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <ng-container
+          *ngIf="(changeMealMode === 'search' && selectedExistingMealId) || changeMealMode === 'create-from-current'"
+        >
+          <div class="add-meal-field">
+            <label for="changeCook">Cook</label>
+            <select id="changeCook" [(ngModel)]="selectedCookId">
+              <option [ngValue]="null">Unassigned</option>
+              <option *ngFor="let user of availableUsers" [ngValue]="user.id">
+                {{ user.name }}
+              </option>
+            </select>
           </div>
         </ng-container>
 
@@ -214,30 +391,55 @@
     </div>
 
     <div class="day-details-list" *ngIf="meals.length > 0">
-      <div class="day-details-card" [attr.id]="'meal-card-' + meal.id" [class.expanded]="expandedMealId === meal.id"
-        *ngFor="let meal of meals" (click)="toggleMeal(meal.id)">
+      <div
+        class="day-details-card"
+        [attr.id]="'meal-card-' + meal.id"
+        [class.expanded]="expandedMealId === meal.id"
+        *ngFor="let meal of meals"
+        (click)="toggleMeal(meal.id)"
+      >
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
-          <button type="button" class="meal-menu-button" [disabled]="isPastDate()"
-            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)" aria-label="Meal actions">
+          <button
+            type="button"
+            class="meal-menu-button"
+            [disabled]="isPastDate()"
+            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"
+            aria-label="Meal actions"
+          >
             ⋯
           </button>
 
           <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isPastDate()">
-            <button type="button" class="meal-menu-item" *ngIf="getPrimaryActionLabel(meal.status)"
-              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)">
+            <button
+              type="button"
+              class="meal-menu-item"
+              *ngIf="getPrimaryActionLabel(meal.status)"
+              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)"
+            >
               {{ getPrimaryActionLabel(meal.status) }}
             </button>
 
-            <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); onChangeMeal(meal)">
+            <button
+              type="button"
+              class="meal-menu-item"
+              (click)="$event.stopPropagation(); onChangeMeal(meal)"
+            >
               Change meal
             </button>
 
-            <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); onEditCook(meal)">
+            <button
+              type="button"
+              class="meal-menu-item"
+              (click)="$event.stopPropagation(); onEditCook(meal)"
+            >
               Edit cook
             </button>
 
-            <button type="button" class="meal-menu-item meal-menu-item--danger"
-              (click)="$event.stopPropagation(); onRemoveMeal(meal)">
+            <button
+              type="button"
+              class="meal-menu-item meal-menu-item--danger"
+              (click)="$event.stopPropagation(); onRemoveMeal(meal)"
+            >
               Remove
             </button>
           </div>
@@ -252,8 +454,11 @@
 
               <div class="meal-cook-row">
                 <span class="meal-cook-label">Cook:</span>
-                <img [src]="meal.cook?.avatar_url || 'assets/avatars/unassigned.png'" class="meal-cook-avatar"
-                  [alt]="meal.cook?.name || 'Cook avatar'" />
+                <img
+                  [src]="meal.cook?.avatar_url || 'assets/avatars/unassigned.png'"
+                  class="meal-cook-avatar"
+                  [alt]="meal.cook?.name || 'Cook avatar'"
+                />
                 <p class="meal-cook">
                   {{ meal.cook?.name || 'Unassigned' }}
                 </p>
@@ -274,13 +479,18 @@
             </div>
 
             <div class="meal-actions-row">
-              <button type="button" class="meal-action-button" *ngIf="getPrimaryActionLabel(meal.status)"
-                (click)="$event.stopPropagation(); onPrimaryAction(meal)">
+              <button
+                type="button"
+                class="meal-action-button"
+                *ngIf="getPrimaryActionLabel(meal.status)"
+                (click)="$event.stopPropagation(); onPrimaryAction(meal)"
+              >
                 <span class="meal-action-icon">
                   {{ getPrimaryActionIcon(meal.status) }}
                 </span>
                 {{ getPrimaryActionLabel(meal.status) }}
               </button>
+
               <div class="meal-recipe-toggle">
                 <p class="meal-tap-hint" *ngIf="expandedMealId !== meal.id">
                   View recipe
@@ -293,8 +503,11 @@
           </div>
 
           <div class="meal-image">
-            <img [src]="meal.meal.image || 'assets/meals/default-meal.png'" class="meal-image-img"
-              [alt]="meal.meal.name || 'Meal image'" />
+            <img
+              [src]="meal.meal.image || 'assets/meals/default-meal.png'"
+              class="meal-image-img"
+              [alt]="meal.meal.name || 'Meal image'"
+            />
           </div>
         </div>
 
