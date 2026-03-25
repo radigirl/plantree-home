@@ -101,20 +101,33 @@
           </div>
 
           <div class="add-meal-field">
-            <label for="mealImage">Meal photo</label>
-            <input id="mealImage" type="file" accept="image/*" (change)="onMealImageSelected($event)" />
+            <div class="meal-image-block">
+              <div class="meal-image-thumb" *ngIf="selectedImagePreview">
+                <img [src]="selectedImagePreview" alt="Meal preview" />
+              </div>
 
-            <div class="meal-image-preview" *ngIf="selectedImagePreview">
-              <img [src]="selectedImagePreview" alt="Selected meal preview" class="meal-image-preview__img" />
+              <div class="meal-image-content">
+                <label for="addMealImage" class="meal-image-upload">
+                  <span class="meal-image-upload__button">Choose file</span>
+                  <span class="meal-image-upload__name">
+                    {{ selectedImageFile?.name || 'No file chosen' }}
+                  </span>
+                </label>
 
-              <button type="button" class="cancel-button" (click)="removeSelectedMealImage()">
-                Remove photo
-              </button>
+                <input id="addMealImage" class="meal-image-upload__input" type="file" accept="image/*"
+                  (change)="onMealImageSelected($event)" />
+
+                <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
+                  (click)="removeSelectedMealImage()">
+                  ✕ Remove
+                </button>
+              </div>
             </div>
           </div>
 
           <div class="add-meal-field">
-            <button type="button" class="meal-details-toggle" [class.open]="showAdvanced" (click)="showAdvanced = !showAdvanced">
+            <button type="button" class="meal-details-toggle" [class.open]="showAdvanced"
+              (click)="showAdvanced = !showAdvanced">
               <span class="meal-details-toggle__icon">
                 {{ showAdvanced ? '▾' : '▸' }}
               </span>
@@ -206,9 +219,13 @@
             <button type="button" class="meal-mode-toggle__button"
               [class.meal-mode-toggle__button--active]="changeMealMode === 'create-from-current'"
               (click)="setChangeMealMode('create-from-current')">
-              Create from current
+              Use current as a base
             </button>
           </div>
+          <p class="meal-details-hint" *ngIf="changeMealMode === 'create-from-current'">
+            A new meal will be created. The original stays unchanged.
+          </p>
+
         </div>
 
         <ng-container *ngIf="changeMealMode === 'search'">
@@ -262,20 +279,33 @@
           </div>
 
           <div class="add-meal-field">
-            <label for="newMealImage">Meal photo</label>
-            <input id="newMealImage" type="file" accept="image/*" (change)="onMealImageSelected($event)" />
+            <div class="meal-image-block">
+              <div class="meal-image-thumb" *ngIf="selectedImagePreview">
+                <img [src]="selectedImagePreview" alt="Meal preview" />
+              </div>
 
-            <div class="meal-image-preview" *ngIf="selectedImagePreview">
-              <img [src]="selectedImagePreview" alt="Selected meal preview" class="meal-image-preview__img" />
+              <div class="meal-image-content">
+                <label for="changeMealImage" class="meal-image-upload">
+                  <span class="meal-image-upload__button">Choose file</span>
+                  <span class="meal-image-upload__name">
+                    {{ selectedImageFile?.name || 'No file chosen' }}
+                  </span>
+                </label>
 
-              <button type="button" class="cancel-button" (click)="removeSelectedMealImage()">
-                Remove photo
-              </button>
+                <input id="changeMealImage" class="meal-image-upload__input" type="file" accept="image/*"
+                  (change)="onMealImageSelected($event)" />
+
+                <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
+                  (click)="removeSelectedMealImage()">
+                  ✕ Remove
+                </button>
+              </div>
             </div>
           </div>
 
           <div class="add-meal-field">
-            <button type="button" class="meal-details-toggle" [class.open]="showChangeAdvanced" (click)="showChangeAdvanced = !showChangeAdvanced">
+            <button type="button" class="meal-details-toggle" [class.open]="showChangeAdvanced"
+              (click)="showChangeAdvanced = !showChangeAdvanced">
               <span class="meal-details-toggle__icon">
                 {{ showChangeAdvanced ? '▾' : '▸' }}
               </span>

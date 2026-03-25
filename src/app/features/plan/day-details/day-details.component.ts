@@ -441,25 +441,24 @@ get displayedChangeMealOptions() {
     }
   }
 
-  onMealImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
+ onMealImageSelected(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0] ?? null;
 
-    if (!file) {
-      this.selectedImageFile = null;
-      this.selectedImagePreview = null;
-      return;
-    }
-
-    this.selectedImageFile = file;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.selectedImagePreview = reader.result as string;
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
+  if (!file) {
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+    return;
   }
+
+  this.selectedImageFile = file;
+  const reader = new FileReader();
+  reader.onload = () => {
+    this.selectedImagePreview = reader.result as string;
+    this.cdr.detectChanges();
+  };
+  reader.readAsDataURL(file);
+}
 
   removeSelectedMealImage(): void {
     this.selectedImageFile = null;
