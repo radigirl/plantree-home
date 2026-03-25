@@ -73,9 +73,27 @@
         [class.meal-card--empty]="!hasMeals(item)"
         (click)="openDayDetails(item.fullDate)"
       >
-        <div class="meal-day">
-          <span class="day">{{ item.day }}</span>
-          <span class="date">{{ item.date }}</span>
+        <div
+          class="meal-card__top"
+          [class.meal-card__top--filled]="hasMeals(item)"
+          [class.meal-card__top--empty]="!hasMeals(item)"
+        >
+          <div
+            class="meal-day"
+            [class.meal-day--center]="hasMeals(item)"
+          >
+            <span class="day">{{ item.day }}</span>
+            <span class="date">{{ item.date }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="meal-add-btn meal-add-btn--corner"
+            *ngIf="hasMeals(item) && !isPastDayIndex(i)"
+            (click)="onAddMealClick($event, item.fullDate)"
+          >
+            + Add meal
+          </button>
         </div>
 
         <div class="meal-info">

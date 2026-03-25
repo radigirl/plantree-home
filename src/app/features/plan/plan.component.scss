@@ -286,6 +286,22 @@
   box-shadow: none;
 }
 
+.meal-card__top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  margin-bottom: 4px;
+}
+
+.meal-card__top--filled {
+  justify-content: center;
+}
+
+.meal-card__top--empty {
+  justify-content: flex-start;
+}
+
 .meal-empty-row {
   display: flex;
   align-items: center;
@@ -309,11 +325,23 @@
   }
 }
 
+.meal-add-btn--corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
 .meal-day {
   display: flex;
   align-items: baseline;
   gap: 8px;
   min-width: 0;
+}
+
+.meal-day--center {
+  justify-content: center;
+  width: 100%;
+  text-align: center;
 }
 
 .day {
@@ -552,6 +580,16 @@
     gap: 12px;
   }
 
+  .meal-card__top {
+    min-height: 28px;
+    margin-bottom: 2px;
+  }
+
+  .meal-add-btn--corner {
+    top: 2px;
+    right: 2px;
+  }
+
   .meal-card--empty {
     flex-direction: row;
     align-items: center;
@@ -665,16 +703,20 @@
     padding: 17px;
   }
 
-  .meal-card--empty {
-  justify-content: center;
-}
+  .meal-add-btn--corner {
+    top: 4px;
+    right: 4px;
+  }
 
+  .meal-card--empty {
+    justify-content: center;
+  }
 }
 
 @include desktop {
   .plan-page {
     gap: 18px;
-    margin-top:-8px;
+    margin-top: -8px;
   }
 
   .week-navigation {
@@ -725,6 +767,11 @@
     }
   }
 
+  .meal-add-btn--corner {
+    top: 6px;
+    right: 6px;
+  }
+
   .meal-card--empty {
     padding: 12px 16px;
     min-height: 120px;
@@ -734,13 +781,13 @@
 
 @include desktop-xl {
   .meal-list {
-  grid-template-columns: repeat(4, minmax(0, 360px));
-  justify-content: center;
-  gap: 20px;
-}
+    grid-template-columns: repeat(4, minmax(0, 360px));
+    justify-content: center;
+    gap: 20px;
+  }
 
-.meal-card--empty {
-  justify-content: center;
-  min-height: 140px;
-}
+  .meal-card--empty {
+    justify-content: center;
+    min-height: 140px;
+  }
 }
