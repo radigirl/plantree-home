@@ -65,27 +65,29 @@
             </div>
           </div>
 
-          <div class="meal-search-results" *ngIf="displayedAvailableMeals.length > 0">
-            <button type="button" class="meal-search-result" *ngFor="let meal of displayedAvailableMeals"
-              [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
-              (click)="selectMealForAdd(meal.id)">
-              <div class="meal-search-result__image">
-                <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
-              </div>
+          <div class="meal-search-results-container" *ngIf="displayedAvailableMeals.length > 0">
+            <div class="meal-search-results">
 
-              <div class="meal-search-result__content">
-                <div class="meal-search-result__title">
-                  {{ meal.name }}
+              <button type="button" class="meal-search-result meal-search-result--row"
+                *ngFor="let meal of displayedAvailableMeals"
+                [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
+                (click)="selectMealForAdd(meal.id)">
+
+                <div class="meal-search-result__image">
+                  <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
                 </div>
 
-                <div class="meal-search-result__meta">
-                  <span *ngIf="meal.prepTime != null">{{ meal.prepTime }} min</span>
-                  <span *ngIf="meal.ingredients?.length">
-                    {{ meal.ingredients?.slice(0, 3)?.join(', ') }}
-                  </span>
+                <div class="meal-search-result__content">
+                  <div class="meal-search-result__title">
+                    {{ meal.name }}
+                  </div>
+
+                  <div class="meal-search-result__meta">
+                    <span *ngIf="meal.prepTime != null">{{ meal.prepTime }} min</span>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            </div>
           </div>
 
           <div class="add-meal-field"
@@ -243,27 +245,26 @@
             </div>
           </div>
 
-          <div class="meal-search-results" *ngIf="displayedChangeMealOptions.length > 0">
-            <button type="button" class="meal-search-result" *ngFor="let meal of displayedChangeMealOptions"
-              [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
-              (click)="selectMealForChange(meal.id)">
-              <div class="meal-search-result__image">
-                <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
-              </div>
+          <div class="meal-search-results-container" *ngIf="displayedAvailableMeals.length > 0">
+            <div class="meal-search-results">
 
-              <div class="meal-search-result__content">
-                <div class="meal-search-result__title">
-                  {{ meal.name }}
+              <button type="button" class="meal-search-result meal-search-result--row"
+                *ngFor="let meal of displayedAvailableMeals"
+                [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
+                (click)="selectMealForAdd(meal.id)">
+                <div class="meal-search-result__image">
+                  <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
                 </div>
-
-                <div class="meal-search-result__meta">
-                  <span *ngIf="meal.prepTime != null">{{ meal.prepTime }} min</span>
-                  <span *ngIf="meal.ingredients?.length">
-                    {{ meal.ingredients?.slice(0, 3)?.join(', ') }}
-                  </span>
+                <div class="meal-search-result__content">
+                  <div class="meal-search-result__title">
+                    {{ meal.name }}
+                  </div>
+                  <div class="meal-search-result__meta">
+                    <span *ngIf="meal.prepTime != null">{{ meal.prepTime }} min</span>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
+            </div>
           </div>
 
           <div class="add-meal-field"

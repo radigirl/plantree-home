@@ -183,10 +183,11 @@
   gap: 8px;
 }
 
-.meal-details-toggle + .meal-details-hint {
+.meal-details-toggle+.meal-details-hint {
   margin-top: -2px;
 }
-.add-meal-field + .add-meal-field {
+
+.add-meal-field+.add-meal-field {
   margin-top: -2px;
 }
 
@@ -992,6 +993,12 @@
     margin-top: 4px;
   }
 
+  .meal-search-results-container {
+    max-height: 34vh;
+    overflow-y: auto;
+    padding-bottom: 6px;
+  }
+
   .meal-search-result {
     width: 100%;
     display: flex;
@@ -1230,34 +1237,34 @@
   }
 
   .meal-image-block {
-  gap: 8px;
-  padding: 8px;
-  border-radius: 14px;
-}
+    gap: 8px;
+    padding: 8px;
+    border-radius: 14px;
+  }
 
-.meal-image-thumb {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-}
+  .meal-image-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
 
-.meal-image-upload {
-  gap: 8px;
-}
+  .meal-image-upload {
+    gap: 8px;
+  }
 
-.meal-image-upload__button {
-  min-height: 32px;
-  padding: 0 10px;
-  font-size: 0.84rem;
-}
+  .meal-image-upload__button {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 0.84rem;
+  }
 
-.meal-image-upload__name {
-  font-size: 0.84rem;
-}
+  .meal-image-upload__name {
+    font-size: 0.84rem;
+  }
 
-.meal-image-remove {
-  font-size: 0.76rem;
-}
+  .meal-image-remove {
+    font-size: 0.76rem;
+  }
 }
 
 @include desktop {
