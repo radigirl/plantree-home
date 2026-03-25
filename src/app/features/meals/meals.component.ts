@@ -14,11 +14,23 @@ import { MealsService } from '../../services/meal.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import { UserStateService } from '../../services/user.state.service';
+import { filterMealsByQuery } from '../../shared/utils/meal-search.util';
+import { MealDetailsModalComponent } from './meal-details-modal/meal-details-modal.component';
+import {
+  ResponsiveActionMenuComponent,
+  ResponsiveActionMenuItem,
+} from '../../shared/components/responsive-action-menu/responsive-action-menu';
 
 @Component({
   selector: 'app-meals',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    PageLoadingComponent,
+    MealDetailsModalComponent,
+    ResponsiveActionMenuComponent,
+  ],
   templateUrl: './meals.component.html',
   styleUrl: './meals.component.scss',
 })
@@ -42,14 +54,25 @@ export class MealsComponent implements OnInit {
   expandedMealId: string | null = null;
   private returnToMealId: string | null = null;
 
+  mealSearchQuery = '';
+  selectedSearchMeal: Meal | null = null;
+  isSearchMealDetailsOpen = false;
+
+  selectedMealForActions: Meal | null = null;
+
+  mealActions: ResponsiveActionMenuItem[] = [
+    { id: 'edit', label: 'Edit meal' },
+    { id: 'remove', label: 'Remove from My Meals' },
+  ];
+
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
   constructor(
     private mealsService: MealsService,
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
-    private userStateService: UserStateService,
-  ) { }
+    private userStateService: UserStateService
+  ) {}
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -61,7 +84,7 @@ export class MealsComponent implements OnInit {
 
     const clickedInsideMenu = target.closest('.meal-menu-wrapper');
 
-    if (!clickedInsideMenu) {
+    if (!clickedInsideMenu && !this.isMobileViewport()) {
       this.closeMealMenu();
     }
   }
@@ -75,6 +98,7 @@ export class MealsComponent implements OnInit {
 
     try {
       const user = this.userStateService.getCurrentUser();
+
       if (!user) {
         this.meals = [];
         return;
@@ -102,14 +126,14 @@ export class MealsComponent implements OnInit {
     this.isAddingMeal = true;
     this.isEditingMeal = false;
     this.editingMealId = null;
-    this.openMealMenuId = null;
+    this.closeMealMenu();
 
     this.newMealName = '';
     this.newPrepTime = null;
     this.newIngredientsText = '';
+    this.newInstructions = '';
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
-    this.newInstructions = '';
   }
 
   cancelMealForm(): void {
@@ -123,11 +147,10 @@ export class MealsComponent implements OnInit {
     this.newPrepTime = null;
     this.newIngredientsText = '';
     this.newInstructions = '';
-
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
 
-    this.openMealMenuId = null;
+    this.closeMealMenu();
 
     if (shouldRestoreToMeal) {
       this.restoreToEditedMealCard();
@@ -234,11 +257,10 @@ export class MealsComponent implements OnInit {
       this.newPrepTime = null;
       this.newIngredientsText = '';
       this.newInstructions = '';
-
       this.selectedImageFile = null;
       this.selectedImagePreview = null;
 
-      this.openMealMenuId = null;
+      this.closeMealMenu();
 
       await this.loadMeals();
       this.restoreToEditedMealCard();
@@ -254,7 +276,10 @@ export class MealsComponent implements OnInit {
 
     try {
       const user = this.userStateService.getCurrentUser();
-      if (!user) return;
+
+      if (!user) {
+        return;
+      }
 
       const confirmed = window.confirm(
         `Remove "${meal.name}" from your My Meals?\n\nYou can still access it through other users or past plans.`
@@ -265,7 +290,6 @@ export class MealsComponent implements OnInit {
       }
 
       await this.mealsService.hideMealForUser(meal.id, user.id);
-
       await this.loadMeals();
     } catch (error) {
       console.error('Error hiding meal:', error);
@@ -274,16 +298,46 @@ export class MealsComponent implements OnInit {
     }
   }
 
-  toggleMealMenu(mealId: string): void {
-    this.openMealMenuId = this.openMealMenuId === mealId ? null : mealId;
+  toggleMealMenu(meal: Meal): void {
+    const isSameMeal = this.openMealMenuId === meal.id;
+
+    this.openMealMenuId = isSameMeal ? null : meal.id;
+    this.selectedMealForActions = isSameMeal ? null : meal;
+  }
+
+  closeMealMenu(): void {
+    this.openMealMenuId = null;
+    this.selectedMealForActions = null;
+  }
+
+  async onMealActionSelected(actionId: string): Promise<void> {
+    if (!this.selectedMealForActions) {
+      return;
+    }
+
+    const meal = this.selectedMealForActions;
+    this.closeMealMenu();
+
+    switch (actionId) {
+      case 'edit':
+        this.startEditMeal(meal);
+        break;
+
+      case 'remove':
+        await this.onDeleteMeal(meal);
+        break;
+
+      default:
+        break;
+    }
   }
 
   toggleMeal(mealId: string): void {
     this.expandedMealId = this.expandedMealId === mealId ? null : mealId;
   }
 
-  closeMealMenu(): void {
-    this.openMealMenuId = null;
+  private isMobileViewport(): boolean {
+    return window.innerWidth < 1024;
   }
 
   private parseIngredients(value: string): string[] {
@@ -297,7 +351,9 @@ export class MealsComponent implements OnInit {
     setTimeout(() => {
       const form = this.mealFormContainer?.nativeElement;
 
-      if (!form) return;
+      if (!form) {
+        return;
+      }
 
       const rect = form.getBoundingClientRect();
       const absoluteTop = window.scrollY + rect.top;
@@ -312,7 +368,10 @@ export class MealsComponent implements OnInit {
 
   private scrollToMealCardInstant(mealId: string): void {
     const card = document.getElementById(`meal-card-${mealId}`);
-    if (!card) return;
+
+    if (!card) {
+      return;
+    }
 
     const rect = card.getBoundingClientRect();
     const absoluteTop = window.scrollY + rect.top;
@@ -339,7 +398,7 @@ export class MealsComponent implements OnInit {
     this.isEditingMeal = true;
     this.editingMealId = meal.id;
     this.returnToMealId = meal.id;
-    this.openMealMenuId = null;
+    this.closeMealMenu();
 
     this.newMealName = meal.name ?? '';
     this.newPrepTime = meal.prepTime ?? null;
@@ -352,5 +411,30 @@ export class MealsComponent implements OnInit {
     this.scrollFormIntoView();
   }
 
+  get isSearching(): boolean {
+    return !!this.mealSearchQuery.trim();
+  }
 
+  get filteredMeals(): Meal[] {
+    return filterMealsByQuery(this.meals, this.mealSearchQuery).slice(0, 10);
+  }
+
+  selectMealFromSearch(meal: Meal): void {
+    this.expandedMealId = meal.id;
+  }
+
+  openSearchMealDetails(meal: Meal): void {
+    this.selectedSearchMeal = meal;
+    this.isSearchMealDetailsOpen = true;
+  }
+
+  closeSearchMealDetails(): void {
+    this.isSearchMealDetailsOpen = false;
+    this.selectedSearchMeal = null;
+  }
+
+  clearMealSearch(): void {
+    this.mealSearchQuery = '';
+    this.closeSearchMealDetails();
+  }
 }

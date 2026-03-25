@@ -256,7 +256,9 @@
   border: none;
   background: rgba(251, 248, 241, 0.96);
   color: $color-text-muted;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -271,39 +273,6 @@
 
 .meal-menu-button:active {
   transform: scale(0.92);
-}
-
-.meal-menu-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 4px;
-  min-width: 180px;
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  border-radius: 16px;
-  backdrop-filter: blur(12px);
-  background: rgba(255, 252, 247, 0.92);
-  border: 1px solid rgba(207, 222, 215, 0.95);
-  box-shadow: 0 14px 28px rgba(46, 58, 50, 0.12);
-}
-
-.meal-menu-item {
-  padding: 10px 12px;
-  border: none;
-  background: transparent;
-  border-radius: 12px;
-  text-align: left;
-  font-size: 0.94rem;
-  color: $color-primary-dark;
-}
-
-.meal-menu-item:hover {
-  background: rgba(231, 242, 236, 0.72);
-}
-
-.meal-menu-item--danger {
-  color: #9a4d4d;
 }
 
 .meal-main {
@@ -478,14 +447,240 @@
   white-space: pre-line;
 }
 
+.meal-search-bar {
+  margin: 10px 0 14px;
+}
+
+.meal-search-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.meal-search-input-wrap input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 44px 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(207, 222, 215, 0.95);
+  background: rgba(255, 252, 247, 0.92);
+  color: $color-primary-dark;
+  font-size: 0.98rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.meal-search-input-wrap input:focus {
+  border-color: rgba(92, 143, 134, 0.7);
+  box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.08);
+}
+
+.meal-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(207, 222, 215, 0.32);
+  color: $color-primary-dark;
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meal-search-results {
+  display: flex;
+  flex-direction: column;
+}
+
+.meal-search-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 1px solid rgba(112, 133, 127, 0.16);
+  background: transparent;
+  min-height: 44px;
+}
+
+.meal-search-result:last-child {
+  border-bottom: none;
+}
+
+.meal-search-result__image {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.meal-search-result__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.meal-search-result__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.meal-search-result__main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.meal-search-result__title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: $color-primary-dark;
+  white-space: nowrap;
+}
+
+.meal-search-result__meta {
+  font-size: 0.82rem;
+  color: rgba($color-text-muted, 0.75);
+}
+
+.meal-search-result__menu {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: rgba($color-text-muted, 0.9);
+  font-size: 1.05rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.meal-actions-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(28, 35, 31, 0.34);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+}
+
+.meal-actions-sheet {
+  width: min(100%, 560px);
+  border-radius: 28px 28px 20px 20px;
+  background: rgba(255, 252, 247, 0.98);
+  border: 1px solid rgba(207, 222, 215, 0.95);
+  box-shadow: 0 20px 40px rgba(46, 58, 50, 0.18);
+  overflow: hidden;
+  animation: mealSheetUp 0.24s ease;
+}
+
+.meal-actions-sheet__handle {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(112, 133, 127, 0.34);
+  margin: 10px auto 6px;
+}
+
+.meal-actions-sheet__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px 16px;
+  border-bottom: 1px solid rgba(207, 222, 215, 0.6);
+}
+
+.meal-actions-sheet__image {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(237, 242, 239, 0.9);
+}
+
+.meal-actions-sheet__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.meal-actions-sheet__text {
+  min-width: 0;
+}
+
+.meal-actions-sheet__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.meal-actions-sheet__meta {
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+  color: $color-text-muted;
+}
+
+.meal-actions-sheet__list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+}
+
+.meal-actions-sheet__item {
+  min-height: 56px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 16px;
+  background: transparent;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 500;
+  color: $color-primary-dark;
+  transition: background-color 0.18s ease;
+}
+
+.meal-actions-sheet__item:hover {
+  background: rgba(231, 242, 236, 0.72);
+}
+
+@keyframes mealSheetUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 @include mobile {
   .meals-page {
     gap: 14px;
     margin-left: -8px;
     margin-right: -8px;
-    margin-top:-15px;
+    margin-top: -15px;
     width: calc(100% + 16px);
-    padding:0;
+    padding: 0;
   }
 
   .meals-shell {
@@ -590,6 +785,46 @@
     height: 40px;
     font-size: 1.4rem;
   }
+
+  .meal-search-bar {
+    margin: 8px 0 12px;
+  }
+
+  .meal-search-input-wrap input {
+    min-height: 42px;
+    font-size: 0.94rem;
+  }
+
+  .meal-search-result {
+    gap: 8px;
+    padding: 6px 0;
+  }
+
+  .meal-search-result__image {
+    width: 34px;
+    height: 34px;
+  }
+
+  .meal-search-result__title {
+    font-size: 0.92rem;
+  }
+
+  .meal-search-result__meta {
+    font-size: 11px;
+  }
+
+  .meal-search-result__menu {
+    width: 26px;
+    height: 26px;
+  }
+
+  .meal-menu-dropdown {
+    display: none;
+  }
+
+  .meal-actions-sheet-backdrop {
+    display: flex;
+  }
 }
 
 @include tablet-up {
@@ -618,5 +853,14 @@
 
   .meal-name {
     font-size: 1.35rem;
+  }
+  .meal-actions-sheet-backdrop {
+    display: flex;
+  }
+}
+
+@include desktop {
+  .meal-menu-dropdown {
+    display: block;
   }
 }

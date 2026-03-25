@@ -14,6 +14,16 @@
       </button>
     </div>
 
+    <div class="meal-search-bar">
+      <div class="meal-search-input-wrap">
+        <input type="text" [(ngModel)]="mealSearchQuery" placeholder="Search meals..." />
+
+        <button *ngIf="mealSearchQuery" type="button" class="meal-search-clear" (click)="clearMealSearch()">
+          ×
+        </button>
+      </div>
+    </div>
+
     <div class="add-meal-form" *ngIf="isAddingMeal || isEditingMeal" #mealFormContainer>
       <div class="add-meal-field">
         <label for="mealName">Meal name</label>
@@ -61,29 +71,50 @@
       </div>
     </div>
 
-    <div class="meals-empty" *ngIf="!hasMeals">
+    <div class="meal-search-results" *ngIf="isSearching">
+      <button type="button" class="meal-search-result" *ngFor="let meal of filteredMeals; trackBy: trackByMealId"
+        (click)="openSearchMealDetails(meal)">
+        <div class="meal-search-result__image">
+          <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+        </div>
+
+        <div class="meal-search-result__content">
+          <div class="meal-search-result__main">
+            <span class="meal-search-result__title">
+              {{ meal.name }}
+            </span>
+
+            <span class="meal-search-result__meta" *ngIf="meal.prepTime != null">
+              {{ meal.prepTime }} min
+            </span>
+          </div>
+
+          <div class="meal-search-result__menu-wrapper" (click)="$event.stopPropagation()">
+            <button type="button" class="meal-search-result__menu"
+              (click)="$event.stopPropagation(); toggleMealMenu(meal)" aria-label="Meal actions">
+              ⋮
+            </button>
+          </div>
+        </div>
+      </button>
+
+      <p class="meals-empty-text" *ngIf="filteredMeals.length === 0">
+        No meals found.
+      </p>
+    </div>
+
+    <div class="meals-empty" *ngIf="!isSearching && !hasMeals">
       <p class="meals-empty-text">No saved meals yet.</p>
     </div>
 
-    <div class="meals-list" *ngIf="hasMeals">
+    <div class="meals-list" *ngIf="!isSearching && hasMeals">
       <div class="meal-card" [attr.id]="'meal-card-' + meal.id" [class.expanded]="expandedMealId === meal.id"
         *ngFor="let meal of meals; trackBy: trackByMealId" (click)="toggleMeal(meal.id)">
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
-          <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal.id)"
-            aria-label="Meal actions">
-            ⋯
+          <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal)"
+            aria-label="Meal actions" aria-haspopup="menu" [attr.aria-expanded]="openMealMenuId === meal.id">
+            ⋮
           </button>
-
-          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id">
-            <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); startEditMeal(meal)">
-              Edit meal
-            </button>
-
-            <button type="button" class="meal-menu-item meal-menu-item--danger"
-              (click)="$event.stopPropagation(); onDeleteMeal(meal)">
-              Remove from My Meals
-            </button>
-          </div>
         </div>
 
         <div class="meal-main">
@@ -124,18 +155,12 @@
         </div>
 
         <div class="meal-expanded" *ngIf="expandedMealId === meal.id">
-
           <div class="meal-expanded-content">
-
-            <!-- BOTH EMPTY -->
             <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length && !meal.instructions">
               No recipe details added
             </p>
 
-            <!-- NORMAL STRUCTURE -->
             <ng-container *ngIf="meal.ingredients?.length || meal.instructions">
-
-              <!-- INGREDIENTS -->
               <div class="meal-ingredients">
                 <p class="meal-ingredients-title">Ingredients</p>
 
@@ -150,7 +175,6 @@
                 </p>
               </div>
 
-              <!-- INSTRUCTIONS -->
               <div class="meal-instructions">
                 <p class="meal-instructions-title">Instructions</p>
 
@@ -162,13 +186,19 @@
                   No instructions added
                 </p>
               </div>
-
             </ng-container>
-
           </div>
-
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<app-responsive-action-menu *ngIf="selectedMealForActions" [isOpen]="!!openMealMenuId"
+  [title]="selectedMealForActions.name"
+  [subtitle]="selectedMealForActions.prepTime != null ? (selectedMealForActions.prepTime + ' min') : ''"
+  [image]="selectedMealForActions.image || 'assets/meals/default-meal.png'" [actions]="mealActions"
+  (closed)="closeMealMenu()" (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
+
+<app-meal-details-modal [meal]="selectedSearchMeal" [isOpen]="isSearchMealDetailsOpen"
+  (close)="closeSearchMealDetails()"></app-meal-details-modal>

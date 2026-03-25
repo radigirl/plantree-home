@@ -1,0 +1,90 @@
+<div
+  *ngIf="isOpen && meal"
+  class="meal-details-modal-overlay"
+  (click)="onClose()"
+>
+  <div
+    class="meal-details-modal-sheet"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="meal-details-modal-sheet__handle"></div>
+
+    <button
+      type="button"
+      class="meal-details-modal-sheet__close"
+      (click)="onClose()"
+      aria-label="Close meal details"
+    >
+      ×
+    </button>
+
+    <div class="meal-card expanded">
+      <div class="meal-main">
+        <div class="meal-info">
+          <div class="meal-title-block">
+            <p class="meal-name">
+              {{ meal.name }}
+            </p>
+          </div>
+
+          <div class="meal-meta-row">
+            <div class="meal-meta">
+              <span class="meal-time" *ngIf="meal.prepTime != null">
+                <span class="meal-time-icon">◷</span>
+                {{ meal.prepTime }} min
+              </span>
+
+              <span class="meal-info-chip" *ngIf="meal.ingredients?.length as ingredientsCount">
+                {{ ingredientsCount }} ingredient<span *ngIf="ingredientsCount > 1">s</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="meal-image">
+          <img
+            [src]="meal.image || 'assets/meals/default-meal.png'"
+            class="meal-image-img"
+            [alt]="meal.name"
+          />
+        </div>
+      </div>
+
+      <div class="meal-expanded">
+        <div class="meal-expanded-content">
+          <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length && !meal.instructions">
+            No recipe details added
+          </p>
+
+          <ng-container *ngIf="meal.ingredients?.length || meal.instructions">
+            <div class="meal-ingredients">
+              <p class="meal-ingredients-title">Ingredients</p>
+
+              <ul class="meal-ingredients-list" *ngIf="meal.ingredients?.length">
+                <li *ngFor="let ingredient of meal.ingredients">
+                  {{ ingredient }}
+                </li>
+              </ul>
+
+              <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length">
+                No ingredients added
+              </p>
+            </div>
+
+            <div class="meal-instructions">
+              <p class="meal-instructions-title">Instructions</p>
+
+              <p class="meal-instructions-text" *ngIf="meal.instructions">
+                {{ meal.instructions }}
+              </p>
+
+              <p class="meal-ingredients-empty" *ngIf="!meal.instructions">
+                No instructions added
+              </p>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
