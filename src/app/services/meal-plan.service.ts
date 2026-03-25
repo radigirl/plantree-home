@@ -186,7 +186,7 @@ export class MealPlanService {
       name,
       prep_time: prepTime ?? null,
       ingredients: ingredients ?? [],
-      instructions: instructions ?? null,
+      instructions: instructions?.trim() || null,
       image_url: imagePath ?? null,
       is_archived: false,
     });
@@ -232,7 +232,7 @@ export class MealPlanService {
       name,
       prep_time: prepTime ?? null,
       ingredients: ingredients ?? [],
-      instructions: instructions ?? null,
+      instructions: instructions?.trim() || null,
       image_url: imagePath ?? null,
       is_archived: false,
     });

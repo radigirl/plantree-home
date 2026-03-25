@@ -196,24 +196,32 @@ export class DayDetailsComponent implements OnInit {
   }
 
   get displayedAvailableMeals() {
-    if (!this.selectedExistingMealId) {
-      return this.filteredAvailableMeals;
-    }
-
+  if (this.selectedExistingMealId) {
     return this.filteredAvailableMeals.filter(
       (meal) => meal.id === this.selectedExistingMealId
     );
   }
 
-  get displayedChangeMealOptions() {
-    if (!this.selectedExistingMealId) {
-      return this.filteredChangeMealOptions;
-    }
+  if (!this.mealSearchQuery.trim()) {
+    return this.availableMeals.slice(0, 3);
+  }
 
+  return this.filteredAvailableMeals;
+}
+
+get displayedChangeMealOptions() {
+  if (this.selectedExistingMealId) {
     return this.filteredChangeMealOptions.filter(
       (meal) => meal.id === this.selectedExistingMealId
     );
   }
+
+  if (!this.changeMealSearchQuery.trim()) {
+    return this.availableMeals.slice(0, 3);
+  }
+
+  return this.filteredChangeMealOptions;
+}
 
   clearMealSearch(): void {
     this.mealSearchQuery = '';
@@ -492,7 +500,7 @@ export class DayDetailsComponent implements OnInit {
         }
 
         const parsedIngredients = this.mealIngredientsText
-          .split('\n')
+          .split(/[\n,]/)
           .map((item) => item.trim())
           .filter(Boolean);
 
