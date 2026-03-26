@@ -74,7 +74,7 @@ export class MealPlanService {
       const mealData = Array.isArray(item.meal) ? item.meal[0] : item.meal;
       const cookData = Array.isArray(item.cook) ? item.cook[0] : item.cook;
 
-      if (!mealData || !cookData) {
+      if (!mealData) {
         continue;
       }
 
@@ -89,11 +89,13 @@ export class MealPlanService {
           image: this.supabaseService.getMealImageUrl(mealData.image_url) ?? undefined,
           instructions: mealData.instructions ?? undefined,
         },
-        cook: {
-          id: cookData.id,
-          name: cookData.name,
-          avatar_url: cookData.avatar_url,
-        },
+        cook: cookData
+          ? {
+            id: cookData.id,
+            name: cookData.name,
+            avatar_url: cookData.avatar_url,
+          }
+          : undefined,
       };
 
       week[dayIndex].meals.push(plannedMeal);
@@ -169,92 +171,92 @@ export class MealPlanService {
   }
 
   async createMealAndPlan(
-  name: string,
-  prepTime: number | null,
-  cookUserId: number | null,
-  date: string,
-  imagePath?: string | null,
-  instructions?: string | null,
-  ingredients?: string[]
-): Promise<void> {
-  const mealId = crypto.randomUUID();
+    name: string,
+    prepTime: number | null,
+    cookUserId: number | null,
+    date: string,
+    imagePath?: string | null,
+    instructions?: string | null,
+    ingredients?: string[]
+  ): Promise<void> {
+    const mealId = crypto.randomUUID();
 
-  const { error: mealError } = await this.supabaseService.supabase
-    .from('meals')
-    .insert({
-      id: mealId,
-      name,
-      prep_time: prepTime ?? null,
-      ingredients: ingredients ?? [],
-      instructions: instructions?.trim() || null,
-      image_url: imagePath ?? null,
-      is_archived: false,
-    });
+    const { error: mealError } = await this.supabaseService.supabase
+      .from('meals')
+      .insert({
+        id: mealId,
+        name,
+        prep_time: prepTime ?? null,
+        ingredients: ingredients ?? [],
+        instructions: instructions?.trim() || null,
+        image_url: imagePath ?? null,
+        is_archived: false,
+      });
 
-  if (mealError) {
-    console.error('Error creating meal:', mealError);
-    throw mealError;
+    if (mealError) {
+      console.error('Error creating meal:', mealError);
+      throw mealError;
+    }
+
+    const plannedId = crypto.randomUUID();
+
+    const { error: planError } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .insert({
+        id: plannedId,
+        meal_id: mealId,
+        cook_user_id: cookUserId,
+        planned_date: date,
+        status: 'to-prepare',
+      });
+
+    if (planError) {
+      console.error('Error creating planned meal:', planError);
+      throw planError;
+    }
   }
-
-  const plannedId = crypto.randomUUID();
-
-  const { error: planError } = await this.supabaseService.supabase
-    .from('planned_meals')
-    .insert({
-      id: plannedId,
-      meal_id: mealId,
-      cook_user_id: cookUserId,
-      planned_date: date,
-      status: 'to-prepare',
-    });
-
-  if (planError) {
-    console.error('Error creating planned meal:', planError);
-    throw planError;
-  }
-}
 
   async createMealAndReplacePlannedMeal(
-  plannedMealId: string,
-  name: string,
-  prepTime: number | null,
-  cookUserId: number | null,
-  imagePath?: string | null,
-  instructions?: string | null,
-  ingredients?: string[]
-): Promise<void> {
-  const mealId = crypto.randomUUID();
+    plannedMealId: string,
+    name: string,
+    prepTime: number | null,
+    cookUserId: number | null,
+    imagePath?: string | null,
+    instructions?: string | null,
+    ingredients?: string[]
+  ): Promise<void> {
+    const mealId = crypto.randomUUID();
 
-  const { error: mealError } = await this.supabaseService.supabase
-    .from('meals')
-    .insert({
-      id: mealId,
-      name,
-      prep_time: prepTime ?? null,
-      ingredients: ingredients ?? [],
-      instructions: instructions?.trim() || null,
-      image_url: imagePath ?? null,
-      is_archived: false,
-    });
+    const { error: mealError } = await this.supabaseService.supabase
+      .from('meals')
+      .insert({
+        id: mealId,
+        name,
+        prep_time: prepTime ?? null,
+        ingredients: ingredients ?? [],
+        instructions: instructions?.trim() || null,
+        image_url: imagePath ?? null,
+        is_archived: false,
+      });
 
-  if (mealError) {
-    console.error('Error creating replacement meal:', mealError);
-    throw mealError;
+    if (mealError) {
+      console.error('Error creating replacement meal:', mealError);
+      throw mealError;
+    }
+
+    const { error: updatePlannedError } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .update({
+        meal_id: mealId,
+        cook_user_id: cookUserId,
+      })
+      .eq('id', plannedMealId);
+
+    if (updatePlannedError) {
+      console.error('Error replacing planned meal meal_id:', updatePlannedError);
+      throw updatePlannedError;
+    }
   }
-
-  const { error: updatePlannedError } = await this.supabaseService.supabase
-    .from('planned_meals')
-    .update({
-      meal_id: mealId,
-      cook_user_id: cookUserId,
-    })
-    .eq('id', plannedMealId);
-
-  if (updatePlannedError) {
-    console.error('Error replacing planned meal meal_id:', updatePlannedError);
-    throw updatePlannedError;
-  }
-}
 
   async getAvailableMealsForPlanning(userId: number): Promise<
     {
