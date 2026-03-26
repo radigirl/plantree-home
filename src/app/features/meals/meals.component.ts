@@ -20,6 +20,7 @@ import {
   ResponsiveActionMenuComponent,
   ResponsiveActionMenuItem,
 } from '../../shared/components/responsive-action-menu/responsive-action-menu';
+import { MealPlanService } from '../../services/meal-plan.service';
 
 @Component({
   selector: 'app-meals',
@@ -37,6 +38,8 @@ import {
 export class MealsComponent implements OnInit {
   meals: Meal[] = [];
   isLoading = true;
+  isAddToPlanLoading = false;
+  
 
   isAddingMeal = false;
   isEditingMeal = false;
@@ -59,9 +62,15 @@ export class MealsComponent implements OnInit {
   isSearchMealDetailsOpen = false;
 
   selectedMealForActions: Meal | null = null;
+  mealActionSheetMode: 'actions' | 'addToPlan' = 'actions';
+
+  toastMessage: string | null = null;
+  toastTimeout: any = null;
+
 
   mealActions: ResponsiveActionMenuItem[] = [
     { id: 'edit', label: 'Edit meal' },
+    { id: 'add-to-plan', label: 'Add to Plan' },
     { id: 'remove', label: 'Remove from My Meals' },
   ];
 
@@ -71,8 +80,9 @@ export class MealsComponent implements OnInit {
     private mealsService: MealsService,
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
-    private userStateService: UserStateService
-  ) {}
+    private userStateService: UserStateService,
+    private mealPlanService: MealPlanService
+  ) { }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -123,20 +133,20 @@ export class MealsComponent implements OnInit {
   }
 
   startAddMeal(): void {
-  this.isAddingMeal = true;
-  this.cdr.detectChanges();
+    this.isAddingMeal = true;
+    this.cdr.detectChanges();
 
-  this.isEditingMeal = false;
-  this.editingMealId = null;
-  this.closeMealMenu();
+    this.isEditingMeal = false;
+    this.editingMealId = null;
+    this.closeMealMenu();
 
-  this.newMealName = '';
-  this.newPrepTime = null;
-  this.newIngredientsText = '';
-  this.newInstructions = '';
-  this.selectedImageFile = null;
-  this.selectedImagePreview = null;
-}
+    this.newMealName = '';
+    this.newPrepTime = null;
+    this.newIngredientsText = '';
+    this.newInstructions = '';
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+  }
 
   cancelMealForm(): void {
     const shouldRestoreToMeal = this.isEditingMeal && !!this.returnToMealId;
@@ -182,9 +192,9 @@ export class MealsComponent implements OnInit {
   }
 
   removeSelectedMealImage(): void {
-  this.selectedImageFile = null;
-  this.selectedImagePreview = null;
-}
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+  }
 
   async saveMeal(): Promise<void> {
     if (!this.newMealName.trim()) {
@@ -302,11 +312,13 @@ export class MealsComponent implements OnInit {
 
     this.openMealMenuId = isSameMeal ? null : meal.id;
     this.selectedMealForActions = isSameMeal ? null : meal;
+    this.mealActionSheetMode = 'actions';
   }
 
   closeMealMenu(): void {
     this.openMealMenuId = null;
     this.selectedMealForActions = null;
+    this.mealActionSheetMode = 'actions';
   }
 
   async onMealActionSelected(actionId: string): Promise<void> {
@@ -315,14 +327,32 @@ export class MealsComponent implements OnInit {
     }
 
     const meal = this.selectedMealForActions;
-    this.closeMealMenu();
 
     switch (actionId) {
       case 'edit':
+        this.closeMealMenu();
         this.startEditMeal(meal);
         break;
 
+      case 'add-to-plan':
+        this.mealActionSheetMode = 'addToPlan';
+        break;
+
+      case 'add-today':
+        await this.handleAddToPlanSelection('today');
+        break;
+
+      case 'add-tomorrow':
+        await this.handleAddToPlanSelection('tomorrow');
+        break;
+
+      case 'pick-date':
+        console.log('Open date picker here');
+        this.closeMealMenu();
+        break;
+
       case 'remove':
+        this.closeMealMenu();
         await this.onDeleteMeal(meal);
         break;
 
@@ -375,28 +405,28 @@ export class MealsComponent implements OnInit {
   }
 
   startEditMeal(meal: Meal): void {
-  const currentScrollY = window.scrollY;
+    const currentScrollY = window.scrollY;
 
-  this.isAddingMeal = false;
-  this.isEditingMeal = true;
-  this.editingMealId = meal.id;
-  this.returnToMealId = meal.id;
-  this.closeMealMenu();
+    this.isAddingMeal = false;
+    this.isEditingMeal = true;
+    this.editingMealId = meal.id;
+    this.returnToMealId = meal.id;
+    this.closeMealMenu();
 
-  this.newMealName = meal.name ?? '';
-  this.newPrepTime = meal.prepTime ?? null;
-  this.newIngredientsText = (meal.ingredients ?? []).join(', ');
-  this.newInstructions = meal.instructions ?? '';
+    this.newMealName = meal.name ?? '';
+    this.newPrepTime = meal.prepTime ?? null;
+    this.newIngredientsText = (meal.ingredients ?? []).join(', ');
+    this.newInstructions = meal.instructions ?? '';
 
-  this.selectedImageFile = null;
-  this.selectedImagePreview = meal.image ?? null;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = meal.image ?? null;
 
-  this.cdr.detectChanges();
+    this.cdr.detectChanges();
 
-  requestAnimationFrame(() => {
-    window.scrollTo(0, currentScrollY);
-  });
-}
+    requestAnimationFrame(() => {
+      window.scrollTo(0, currentScrollY);
+    });
+  }
 
   get isSearching(): boolean {
     return !!this.mealSearchQuery.trim();
@@ -424,6 +454,70 @@ export class MealsComponent implements OnInit {
     this.mealSearchQuery = '';
     this.closeSearchMealDetails();
   }
+
+  get addToPlanActions(): ResponsiveActionMenuItem[] {
+    return [
+      { id: 'add-today', label: 'Today' },
+      { id: 'add-tomorrow', label: 'Tomorrow' },
+      { id: 'pick-date', label: 'Pick a date' },
+    ];
+  }
+
+
+  private async handleAddToPlanSelection(action: 'today' | 'tomorrow'): Promise<void> {
+  if (!this.selectedMealForActions || this.isAddToPlanLoading) return;
+
+  const meal = this.selectedMealForActions;
+
+  const date = new Date();
+  if (action === 'tomorrow') {
+    date.setDate(date.getDate() + 1);
+  }
+
+  const formattedDate = this.formatDate(date);
+  const label = action === 'today' ? 'Today' : 'Tomorrow';
+
+  this.isAddToPlanLoading = true;
+
+  try {
+    await this.mealPlanService.createPlannedMealFromExistingMeal(
+      meal.id,
+      null,
+      formattedDate
+    );
+
+    this.closeMealMenu();
+    this.showToast(`${meal.name} added to ${label}`);
+  } catch (error) {
+    console.error(error);
+    this.closeMealMenu();
+    this.showToast('Failed to add meal');
+  } finally {
+    this.isAddToPlanLoading = false;
+  }
+}
+
+  private showToast(message: string): void {
+    this.toastMessage = message;
+    this.cdr.detectChanges();
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage = null;
+      this.cdr.detectChanges();
+    }, 2500);
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
 
 
 }

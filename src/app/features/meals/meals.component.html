@@ -221,10 +221,15 @@
 </div>
 
 <app-responsive-action-menu *ngIf="selectedMealForActions" [isOpen]="!!openMealMenuId"
-  [title]="selectedMealForActions.name"
-  [subtitle]="selectedMealForActions.prepTime != null ? (selectedMealForActions.prepTime + ' min') : ''"
-  [image]="selectedMealForActions.image || 'assets/meals/default-meal.png'" [actions]="mealActions"
-  (closed)="closeMealMenu()" (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
+  [title]="mealActionSheetMode === 'actions' ? selectedMealForActions.name : 'Add to Plan'" [subtitle]="mealActionSheetMode === 'actions'
+    ? (selectedMealForActions.prepTime != null ? (selectedMealForActions.prepTime + ' min') : '')
+    : selectedMealForActions.name" [image]="selectedMealForActions.image || 'assets/meals/default-meal.png'"
+  [actions]="mealActionSheetMode === 'actions' ? mealActions : addToPlanActions" (closed)="closeMealMenu()"
+  (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
 
 <app-meal-details-modal [meal]="selectedSearchMeal" [isOpen]="isSearchMealDetailsOpen"
   (close)="closeSearchMealDetails()"></app-meal-details-modal>
+
+  <div class="bottom-toast" *ngIf="toastMessage">
+  {{ toastMessage }}
+</div>
