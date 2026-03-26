@@ -72,9 +72,9 @@
 }
 
 .day-details-header {
-  display: flex;
+  display: grid;
   align-items: center;
-  justify-content: space-between;
+  grid-template-columns: auto 1fr auto;
   gap: 12px;
   width: 100%;
 }
@@ -89,11 +89,13 @@
 
 .day-details-date {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   align-items: baseline;
   font-size: 0.98rem;
   font-weight: 700;
   min-width: 0;
+  justify-content: center;
+  text-align: center;
 }
 
 .day-name {
@@ -850,12 +852,14 @@
   }
 
   .day-details-header-left {
-    gap: 10px;
+    display: flex;
+    align-items: center;
+
   }
 
   .day-details-date {
     font-size: 0.98rem;
-    gap: 4px;
+    gap: 6px;
   }
 
   .day-details-past-note {

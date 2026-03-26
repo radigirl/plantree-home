@@ -93,6 +93,57 @@ export class GroceryService {
 
     return true;
   }
+  
+async updateGroceryListStatus(
+  listId: string,
+  status: 'active' | 'completed' | 'archived'
+): Promise<boolean> {
+  const { error } = await this.supabase
+    .from('grocery_lists')
+    .update({ status })
+    .eq('id', listId);
+
+  if (error) {
+    console.error('Error updating grocery list status:', error);
+    return false;
+  }
+
+  return true;
+}
+
+async updateGroceryListPinned(
+  listId: string,
+  isPinned: boolean
+): Promise<boolean> {
+  const { error } = await this.supabase
+    .from('grocery_lists')
+    .update({ is_pinned: isPinned })
+    .eq('id', listId);
+
+  if (error) {
+    console.error('Error updating grocery list pinned state:', error);
+    return false;
+  }
+
+  return true;
+}
+
+async updateGroceryListUrgent(
+  listId: string,
+  isUrgent: boolean
+): Promise<boolean> {
+  const { error } = await this.supabase
+    .from('grocery_lists')
+    .update({ is_urgent: isUrgent })
+    .eq('id', listId);
+
+  if (error) {
+    console.error('Error updating grocery list urgent state:', error);
+    return false;
+  }
+
+  return true;
+}
 
   async deleteGroceryList(listId: string): Promise<boolean> {
     const { error } = await this.supabase

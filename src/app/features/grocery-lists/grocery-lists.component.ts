@@ -13,12 +13,20 @@ import { GroceryService } from '../../services/grocery.service';
 import { GroceryList } from '../../models/grocery-list.model';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import { UserStateService } from '../../services/user.state.service';
-import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../shared/components/responsive-action-menu/responsive-action-menu';
+import {
+  ResponsiveActionMenuComponent,
+  ResponsiveActionMenuItem,
+} from '../../shared/components/responsive-action-menu/responsive-action-menu';
 
 @Component({
   selector: 'app-grocery-lists',
   standalone: true,
-  imports: [CommonModule, PageLoadingComponent, FormsModule, ResponsiveActionMenuComponent],
+  imports: [
+    CommonModule,
+    PageLoadingComponent,
+    FormsModule,
+    ResponsiveActionMenuComponent,
+  ],
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
 })
@@ -36,10 +44,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
   selectedListForActions: GroceryList | null = null;
 
-  listActions: ResponsiveActionMenuItem[] = [
-    { id: 'edit', label: 'Edit' },
-    { id: 'delete', label: 'Delete' },
-  ];
+  listActions: ResponsiveActionMenuItem[] = [];
 
   private listsChannel: RealtimeChannel | null = null;
 
@@ -53,6 +58,17 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   @HostListener('document:click')
   onDocumentClick(): void {
     this.openMenuListId = null;
+  }
+
+  get sortedLists(): GroceryList[] {
+    return [...this.groceryLists].sort((a, b) => {
+      if (a.is_pinned && !b.is_pinned) return -1;
+      if (!a.is_pinned && b.is_pinned) return 1;
+
+      return (
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+    });
   }
 
   async ngOnInit(): Promise<void> {
@@ -149,6 +165,58 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     this.openMenuListId = isSame ? null : list.id;
     this.selectedListForActions = isSame ? null : list;
+
+    if (!isSame) {
+      this.listActions = this.buildListActions(list);
+    }
+  }
+
+  buildListActions(list: GroceryList): ResponsiveActionMenuItem[] {
+    const actions: ResponsiveActionMenuItem[] = [
+      { id: 'edit', label: 'Edit' },
+      {
+        id: 'pin',
+        label: list.is_pinned ? 'Unpin list' : 'Pin list',
+      },
+      {
+        id: 'urgent',
+        label: list.is_urgent ? 'Remove urgent' : 'Mark urgent',
+      },
+    ];
+
+    if (list.status === 'active') {
+      actions.push({
+        id: 'complete',
+        label: 'Complete list',
+      });
+    }
+
+    if (list.status === 'completed') {
+      actions.push(
+        {
+          id: 'complete',
+          label: 'Reopen list',
+        },
+        {
+          id: 'archive',
+          label: 'Archive',
+        }
+      );
+    }
+
+    if (list.status === 'archived') {
+      actions.push({
+        id: 'complete',
+        label: 'Reopen list',
+      });
+    }
+
+    actions.push({
+      id: 'delete',
+      label: 'Delete',
+    });
+
+    return actions;
   }
 
   startEditList(event: Event, list: GroceryList): void {
@@ -182,7 +250,11 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     this.groceryLists = this.groceryLists.map((list) =>
       list.id === this.editingListId
-        ? { ...list, name: trimmedName }
+        ? {
+          ...list,
+          name: trimmedName,
+          updated_at: new Date().toISOString(),
+        }
         : list
     );
 
@@ -241,21 +313,225 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.selectedListForActions = null;
   }
 
-  async onActionSelected(actionId: string): Promise<void> {
-    if (!this.selectedListForActions) return;
+  async onTogglePin(list: GroceryList): Promise<void> {
+    const nextValue = !list.is_pinned;
 
-    const list = this.selectedListForActions;
-    this.closeActions();
+    const success = await this.groceryService.updateGroceryListPinned(
+      list.id,
+      nextValue
+    );
 
-    switch (actionId) {
-      case 'edit':
-        this.startEditList(new Event('click'), list);
-        break;
-
-      case 'delete':
-        await this.deleteList(new Event('click'), list);
-        break;
+    if (!success) {
+      this.error = 'Could not update pinned state.';
+      this.cdr.detectChanges();
+      return;
     }
+
+    list.is_pinned = nextValue;
+    list.updated_at = new Date().toISOString();
+    this.cdr.detectChanges();
   }
+
+  async onToggleUrgent(list: GroceryList): Promise<void> {
+    const nextValue = !list.is_urgent;
+
+    const success = await this.groceryService.updateGroceryListUrgent(
+      list.id,
+      nextValue
+    );
+
+    if (!success) {
+      this.error = 'Could not update urgent state.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    list.is_urgent = nextValue;
+    list.updated_at = new Date().toISOString();
+    this.cdr.detectChanges();
+  }
+
+  async onMenuPin(event: Event, list: GroceryList): Promise<void> {
+    event.stopPropagation();
+
+    const nextValue = !list.is_pinned;
+
+    const success = await this.groceryService.updateGroceryListPinned(
+      list.id,
+      nextValue
+    );
+
+    if (!success) {
+      this.error = 'Could not update pinned state.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    list.is_pinned = nextValue;
+    list.updated_at = new Date().toISOString();
+    this.openMenuListId = null;
+    this.cdr.detectChanges();
+  }
+
+  async onMenuUrgent(event: Event, list: GroceryList): Promise<void> {
+    event.stopPropagation();
+
+    const nextValue = !list.is_urgent;
+
+    const success = await this.groceryService.updateGroceryListUrgent(
+      list.id,
+      nextValue
+    );
+
+    if (!success) {
+      this.error = 'Could not update urgent state.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    list.is_urgent = nextValue;
+    list.updated_at = new Date().toISOString();
+    this.openMenuListId = null;
+    this.cdr.detectChanges();
+  }
+
+  async onMenuComplete(event: Event, list: GroceryList): Promise<void> {
+    event.stopPropagation();
+
+    const nextStatus =
+      list.status === 'completed' ? 'active' : 'completed';
+
+    const success = await this.groceryService.updateGroceryListStatus(
+      list.id,
+      nextStatus
+    );
+
+    if (!success) {
+      this.error = 'Could not update list status.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    list.status = nextStatus;
+    list.updated_at = new Date().toISOString();
+    this.openMenuListId = null;
+    this.cdr.detectChanges();
+  }
+
+  async onMenuArchive(event: Event, list: GroceryList): Promise<void> {
+    event.stopPropagation();
+
+    const success = await this.groceryService.updateGroceryListStatus(
+      list.id,
+      'archived'
+    );
+
+    if (!success) {
+      this.error = 'Could not archive list.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    list.status = 'archived';
+    list.updated_at = new Date().toISOString();
+    this.openMenuListId = null;
+    this.cdr.detectChanges();
+  }
+
+ async onActionSelected(actionId: string): Promise<void> {
+  if (!this.selectedListForActions) return;
+
+  const list = this.selectedListForActions;
+  this.closeActions();
+
+  switch (actionId) {
+    case 'edit':
+      this.startEditList(new Event('click'), list);
+      break;
+
+    case 'pin': {
+      const nextValue = !list.is_pinned;
+
+      const success = await this.groceryService.updateGroceryListPinned(
+        list.id,
+        nextValue
+      );
+
+      if (!success) {
+        this.error = 'Could not update pinned state.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      list.is_pinned = nextValue;
+      list.updated_at = new Date().toISOString();
+      break;
+    }
+
+    case 'urgent': {
+      const nextValue = !list.is_urgent;
+
+      const success = await this.groceryService.updateGroceryListUrgent(
+        list.id,
+        nextValue
+      );
+
+      if (!success) {
+        this.error = 'Could not update urgent state.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      list.is_urgent = nextValue;
+      list.updated_at = new Date().toISOString();
+      break;
+    }
+
+    case 'complete': {
+      const nextStatus =
+        list.status === 'completed' || list.status === 'archived'
+          ? 'active'
+          : 'completed';
+
+      const success = await this.groceryService.updateGroceryListStatus(
+        list.id,
+        nextStatus
+      );
+
+      if (!success) {
+        this.error = 'Could not update list status.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      list.status = nextStatus;
+      list.updated_at = new Date().toISOString();
+      break;
+    }
+
+    case 'archive': {
+      const success = await this.groceryService.updateGroceryListStatus(
+        list.id,
+        'archived'
+      );
+
+      if (!success) {
+        this.error = 'Could not archive list.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      list.status = 'archived';
+      list.updated_at = new Date().toISOString();
+      break;
+    }
+
+    case 'delete':
+      await this.deleteList(new Event('click'), list);
+      return;
+  }
+
+  this.cdr.detectChanges();
+}
 
 }
