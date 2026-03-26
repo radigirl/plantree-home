@@ -950,6 +950,11 @@
     padding-right: 44px;
   }
 
+  .meal-search-input-wrap input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
   .meal-search-clear {
     position: absolute;
     top: 50%;

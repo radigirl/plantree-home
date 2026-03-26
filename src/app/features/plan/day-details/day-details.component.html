@@ -38,7 +38,6 @@
         <label>{{ getFormTitle() }}</label>
       </div>
 
-      <!-- ADD MEAL -->
       <ng-container *ngIf="formMode === 'add'">
         <div class="add-meal-field" *ngIf="availableMeals.length > 0">
           <label>How would you like to add it?</label>
@@ -120,6 +119,10 @@
           </div>
 
           <div class="meal-search-results-container meal-search-results-container--reserved">
+            <div class="meal-search-empty-wrap" *ngIf="!mealSearchQuery && !selectedExistingMealId">
+              <p class="meal-search-empty">Start typing to search meals</p>
+            </div>
+
             <div class="meal-search-results" *ngIf="!selectedExistingMealId && displayedAvailableMeals.length > 0">
               <button
                 type="button"
@@ -262,7 +265,6 @@
         </div>
       </ng-container>
 
-      <!-- EDIT COOK -->
       <ng-container *ngIf="formMode === 'edit-cook'">
         <div class="add-meal-field">
           <label for="editCook">Cook</label>
@@ -285,7 +287,6 @@
         </div>
       </ng-container>
 
-      <!-- CHANGE MEAL -->
       <ng-container *ngIf="formMode === 'change-meal'">
         <div class="add-meal-field">
           <label>How would you like to change it?</label>
@@ -371,6 +372,10 @@
           </div>
 
           <div class="meal-search-results-container meal-search-results-container--reserved">
+            <div class="meal-search-empty-wrap" *ngIf="!changeMealSearchQuery && !selectedExistingMealId">
+              <p class="meal-search-empty">Start typing to search meals</p>
+            </div>
+
             <div class="meal-search-results" *ngIf="!selectedExistingMealId && displayedChangeMealOptions.length > 0">
               <button
                 type="button"
