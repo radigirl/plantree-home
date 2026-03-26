@@ -1,0 +1,43 @@
+<div class="calendar-picker">
+  <div class="calendar-picker__header">
+    <div class="calendar-picker__title">{{ title }}</div>
+
+    <div class="calendar-picker__month-nav">
+      <button type="button" class="calendar-picker__nav-btn" (click)="previousMonth()">
+        ‹
+      </button>
+
+      <div class="calendar-picker__month-label">{{ monthLabel }}</div>
+
+      <button type="button" class="calendar-picker__nav-btn" (click)="nextMonth()">
+        ›
+      </button>
+    </div>
+  </div>
+
+  <div class="calendar-picker__weekdays">
+    <div class="calendar-picker__weekday" *ngFor="let weekday of weekdayLabels">
+      {{ weekday }}
+    </div>
+  </div>
+
+  <div class="calendar-picker__grid">
+    <button type="button" class="calendar-picker__day" *ngFor="let day of calendarDays"
+      [class.calendar-picker__day--muted]="!day.isCurrentMonth" [class.calendar-picker__day--past]="day.isPast"
+      [class.calendar-picker__day--selected]="day.isSelected" (click)="selectDay(day)">
+      {{ day.dayNumber }}
+    </button>
+  </div>
+
+  <div class="calendar-picker__footer" *ngIf="showFooterActions">
+    <button type="button" class="calendar-picker__secondary" (click)="onCancel()">
+      Cancel
+    </button>
+
+    <button type="button" class="calendar-picker__primary" [disabled]="!selectedDates.length" (click)="onConfirm()">
+      {{ selectionMode === 'multiple' ? ('Add to ' + selectedDates.length + ' days') : 'Add' }}
+    </button>
+  </div>
+
+
+</div>

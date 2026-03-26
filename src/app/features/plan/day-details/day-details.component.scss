@@ -89,10 +89,10 @@
 
 .day-details-date {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   align-items: baseline;
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 0.98rem;
+  font-weight: 700;
   min-width: 0;
 }
 
@@ -854,7 +854,7 @@
   }
 
   .day-details-date {
-    font-size: 0.96rem;
+    font-size: 0.98rem;
     gap: 4px;
   }
 

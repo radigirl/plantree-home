@@ -220,16 +220,47 @@
   </div>
 </div>
 
-<app-responsive-action-menu *ngIf="selectedMealForActions" [isOpen]="!!openMealMenuId"
-  [title]="mealActionSheetMode === 'actions' ? selectedMealForActions.name : 'Add to Plan'" [subtitle]="mealActionSheetMode === 'actions'
+<app-responsive-action-menu *ngIf="selectedMealForActions && mealActionSheetMode !== 'pickDate'"
+  [isOpen]="!!openMealMenuId" [title]="mealActionSheetMode === 'actions' ? selectedMealForActions.name : 'Add to Plan'"
+  [subtitle]="mealActionSheetMode === 'actions'
     ? (selectedMealForActions.prepTime != null ? (selectedMealForActions.prepTime + ' min') : '')
     : selectedMealForActions.name" [image]="selectedMealForActions.image || 'assets/meals/default-meal.png'"
   [actions]="mealActionSheetMode === 'actions' ? mealActions : addToPlanActions" (closed)="closeMealMenu()"
   (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
 
+<div class="calendar-picker-sheet-overlay" *ngIf="selectedMealForActions && mealActionSheetMode === 'pickDate'"
+  (click)="closeMealMenu()">
+  <div class="calendar-picker-sheet" (click)="$event.stopPropagation()">
+    <div class="calendar-picker-sheet__handle"></div>
+
+    <div class="calendar-picker-sheet__mode-toggle">
+      <button type="button" class="calendar-picker-sheet__mode-btn"
+        [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'single'"
+        (click)="calendarSelectionMode = 'single'; selectedPlanDates = []">
+        Single day
+      </button>
+
+      <button type="button" class="calendar-picker-sheet__mode-btn"
+        [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'multiple'"
+        (click)="calendarSelectionMode = 'multiple'; selectedPlanDates = []">
+        Multiple days
+      </button>
+    </div>
+
+    <app-calendar-picker [title]="'Add ' + selectedMealForActions.name + ' to plan'"
+      [selectionMode]="calendarSelectionMode" [selectedDates]="selectedPlanDates"
+      (selectedDatesChange)="onCalendarDatesChange($event)" (confirm)="confirmPickedDates($event)"
+      (cancel)="closeMealMenu()"></app-calendar-picker>
+  </div>
+</div>
+
+
+
 <app-meal-details-modal [meal]="selectedSearchMeal" [isOpen]="isSearchMealDetailsOpen"
   (close)="closeSearchMealDetails()"></app-meal-details-modal>
 
-  <div class="bottom-toast" *ngIf="toastMessage">
+  
+
+<div class="bottom-toast" *ngIf="toastMessage">
   {{ toastMessage }}
 </div>

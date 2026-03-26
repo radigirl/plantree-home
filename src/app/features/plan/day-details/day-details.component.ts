@@ -677,12 +677,11 @@ selectMealForChange(mealId: string): void {
     if (!this.date) return '';
 
     const date = new Date(this.date);
-    return date.toLocaleDateString('en-US', { weekday: 'long' });
+    return date.toLocaleDateString('en-US', { weekday: 'short' });
   }
 
   getShortDate(): string {
     if (!this.date) return '';
-
     const date = new Date(this.date);
     return date.toLocaleDateString('en-US', {
       month: 'short',

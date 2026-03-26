@@ -1,0 +1,125 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
+
+.calendar-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.calendar-picker__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calendar-picker__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.calendar-picker__month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.calendar-picker__month-label {
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: $color-primary-dark;
+}
+
+.calendar-picker__nav-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(248, 244, 236, 0.95);
+  color: $color-primary-dark;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.calendar-picker__weekdays,
+.calendar-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calendar-picker__weekday {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: $color-text-muted;
+}
+
+.calendar-picker__day {
+  min-height: 42px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 252, 247, 0.92);
+  color: $color-primary-dark;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.calendar-picker__day--selected {
+   background: $color-primary-dark;
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.calendar-picker__day--muted {
+  opacity: 0.45;
+}
+
+.calendar-picker__day--past {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.calendar-picker__footer {
+  display: flex;
+  gap: 10px;
+}
+
+.calendar-picker__primary,
+.calendar-picker__secondary {
+  flex: 1;
+  min-height: 42px;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.calendar-picker__primary {
+  background: rgba(92, 143, 134, 0.95);
+  color: #fff;
+}
+
+.calendar-picker__primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.calendar-picker__secondary {
+  background: rgba(255, 252, 247, 0.92);
+  color: $color-primary-dark;
+  border-color: rgba(207, 222, 215, 0.95);
+}
+
+@include mobile {
+  .calendar-picker__day {
+    min-height: 38px;
+    font-size: 0.88rem;
+  }
+}

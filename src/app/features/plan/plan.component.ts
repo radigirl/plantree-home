@@ -5,7 +5,6 @@ import {
   OnInit,
   QueryList,
   ViewChildren,
-  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -13,11 +12,18 @@ import { DayPlan } from '../../models/day-plan.model';
 import { PlannedMeal } from '../../models/planned-meal.model';
 import { MealPlanService } from '../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
+import { CalendarPickerComponent } from '../../shared/components/calendar-picker/calendar-picker.component';
+import {
+  LucideAngularModule,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-plan',
   standalone: true,
-  imports: [CommonModule, RouterModule, PageLoadingComponent],
+  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule],
   templateUrl: './plan.component.html',
   styleUrl: './plan.component.scss',
 })
@@ -26,7 +32,13 @@ export class PlanComponent implements OnInit {
   isLoading = true;
   isReady = false; // when returning from details
   currentWeekStart: Date = this.getStartOfWeek(new Date());
-  @ViewChild('datePicker') datePicker!: ElementRef<HTMLInputElement>;
+
+  isCalendarOpen = false;
+  selectedCalendarDates: string[] = [];
+
+  readonly chevronLeftIcon = ChevronLeft;
+  readonly chevronRightIcon = ChevronRight;
+  readonly calendarIcon = CalendarDays;
 
 
   @ViewChildren('mealCard') mealCards!: QueryList<ElementRef<HTMLElement>>;
@@ -211,48 +223,15 @@ export class PlanComponent implements OnInit {
   }
 
   scrollToDayInstant(index: number): void {
-  const card = this.mealCards?.toArray()[index]?.nativeElement;
+    const card = this.mealCards?.toArray()[index]?.nativeElement;
 
-  if (!card) return;
+    if (!card) return;
 
-  const cardRect = card.getBoundingClientRect();
-  const absoluteTop = window.scrollY + cardRect.top;
-  const topOffset = 200;
+    const cardRect = card.getBoundingClientRect();
+    const absoluteTop = window.scrollY + cardRect.top;
+    const topOffset = 200;
 
-  window.scrollTo(0, Math.max(absoluteTop - topOffset, 0));
-}
-
-  openDatePicker(): void {
-    const input = this.datePicker?.nativeElement as HTMLInputElement;
-    if (!input) return;
-
-    if ((input as any).showPicker) {
-      (input as any).showPicker();
-    } else {
-      input.click();
-    }
-  }
-
-  getCurrentDateInputValue(): string {
-    const current = new Date(this.currentWeekStart);
-    return this.formatDateForInput(current);
-  }
-
-  async onDatePicked(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    if (!input.value) return;
-
-    const pickedDate = new Date(`${input.value}T00:00:00`);
-    this.currentWeekStart = this.getStartOfWeek(pickedDate);
-
-    await this.loadWeekPlan(false);
-
-    setTimeout(() => {
-      const pickedIndex = this.getDayIndexInCurrentWeek(pickedDate);
-      if (pickedIndex !== -1) {
-        this.scrollToDay(pickedIndex);
-      }
-    }, 50);
+    window.scrollTo(0, Math.max(absoluteTop - topOffset, 0));
   }
 
   private formatDateForInput(date: Date): string {
@@ -311,4 +290,49 @@ export class PlanComponent implements OnInit {
 
     return -1;
   }
+
+  openCalendar(): void {
+    this.isCalendarOpen = true;
+    this.selectedCalendarDates = [this.formatDateForInput(this.currentWeekStart)];
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeCalendar(): void {
+    this.isCalendarOpen = false;
+    this.selectedCalendarDates = [];
+    document.body.style.overflow = '';
+  }
+
+  onCalendarDatesChange(dates: string[]): void {
+    this.selectedCalendarDates = dates;
+  }
+
+  async confirmCalendarDates(dates: string[]): Promise<void> {
+    if (!dates.length) {
+      return;
+    }
+
+    const pickedDate = new Date(`${dates[0]}T12:00:00`);
+    const pickedWeekStart = this.getStartOfWeek(pickedDate);
+
+    this.closeCalendar();
+
+    this.currentWeekStart = pickedWeekStart;
+    await this.loadWeekPlan(false);
+
+    requestAnimationFrame(() => {
+      const pickedIndex = this.getDayIndexInCurrentWeek(pickedDate);
+      if (pickedIndex !== -1) {
+        this.scrollToDayInstant(pickedIndex);
+      }
+    });
+  }
+
+  isViewingCurrentWeek(): boolean {
+  const today = new Date();
+  const todayWeekStart = this.getStartOfWeek(today);
+
+  return this.formatDateForInput(this.currentWeekStart) === this.formatDateForInput(todayWeekStart);
+}
+
 }

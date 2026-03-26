@@ -21,6 +21,7 @@ import {
   ResponsiveActionMenuItem,
 } from '../../shared/components/responsive-action-menu/responsive-action-menu';
 import { MealPlanService } from '../../services/meal-plan.service';
+import { CalendarPickerComponent } from '../../shared/components/calendar-picker/calendar-picker.component';
 
 @Component({
   selector: 'app-meals',
@@ -31,6 +32,7 @@ import { MealPlanService } from '../../services/meal-plan.service';
     PageLoadingComponent,
     MealDetailsModalComponent,
     ResponsiveActionMenuComponent,
+    CalendarPickerComponent
   ],
   templateUrl: './meals.component.html',
   styleUrl: './meals.component.scss',
@@ -39,7 +41,7 @@ export class MealsComponent implements OnInit {
   meals: Meal[] = [];
   isLoading = true;
   isAddToPlanLoading = false;
-  
+
 
   isAddingMeal = false;
   isEditingMeal = false;
@@ -62,10 +64,13 @@ export class MealsComponent implements OnInit {
   isSearchMealDetailsOpen = false;
 
   selectedMealForActions: Meal | null = null;
-  mealActionSheetMode: 'actions' | 'addToPlan' = 'actions';
+  mealActionSheetMode: 'actions' | 'addToPlan' | 'pickDate' = 'actions';
 
   toastMessage: string | null = null;
   toastTimeout: any = null;
+
+  calendarSelectionMode: 'single' | 'multiple' = 'single';
+  selectedPlanDates: string[] = [];
 
 
   mealActions: ResponsiveActionMenuItem[] = [
@@ -316,10 +321,11 @@ export class MealsComponent implements OnInit {
   }
 
   closeMealMenu(): void {
-    this.openMealMenuId = null;
-    this.selectedMealForActions = null;
-    this.mealActionSheetMode = 'actions';
-  }
+  this.openMealMenuId = null;
+  this.selectedMealForActions = null;
+  this.mealActionSheetMode = 'actions';
+  this.resetCalendarSelection();
+}
 
   async onMealActionSelected(actionId: string): Promise<void> {
     if (!this.selectedMealForActions) {
@@ -347,8 +353,7 @@ export class MealsComponent implements OnInit {
         break;
 
       case 'pick-date':
-        console.log('Open date picker here');
-        this.closeMealMenu();
+        this.openPickDateMode();
         break;
 
       case 'remove':
@@ -465,37 +470,37 @@ export class MealsComponent implements OnInit {
 
 
   private async handleAddToPlanSelection(action: 'today' | 'tomorrow'): Promise<void> {
-  if (!this.selectedMealForActions || this.isAddToPlanLoading) return;
+    if (!this.selectedMealForActions || this.isAddToPlanLoading) return;
 
-  const meal = this.selectedMealForActions;
+    const meal = this.selectedMealForActions;
 
-  const date = new Date();
-  if (action === 'tomorrow') {
-    date.setDate(date.getDate() + 1);
+    const date = new Date();
+    if (action === 'tomorrow') {
+      date.setDate(date.getDate() + 1);
+    }
+
+    const formattedDate = this.formatDate(date);
+    const label = action === 'today' ? 'Today' : 'Tomorrow';
+
+    this.isAddToPlanLoading = true;
+
+    try {
+      await this.mealPlanService.createPlannedMealFromExistingMeal(
+        meal.id,
+        null,
+        formattedDate
+      );
+
+      this.closeMealMenu();
+      this.showToast(`${meal.name} added to ${label}`);
+    } catch (error) {
+      console.error(error);
+      this.closeMealMenu();
+      this.showToast('Failed to add meal');
+    } finally {
+      this.isAddToPlanLoading = false;
+    }
   }
-
-  const formattedDate = this.formatDate(date);
-  const label = action === 'today' ? 'Today' : 'Tomorrow';
-
-  this.isAddToPlanLoading = true;
-
-  try {
-    await this.mealPlanService.createPlannedMealFromExistingMeal(
-      meal.id,
-      null,
-      formattedDate
-    );
-
-    this.closeMealMenu();
-    this.showToast(`${meal.name} added to ${label}`);
-  } catch (error) {
-    console.error(error);
-    this.closeMealMenu();
-    this.showToast('Failed to add meal');
-  } finally {
-    this.isAddToPlanLoading = false;
-  }
-}
 
   private showToast(message: string): void {
     this.toastMessage = message;
@@ -518,6 +523,53 @@ export class MealsComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  onCalendarDatesChange(dates: string[]): void {
+    this.selectedPlanDates = dates;
+  }
 
+  openPickDateMode(): void {
+    this.mealActionSheetMode = 'pickDate';
+    this.resetCalendarSelection();
+  }
+
+  async confirmPickedDates(dates: string[]): Promise<void> {
+    if (!this.selectedMealForActions || !dates.length) {
+      return;
+    }
+
+    const meal = this.selectedMealForActions;
+
+    try {
+      for (const date of dates) {
+        await this.mealPlanService.createPlannedMealFromExistingMeal(
+          meal.id,
+          null,
+          date
+        );
+      }
+
+      this.resetCalendarSelection();
+      this.closeMealMenu();
+      this.showToast(
+        dates.length === 1
+          ? `${meal.name} added to ${this.formatToastDayLabel(dates[0])}`
+          : `${meal.name} added to ${dates.length} days`
+      );
+    } catch (error) {
+      console.error(error);
+      this.closeMealMenu();
+      this.showToast('Failed to add meal');
+    }
+  }
+
+  private formatToastDayLabel(dateString: string): string {
+    const date = new Date(`${dateString}T12:00:00`);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  }
+
+  private resetCalendarSelection(): void {
+    this.selectedPlanDates = [];
+    this.calendarSelectionMode = 'single';
+  }
 
 }
