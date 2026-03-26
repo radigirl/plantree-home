@@ -6,13 +6,19 @@
   <ng-container *ngIf="!isLoading">
 
     <!-- HEADER -->
-    <div class="lists-header">
-      <h1 class="lists-title">Grocery Lists</h1>
 
-      <button *ngIf="!isCreatingList" type="button" class="button-pill-primary add-button" (click)="startCreateList()">
+    <div class="lists-header-row">
+      <div class="lists-header">
+        <h1 class="lists-title">Grocery Lists</h1>
+        <p class="lists-subtitle">Create and manage your lists</p>
+      </div>
+
+      <button type="button" *ngIf="!isCreatingList" class="button-pill-primary add-lists-button add-lists-button--inline" (click)="startCreateList()"
+        >
         + Add list
       </button>
     </div>
+
 
     <!-- CREATE / EDIT -->
     <!-- CREATE -->
@@ -50,14 +56,16 @@
     <!-- LISTS -->
     <div *ngIf="!error && groceryLists.length > 0; else empty" class="lists-list">
 
-      <div class="list-card" [class.list-card--menu-open]="openMenuListId === list.id" *ngFor="let list of groceryLists" (click)="openList(list)">
+      <div class="list-card" [class.list-card--menu-open]="openMenuListId === list.id" *ngFor="let list of groceryLists"
+        (click)="openList(list)">
         <!-- MENU -->
         <div class="list-menu-wrapper" (click)="$event.stopPropagation()">
           <button type="button" class="list-menu-button" (click)="toggleActionsMenu($event, list)">
             ⋯
           </button>
 
-          <div *ngIf="openMenuListId === list.id" class="list-menu-dropdown dropdown-list-surface">
+          <div *ngIf="openMenuListId === list.id && !isMobileViewport()"
+            class="list-menu-dropdown dropdown-list-surface">
             <button type="button" class="list-menu-item dropdown-list-item" (click)="startEditList($event, list)">
               Edit
             </button>
@@ -91,3 +99,8 @@
 
   </ng-container>
 </section>
+
+<app-responsive-action-menu *ngIf="selectedListForActions && isMobileViewport()" [isOpen]="!!openMenuListId"
+  [title]="selectedListForActions.name" [subtitle]="''" [image]="'assets/meals/default-meal.png'"
+  [actions]="listActions" (closed)="closeActions()"
+  (actionSelected)="onActionSelected($event)"></app-responsive-action-menu>

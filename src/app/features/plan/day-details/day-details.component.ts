@@ -20,6 +20,7 @@ import { SupabaseService } from '../../../services/supabase.service';
 
 import { MEAL_STATUS_LABELS, getNextStatus } from '../../../shared/utils/meal.utils';
 import { filterMealsByQuery } from '../../../shared/utils/meal-search.util';
+import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../../shared/components/responsive-action-menu/responsive-action-menu';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type AddMealMode = 'search' | 'new';
@@ -28,7 +29,7 @@ type ChangeMealMode = 'search' | 'create-from-current';
 @Component({
   selector: 'app-day-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent],
+  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent],
   templateUrl: './day-details.component.html',
   styleUrl: './day-details.component.scss',
 })
@@ -79,6 +80,14 @@ export class DayDetailsComponent implements OnInit {
   showChangeAdvanced = false;
 
   private returnToMealId: string | null = null;
+
+  selectedMealForActions: PlannedMeal | null = null;
+
+mealActions: ResponsiveActionMenuItem[] = [
+  { id: 'change', label: 'Change meal' },
+  { id: 'edit-cook', label: 'Edit cook' },
+  { id: 'remove', label: 'Remove' },
+];
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -734,17 +743,20 @@ get displayedChangeMealOptions() {
     }
   }
 
-  toggleMealMenu(mealId: string): void {
-    if (this.isPastDate()) {
-      return;
-    }
-
-    this.openMealMenuId = this.openMealMenuId === mealId ? null : mealId;
+  toggleMealMenu(meal: PlannedMeal): void {
+  if (this.isPastDate()) {
+    return;
   }
+
+  const isSameMeal = this.openMealMenuId === meal.id;
+  this.openMealMenuId = isSameMeal ? null : meal.id;
+  this.selectedMealForActions = isSameMeal ? null : meal;
+}
 
   closeMealMenu(): void {
-    this.openMealMenuId = null;
-  }
+  this.openMealMenuId = null;
+  this.selectedMealForActions = null;
+}
 
   async onPrimaryAction(meal: PlannedMeal): Promise<void> {
     if (this.isPastDate() || !this.date) {
@@ -828,4 +840,50 @@ get displayedChangeMealOptions() {
       this.scrollToMealCardInstant(mealId);
     }, 0);
   }
+
+  isDesktopViewport(): boolean {
+  return window.innerWidth >= 1024;
+}
+
+getResponsiveMealActions(meal: PlannedMeal): ResponsiveActionMenuItem[] {
+  const primaryLabel = this.getPrimaryActionLabel(meal.status);
+
+  return [
+    ...(primaryLabel ? [{ id: 'primary', label: primaryLabel }] : []),
+    { id: 'change', label: 'Change meal' },
+    { id: 'edit-cook', label: 'Edit cook' },
+    { id: 'remove', label: 'Remove' },
+  ];
+}
+
+async onMealActionSelected(actionId: string): Promise<void> {
+  if (!this.selectedMealForActions) {
+    return;
+  }
+
+  const meal = this.selectedMealForActions;
+  this.closeMealMenu();
+
+  switch (actionId) {
+    case 'primary':
+      await this.onPrimaryAction(meal);
+      break;
+
+    case 'change':
+      await this.onChangeMeal(meal);
+      break;
+
+    case 'edit-cook':
+      await this.onEditCook(meal);
+      break;
+
+    case 'remove':
+      await this.onRemoveMeal(meal);
+      break;
+
+    default:
+      break;
+  }
+}
+
 }

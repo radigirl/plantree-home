@@ -336,7 +336,7 @@ export class MealsComponent implements OnInit {
     this.expandedMealId = this.expandedMealId === mealId ? null : mealId;
   }
 
-  private isMobileViewport(): boolean {
+  isMobileViewport(): boolean {
     return window.innerWidth < 1024;
   }
 

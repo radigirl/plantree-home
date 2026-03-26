@@ -115,6 +115,18 @@
             aria-label="Meal actions" aria-haspopup="menu" [attr.aria-expanded]="openMealMenuId === meal.id">
             ⋮
           </button>
+
+          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isMobileViewport()">
+            <button type="button" class="meal-menu-item"
+              (click)="$event.stopPropagation(); closeMealMenu(); startEditMeal(meal)">
+              Edit meal
+            </button>
+
+            <button type="button" class="meal-menu-item meal-menu-item--danger"
+              (click)="$event.stopPropagation(); closeMealMenu(); onDeleteMeal(meal)">
+              Remove from My Meals
+            </button>
+          </div>
         </div>
 
         <div class="meal-main">

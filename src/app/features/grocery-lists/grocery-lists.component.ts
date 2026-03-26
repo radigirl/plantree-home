@@ -13,11 +13,12 @@ import { GroceryService } from '../../services/grocery.service';
 import { GroceryList } from '../../models/grocery-list.model';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import { UserStateService } from '../../services/user.state.service';
+import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../shared/components/responsive-action-menu/responsive-action-menu';
 
 @Component({
   selector: 'app-grocery-lists',
   standalone: true,
-  imports: [CommonModule, PageLoadingComponent, FormsModule],
+  imports: [CommonModule, PageLoadingComponent, FormsModule, ResponsiveActionMenuComponent],
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
 })
@@ -33,6 +34,13 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   editingListId: string | null = null;
   editListName = '';
 
+  selectedListForActions: GroceryList | null = null;
+
+  listActions: ResponsiveActionMenuItem[] = [
+    { id: 'edit', label: 'Edit' },
+    { id: 'delete', label: 'Delete' },
+  ];
+
   private listsChannel: RealtimeChannel | null = null;
 
   constructor(
@@ -40,7 +48,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     private userStateService: UserStateService,
     private cdr: ChangeDetectorRef,
     private router: Router
-  ) {}
+  ) { }
 
   @HostListener('document:click')
   onDocumentClick(): void {
@@ -136,7 +144,11 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
   toggleActionsMenu(event: Event, list: GroceryList): void {
     event.stopPropagation();
-    this.openMenuListId = this.openMenuListId === list.id ? null : list.id;
+
+    const isSame = this.openMenuListId === list.id;
+
+    this.openMenuListId = isSame ? null : list.id;
+    this.selectedListForActions = isSame ? null : list;
   }
 
   startEditList(event: Event, list: GroceryList): void {
@@ -219,4 +231,31 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   openList(list: GroceryList): void {
     this.router.navigate(['/grocery-lists', list.id]);
   }
+
+  isMobileViewport(): boolean {
+    return window.innerWidth < 1024;
+  }
+
+  closeActions(): void {
+    this.openMenuListId = null;
+    this.selectedListForActions = null;
+  }
+
+  async onActionSelected(actionId: string): Promise<void> {
+    if (!this.selectedListForActions) return;
+
+    const list = this.selectedListForActions;
+    this.closeActions();
+
+    switch (actionId) {
+      case 'edit':
+        this.startEditList(new Event('click'), list);
+        break;
+
+      case 'delete':
+        await this.deleteList(new Event('click'), list);
+        break;
+    }
+  }
+
 }

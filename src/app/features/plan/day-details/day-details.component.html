@@ -8,7 +8,7 @@
       <div class="day-details-header-left">
         <button type="button" class="back-link" (click)="goBack()">
           <span class="back-link__icon">←</span>
-          <span class="back-link__text">Back</span>
+          <span class="back-link__text">Plan</span>
         </button>
 
         <div class="day-details-date">
@@ -370,28 +370,28 @@
     <div class="day-details-list" *ngIf="meals.length > 0">
       <div class="day-details-card" [attr.id]="'meal-card-' + meal.id" [class.expanded]="expandedMealId === meal.id"
         *ngFor="let meal of meals" (click)="toggleMeal(meal.id)">
+
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
           <button type="button" class="meal-menu-button" [disabled]="isPastDate()"
-            (click)="$event.stopPropagation(); toggleMealMenu(meal.id)" aria-label="Meal actions">
-            ⋯
+            (click)="$event.stopPropagation(); toggleMealMenu(meal)" aria-label="Meal actions" aria-haspopup="menu"
+            [attr.aria-expanded]="openMealMenuId === meal.id">
+            ⋮
           </button>
 
-          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isPastDate()">
-            <button type="button" class="meal-menu-item" *ngIf="getPrimaryActionLabel(meal.status)"
-              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)">
-              {{ getPrimaryActionLabel(meal.status) }}
-            </button>
+          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isPastDate() && isDesktopViewport()">
 
-            <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); onChangeMeal(meal)">
+            <button type="button" class="meal-menu-item"
+              (click)="$event.stopPropagation(); closeMealMenu(); onChangeMeal(meal)">
               Change meal
             </button>
 
-            <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); onEditCook(meal)">
+            <button type="button" class="meal-menu-item"
+              (click)="$event.stopPropagation(); closeMealMenu(); onEditCook(meal)">
               Edit cook
             </button>
 
-            <button type="button" class="meal-menu-item meal-menu-item--danger"
-              (click)="$event.stopPropagation(); onRemoveMeal(meal)">
+            <button type="button" class="meal-menu-item"
+              (click)="$event.stopPropagation(); closeMealMenu(); onRemoveMeal(meal)">
               Remove
             </button>
           </div>
@@ -492,3 +492,14 @@
     </div>
   </div>
 </div>
+
+<app-responsive-action-menu
+  *ngIf="selectedMealForActions && !isDesktopViewport() && !isPastDate()"
+  [isOpen]="!!openMealMenuId"
+  [title]="selectedMealForActions.meal.name"
+  [subtitle]="selectedMealForActions.meal.prepTime != null ? (selectedMealForActions.meal.prepTime + ' min') : ''"
+  [image]="selectedMealForActions.meal.image || 'assets/meals/default-meal.png'"
+  [actions]="getResponsiveMealActions(selectedMealForActions)"
+  (closed)="closeMealMenu()"
+  (actionSelected)="onMealActionSelected($event)"
+></app-responsive-action-menu>
