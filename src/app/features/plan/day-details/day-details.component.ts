@@ -204,33 +204,29 @@ export class DayDetailsComponent implements OnInit {
     return filterMealsByQuery(this.availableMeals, this.changeMealSearchQuery);
   }
 
-  get displayedAvailableMeals() {
-    if (this.selectedExistingMealId) {
-      return this.filteredAvailableMeals.filter(
-        (meal) => meal.id === this.selectedExistingMealId
-      );
-    }
-
-    if (!this.mealSearchQuery.trim()) {
-      return [];
-    }
-
-    return this.filteredAvailableMeals;
+get displayedAvailableMeals() {
+  if (!this.mealSearchQuery.trim()) {
+    return [];
   }
 
-  get displayedChangeMealOptions() {
-    if (this.selectedExistingMealId) {
-      return this.filteredChangeMealOptions.filter(
-        (meal) => meal.id === this.selectedExistingMealId
-      );
-    }
+  return this.filteredAvailableMeals;
+}
 
-    if (!this.changeMealSearchQuery.trim()) {
-      return [];
-    }
-
-    return this.filteredChangeMealOptions;
+get displayedChangeMealOptions() {
+  if (!this.changeMealSearchQuery.trim()) {
+    return [];
   }
+
+  return this.filteredChangeMealOptions;
+}
+
+get selectedAvailableMeal() {
+  return this.availableMeals.find((meal) => meal.id === this.selectedExistingMealId) ?? null;
+}
+
+get selectedChangeMeal() {
+  return this.availableMeals.find((meal) => meal.id === this.selectedExistingMealId) ?? null;
+}
 
   clearMealSearch(): void {
     this.mealSearchQuery = '';
@@ -242,13 +238,15 @@ export class DayDetailsComponent implements OnInit {
     this.selectedExistingMealId = null;
   }
 
-  selectMealForAdd(mealId: string): void {
-    this.selectedExistingMealId = mealId;
-  }
+ selectMealForAdd(mealId: string): void {
+  this.selectedExistingMealId = mealId;
+  this.mealSearchQuery = '';
+}
 
-  selectMealForChange(mealId: string): void {
-    this.selectedExistingMealId = mealId;
-  }
+selectMealForChange(mealId: string): void {
+  this.selectedExistingMealId = mealId;
+  this.changeMealSearchQuery = '';
+}
 
   setAddMealMode(mode: AddMealMode): void {
     this.addMealMode = mode;

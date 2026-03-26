@@ -71,9 +71,15 @@
             <div class="meal-search-input-wrap">
               <input
                 id="mealSearch"
-                type="text"
+                type="search"
+                inputmode="search"
                 [(ngModel)]="mealSearchQuery"
                 placeholder="Search by title or ingredient"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                enterkeyhint="search"
               />
 
               <button
@@ -88,8 +94,33 @@
             </div>
           </div>
 
+          <div class="selected-meal-row" *ngIf="selectedAvailableMeal as selectedMeal">
+            <div class="selected-meal-row__image">
+              <img [src]="selectedMeal.image || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
+            </div>
+
+            <div class="selected-meal-row__content">
+              <div class="selected-meal-row__title">
+                {{ selectedMeal.name }}
+              </div>
+
+              <div class="selected-meal-row__meta" *ngIf="selectedMeal.prepTime != null">
+                {{ selectedMeal.prepTime }} min
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="selected-meal-row__remove"
+              (click)="clearMealSearch()"
+              aria-label="Remove selected meal"
+            >
+              ×
+            </button>
+          </div>
+
           <div class="meal-search-results-container meal-search-results-container--reserved">
-            <div class="meal-search-results" *ngIf="displayedAvailableMeals.length > 0">
+            <div class="meal-search-results" *ngIf="!selectedExistingMealId && displayedAvailableMeals.length > 0">
               <button
                 type="button"
                 class="meal-search-result meal-search-result--row"
@@ -291,9 +322,15 @@
             <div class="meal-search-input-wrap">
               <input
                 id="changeMealSearch"
-                type="text"
+                type="search"
+                inputmode="search"
                 [(ngModel)]="changeMealSearchQuery"
                 placeholder="Search by title or ingredient"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                enterkeyhint="search"
               />
 
               <button
@@ -308,8 +345,33 @@
             </div>
           </div>
 
+          <div class="selected-meal-row" *ngIf="selectedChangeMeal as selectedMeal">
+            <div class="selected-meal-row__image">
+              <img [src]="selectedMeal.image || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
+            </div>
+
+            <div class="selected-meal-row__content">
+              <div class="selected-meal-row__title">
+                {{ selectedMeal.name }}
+              </div>
+
+              <div class="selected-meal-row__meta" *ngIf="selectedMeal.prepTime != null">
+                {{ selectedMeal.prepTime }} min
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="selected-meal-row__remove"
+              (click)="clearChangeMealSearch()"
+              aria-label="Remove selected meal"
+            >
+              ×
+            </button>
+          </div>
+
           <div class="meal-search-results-container meal-search-results-container--reserved">
-            <div class="meal-search-results" *ngIf="displayedChangeMealOptions.length > 0">
+            <div class="meal-search-results" *ngIf="!selectedExistingMealId && displayedChangeMealOptions.length > 0">
               <button
                 type="button"
                 class="meal-search-result meal-search-result--row"
@@ -403,13 +465,7 @@
           <ng-container *ngIf="showChangeAdvanced">
             <div class="add-meal-field">
               <label for="newMealPrepTime">Prep time (minutes)</label>
-              <input
-                id="newMealPrepTime"
-                type="number"
-                min="0"
-                [(ngModel)]="newPrepTime"
-                placeholder="Optional"
-              />
+              <input id="newMealPrepTime" type="number" min="0" [(ngModel)]="newPrepTime" placeholder="Optional" />
             </div>
 
             <div class="add-meal-field">
