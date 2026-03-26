@@ -65,14 +65,13 @@ export class HomeComponent implements OnInit {
     return this.todayMeals[0];
   }
 
- get todayStatusLabel(): string {
-  if (!this.firstTodayMeal) {
-    return '';
+  get todayStatusLabel(): string {
+    if (!this.firstTodayMeal) {
+      return '';
+    }
+
+    return getStatusLabel(this.firstTodayMeal.status);
   }
-
-  return getStatusLabel(this.firstTodayMeal.status);
-}
-
 
   get additionalMealsCount(): number {
     return Math.max(this.todayMeals.length - 1, 0);
@@ -96,6 +95,19 @@ export class HomeComponent implements OnInit {
           add: 'true',
           source: 'home'
         }
+    });
+  }
+
+  onAddTodayClick(event: MouseEvent): void {
+    event.stopPropagation();
+
+    const today = this.formatDateLocal(new Date());
+
+    this.router.navigate(['/plan/day', today], {
+      queryParams: {
+        add: 'true',
+        source: 'home'
+      }
     });
   }
 
@@ -133,5 +145,4 @@ export class HomeComponent implements OnInit {
   openMeals(): void {
     this.router.navigate(['/meals']);
   }
-
 }

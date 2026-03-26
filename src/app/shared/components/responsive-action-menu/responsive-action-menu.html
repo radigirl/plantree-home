@@ -1,46 +1,31 @@
-
-
 <ng-container *ngIf="isOpen">
   <div class="action-menu-dropdown" *ngIf="isDesktop">
-    <button
-      *ngFor="let action of actions"
-      type="button"
-      class="action-menu-item"
-      (click)="onActionClick(action.id)"
-    >
+    <button *ngFor="let action of actions" type="button" class="action-menu-item" (click)="onActionClick(action.id)">
       {{ action.label }}
     </button>
   </div>
 
-  <div
-    class="action-sheet-backdrop"
-    *ngIf="!isDesktop"
-    (click)="onBackdropClick($event)"
-  >
+  <div class="action-sheet-backdrop" *ngIf="!isDesktop" (click)="onBackdropClick($event)">
     <div class="action-sheet" (click)="$event.stopPropagation()">
-      <div
-        class="action-sheet__handle"
-        (click)="close()"
-      ></div>
+      <div class="action-sheet__handle" (click)="close()"></div>
 
-      <div class="action-sheet__header">
-        <div class="action-sheet__image">
-          <img [src]="image || 'assets/meals/default-meal.png'" [alt]="title" />
+      <div class="action-sheet__header" [class.action-sheet__header--no-image]="!image">
+        <div *ngIf="image" class="action-sheet__image">
+          <img [src]="image" />
         </div>
 
         <div class="action-sheet__text">
           <p class="action-sheet__title">{{ title }}</p>
-          <p class="action-sheet__subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+
+          <p class="action-sheet__subtitle" *ngIf="subtitle">
+            {{ subtitle }}
+          </p>
         </div>
       </div>
 
       <div class="action-sheet__list">
-        <button
-          *ngFor="let action of actions"
-          type="button"
-          class="action-sheet__item"
-          (click)="onActionClick(action.id)"
-        >
+        <button *ngFor="let action of actions" type="button" class="action-sheet__item"
+          (click)="onActionClick(action.id)">
           {{ action.label }}
         </button>
       </div>

@@ -49,14 +49,28 @@
 
       <div class="add-meal-field">
         <label for="mealImage">Meal photo</label>
-        <input id="mealImage" type="file" accept="image/*" (change)="onMealImageSelected($event)" />
 
-        <div class="meal-image-preview" *ngIf="selectedImagePreview">
-          <img [src]="selectedImagePreview" alt="Selected meal preview" class="meal-image-preview__img" />
+        <div class="meal-image-block">
+          <div class="meal-image-thumb" *ngIf="selectedImagePreview">
+            <img [src]="selectedImagePreview" alt="Meal preview" />
+          </div>
 
-          <button type="button" class="cancel-button" (click)="removeSelectedMealImage()">
-            Remove photo
-          </button>
+          <div class="meal-image-content">
+            <label for="mealImage" class="meal-image-upload">
+              <span class="meal-image-upload__button">Choose file</span>
+              <span class="meal-image-upload__name">
+                {{ selectedImageFile?.name || 'No file chosen' }}
+              </span>
+            </label>
+
+            <input id="mealImage" class="meal-image-upload__input" type="file" accept="image/*"
+              (change)="onMealImageSelected($event)" />
+
+            <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
+              (click)="removeSelectedMealImage()">
+              ✕ Remove
+            </button>
+          </div>
         </div>
       </div>
 

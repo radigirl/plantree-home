@@ -101,6 +101,6 @@
 </section>
 
 <app-responsive-action-menu *ngIf="selectedListForActions && isMobileViewport()" [isOpen]="!!openMenuListId"
-  [title]="selectedListForActions.name" [subtitle]="''" [image]="'assets/meals/default-meal.png'"
+  [title]="selectedListForActions.name" [subtitle]="''" [image]="''"
   [actions]="listActions" (closed)="closeActions()"
   (actionSelected)="onActionSelected($event)"></app-responsive-action-menu>

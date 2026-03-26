@@ -67,15 +67,11 @@
                   aria-label="Open grocery item actions">
                   ⋯
                 </button>
-
-                <div *ngIf="openItemMenuId === item.id" class="grocery-item-menu dropdown-list-surface"
-                  (click)="$event.stopPropagation()">
-                  <button type="button" class="grocery-item-menu-item dropdown-list-item"
-                    (click)="startEditItem($event, item)">
+                <div *ngIf="openItemMenuId === item.id && !isMobileViewport()" class="grocery-item-menu">
+                  <button class="grocery-item-menu-item" (click)="startEditItem($event, item)">
                     Edit
                   </button>
-
-                  <button type="button" class="grocery-item-menu-item dropdown-list-item dropdown-list-item--danger"
+                  <button class="grocery-item-menu-item grocery-item-menu-item--danger"
                     (click)="deleteItem($event, item)">
                     Delete
                   </button>
@@ -108,3 +104,7 @@
     </ng-container>
   </ng-container>
 </section>
+
+<app-responsive-action-menu *ngIf="selectedItemForActions" [isOpen]="true" [title]="selectedItemForActions.name"
+  [subtitle]="''" [actions]="itemActions" (closed)="selectedItemForActions = null"
+  (actionSelected)="onItemActionSelected($event)"></app-responsive-action-menu>

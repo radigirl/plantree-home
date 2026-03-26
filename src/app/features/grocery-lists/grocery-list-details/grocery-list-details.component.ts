@@ -13,11 +13,12 @@ import { PageLoadingComponent } from '../../../shared/components/page-loading/pa
 import { GroceryService } from '../../../services/grocery.service';
 import { GroceryList } from '../../../models/grocery-list.model';
 import { UserStateService } from '../../../services/user.state.service';
+import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../../shared/components/responsive-action-menu/responsive-action-menu';
 
 @Component({
   selector: 'app-grocery-list-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent],
+  imports: [CommonModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
 })
@@ -31,6 +32,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   openItemMenuId: string | null = null;
   editingItemId: string | null = null;
   editItemName = '';
+
+  selectedItemForActions: any | null = null;
+  itemActions: ResponsiveActionMenuItem[] = [
+  { id: 'edit', label: 'Edit' },
+  { id: 'delete', label: 'Delete' },
+];
+
 
   private itemsChannel: RealtimeChannel | null = null;
 
@@ -166,9 +174,14 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   toggleItemMenu(event: Event, item: any): void {
-    event.stopPropagation();
+  event.stopPropagation();
+
+  if (this.isMobileViewport()) {
+    this.selectedItemForActions = item;
+  } else {
     this.openItemMenuId = this.openItemMenuId === item.id ? null : item.id;
   }
+}
 
   startEditItem(event: Event, item: any): void {
     event.stopPropagation();
@@ -256,6 +269,27 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   goBack(): void {
   window.history.back();
+}
+
+isMobileViewport(): boolean {
+  return window.innerWidth < 1024;
+}
+
+async onItemActionSelected(actionId: string): Promise<void> {
+  const item = this.selectedItemForActions;
+  if (!item) return;
+
+  this.selectedItemForActions = null;
+
+  switch (actionId) {
+    case 'edit':
+      this.startEditItem(new Event('click'), item);
+      break;
+
+    case 'delete':
+      await this.deleteItem(new Event('click'), item);
+      break;
+  }
 }
 
 }

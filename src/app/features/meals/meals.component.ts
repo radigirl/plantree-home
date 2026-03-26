@@ -123,18 +123,20 @@ export class MealsComponent implements OnInit {
   }
 
   startAddMeal(): void {
-    this.isAddingMeal = true;
-    this.isEditingMeal = false;
-    this.editingMealId = null;
-    this.closeMealMenu();
+  this.isAddingMeal = true;
+  this.cdr.detectChanges();
 
-    this.newMealName = '';
-    this.newPrepTime = null;
-    this.newIngredientsText = '';
-    this.newInstructions = '';
-    this.selectedImageFile = null;
-    this.selectedImagePreview = null;
-  }
+  this.isEditingMeal = false;
+  this.editingMealId = null;
+  this.closeMealMenu();
+
+  this.newMealName = '';
+  this.newPrepTime = null;
+  this.newIngredientsText = '';
+  this.newInstructions = '';
+  this.selectedImageFile = null;
+  this.selectedImagePreview = null;
+}
 
   cancelMealForm(): void {
     const shouldRestoreToMeal = this.isEditingMeal && !!this.returnToMealId;
@@ -180,12 +182,9 @@ export class MealsComponent implements OnInit {
   }
 
   removeSelectedMealImage(): void {
-    this.selectedImageFile = null;
-
-    if (!this.isEditingMeal) {
-      this.selectedImagePreview = null;
-    }
-  }
+  this.selectedImageFile = null;
+  this.selectedImagePreview = null;
+}
 
   async saveMeal(): Promise<void> {
     if (!this.newMealName.trim()) {
@@ -347,25 +346,6 @@ export class MealsComponent implements OnInit {
       .filter((item) => item.length > 0);
   }
 
-  private scrollFormIntoView(): void {
-    setTimeout(() => {
-      const form = this.mealFormContainer?.nativeElement;
-
-      if (!form) {
-        return;
-      }
-
-      const rect = form.getBoundingClientRect();
-      const absoluteTop = window.scrollY + rect.top;
-      const topOffset = 140;
-
-      window.scrollTo({
-        top: Math.max(absoluteTop - topOffset, 0),
-        behavior: 'smooth',
-      });
-    }, 0);
-  }
-
   private scrollToMealCardInstant(mealId: string): void {
     const card = document.getElementById(`meal-card-${mealId}`);
 
@@ -379,6 +359,7 @@ export class MealsComponent implements OnInit {
 
     window.scrollTo(0, Math.max(absoluteTop - topOffset, 0));
   }
+
 
   private restoreToEditedMealCard(): void {
     if (!this.returnToMealId) {
@@ -394,22 +375,28 @@ export class MealsComponent implements OnInit {
   }
 
   startEditMeal(meal: Meal): void {
-    this.isAddingMeal = false;
-    this.isEditingMeal = true;
-    this.editingMealId = meal.id;
-    this.returnToMealId = meal.id;
-    this.closeMealMenu();
+  const currentScrollY = window.scrollY;
 
-    this.newMealName = meal.name ?? '';
-    this.newPrepTime = meal.prepTime ?? null;
-    this.newIngredientsText = (meal.ingredients ?? []).join(', ');
-    this.newInstructions = meal.instructions ?? '';
+  this.isAddingMeal = false;
+  this.isEditingMeal = true;
+  this.editingMealId = meal.id;
+  this.returnToMealId = meal.id;
+  this.closeMealMenu();
 
-    this.selectedImageFile = null;
-    this.selectedImagePreview = meal.image ?? null;
+  this.newMealName = meal.name ?? '';
+  this.newPrepTime = meal.prepTime ?? null;
+  this.newIngredientsText = (meal.ingredients ?? []).join(', ');
+  this.newInstructions = meal.instructions ?? '';
 
-    this.scrollFormIntoView();
-  }
+  this.selectedImageFile = null;
+  this.selectedImagePreview = meal.image ?? null;
+
+  this.cdr.detectChanges();
+
+  requestAnimationFrame(() => {
+    window.scrollTo(0, currentScrollY);
+  });
+}
 
   get isSearching(): boolean {
     return !!this.mealSearchQuery.trim();
@@ -437,4 +424,6 @@ export class MealsComponent implements OnInit {
     this.mealSearchQuery = '';
     this.closeSearchMealDetails();
   }
+
+
 }

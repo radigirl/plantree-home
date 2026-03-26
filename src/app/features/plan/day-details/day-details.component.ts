@@ -83,11 +83,11 @@ export class DayDetailsComponent implements OnInit {
 
   selectedMealForActions: PlannedMeal | null = null;
 
-mealActions: ResponsiveActionMenuItem[] = [
-  { id: 'change', label: 'Change meal' },
-  { id: 'edit-cook', label: 'Edit cook' },
-  { id: 'remove', label: 'Remove' },
-];
+  mealActions: ResponsiveActionMenuItem[] = [
+    { id: 'change', label: 'Change meal' },
+    { id: 'edit-cook', label: 'Edit cook' },
+    { id: 'remove', label: 'Remove' },
+  ];
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -98,7 +98,7 @@ mealActions: ResponsiveActionMenuItem[] = [
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
     private router: Router,
-  ) {}
+  ) { }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -205,32 +205,32 @@ mealActions: ResponsiveActionMenuItem[] = [
   }
 
   get displayedAvailableMeals() {
-  if (this.selectedExistingMealId) {
-    return this.filteredAvailableMeals.filter(
-      (meal) => meal.id === this.selectedExistingMealId
-    );
+    if (this.selectedExistingMealId) {
+      return this.filteredAvailableMeals.filter(
+        (meal) => meal.id === this.selectedExistingMealId
+      );
+    }
+
+    if (!this.mealSearchQuery.trim()) {
+      return [];
+    }
+
+    return this.filteredAvailableMeals;
   }
 
-  if (!this.mealSearchQuery.trim()) {
-    return this.availableMeals.slice(0, 3);
+  get displayedChangeMealOptions() {
+    if (this.selectedExistingMealId) {
+      return this.filteredChangeMealOptions.filter(
+        (meal) => meal.id === this.selectedExistingMealId
+      );
+    }
+
+    if (!this.changeMealSearchQuery.trim()) {
+      return [];
+    }
+
+    return this.filteredChangeMealOptions;
   }
-
-  return this.filteredAvailableMeals;
-}
-
-get displayedChangeMealOptions() {
-  if (this.selectedExistingMealId) {
-    return this.filteredChangeMealOptions.filter(
-      (meal) => meal.id === this.selectedExistingMealId
-    );
-  }
-
-  if (!this.changeMealSearchQuery.trim()) {
-    return this.availableMeals.slice(0, 3);
-  }
-
-  return this.filteredChangeMealOptions;
-}
 
   clearMealSearch(): void {
     this.mealSearchQuery = '';
@@ -450,24 +450,24 @@ get displayedChangeMealOptions() {
     }
   }
 
- onMealImageSelected(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0] ?? null;
+  onMealImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
 
-  if (!file) {
-    this.selectedImageFile = null;
-    this.selectedImagePreview = null;
-    return;
+    if (!file) {
+      this.selectedImageFile = null;
+      this.selectedImagePreview = null;
+      return;
+    }
+
+    this.selectedImageFile = file;
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.selectedImagePreview = reader.result as string;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
   }
-
-  this.selectedImageFile = file;
-  const reader = new FileReader();
-  reader.onload = () => {
-    this.selectedImagePreview = reader.result as string;
-    this.cdr.detectChanges();
-  };
-  reader.readAsDataURL(file);
-}
 
   removeSelectedMealImage(): void {
     this.selectedImageFile = null;
@@ -744,19 +744,19 @@ get displayedChangeMealOptions() {
   }
 
   toggleMealMenu(meal: PlannedMeal): void {
-  if (this.isPastDate()) {
-    return;
+    if (this.isPastDate()) {
+      return;
+    }
+
+    const isSameMeal = this.openMealMenuId === meal.id;
+    this.openMealMenuId = isSameMeal ? null : meal.id;
+    this.selectedMealForActions = isSameMeal ? null : meal;
   }
 
-  const isSameMeal = this.openMealMenuId === meal.id;
-  this.openMealMenuId = isSameMeal ? null : meal.id;
-  this.selectedMealForActions = isSameMeal ? null : meal;
-}
-
   closeMealMenu(): void {
-  this.openMealMenuId = null;
-  this.selectedMealForActions = null;
-}
+    this.openMealMenuId = null;
+    this.selectedMealForActions = null;
+  }
 
   async onPrimaryAction(meal: PlannedMeal): Promise<void> {
     if (this.isPastDate() || !this.date) {
@@ -842,48 +842,45 @@ get displayedChangeMealOptions() {
   }
 
   isDesktopViewport(): boolean {
-  return window.innerWidth >= 1024;
-}
-
-getResponsiveMealActions(meal: PlannedMeal): ResponsiveActionMenuItem[] {
-  const primaryLabel = this.getPrimaryActionLabel(meal.status);
-
-  return [
-    ...(primaryLabel ? [{ id: 'primary', label: primaryLabel }] : []),
-    { id: 'change', label: 'Change meal' },
-    { id: 'edit-cook', label: 'Edit cook' },
-    { id: 'remove', label: 'Remove' },
-  ];
-}
-
-async onMealActionSelected(actionId: string): Promise<void> {
-  if (!this.selectedMealForActions) {
-    return;
+    return window.innerWidth >= 1024;
   }
 
-  const meal = this.selectedMealForActions;
-  this.closeMealMenu();
-
-  switch (actionId) {
-    case 'primary':
-      await this.onPrimaryAction(meal);
-      break;
-
-    case 'change':
-      await this.onChangeMeal(meal);
-      break;
-
-    case 'edit-cook':
-      await this.onEditCook(meal);
-      break;
-
-    case 'remove':
-      await this.onRemoveMeal(meal);
-      break;
-
-    default:
-      break;
+  getResponsiveMealActions(meal: PlannedMeal): ResponsiveActionMenuItem[] {
+    return [
+      { id: 'change', label: 'Change meal' },
+      { id: 'edit-cook', label: 'Edit cook' },
+      { id: 'remove', label: 'Remove' },
+    ];
   }
-}
+
+  async onMealActionSelected(actionId: string): Promise<void> {
+    if (!this.selectedMealForActions) {
+      return;
+    }
+
+    const meal = this.selectedMealForActions;
+    this.closeMealMenu();
+
+    switch (actionId) {
+      case 'primary':
+        await this.onPrimaryAction(meal);
+        break;
+
+      case 'change':
+        await this.onChangeMeal(meal);
+        break;
+
+      case 'edit-cook':
+        await this.onEditCook(meal);
+        break;
+
+      case 'remove':
+        await this.onRemoveMeal(meal);
+        break;
+
+      default:
+        break;
+    }
+  }
 
 }
