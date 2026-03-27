@@ -1,76 +1,56 @@
-@use '../variables' as *;
-@use '../breakpoints' as *;
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 
-.button-pill-primary {
-  height: 44px;
-  padding: 0 18px;
-  border: 1px solid transparent;
+  padding: 8px 14px;
   border-radius: 999px;
+
   background: rgba(92, 143, 134, 0.95);
   color: #fff;
-  font: inherit;
-  font-size: 0.98rem;
+
+  font-size: 0.9rem;
   font-weight: 600;
-  line-height: 1;
+
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(84, 132, 124, 1);
+  }
+}
+
+.btn-add__icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+
+
+/* Quiet icon button (for 3 dots) */
+.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
-}
 
-.button-pill-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(92, 143, 134, 0.16);
-}
+  padding: 6px;
+  border-radius: 50%;
 
-.button-pill-primary:active {
-  transform: translateY(1px);
-}
-
-.button-pill-primary:focus {
-  outline: none;
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-  padding: 0;
-  border: none;
   background: transparent;
-  text-decoration: none;
-  color: $color-primary-dark;
-  opacity: 0.78;
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1;
+  border: none;
   cursor: pointer;
-  transition: opacity 0.2s ease;
-}
 
-.back-link:hover {
-  opacity: 1;
-}
+  transition: background 0.15s ease;
 
-.back-link__icon {
-  font-size: 17px;
-  line-height: 1;
-}
-
-.back-link__text {
-  line-height: 1;
-}
-
-@include desktop {
-  .back-link {
-    display: none;
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
   }
+}
+
+.icon-button__icon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
 }

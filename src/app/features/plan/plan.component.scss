@@ -134,7 +134,7 @@
 .meal-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   padding: 16px;
   border-radius: 24px;
   background: rgba(251, 248, 241, 0.82);
@@ -205,7 +205,7 @@
   display: flex;
   align-items: center;
   min-height: 32px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .meal-card__top--filled {
@@ -213,14 +213,7 @@
 }
 
 .meal-card__top--empty {
-  justify-content: flex-start;
-}
-
-.meal-empty-row {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
 }
 
 .meal-add-btn {
@@ -239,10 +232,31 @@
   }
 }
 
+.meal-add-btn--circle {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(92, 143, 134, 0.14);
+  border: 1px solid rgba(92, 143, 134, 0.22);
+  color: $color-primary-dark;
+  box-shadow: 0 1px 2px rgba(46, 58, 50, 0.04);
+
+  &:hover {
+    background: rgba(92, 143, 134, 0.2);
+    border-color: rgba(92, 143, 134, 0.32);
+  }
+}
+
 .meal-add-btn--corner {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 4px;
+  right: 4px;
 }
 
 .meal-day {
@@ -276,9 +290,25 @@
   min-width: 0;
 }
 
+.meal-info__main {
+  display: grid;
+  grid-template-columns: 136px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+
+.meal-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
 .meal-name {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.06rem;
   font-weight: 700;
   line-height: 1.15;
   color: $color-primary-dark;
@@ -294,14 +324,14 @@
 }
 
 .meal-cook-label {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: $color-primary-dark;
 }
 
 .meal-cook-avatar {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   object-fit: cover;
   background: $color-primary-light;
@@ -310,14 +340,14 @@
 
 .meal-cook {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: $color-text-muted;
 }
 
 .meal-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .meal-status,
@@ -325,10 +355,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
-  padding: 4px 12px;
+  min-height: 24px;
+  padding: 2px 8px;
   border-radius: 999px;
-  font-size: 0.84rem;
+  font-size: 0.75rem;
   line-height: 1;
   white-space: nowrap;
 }
@@ -345,19 +375,23 @@
 }
 
 .meal-time-icon {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   line-height: 1;
   opacity: 0.8;
 }
 
 .meal-more {
-  margin: 0;
+  margin: 2px 0 0;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 500;
   color: $color-text-muted;
+}
+
+.meal-more--hidden {
+  display: none;
 }
 
 .meal-more__arrow {
@@ -367,8 +401,9 @@
 .meal-empty-state {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 88px;
+  justify-content: flex-start;
+  min-height: 40px;
+  padding-top: 2px;
 }
 
 .meal-empty {
@@ -381,21 +416,23 @@
 
 .meal-empty-text {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 600;
   color: $color-text-muted;
 }
 
 .meal-image {
-  width: 100%;
-  margin-top: auto;
+  width: 128px;
+  min-width: 128px;
+  height: 96px;
+  margin-top: 0;
 }
 
 .meal-image-img {
   width: 100%;
+  height: 100%;
   display: block;
-  border-radius: 18px;
-  aspect-ratio: 16 / 10;
+  border-radius: 16px;
   object-fit: cover;
 }
 
@@ -570,9 +607,9 @@
   }
 
   .meal-card {
-    padding: 15px;
+    padding: 14px;
     border-radius: 22px;
-    gap: 12px;
+    gap: 10px;
   }
 
   .meal-card__top {
@@ -585,11 +622,27 @@
     right: 2px;
   }
 
+  .meal-name {
+    font-size: 1rem;
+  }
+
+  .meal-cook-label,
+  .meal-cook {
+    font-size: 0.88rem;
+  }
+
+  .meal-status,
+  .meal-time {
+    min-height: 24px;
+    padding: 1px 6px;
+    font-size: 0.78rem;
+  }
+
+  .meal-more {
+    font-size: 0.84rem;
+  }
+
   .meal-card--empty {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
     padding: 12px 16px;
     min-height: auto;
   }
@@ -599,18 +652,10 @@
     justify-content: center;
   }
 
-  .meal-card--empty .meal-empty-row {
-    justify-content: flex-start;
-  }
-
   .meal-card--empty .meal-empty-text {
     font-size: 0.92rem;
     font-weight: 500;
     opacity: 0.9;
-  }
-
-  .meal-card--empty .meal-image {
-    display: none;
   }
 
   .meal-card--empty .meal-day {
@@ -625,28 +670,19 @@
     font-size: 0.92rem;
   }
 
-  .meal-name {
-    font-size: 1.2rem;
+  .meal-card--empty .meal-card__top {
+    justify-content: space-between;
   }
 
-  .meal-cook-label,
-  .meal-cook {
-    font-size: 0.92rem;
-  }
-
-  .meal-status,
-  .meal-time {
-    min-height: 30px;
-    padding: 4px 11px;
-    font-size: 0.8rem;
-  }
-
-  .meal-more {
-    font-size: 0.88rem;
+  .meal-card--empty .meal-day {
+    justify-content: flex-start;
+    width: auto;
+    text-align: left;
   }
 
   .meal-empty-state {
-    min-height: 80px;
+    min-height: 34px;
+    padding-top: 2px;
   }
 
   .meal-empty {
@@ -694,7 +730,18 @@
   }
 
   .meal-card {
-    padding: 17px;
+    padding: 16px;
+  }
+
+  .meal-info__main {
+    grid-template-columns: 136px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .meal-image {
+    width: 136px;
+    min-width: 136px;
+    height: 92px;
   }
 
   .meal-add-btn--corner {
@@ -742,11 +789,7 @@
   }
 
   .meal-name {
-    font-size: 1.15rem;
-  }
-
-  .meal-empty-state {
-    min-height: 100px;
+    font-size: 1.05rem;
   }
 
   .meal-add-btn {
@@ -759,11 +802,6 @@
       background: rgba(92, 143, 134, 0.22);
       transform: translateY(-1px);
     }
-  }
-
-  .meal-add-btn--corner {
-    top: 6px;
-    right: 6px;
   }
 
   .meal-card--empty {

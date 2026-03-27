@@ -20,9 +20,14 @@
       </div>
 
       <!-- RIGHT -->
-      <button type="button" class="add-meal-button add-meal-button--inline" *ngIf="!isFormOpen"
-        [disabled]="isPastDate()" [class.add-meal-button--disabled]="isPastDate()" (click)="openAddMealFromDay()">
-        + Add meal
+      <button type="button" class="btn-add" *ngIf="!isFormOpen" [disabled]="isPastDate()"
+        [class.btn-add--disabled]="isPastDate()" (click)="openAddMealFromDay()">
+        <svg class="btn-add__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+
+        <span>Add meal</span>
       </button>
     </div>
 
@@ -423,10 +428,13 @@
       <div class="day-details-card" [attr.id]="'meal-card-' + meal.id" [class.expanded]="expandedMealId === meal.id"
         *ngFor="let meal of meals" (click)="toggleMeal(meal.id)">
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
-          <button type="button" class="meal-menu-button" [disabled]="isPastDate()"
-            (click)="$event.stopPropagation(); toggleMealMenu(meal)" aria-label="Meal actions" aria-haspopup="menu"
-            [attr.aria-expanded]="openMealMenuId === meal.id">
-            ⋮
+          <button type="button" class="icon-button meal-menu-button" [disabled]="isPastDate()"
+            (click)="$event.stopPropagation(); toggleMealMenu(meal)">
+            <svg class="icon-button__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
+            </svg>
           </button>
 
           <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isPastDate() && isDesktopViewport()">

@@ -48,8 +48,7 @@
 
   .meal-time,
   .meal-status,
-  .meal-action-button,
-  .meal-menu-button {
+  .meal-action-button {
     opacity: 0.58;
   }
 
@@ -89,9 +88,9 @@
 
 .day-details-date {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: baseline;
-  font-size: 0.98rem;
+  font-size: 1.02rem;
   font-weight: 700;
   min-width: 0;
   justify-content: center;
@@ -104,7 +103,7 @@
 
 .day-date {
   color: $color-text-muted;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .day-details-past-note {
@@ -488,37 +487,6 @@
   z-index: 3;
 }
 
-.meal-menu-button {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(251, 248, 241, 0.96);
-  color: $color-text-muted;
-  font-size: 1.2rem;
-  font-weight: 700;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
-  opacity: 0.9;
-  cursor: pointer;
-}
-
-.meal-menu-button:hover {
-  background: rgba(207, 222, 215, 0.35);
-  opacity: 1;
-}
-
-.meal-menu-button:active {
-  transform: scale(0.92);
-}
-
-.meal-menu-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
 
 .meal-menu-dropdown {
   position: absolute;
@@ -531,6 +499,21 @@
   border: 1px solid rgba(207, 222, 215, 0.95);
   box-shadow: 0 16px 32px rgba(46, 58, 50, 0.16);
   z-index: 30;
+}
+
+.meal-menu-button {
+  width: 32px;
+  height: 32px;
+
+  color: rgba($color-primary-dark, 0.6);
+}
+
+.meal-menu-button:hover {
+  color: rgba($color-primary-dark, 0.85);
+}
+
+.meal-menu-button:disabled {
+  color: rgba($color-primary-dark, 0.3);
 }
 
 .meal-menu-item {
@@ -831,6 +814,42 @@
   line-height: 1.65;
   color: $color-text-muted;
   white-space: pre-line;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $color-primary-dark;
+
+  opacity: 0.75;
+  cursor: pointer;
+
+  transition: opacity 0.18s ease, transform 0.12s ease;
+}
+
+.back-link:hover {
+  opacity: 1;
+}
+
+.back-link:active {
+  transform: translateY(1px);
+}
+
+.back-link__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.back-link__text {
+  line-height: 1;
 }
 
 @include mobile {
@@ -1279,12 +1298,6 @@
 
   .day-details-list {
     padding: 0 0 80px;
-  }
-
-  .meal-menu-button {
-    width: 40px;
-    height: 40px;
-    font-size: 1.4rem;
   }
 
   .meal-mode-toggle {

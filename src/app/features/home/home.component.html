@@ -8,32 +8,25 @@
       <article class="card home-grid__featured" (click)="openToday()">
         <div class="card__header">
           <h3 class="card__title">What’s for today?</h3>
+
+          <button
+            type="button"
+            class="meal-add-btn meal-add-btn--circle today-card__add-btn"
+            (click)="onAddTodayClick($event)">
+            +
+          </button>
         </div>
 
         <div class="card__content">
           <ng-container *ngIf="!hasTodayMeals; else todayMealsContent">
             <div class="today-card today-card--empty">
               <div class="today-card-body">
-                <div class="today-card-actions">
-                  <button
-                    type="button"
-                    class="meal-add-btn"
-                    (click)="onAddTodayClick($event)"
-                  >
-                    + Add meal
-                  </button>
-                </div>
-
                 <p class="today-empty-title">No meal planned yet</p>
               </div>
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image today-card-image--placeholder">
-                  <img
-                    src="assets/meals/blank-meal.png"
-                    alt="Meal placeholder"
-                    class="today-meal-image"
-                  />
+                  <img src="assets/meals/blank-meal.png" alt="Meal placeholder" class="today-meal-image" />
                 </div>
               </div>
             </div>
@@ -42,16 +35,6 @@
           <ng-template #todayMealsContent>
             <div class="today-card">
               <div class="today-card-body">
-                <div class="today-card-actions">
-                  <button
-                    type="button"
-                    class="meal-add-btn"
-                    (click)="onAddTodayClick($event)"
-                  >
-                    + Add meal
-                  </button>
-                </div>
-
                 <p class="today-main-text">
                   {{ firstTodayMeal?.meal?.name }}
                 </p>
@@ -59,11 +42,8 @@
                 <div class="today-cook-row">
                   <span class="today-cook-label">Cook:</span>
 
-                  <img
-                    [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-                    class="today-inline-avatar"
-                    [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'"
-                  />
+                  <img [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
+                    class="today-inline-avatar" [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'" />
 
                   <p class="today-secondary-text">
                     {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
@@ -71,26 +51,17 @@
                 </div>
 
                 <div class="today-meta-row">
-                  <span
-                    class="today-time-badge"
-                    *ngIf="firstTodayMeal?.meal?.prepTime != null"
-                  >
+                  <span class="today-time-badge" *ngIf="firstTodayMeal?.meal?.prepTime != null">
                     <span class="today-time-icon">◷</span>
                     {{ firstTodayMeal?.meal?.prepTime }} min
                   </span>
 
-                  <span
-                    class="meal-status"
-                    [ngClass]="'meal-status--' + firstTodayMeal?.status"
-                  >
+                  <span class="meal-status" [ngClass]="'meal-status--' + firstTodayMeal?.status">
                     {{ todayStatusLabel }}
                   </span>
                 </div>
 
-                <p
-                  class="today-more-meals"
-                  *ngIf="hasMultipleTodayMeals"
-                >
+                <p class="today-more-meals" *ngIf="hasMultipleTodayMeals">
                   +{{ additionalMealsCount }} more meal
                   <span *ngIf="additionalMealsCount > 1">s</span>
                 </p>
@@ -98,11 +69,8 @@
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image">
-                  <img
-                    [src]="firstTodayMeal?.meal?.image || 'assets/meals/default-meal.png'"
-                    class="today-meal-image"
-                    [alt]="firstTodayMeal?.meal?.name || 'Meal image'"
-                  />
+                  <img [src]="firstTodayMeal?.meal?.image || 'assets/meals/default-meal.png'" class="today-meal-image"
+                    [alt]="firstTodayMeal?.meal?.name || 'Meal image'" />
                 </div>
               </div>
             </div>
