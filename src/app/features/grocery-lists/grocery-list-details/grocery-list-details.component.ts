@@ -35,9 +35,9 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   selectedItemForActions: any | null = null;
   itemActions: ResponsiveActionMenuItem[] = [
-  { id: 'edit', label: 'Edit' },
-  { id: 'delete', label: 'Delete' },
-];
+    { id: 'edit', label: 'Edit' },
+    { id: 'delete', label: 'Delete' },
+  ];
 
 
   private itemsChannel: RealtimeChannel | null = null;
@@ -47,7 +47,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     private groceryService: GroceryService,
     private userStateService: UserStateService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   @HostListener('document:click')
   onDocumentClick(): void {
@@ -120,6 +120,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async addItem(): Promise<void> {
+    if (this.isReadOnly) return;
     const trimmedName = this.newItemName.trim();
 
     if (!trimmedName || !this.groceryList) {
@@ -176,6 +177,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   toggleItemMenu(event: Event, item: any): void {
   event.stopPropagation();
 
+  if (this.isReadOnly) {
+    return;
+  }
+
   if (this.isMobileViewport()) {
     this.selectedItemForActions = item;
   } else {
@@ -184,6 +189,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 }
 
   startEditItem(event: Event, item: any): void {
+    if (this.isReadOnly) return;
     event.stopPropagation();
     this.openItemMenuId = null;
     this.editingItemId = item.id;
@@ -223,6 +229,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async deleteItem(event: Event, item: any): Promise<void> {
+    if (this.isReadOnly) return;
     event.stopPropagation();
 
     const confirmed = window.confirm(`Delete "${item.name}"?`);
@@ -268,28 +275,59 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-  window.history.back();
-}
-
-isMobileViewport(): boolean {
-  return window.innerWidth < 1024;
-}
-
-async onItemActionSelected(actionId: string): Promise<void> {
-  const item = this.selectedItemForActions;
-  if (!item) return;
-
-  this.selectedItemForActions = null;
-
-  switch (actionId) {
-    case 'edit':
-      this.startEditItem(new Event('click'), item);
-      break;
-
-    case 'delete':
-      await this.deleteItem(new Event('click'), item);
-      break;
+    window.history.back();
   }
+
+  isMobileViewport(): boolean {
+    return window.innerWidth < 1024;
+  }
+
+  async onItemActionSelected(actionId: string): Promise<void> {
+    const item = this.selectedItemForActions;
+    if (!item) return;
+
+    this.selectedItemForActions = null;
+
+    switch (actionId) {
+      case 'edit':
+        this.startEditItem(new Event('click'), item);
+        break;
+
+      case 'delete':
+        await this.deleteItem(new Event('click'), item);
+        break;
+    }
+  }
+
+  get isReadOnly(): boolean {
+    return (
+      this.groceryList?.status === 'completed' ||
+      this.groceryList?.status === 'archived'
+    );
+  }
+
+  async continueList(): Promise<void> {
+  if (!this.groceryList) {
+    return;
+  }
+
+  const success = await this.groceryService.updateGroceryListStatus(
+    this.groceryList.id,
+    'active'
+  );
+
+  if (!success) {
+    this.error = 'Could not continue list.';
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.groceryList = {
+    ...this.groceryList,
+    status: 'active',
+  };
+
+  this.cdr.detectChanges();
 }
 
 }

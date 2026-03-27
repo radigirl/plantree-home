@@ -48,24 +48,21 @@ export class PantryComponent implements OnInit {
   }
 
   async addItem(): Promise<void> {
-    const trimmedName = this.newItemName.trim();
-
-    if (!trimmedName || this.editingItemId) {
-      return;
-    }
-
-    const saved = await this.pantryService.addOrIncrementPantryItem(trimmedName);
-
-    if (!saved) {
-      this.error = 'Could not add pantry item.';
-      this.cdr.detectChanges();
-      return;
-    }
-
-    this.newItemName = '';
-    this.pantryItems = await this.pantryService.getPantryItems();
-    this.cdr.detectChanges();
+  const trimmedName = this.newItemName.trim();
+  if (!trimmedName || this.editingItemId) {
+    return;
   }
+  this.error = '';
+  const saved = await this.pantryService.addOrIncrementPantryItem(trimmedName);
+  if (!saved) {
+    this.error = 'Could not add pantry item.';
+    this.cdr.detectChanges();
+    return;
+  }
+  this.newItemName = '';
+  this.pantryItems = await this.pantryService.getPantryItems();
+  this.cdr.detectChanges();
+}
 
   startEditItem(item: PantryItem): void {
     this.editingItemId = item.id;

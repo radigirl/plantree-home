@@ -101,6 +101,18 @@
   font-size: 0.95rem;
   outline: none;
   box-sizing: border-box;
+
+  &::placeholder {
+    color: $color-text-muted;
+    opacity: 1;
+  }
+}
+
+.list-form-input:disabled {
+  background: rgba(255, 252, 247, 0.92);
+  color: $color-text-muted; 
+  opacity: 1; 
+  cursor: not-allowed;
 }
 
 .list-form-input:focus {

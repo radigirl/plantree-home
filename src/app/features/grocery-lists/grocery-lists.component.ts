@@ -18,6 +18,7 @@ import {
   ResponsiveActionMenuItem,
 } from '../../shared/components/responsive-action-menu/responsive-action-menu';
 import { FeatherModule } from 'angular-feather';
+import { PantryService } from '../../services/pantry.service';
 
 @Component({
   selector: 'app-grocery-lists',
@@ -57,7 +58,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     private groceryService: GroceryService,
     private userStateService: UserStateService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private pantryService: PantryService,
   ) { }
 
   @HostListener('document:click')
@@ -190,23 +192,26 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   }
 
   async loadPantryCounts(): Promise<void> {
-  const counts: Record<string, number> = {};
+    const counts: Record<string, number> = {};
 
-  for (const list of this.groceryLists) {
-    const items = await this.groceryService.getItemsByListId(list.id);
+    for (const list of this.groceryLists) {
+      const items = await this.groceryService.getItemsByListId(list.id);
 
-    counts[list.id] = items.filter(
-      (item: any) => item.status === 'bought' && !item.moved_to_pantry
-    ).length;
+      counts[list.id] = items.filter(
+        (item: any) => item.status === 'bought' && !item.moved_to_pantry
+      ).length;
+    }
+
+    this.pantryCounts = counts;
   }
 
-  this.pantryCounts = counts;
-}
-
   getListActions(list: GroceryList): ResponsiveActionMenuItem[] {
-    const actions: ResponsiveActionMenuItem[] = [
-      { id: 'edit', label: 'Edit' },
-    ];
+    const actions: ResponsiveActionMenuItem[] = [];
+
+    // ✅ ONLY allow edit for active lists
+    if (list.status === 'active') {
+      actions.push({ id: 'edit', label: 'Edit' });
+    }
 
     if (list.status === 'active') {
       actions.push({
@@ -214,6 +219,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         label: 'Complete list',
       });
     }
+
     if (list.status === 'completed') {
       actions.push(
         {
@@ -241,7 +247,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       });
     }
 
-
     if (list.status === 'archived') {
       actions.push(
         {
@@ -262,6 +267,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     return actions;
   }
+
 
   startEditList(event: Event, list: GroceryList): void {
     event.stopPropagation();
@@ -430,11 +436,39 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         return;
       }
 
-      case 'reuse':
+      case 'reuse': {
         this.openMenuListId = null;
-        console.log('Reuse list clicked:', list);
+
+        const currentUser = this.userStateService.getCurrentUser();
+        const createdByUserId = currentUser?.id ?? 1;
+
+        const newListName = this.getNextReuseName(list.name);
+
+        const newList = await this.groceryService.createGroceryList(
+          newListName,
+          createdByUserId
+        );
+
+        if (!newList) {
+          this.error = 'Could not reuse list.';
+          this.cdr.detectChanges();
+          return;
+        }
+
+        const sourceItems = await this.groceryService.getItemsByListId(list.id);
+
+        for (const item of sourceItems) {
+          await this.groceryService.createGroceryItem(
+            newList.id,
+            item.name,
+            createdByUserId
+          );
+        }
+
+        await this.loadGroceryLists();
         this.cdr.detectChanges();
         return;
+      }
 
       case 'archive': {
         const success = await this.groceryService.updateGroceryListStatus(
@@ -448,9 +482,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
           return;
         }
 
-        list.status = 'archived';
-        list.updated_at = new Date().toISOString();
         this.openMenuListId = null;
+        await this.loadGroceryLists();
         this.cdr.detectChanges();
         return;
       }
@@ -459,11 +492,32 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         await this.deleteList(new Event('click'), list);
         return;
 
-      case 'add-to-pantry':
+      case 'add-to-pantry': {
         this.openMenuListId = null;
-        console.log('Add to pantry clicked:', list);
+
+        const items = await this.groceryService.getItemsByListId(list.id);
+
+        const itemsToMove = items.filter(
+          (item: any) => item.status === 'bought' && !item.moved_to_pantry
+        );
+
+        for (const item of itemsToMove) {
+          await this.pantryService.addOrIncrementPantryItem(item.name);
+
+          await this.groceryService.updateGroceryItemMovedToPantry(
+            item.id,
+            true
+          );
+        }
+
+        // refresh pantry counts after update
+        await this.loadPantryCounts();
+
+        console.log(`Moved ${itemsToMove.length} items to pantry`);
+
         this.cdr.detectChanges();
         return;
+      }
     }
   }
 
@@ -475,7 +529,35 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     await this.handleListAction(actionId, list);
   }
 
- getPendingPantryItemsCount(list: GroceryList): number {
-  return this.pantryCounts[list.id] ?? 0;
-}
+  getPendingPantryItemsCount(list: GroceryList): number {
+    return this.pantryCounts[list.id] ?? 0;
+  }
+
+  private getReuseBaseName(name: string): string {
+    return name.replace(/\s*\(copy(?:\s+\d+)?\)$/i, '').trim();
+  }
+
+  private getNextReuseName(sourceName: string): string {
+    const baseName = this.getReuseBaseName(sourceName);
+
+    const matchingNames = this.groceryLists
+      .map((list) => list.name)
+      .filter((name) => this.getReuseBaseName(name) === baseName);
+
+    const hasPlainCopy = matchingNames.includes(`${baseName} (copy)`);
+
+    let maxCopyNumber = hasPlainCopy ? 1 : 0;
+
+    for (const name of matchingNames) {
+      const match = name.match(/\(copy\s+(\d+)\)$/i);
+      if (match) {
+        maxCopyNumber = Math.max(maxCopyNumber, Number(match[1]));
+      }
+    }
+
+    return maxCopyNumber === 0
+      ? `${baseName} (copy)`
+      : `${baseName} (copy ${maxCopyNumber + 1})`;
+  }
+
 }

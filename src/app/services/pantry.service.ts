@@ -127,49 +127,68 @@ export class PantryService {
   }
 
   async addOrIncrementPantryItem(name: string): Promise<PantryItem | null> {
-    const trimmedName = name.trim();
+  const trimmedName = name.trim();
 
-    if (!trimmedName) {
-      return null;
-    }
-
-    const normalizedName = this.normalizeName(trimmedName);
-
-    const { data: existing, error: fetchError } = await this.supabase
-      .from('pantry_items')
-      .select('*')
-      .eq('normalized_name', normalizedName)
-      .limit(1)
-      .maybeSingle();
-
-    if (fetchError) {
-      console.error('Error checking existing pantry item:', fetchError);
-      return null;
-    }
-
-    if (existing) {
-      const nextAmount = (existing.amount ?? 0) + 1;
-
-      const { data, error } = await this.supabase
-        .from('pantry_items')
-        .update({
-          amount: nextAmount,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error incrementing pantry item:', error);
-        return null;
-      }
-
-      return data as PantryItem;
-    }
-
-    return this.createPantryItem(trimmedName);
+  if (!trimmedName) {
+    return null;
   }
+
+  const normalizedName = this.normalizeName(trimmedName);
+
+  const { data: existing, error: fetchError } = await this.supabase
+    .from('pantry_items')
+    .select('*')
+    .eq('normalized_name', normalizedName)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error('Error checking existing pantry item:', fetchError);
+    return null;
+  }
+
+  if (existing) {
+    const { data, error } = await this.supabase
+      .from('pantry_items')
+      .update({
+        amount: existing.amount + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error incrementing pantry item:', error);
+      return null;
+    }
+
+    return data as PantryItem;
+  }
+
+  const { data, error } = await this.supabase
+    .from('pantry_items')
+    .insert([
+      {
+        name: trimmedName,
+        normalized_name: normalizedName,
+        amount: 1,
+        unit: 'item',
+        size_amount: null,
+        size_unit: null,
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating pantry item:', error);
+    return null;
+  }
+
+  return data as PantryItem;
+}
+
+  
 
   private normalizeName(name: string): string {
     return name.trim().toLowerCase();

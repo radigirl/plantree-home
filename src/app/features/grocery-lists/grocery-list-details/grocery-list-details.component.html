@@ -23,10 +23,23 @@
           </span>
         </div>
 
-        <div class="add-item-row">
-          <input type="text" [(ngModel)]="newItemName" placeholder="Add item" class="add-item-input" />
+        <div *ngIf="isReadOnly" class="read-only-banner">
+          <div class="read-only-banner__content">
+            <p class="read-only-banner__text">
+              This list is {{ groceryList.status }} and read-only.
+            </p>
 
-          <button type="button" class="button-pill-primary" (click)="addItem()">
+            <button type="button" class="read-only-banner__button" (click)="continueList()">
+              Continue list
+            </button>
+          </div>
+        </div>
+
+        <div class="add-item-row">
+          <input type="text" [(ngModel)]="newItemName" class="add-item-input" [disabled]="isReadOnly"
+            placeholder="Add item..." />
+
+          <button class="add-item-button" (click)="addItem()" [disabled]="isReadOnly">
             Add
           </button>
         </div>
@@ -35,7 +48,7 @@
           <div class="grocery-item" *ngFor="let item of groceryItems"
             [class.grocery-item--editing]="editingItemId === item.id">
             <ng-container *ngIf="editingItemId !== item.id; else editMode">
-              <div class="grocery-item-main" (click)="toggleItem(item)">
+              <div class="grocery-item-main" (click)="!isReadOnly && toggleItem(item)">
                 <span class="grocery-item-checkbox" [class.grocery-item-checkbox--checked]="item.status === 'bought'">
                   {{ item.status === 'bought' ? '✓' : '' }}
                 </span>
@@ -68,10 +81,10 @@
                   ⋯
                 </button>
                 <div *ngIf="openItemMenuId === item.id && !isMobileViewport()" class="grocery-item-menu">
-                  <button class="grocery-item-menu-item" (click)="startEditItem($event, item)">
+                  <button *ngIf="!isReadOnly" class="grocery-item-menu-item" (click)="startEditItem($event, item)">
                     Edit
                   </button>
-                  <button class="grocery-item-menu-item grocery-item-menu-item--danger"
+                  <button *ngIf="!isReadOnly" class="grocery-item-menu-item grocery-item-menu-item--danger"
                     (click)="deleteItem($event, item)">
                     Delete
                   </button>

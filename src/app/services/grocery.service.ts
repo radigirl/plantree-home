@@ -269,4 +269,23 @@ async updateGroceryListPinned(
 
     return true;
   }
+
+  async updateGroceryItemMovedToPantry(
+  itemId: string,
+  value: boolean
+): Promise<boolean> {
+  const { error } = await this.supabase
+    .from('grocery_list_items')
+    .update({ moved_to_pantry: value })
+    .eq('id', itemId);
+
+  if (error) {
+    console.error('Error updating moved_to_pantry:', error);
+    return false;
+  }
+
+  return true;
+}
+
+  
 }
