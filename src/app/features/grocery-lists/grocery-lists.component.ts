@@ -17,6 +17,8 @@ import {
   ResponsiveActionMenuComponent,
   ResponsiveActionMenuItem,
 } from '../../shared/components/responsive-action-menu/responsive-action-menu';
+import { FeatherModule } from 'angular-feather';
+
 
 @Component({
   selector: 'app-grocery-lists',
@@ -26,6 +28,7 @@ import {
     PageLoadingComponent,
     FormsModule,
     ResponsiveActionMenuComponent,
+     FeatherModule,
   ],
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
@@ -47,6 +50,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   listActions: ResponsiveActionMenuItem[] = [];
 
   private listsChannel: RealtimeChannel | null = null;
+  
 
   constructor(
     private groceryService: GroceryService,
@@ -174,14 +178,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   buildListActions(list: GroceryList): ResponsiveActionMenuItem[] {
     const actions: ResponsiveActionMenuItem[] = [
       { id: 'edit', label: 'Edit' },
-      {
-        id: 'pin',
-        label: list.is_pinned ? 'Unpin list' : 'Pin list',
-      },
-      {
-        id: 'urgent',
-        label: list.is_urgent ? 'Remove urgent' : 'Mark urgent',
-      },
     ];
 
     if (list.status === 'active') {
@@ -332,24 +328,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  async onToggleUrgent(list: GroceryList): Promise<void> {
-    const nextValue = !list.is_urgent;
-
-    const success = await this.groceryService.updateGroceryListUrgent(
-      list.id,
-      nextValue
-    );
-
-    if (!success) {
-      this.error = 'Could not update urgent state.';
-      this.cdr.detectChanges();
-      return;
-    }
-
-    list.is_urgent = nextValue;
-    list.updated_at = new Date().toISOString();
-    this.cdr.detectChanges();
-  }
 
   async onMenuPin(event: Event, list: GroceryList): Promise<void> {
     event.stopPropagation();
@@ -373,27 +351,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  async onMenuUrgent(event: Event, list: GroceryList): Promise<void> {
-    event.stopPropagation();
-
-    const nextValue = !list.is_urgent;
-
-    const success = await this.groceryService.updateGroceryListUrgent(
-      list.id,
-      nextValue
-    );
-
-    if (!success) {
-      this.error = 'Could not update urgent state.';
-      this.cdr.detectChanges();
-      return;
-    }
-
-    list.is_urgent = nextValue;
-    list.updated_at = new Date().toISOString();
-    this.openMenuListId = null;
-    this.cdr.detectChanges();
-  }
 
   async onMenuComplete(event: Event, list: GroceryList): Promise<void> {
     event.stopPropagation();
@@ -448,45 +405,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     case 'edit':
       this.startEditList(new Event('click'), list);
       break;
-
-    case 'pin': {
-      const nextValue = !list.is_pinned;
-
-      const success = await this.groceryService.updateGroceryListPinned(
-        list.id,
-        nextValue
-      );
-
-      if (!success) {
-        this.error = 'Could not update pinned state.';
-        this.cdr.detectChanges();
-        return;
-      }
-
-      list.is_pinned = nextValue;
-      list.updated_at = new Date().toISOString();
-      break;
-    }
-
-    case 'urgent': {
-      const nextValue = !list.is_urgent;
-
-      const success = await this.groceryService.updateGroceryListUrgent(
-        list.id,
-        nextValue
-      );
-
-      if (!success) {
-        this.error = 'Could not update urgent state.';
-        this.cdr.detectChanges();
-        return;
-      }
-
-      list.is_urgent = nextValue;
-      list.updated_at = new Date().toISOString();
-      break;
-    }
-
     case 'complete': {
       const nextStatus =
         list.status === 'completed' || list.status === 'archived'

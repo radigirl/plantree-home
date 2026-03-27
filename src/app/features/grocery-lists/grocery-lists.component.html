@@ -71,16 +71,12 @@
 
           <div class="list-right-actions" (click)="$event.stopPropagation()">
 
-            <button *ngIf="list.is_pinned" type="button" class="list-indicator book" (click)="onTogglePin(list)"
-              aria-label="Unpin list">
-              <img src="assets/icons/bookmark-icon.svg" alt="pin" />
-            </button>
+            <button type="button" class="list-indicator pin-btn" (click)="onTogglePin(list)" aria-label="Toggle pin">
 
-            <button *ngIf="list.is_urgent" type="button" class="list-indicator" (click)="onToggleUrgent(list)"
-              aria-label="Remove urgent">
-              <img src="assets/icons/urgent-icon.svg" alt="pin" />
-            </button>
+              <i-feather name="star" [class.pinned]="list.is_pinned">
+              </i-feather>
 
+            </button>
 
             <div class="list-menu-wrapper">
               <button type="button" class="list-menu-button" (click)="toggleActionsMenu($event, list)"
@@ -88,23 +84,14 @@
                 ⋯
               </button>
 
-
               <div *ngIf="openMenuListId === list.id && !isMobileViewport()"
                 class="list-menu-dropdown dropdown-list-surface">
                 <button type="button" class="list-menu-item dropdown-list-item" (click)="startEditList($event, list)">
                   Edit
                 </button>
 
-                <button type="button" class="list-menu-item dropdown-list-item" (click)="onMenuPin($event, list)">
-                  {{ list.is_pinned ? 'Unpin list' : 'Pin list' }}
-                </button>
-
-                <button type="button" class="list-menu-item dropdown-list-item" (click)="onMenuUrgent($event, list)">
-                  {{ list.is_urgent ? 'Remove urgent' : 'Mark urgent' }}
-                </button>
-
                 <button type="button" class="list-menu-item dropdown-list-item" (click)="onMenuComplete($event, list)">
-                  {{ list.status === 'completed' ? 'Reopen list' : 'Complete list' }}
+                  {{ list.status === 'completed' || list.status === 'archived' ? 'Reopen list' : 'Complete list' }}
                 </button>
 
                 <button *ngIf="list.status === 'completed'" type="button" class="list-menu-item dropdown-list-item"
@@ -117,7 +104,6 @@
                   Delete
                 </button>
               </div>
-
 
             </div>
           </div>

@@ -1,21 +1,6 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/breakpoints' as *;
 
-button {
-  img {
-    max-height: 27px;
-  }
-}
-
-.book {
-img {
-    max-height: 18px;
-  }
-}
-
-// @use '../../../styles/variables' as *;
-// @use '../../../styles/breakpoints' as *;
-
 :host {
   display: block;
   width: 100%;
@@ -181,7 +166,6 @@ img {
   transform: scale(0.995);
 }
 
-/* NEW: row structure for top-aligned right side */
 .list-row {
   display: flex;
   align-items: flex-start;
@@ -231,7 +215,6 @@ img {
   color: #607d8b;
 }
 
-/* FIXED: right side sits on the title row, not vertically centered */
 .list-right-actions {
   display: flex;
   align-items: flex-start;
@@ -260,13 +243,6 @@ img {
   transform: scale(1.06);
 }
 
-.list-bookmark {
-  width: 18px;
-  height: 18px;
-  display: block;
-}
-
-/* FIXED: menu wrapper is part of the row, not absolutely placed */
 .list-menu-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -398,6 +374,46 @@ img {
   flex-shrink: 0;
 }
 
+.pin-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-btn i-feather {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  transition: all 0.2s ease;
+}
+
+.pin-btn:hover i-feather {
+  color: $color-primary-dark;
+  transform: scale(1.1);
+}
+
+.pin-btn i-feather.pinned {
+  color: #facc15;
+}
+
+:host ::ng-deep .pin-btn i-feather svg {
+  width: 24px !important;
+  height: 24px !important;
+  stroke-width: 2 !important;
+}
+
+:host ::ng-deep .pin-btn i-feather.pinned svg {
+  fill: #facc15 !important;
+  stroke: #facc15 !important;
+}
+
 @include mobile {
   .lists-page {
     gap: 12px;
@@ -443,11 +459,6 @@ img {
     height: 20px;
     min-width: 20px;
     min-height: 20px;
-  }
-
-  .list-bookmark {
-    width: 17px;
-    height: 17px;
   }
 
   .list-menu-button {

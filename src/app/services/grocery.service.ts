@@ -128,23 +128,6 @@ async updateGroceryListPinned(
   return true;
 }
 
-async updateGroceryListUrgent(
-  listId: string,
-  isUrgent: boolean
-): Promise<boolean> {
-  const { error } = await this.supabase
-    .from('grocery_lists')
-    .update({ is_urgent: isUrgent })
-    .eq('id', listId);
-
-  if (error) {
-    console.error('Error updating grocery list urgent state:', error);
-    return false;
-  }
-
-  return true;
-}
-
   async deleteGroceryList(listId: string): Promise<boolean> {
     const { error } = await this.supabase
       .from('grocery_lists')
