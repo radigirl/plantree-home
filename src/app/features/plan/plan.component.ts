@@ -68,7 +68,11 @@ export class PlanComponent implements OnInit {
 
   openDayDetails(date: string): void {
     sessionStorage.setItem('planReturnDate', date);
-    this.router.navigate(['/plan/day', date]);
+    this.router.navigate(['/plan/day', date], {
+      queryParams: {
+        source: 'plan'
+      }
+    });
   }
 
   async loadWeekPlan(scrollToTodayAfterLoad = false): Promise<void> {
@@ -308,31 +312,34 @@ export class PlanComponent implements OnInit {
   }
 
   async confirmCalendarDates(dates: string[]): Promise<void> {
-    if (!dates.length) {
-      return;
-    }
-
-    const pickedDate = new Date(`${dates[0]}T12:00:00`);
-    const pickedWeekStart = this.getStartOfWeek(pickedDate);
-
-    this.closeCalendar();
-
-    this.currentWeekStart = pickedWeekStart;
-    await this.loadWeekPlan(false);
-
-    requestAnimationFrame(() => {
-      const pickedIndex = this.getDayIndexInCurrentWeek(pickedDate);
-      if (pickedIndex !== -1) {
-        this.scrollToDayInstant(pickedIndex);
-      }
-    });
+  if (!dates.length) {
+    return;
   }
 
-  isViewingCurrentWeek(): boolean {
-  const today = new Date();
-  const todayWeekStart = this.getStartOfWeek(today);
+  const pickedDate = new Date(`${dates[0]}T12:00:00`);
+  const pickedWeekStart = this.getStartOfWeek(pickedDate);
 
-  return this.formatDateForInput(this.currentWeekStart) === this.formatDateForInput(todayWeekStart);
+  // let the selected state be visible briefly
+  await new Promise((resolve) => setTimeout(resolve, 160));
+
+  this.closeCalendar();
+
+  this.currentWeekStart = pickedWeekStart;
+  await this.loadWeekPlan(false);
+
+  requestAnimationFrame(() => {
+    const pickedIndex = this.getDayIndexInCurrentWeek(pickedDate);
+    if (pickedIndex !== -1) {
+      this.scrollToDayInstant(pickedIndex);
+    }
+  });
 }
+
+  isViewingCurrentWeek(): boolean {
+    const today = new Date();
+    const todayWeekStart = this.getStartOfWeek(today);
+
+    return this.formatDateForInput(this.currentWeekStart) === this.formatDateForInput(todayWeekStart);
+  }
 
 }

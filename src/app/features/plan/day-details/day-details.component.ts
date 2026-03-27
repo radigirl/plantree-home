@@ -204,29 +204,29 @@ export class DayDetailsComponent implements OnInit {
     return filterMealsByQuery(this.availableMeals, this.changeMealSearchQuery);
   }
 
-get displayedAvailableMeals() {
-  if (!this.mealSearchQuery.trim()) {
-    return [];
+  get displayedAvailableMeals() {
+    if (!this.mealSearchQuery.trim()) {
+      return [];
+    }
+
+    return this.filteredAvailableMeals;
   }
 
-  return this.filteredAvailableMeals;
-}
+  get displayedChangeMealOptions() {
+    if (!this.changeMealSearchQuery.trim()) {
+      return [];
+    }
 
-get displayedChangeMealOptions() {
-  if (!this.changeMealSearchQuery.trim()) {
-    return [];
+    return this.filteredChangeMealOptions;
   }
 
-  return this.filteredChangeMealOptions;
-}
+  get selectedAvailableMeal() {
+    return this.availableMeals.find((meal) => meal.id === this.selectedExistingMealId) ?? null;
+  }
 
-get selectedAvailableMeal() {
-  return this.availableMeals.find((meal) => meal.id === this.selectedExistingMealId) ?? null;
-}
-
-get selectedChangeMeal() {
-  return this.availableMeals.find((meal) => meal.id === this.selectedExistingMealId) ?? null;
-}
+  get selectedChangeMeal() {
+    return this.availableMeals.find((meal) => meal.id === this.selectedExistingMealId) ?? null;
+  }
 
   clearMealSearch(): void {
     this.mealSearchQuery = '';
@@ -238,15 +238,15 @@ get selectedChangeMeal() {
     this.selectedExistingMealId = null;
   }
 
- selectMealForAdd(mealId: string): void {
-  this.selectedExistingMealId = mealId;
-  this.mealSearchQuery = '';
-}
+  selectMealForAdd(mealId: string): void {
+    this.selectedExistingMealId = mealId;
+    this.mealSearchQuery = '';
+  }
 
-selectMealForChange(mealId: string): void {
-  this.selectedExistingMealId = mealId;
-  this.changeMealSearchQuery = '';
-}
+  selectMealForChange(mealId: string): void {
+    this.selectedExistingMealId = mealId;
+    this.changeMealSearchQuery = '';
+  }
 
   setAddMealMode(mode: AddMealMode): void {
     this.addMealMode = mode;
@@ -333,7 +333,32 @@ selectMealForChange(mealId: string): void {
     this.addMealMode = this.availableMeals.length > 0 ? 'search' : 'new';
   }
 
+
+  getBackLabel(): string {
+    const source = this.getSource();
+
+    if (source === 'home') return 'Home';
+    if (source === 'plan') return 'Plan';
+
+    return 'Back';
+  }
+
+  private getSource(): string | null {
+    return this.route.snapshot.queryParamMap.get('source');
+  }
+
   goBack(): void {
+    const source = this.getSource();
+
+    if (source === 'home') {
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    if (source === 'plan') {
+      this.router.navigate(['/plan']);
+      return;
+    }
     window.history.back();
   }
 

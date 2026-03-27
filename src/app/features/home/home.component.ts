@@ -86,17 +86,15 @@ export class HomeComponent implements OnInit {
   }
 
   openToday(): void {
-    const today = this.formatDateLocal(new Date());
+  const today = this.formatDateLocal(new Date());
 
-    this.router.navigate(['/plan/day', today], {
-      queryParams: this.hasTodayMeals
-        ? {}
-        : {
-          add: 'true',
-          source: 'home'
-        }
-    });
-  }
+  this.router.navigate(['/plan/day', today], {
+    queryParams: {
+      source: 'home',
+      ...(this.hasTodayMeals ? {} : { add: 'true' })
+    }
+  });
+}
 
   onAddTodayClick(event: MouseEvent): void {
     event.stopPropagation();

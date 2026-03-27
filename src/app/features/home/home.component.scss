@@ -124,19 +124,21 @@
   align-items: start;
 }
 
-.today-card--empty {
-  position: relative;
-}
-
 .today-card--empty:active {
   transform: scale(0.98);
 }
 
-.today-card--empty .meal-add-btn {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 3;
+.today-card-body {
+  min-width: 0;
+}
+
+.today-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.today-card .meal-add-btn {
   width: auto;
   display: inline-flex;
   align-items: center;
@@ -152,20 +154,6 @@
   line-height: 1;
   box-shadow: 0 4px 12px rgba(46, 58, 50, 0.08);
   cursor: pointer;
-}
-
-.today-card--empty .meal-add-btn--corner {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.today-card-body {
-  min-width: 0;
-}
-
-.today-card--empty .today-card-body {
-  padding-top: 44px;
 }
 
 .today-main-text {
@@ -375,13 +363,13 @@
     font-size: 0.9rem;
   }
 
-  .today-card--empty .meal-add-btn {
+  .today-card .meal-add-btn {
     padding: 7px 12px;
     font-size: 0.85rem;
   }
 
-  .today-card--empty .today-card-body {
-    padding-top: 40px;
+  .today-card-actions {
+    margin-bottom: 8px;
   }
 }
 
@@ -400,7 +388,7 @@
   .today-card {
     grid-template-columns: minmax(0, 1fr) 220px;
     gap: 20px;
-    align-items: center;
+    align-items: start;
   }
 
   .today-card-image-wrap {
@@ -437,6 +425,7 @@
   .today-card {
     grid-template-columns: minmax(0, 1fr) 240px;
     gap: 24px;
+    align-items: start;
   }
 
   .today-card-image {
@@ -447,7 +436,7 @@
   .today-card-body {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .today-main-text {

@@ -6,7 +6,7 @@ import { GroceryList } from '../models/grocery-list.model';
   providedIn: 'root',
 })
 export class GroceryService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private supabaseService: SupabaseService) { }
 
   get supabase() {
     return this.supabaseService.supabase;
@@ -93,40 +93,40 @@ export class GroceryService {
 
     return true;
   }
-  
-async updateGroceryListStatus(
-  listId: string,
-  status: 'active' | 'completed' | 'archived'
-): Promise<boolean> {
-  const { error } = await this.supabase
-    .from('grocery_lists')
-    .update({ status })
-    .eq('id', listId);
 
-  if (error) {
-    console.error('Error updating grocery list status:', error);
-    return false;
+  async updateGroceryListStatus(
+    listId: string,
+    status: 'active' | 'completed' | 'archived'
+  ): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('grocery_lists')
+      .update({ status })
+      .eq('id', listId);
+
+    if (error) {
+      console.error('Error updating grocery list status:', error);
+      return false;
+    }
+
+    return true;
   }
 
-  return true;
-}
+  async updateGroceryListPinned(
+    listId: string,
+    isPinned: boolean
+  ): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('grocery_lists')
+      .update({ is_pinned: isPinned })
+      .eq('id', listId);
 
-async updateGroceryListPinned(
-  listId: string,
-  isPinned: boolean
-): Promise<boolean> {
-  const { error } = await this.supabase
-    .from('grocery_lists')
-    .update({ is_pinned: isPinned })
-    .eq('id', listId);
+    if (error) {
+      console.error('Error updating grocery list pinned state:', error);
+      return false;
+    }
 
-  if (error) {
-    console.error('Error updating grocery list pinned state:', error);
-    return false;
+    return true;
   }
-
-  return true;
-}
 
   async deleteGroceryList(listId: string): Promise<boolean> {
     const { error } = await this.supabase
@@ -210,15 +210,15 @@ async updateGroceryListPinned(
     const payload =
       status === 'bought'
         ? {
-            status,
-            bought_by_user_id: boughtByUserId ?? null,
-            bought_at: new Date().toISOString(),
-          }
+          status,
+          bought_by_user_id: boughtByUserId ?? null,
+          bought_at: new Date().toISOString(),
+        }
         : {
-            status,
-            bought_by_user_id: null,
-            bought_at: null,
-          };
+          status,
+          bought_by_user_id: null,
+          bought_at: null,
+        };
 
     const { error } = await this.supabaseService.supabase
       .from('grocery_list_items')
@@ -271,21 +271,21 @@ async updateGroceryListPinned(
   }
 
   async updateGroceryItemMovedToPantry(
-  itemId: string,
-  value: boolean
-): Promise<boolean> {
-  const { error } = await this.supabase
-    .from('grocery_list_items')
-    .update({ moved_to_pantry: value })
-    .eq('id', itemId);
+    itemId: string,
+    value: boolean
+  ): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('grocery_list_items')
+      .update({ moved_to_pantry: value })
+      .eq('id', itemId);
 
-  if (error) {
-    console.error('Error updating moved_to_pantry:', error);
-    return false;
+    if (error) {
+      console.error('Error updating moved_to_pantry:', error);
+      return false;
+    }
+
+    return true;
   }
 
-  return true;
-}
 
-  
 }

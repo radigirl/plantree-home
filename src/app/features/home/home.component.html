@@ -13,16 +13,17 @@
         <div class="card__content">
           <ng-container *ngIf="!hasTodayMeals; else todayMealsContent">
             <div class="today-card today-card--empty">
-              
-              <button
-                type="button"
-                class="meal-add-btn meal-add-btn--corner"
-                (click)="onAddTodayClick($event)"
-              >
-                + Add meal
-              </button>
-
               <div class="today-card-body">
+                <div class="today-card-actions">
+                  <button
+                    type="button"
+                    class="meal-add-btn"
+                    (click)="onAddTodayClick($event)"
+                  >
+                    + Add meal
+                  </button>
+                </div>
+
                 <p class="today-empty-title">No meal planned yet</p>
               </div>
 
@@ -41,6 +42,16 @@
           <ng-template #todayMealsContent>
             <div class="today-card">
               <div class="today-card-body">
+                <div class="today-card-actions">
+                  <button
+                    type="button"
+                    class="meal-add-btn"
+                    (click)="onAddTodayClick($event)"
+                  >
+                    + Add meal
+                  </button>
+                </div>
+
                 <p class="today-main-text">
                   {{ firstTodayMeal?.meal?.name }}
                 </p>
