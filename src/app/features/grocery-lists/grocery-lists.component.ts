@@ -19,7 +19,6 @@ import {
 } from '../../shared/components/responsive-action-menu/responsive-action-menu';
 import { FeatherModule } from 'angular-feather';
 
-
 @Component({
   selector: 'app-grocery-lists',
   standalone: true,
@@ -28,7 +27,7 @@ import { FeatherModule } from 'angular-feather';
     PageLoadingComponent,
     FormsModule,
     ResponsiveActionMenuComponent,
-     FeatherModule,
+    FeatherModule,
   ],
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
@@ -48,9 +47,11 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   selectedListForActions: GroceryList | null = null;
 
   listActions: ResponsiveActionMenuItem[] = [];
+  showArchived = false;
+
+  pantryCounts: Record<string, number> = {};
 
   private listsChannel: RealtimeChannel | null = null;
-  
 
   constructor(
     private groceryService: GroceryService,
@@ -69,10 +70,22 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       if (a.is_pinned && !b.is_pinned) return -1;
       if (!a.is_pinned && b.is_pinned) return 1;
 
-      return (
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-      );
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
+  }
+
+  get mainLists(): GroceryList[] {
+    return this.sortedLists.filter(
+      (list) => list.status === 'active' || list.status === 'completed'
+    );
+  }
+
+  get archivedLists(): GroceryList[] {
+    return this.sortedLists.filter((list) => list.status === 'archived');
+  }
+
+  get archivedCount(): number {
+    return this.archivedLists.length;
   }
 
   async ngOnInit(): Promise<void> {
@@ -87,9 +100,9 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   async loadGroceryLists(): Promise<void> {
     this.isLoading = true;
     this.error = '';
-
     try {
       this.groceryLists = await this.groceryService.getGroceryLists();
+      await this.loadPantryCounts();
     } catch (error) {
       console.error('Error loading grocery lists:', error);
       this.error = 'Could not load grocery lists.';
@@ -113,6 +126,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         },
         async () => {
           this.groceryLists = await this.groceryService.getGroceryLists();
+          await this.loadPantryCounts();
           this.cdr.detectChanges();
         }
       )
@@ -171,11 +185,25 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.selectedListForActions = isSame ? null : list;
 
     if (!isSame) {
-      this.listActions = this.buildListActions(list);
+      this.listActions = this.getListActions(list);
     }
   }
 
-  buildListActions(list: GroceryList): ResponsiveActionMenuItem[] {
+  async loadPantryCounts(): Promise<void> {
+  const counts: Record<string, number> = {};
+
+  for (const list of this.groceryLists) {
+    const items = await this.groceryService.getItemsByListId(list.id);
+
+    counts[list.id] = items.filter(
+      (item: any) => item.status === 'bought' && !item.moved_to_pantry
+    ).length;
+  }
+
+  this.pantryCounts = counts;
+}
+
+  getListActions(list: GroceryList): ResponsiveActionMenuItem[] {
     const actions: ResponsiveActionMenuItem[] = [
       { id: 'edit', label: 'Edit' },
     ];
@@ -186,25 +214,45 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         label: 'Complete list',
       });
     }
-
     if (list.status === 'completed') {
       actions.push(
         {
-          id: 'complete',
-          label: 'Reopen list',
+          id: 'continue',
+          label: 'Continue list',
         },
         {
-          id: 'archive',
-          label: 'Archive',
+          id: 'reuse',
+          label: 'Reuse list',
         }
       );
+
+      const pendingPantryItems = this.getPendingPantryItemsCount(list);
+
+      if (pendingPantryItems > 0) {
+        actions.push({
+          id: 'add-to-pantry',
+          label: `Add ${pendingPantryItems} items to pantry`,
+        });
+      }
+
+      actions.push({
+        id: 'archive',
+        label: 'Archive',
+      });
     }
 
+
     if (list.status === 'archived') {
-      actions.push({
-        id: 'complete',
-        label: 'Reopen list',
-      });
+      actions.push(
+        {
+          id: 'continue',
+          label: 'Continue list',
+        },
+        {
+          id: 'reuse',
+          label: 'Reuse list',
+        }
+      );
     }
 
     actions.push({
@@ -328,128 +376,106 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-
-  async onMenuPin(event: Event, list: GroceryList): Promise<void> {
-    event.stopPropagation();
-
-    const nextValue = !list.is_pinned;
-
-    const success = await this.groceryService.updateGroceryListPinned(
-      list.id,
-      nextValue
-    );
-
-    if (!success) {
-      this.error = 'Could not update pinned state.';
-      this.cdr.detectChanges();
-      return;
-    }
-
-    list.is_pinned = nextValue;
-    list.updated_at = new Date().toISOString();
-    this.openMenuListId = null;
-    this.cdr.detectChanges();
+  onDesktopActionClick(event: Event, actionId: string, list: GroceryList): void {
+    void this.handleListAction(actionId, list, event);
   }
 
+  async handleListAction(
+    actionId: string,
+    list: GroceryList,
+    event?: Event
+  ): Promise<void> {
+    event?.stopPropagation();
 
-  async onMenuComplete(event: Event, list: GroceryList): Promise<void> {
-    event.stopPropagation();
+    switch (actionId) {
+      case 'edit':
+        this.startEditList(new Event('click'), list);
+        return;
 
-    const nextStatus =
-      list.status === 'completed' ? 'active' : 'completed';
+      case 'complete': {
+        const success = await this.groceryService.updateGroceryListStatus(
+          list.id,
+          'completed'
+        );
 
-    const success = await this.groceryService.updateGroceryListStatus(
-      list.id,
-      nextStatus
-    );
+        if (!success) {
+          this.error = 'Could not complete list.';
+          this.cdr.detectChanges();
+          return;
+        }
 
-    if (!success) {
-      this.error = 'Could not update list status.';
-      this.cdr.detectChanges();
-      return;
-    }
-
-    list.status = nextStatus;
-    list.updated_at = new Date().toISOString();
-    this.openMenuListId = null;
-    this.cdr.detectChanges();
-  }
-
-  async onMenuArchive(event: Event, list: GroceryList): Promise<void> {
-    event.stopPropagation();
-
-    const success = await this.groceryService.updateGroceryListStatus(
-      list.id,
-      'archived'
-    );
-
-    if (!success) {
-      this.error = 'Could not archive list.';
-      this.cdr.detectChanges();
-      return;
-    }
-
-    list.status = 'archived';
-    list.updated_at = new Date().toISOString();
-    this.openMenuListId = null;
-    this.cdr.detectChanges();
-  }
-
- async onActionSelected(actionId: string): Promise<void> {
-  if (!this.selectedListForActions) return;
-
-  const list = this.selectedListForActions;
-  this.closeActions();
-
-  switch (actionId) {
-    case 'edit':
-      this.startEditList(new Event('click'), list);
-      break;
-    case 'complete': {
-      const nextStatus =
-        list.status === 'completed' || list.status === 'archived'
-          ? 'active'
-          : 'completed';
-
-      const success = await this.groceryService.updateGroceryListStatus(
-        list.id,
-        nextStatus
-      );
-
-      if (!success) {
-        this.error = 'Could not update list status.';
+        list.status = 'completed';
+        list.updated_at = new Date().toISOString();
+        this.openMenuListId = null;
         this.cdr.detectChanges();
         return;
       }
 
-      list.status = nextStatus;
-      list.updated_at = new Date().toISOString();
-      break;
-    }
+      case 'continue': {
+        const success = await this.groceryService.updateGroceryListStatus(
+          list.id,
+          'active'
+        );
 
-    case 'archive': {
-      const success = await this.groceryService.updateGroceryListStatus(
-        list.id,
-        'archived'
-      );
+        if (!success) {
+          this.error = 'Could not continue list.';
+          this.cdr.detectChanges();
+          return;
+        }
 
-      if (!success) {
-        this.error = 'Could not archive list.';
+        list.status = 'active';
+        list.updated_at = new Date().toISOString();
+        this.openMenuListId = null;
         this.cdr.detectChanges();
         return;
       }
 
-      list.status = 'archived';
-      list.updated_at = new Date().toISOString();
-      break;
-    }
+      case 'reuse':
+        this.openMenuListId = null;
+        console.log('Reuse list clicked:', list);
+        this.cdr.detectChanges();
+        return;
 
-    case 'delete':
-      await this.deleteList(new Event('click'), list);
-      return;
+      case 'archive': {
+        const success = await this.groceryService.updateGroceryListStatus(
+          list.id,
+          'archived'
+        );
+
+        if (!success) {
+          this.error = 'Could not archive list.';
+          this.cdr.detectChanges();
+          return;
+        }
+
+        list.status = 'archived';
+        list.updated_at = new Date().toISOString();
+        this.openMenuListId = null;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      case 'delete':
+        await this.deleteList(new Event('click'), list);
+        return;
+
+      case 'add-to-pantry':
+        this.openMenuListId = null;
+        console.log('Add to pantry clicked:', list);
+        this.cdr.detectChanges();
+        return;
+    }
   }
 
-  this.cdr.detectChanges();
+  async onActionSelected(actionId: string): Promise<void> {
+    if (!this.selectedListForActions) return;
+
+    const list = this.selectedListForActions;
+    this.closeActions();
+    await this.handleListAction(actionId, list);
+  }
+
+ getPendingPantryItemsCount(list: GroceryList): number {
+  return this.pantryCounts[list.id] ?? 0;
 }
-
 }

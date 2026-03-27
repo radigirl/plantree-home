@@ -1,3 +1,349 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/breakpoints' as *;
+@use '../../../styles/components/buttons' as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
 .pantry-page {
-  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.pantry-loading {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pantry-error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 241, 241, 0.92);
+  border: 1px solid rgba(225, 183, 183, 0.9);
+  color: #9a4d4d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.pantry-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.pantry-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pantry-title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.pantry-subtitle {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: $color-text-muted;
+}
+
+.add-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-item-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid $color-border;
+  border-radius: 999px;
+  background: #fff;
+  box-sizing: border-box;
+  font: inherit;
+  color: $color-primary-dark;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.add-item-input::placeholder {
+  color: $color-text-muted;
+  opacity: 0.9;
+}
+
+.add-item-input:focus {
+  border-color: rgba(92, 143, 134, 0.42);
+  box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.08);
+}
+
+.add-item-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.pantry-add-button {
+  flex-shrink: 0;
+}
+
+.pantry-items-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: visible;
+}
+
+.pantry-item-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px 72px;
+  align-items: center;
+  column-gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(92, 143, 134, 0.18);
+  transition: opacity 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pantry-item-row:first-child {
+  border-top: 1px solid rgba(92, 143, 134, 0.18);
+}
+
+.pantry-item-row--editing {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(92, 143, 134, 0.22);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin: 6px 0;
+}
+
+.pantry-item-row--locked {
+  opacity: 0.5;
+}
+
+.pantry-item-name {
+  min-width: 0;
+  font-size: 0.98rem;
+  line-height: 1.25;
+  font-weight: 600;
+  color: $color-primary-dark;
+  word-break: break-word;
+}
+
+.pantry-item-amount {
+  width: 56px;
+  min-width: 56px;
+  text-align: right;
+  font-size: 0.98rem;
+  line-height: 1;
+  font-weight: 600;
+  color: $color-primary-dark;
+}
+
+.pantry-item-actions {
+  width: 72px;
+  min-width: 72px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.pantry-icon-button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $color-primary-dark;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.pantry-icon-button:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.pantry-icon-button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.pantry-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.pantry-icon-button i-feather {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary-dark;
+}
+
+.pantry-icon-button i-feather svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: $color-text-muted !important;
+  color: $color-text-muted !important;
+  fill: none !important;
+  opacity: 1 !important;
+}
+
+.pantry-icon-button--primary i-feather svg {
+  stroke: $color-primary-dark !important;
+  color: $color-primary-dark !important;
+}
+
+:host ::ng-deep .pantry-icon-button i-feather {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:host ::ng-deep .pantry-icon-button i-feather svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2 !important;
+}
+
+.pantry-edit-input {
+  height: 32px;
+  min-height: 32px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  box-sizing: border-box;
+  color: $color-primary-dark;
+  outline: none;
+}
+
+.pantry-edit-input::placeholder {
+  color: $color-text-muted;
+  opacity: 0.9;
+}
+
+.pantry-edit-name {
+  padding: 0;
+  font-size: 0.98rem;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.pantry-edit-amount {
+  width: 56px;
+  min-width: 56px;
+  padding: 0;
+  text-align: right;
+  font-size: 0.98rem;
+  line-height: 1;
+  font-weight: 600;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.pantry-edit-amount::-webkit-outer-spin-button,
+.pantry-edit-amount::-webkit-inner-spin-button {
+  margin: 0;
+}
+
+.pantry-empty {
+  margin: 0;
+  padding: 18px 0;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: $color-text-muted;
+}
+
+@include mobile {
+  .pantry-page {
+    gap: 12px;
+    margin-left: -8px;
+    margin-right: -8px;
+    width: calc(100% + 16px);
+    padding: 0;
+  }
+
+  .pantry-header {
+    gap: 10px;
+  }
+
+  .pantry-item-row {
+    grid-template-columns: minmax(0, 1fr) 48px 64px;
+    column-gap: 10px;
+    padding: 13px 0;
+  }
+
+  .pantry-item-row--editing {
+    padding: 10px 10px;
+  }
+
+  .pantry-item-name {
+    font-size: 0.98rem;
+  }
+
+  .pantry-item-amount {
+    width: 48px;
+    min-width: 48px;
+    font-size: 0.96rem;
+  }
+
+  .pantry-item-actions {
+    width: 64px;
+    min-width: 64px;
+    gap: 6px;
+  }
+
+  .pantry-icon-button {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .pantry-edit-name {
+    font-size: 0.98rem;
+  }
+
+  .pantry-edit-amount {
+    width: 48px;
+    min-width: 48px;
+    font-size: 0.96rem;
+  }
+}
+
+@include desktop {
+  .pantry-item-name {
+    font-size: 1rem;
+  }
+
+  .pantry-edit-name {
+    font-size: 1rem;
+  }
 }

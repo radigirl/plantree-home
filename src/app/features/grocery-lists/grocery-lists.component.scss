@@ -134,6 +134,27 @@
   overflow: visible;
 }
 
+.archived-toggle {
+  margin: 12px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: $color-text-muted;
+  cursor: pointer;
+  width: fit-content;
+  transition:
+    color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.archived-toggle:hover {
+  color: $color-primary-dark;
+  opacity: 0.9;
+}
+
+.archived-lists {
+  margin-top: 8px;
+}
+
 .list-card {
   position: relative;
   width: 100%;
@@ -211,23 +232,23 @@
 }
 
 .list-status--archived {
-  background: #eceff1;
-  color: #607d8b;
+  background: #eef2f5;
+  color: #64748b;
 }
 
 .list-right-actions {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 0;
 }
 
 .list-indicator {
-  width: 22px;
-  height: 22px;
-  min-width: 22px;
-  min-height: 22px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -390,7 +411,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: #94a3b8;
   transition: all 0.2s ease;
 }
 
@@ -451,19 +472,19 @@
 
   .list-right-actions {
     gap: 10px;
-    margin-top: 1px;
+    margin-top: 0;
   }
 
   .list-indicator {
-    width: 20px;
-    height: 20px;
-    min-width: 20px;
-    min-height: 20px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
   }
 
   .list-menu-button {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     font-size: 1.2rem;
     background: transparent;
     opacity: 0.8;
@@ -478,6 +499,15 @@
     padding: 3px 10px;
     font-size: 0.72rem;
   }
+
+  .archived-toggle {
+    margin-top: 10px;
+    font-size: 0.94rem;
+  }
+
+  .archived-lists {
+    margin-top: 6px;
+  }
 }
 
 @include desktop {
@@ -489,5 +519,3 @@
     font-size: 1rem;
   }
 }
-
-

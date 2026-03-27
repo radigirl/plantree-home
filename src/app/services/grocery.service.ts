@@ -167,8 +167,6 @@ async updateGroceryListPinned(
       return [];
     }
 
-    console.log('GROCERY ITEMS WITH USERS:', data);
-
     return data ?? [];
   }
 

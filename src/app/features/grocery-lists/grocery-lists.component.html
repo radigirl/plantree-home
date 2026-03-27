@@ -5,22 +5,29 @@
 
   <ng-container *ngIf="!isLoading">
 
-    <!-- HEADER -->
     <div class="lists-header-row">
       <div class="lists-header">
         <h1 class="lists-title">Grocery Lists</h1>
         <p class="lists-subtitle">Create and manage your lists</p>
       </div>
 
-      <button type="button" *ngIf="!isCreatingList"
-        class="button-pill-primary add-lists-button add-lists-button--inline" (click)="startCreateList()">
+      <button
+        type="button"
+        *ngIf="!isCreatingList"
+        class="button-pill-primary add-lists-button add-lists-button--inline"
+        (click)="startCreateList()"
+      >
         + Add list
       </button>
     </div>
 
-    <!-- CREATE -->
     <div *ngIf="isCreatingList" class="list-form-card">
-      <input type="text" placeholder="Enter list name" [(ngModel)]="newListName" class="list-form-input" />
+      <input
+        type="text"
+        placeholder="Enter list name"
+        [(ngModel)]="newListName"
+        class="list-form-input"
+      />
 
       <div class="list-form-actions">
         <button class="save-button" (click)="saveNewList()">
@@ -33,9 +40,13 @@
       </div>
     </div>
 
-    <!-- EDIT -->
     <div *ngIf="editingListId !== null" class="list-form-card">
-      <input type="text" placeholder="Edit list name" [(ngModel)]="editListName" class="list-form-input" />
+      <input
+        type="text"
+        placeholder="Edit list name"
+        [(ngModel)]="editListName"
+        class="list-form-input"
+      />
 
       <div class="list-form-actions">
         <button class="save-button" (click)="saveEditedList()">
@@ -50,64 +61,143 @@
 
     <p *ngIf="error" class="lists-error">{{ error }}</p>
 
+    <div *ngIf="!error && groceryLists.length > 0; else empty">
 
-    <div *ngIf="!error && groceryLists.length > 0; else empty" class="lists-list">
+      <div class="lists-list">
+        <div
+          class="list-card"
+          [class.list-card--menu-open]="openMenuListId === list.id"
+          *ngFor="let list of mainLists"
+          (click)="openList(list)"
+        >
+          <div class="list-row">
 
-      <div class="list-card" [class.list-card--menu-open]="openMenuListId === list.id" *ngFor="let list of sortedLists"
-        (click)="openList(list)">
-        <div class="list-row">
+            <div class="list-main">
+              <p class="list-name">
+                {{ list.name }}
+              </p>
 
-          <div class="list-main">
-            <p class="list-name">
-              {{ list.name }}
-            </p>
-
-            <div class="list-meta">
-              <span class="meal-info-chip list-status" [ngClass]="'list-status--' + list.status.toLowerCase()">
-                {{ list.status }}
-              </span>
+              <div class="list-meta">
+                <span
+                  class="meal-info-chip list-status"
+                  [ngClass]="'list-status--' + list.status.toLowerCase()"
+                >
+                  {{ list.status }}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div class="list-right-actions" (click)="$event.stopPropagation()">
-
-            <button type="button" class="list-indicator pin-btn" (click)="onTogglePin(list)" aria-label="Toggle pin">
-
-              <i-feather name="star" [class.pinned]="list.is_pinned">
-              </i-feather>
-
-            </button>
-
-            <div class="list-menu-wrapper">
-              <button type="button" class="list-menu-button" (click)="toggleActionsMenu($event, list)"
-                aria-label="Open list actions">
-                ⋯
+            <div class="list-right-actions" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                class="list-indicator pin-btn"
+                (click)="onTogglePin(list)"
+                aria-label="Toggle pin"
+              >
+                <i-feather name="star" [class.pinned]="list.is_pinned"></i-feather>
               </button>
 
-              <div *ngIf="openMenuListId === list.id && !isMobileViewport()"
-                class="list-menu-dropdown dropdown-list-surface">
-                <button type="button" class="list-menu-item dropdown-list-item" (click)="startEditList($event, list)">
-                  Edit
+              <div class="list-menu-wrapper">
+                <button
+                  type="button"
+                  class="list-menu-button"
+                  (click)="toggleActionsMenu($event, list)"
+                  aria-label="Open list actions"
+                >
+                  ⋯
                 </button>
 
-                <button type="button" class="list-menu-item dropdown-list-item" (click)="onMenuComplete($event, list)">
-                  {{ list.status === 'completed' || list.status === 'archived' ? 'Reopen list' : 'Complete list' }}
-                </button>
-
-                <button *ngIf="list.status === 'completed'" type="button" class="list-menu-item dropdown-list-item"
-                  (click)="onMenuArchive($event, list)">
-                  Archive
-                </button>
-
-                <button type="button" class="list-menu-item dropdown-list-item dropdown-list-item--danger"
-                  (click)="deleteList($event, list)">
-                  Delete
-                </button>
+                <div
+                  *ngIf="openMenuListId === list.id && !isMobileViewport()"
+                  class="list-menu-dropdown dropdown-list-surface"
+                >
+                  <button
+                    *ngFor="let action of getListActions(list)"
+                    type="button"
+                    class="list-menu-item dropdown-list-item"
+                    [class.dropdown-list-item--danger]="action.id === 'delete'"
+                    (click)="onDesktopActionClick($event, action.id, list)"
+                  >
+                    {{ action.label }}
+                  </button>
+                </div>
               </div>
-
             </div>
-          </div>
 
+          </div>
+        </div>
+      </div>
+
+      <p
+        *ngIf="archivedCount > 0"
+        class="archived-toggle"
+        (click)="showArchived = !showArchived"
+      >
+        {{ showArchived ? 'Hide archived lists' : 'Archived lists (' + archivedCount + ')' }}
+      </p>
+
+      <div *ngIf="showArchived && archivedCount > 0" class="lists-list archived-lists">
+        <div
+          class="list-card"
+          [class.list-card--menu-open]="openMenuListId === list.id"
+          *ngFor="let list of archivedLists"
+          (click)="openList(list)"
+        >
+          <div class="list-row">
+
+            <div class="list-main">
+              <p class="list-name">
+                {{ list.name }}
+              </p>
+
+              <div class="list-meta">
+                <span
+                  class="meal-info-chip list-status"
+                  [ngClass]="'list-status--' + list.status.toLowerCase()"
+                >
+                  {{ list.status }}
+                </span>
+              </div>
+            </div>
+
+            <div class="list-right-actions" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                class="list-indicator pin-btn"
+                (click)="onTogglePin(list)"
+                aria-label="Toggle pin"
+              >
+                <i-feather name="star" [class.pinned]="list.is_pinned"></i-feather>
+              </button>
+
+              <div class="list-menu-wrapper">
+                <button
+                  type="button"
+                  class="list-menu-button"
+                  (click)="toggleActionsMenu($event, list)"
+                  aria-label="Open list actions"
+                >
+                  ⋯
+                </button>
+
+                <div
+                  *ngIf="openMenuListId === list.id && !isMobileViewport()"
+                  class="list-menu-dropdown dropdown-list-surface"
+                >
+                  <button
+                    *ngFor="let action of getListActions(list)"
+                    type="button"
+                    class="list-menu-item dropdown-list-item"
+                    [class.dropdown-list-item--danger]="action.id === 'delete'"
+                    (click)="onDesktopActionClick($event, action.id, list)"
+                  >
+                    {{ action.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
@@ -120,6 +210,13 @@
   </ng-container>
 </section>
 
-<app-responsive-action-menu *ngIf="selectedListForActions && isMobileViewport()" [isOpen]="!!openMenuListId"
-  [title]="selectedListForActions.name" [subtitle]="''" [image]="''" [actions]="listActions" (closed)="closeActions()"
-  (actionSelected)="onActionSelected($event)"></app-responsive-action-menu>
+<app-responsive-action-menu
+  *ngIf="selectedListForActions && isMobileViewport()"
+  [isOpen]="!!openMenuListId"
+  [title]="selectedListForActions.name"
+  [subtitle]="''"
+  [image]="''"
+  [actions]="listActions"
+  (closed)="closeActions()"
+  (actionSelected)="onActionSelected($event)"
+></app-responsive-action-menu>

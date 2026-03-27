@@ -1,4 +1,123 @@
 <section class="pantry-page">
-  <h1>Pantry</h1>
-  <p>This is the Pantry screen.</p>
+  <div *ngIf="isLoading" class="pantry-loading">
+    <app-page-loading></app-page-loading>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <p *ngIf="error" class="pantry-error">{{ error }}</p>
+
+    <ng-container *ngIf="!error">
+      <div class="pantry-header-row">
+        <div class="pantry-header">
+          <h1 class="pantry-title">Pantry Items</h1>
+          <p class="pantry-subtitle">Create and manage your pantry items</p>
+        </div>
+      </div>
+
+      <div class="add-item-row">
+        <input
+          type="text"
+          [(ngModel)]="newItemName"
+          placeholder="Add item"
+          class="add-item-input"
+          (keydown.enter)="addItem()"
+          [disabled]="!!editingItemId"
+        />
+
+        <button
+          type="button"
+          class="button-pill-primary pantry-add-button"
+          (click)="addItem()"
+          [disabled]="!!editingItemId"
+        >
+          Add
+        </button>
+      </div>
+
+      <div *ngIf="pantryItems.length > 0; else empty" class="pantry-items-table">
+        <div
+          class="pantry-item-row"
+          *ngFor="let item of pantryItems"
+          [class.pantry-item-row--editing]="editingItemId === item.id"
+          [class.pantry-item-row--locked]="!!editingItemId && editingItemId !== item.id"
+        >
+          <ng-container *ngIf="editingItemId !== item.id; else editMode">
+            <div class="pantry-item-name">
+              {{ item.name }}
+            </div>
+
+            <div class="pantry-item-amount">
+              {{ item.amount }}x
+            </div>
+
+            <div class="pantry-item-actions">
+              <button
+                type="button"
+                class="pantry-icon-button"
+                (click)="startEditItem(item)"
+                [attr.aria-label]="'Edit pantry item ' + item.name"
+                [disabled]="!!editingItemId && editingItemId !== item.id"
+              >
+                <i-feather name="edit"></i-feather>
+              </button>
+
+              <button
+                type="button"
+                class="pantry-icon-button pantry-icon-button--danger"
+                (click)="deleteItem(item)"
+                [attr.aria-label]="'Delete pantry item ' + item.name"
+                [disabled]="!!editingItemId && editingItemId !== item.id"
+              >
+                <i-feather name="trash"></i-feather>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-template #editMode>
+            <input
+              type="text"
+              [(ngModel)]="editItemName"
+              class="pantry-edit-input pantry-edit-name"
+              placeholder="Edit item"
+              (keydown.enter)="saveEditedItem()"
+            />
+
+            <input
+              type="number"
+              [(ngModel)]="editItemAmount"
+              class="pantry-edit-input pantry-edit-amount"
+              min="1"
+              step="1"
+              placeholder="1"
+              (keydown.enter)="saveEditedItem()"
+            />
+
+            <div class="pantry-item-actions pantry-item-actions--editing">
+              <button
+                type="button"
+                class="pantry-icon-button pantry-icon-button--primary"
+                (click)="saveEditedItem()"
+                aria-label="Save"
+              >
+                <i-feather name="check"></i-feather>
+              </button>
+
+              <button
+                type="button"
+                class="pantry-icon-button"
+                (click)="cancelEditItem()"
+                aria-label="Cancel"
+              >
+                <i-feather name="x"></i-feather>
+              </button>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <ng-template #empty>
+        <p class="pantry-empty">No pantry items yet.</p>
+      </ng-template>
+    </ng-container>
+  </ng-container>
 </section>

@@ -13,4 +13,5 @@ export interface GroceryListItem {
   added_by_user_id: number;
   created_at: string;
   addedBy?: FamilyMember;
+  moved_to_pantry: boolean;
 }
