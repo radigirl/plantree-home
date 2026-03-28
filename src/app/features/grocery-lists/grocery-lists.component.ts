@@ -237,7 +237,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       if (pendingPantryItems > 0) {
         actions.push({
           id: 'add-to-pantry',
-          label: `Add ${pendingPantryItems} items to pantry`,
+          label: `Move ${pendingPantryItems} new ${pendingPantryItems === 1 ? 'item' : 'items'
+            } to pantry`,
         });
       }
 

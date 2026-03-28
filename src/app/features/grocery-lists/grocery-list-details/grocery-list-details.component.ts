@@ -149,30 +149,43 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  async toggleItem(item: any): Promise<void> {
-    if (this.editingItemId === item.id) {
-      return;
-    }
-
-    const nextStatus = item.status === 'bought' ? 'needed' : 'bought';
-    const currentUser = this.userStateService.getCurrentUser();
-    const boughtByUserId = currentUser?.id ?? 1;
-
-    const updated = await this.groceryService.updateGroceryItemStatus(
-      item.id,
-      nextStatus,
-      boughtByUserId
-    );
-
-    if (!updated || !this.groceryList) {
-      return;
-    }
-
-    this.groceryItems = await this.groceryService.getItemsByListId(
-      this.groceryList.id
-    );
-    this.cdr.detectChanges();
+ async toggleItem(item: any): Promise<void> {
+  if (this.isReadOnly || this.editingItemId === item.id) {
+    return;
   }
+
+  const nextStatus = item.status === 'bought' ? 'needed' : 'bought';
+  const currentUser = this.userStateService.getCurrentUser();
+  const boughtByUserId = currentUser?.id ?? 1;
+
+  const updated = await this.groceryService.updateGroceryItemStatus(
+    item.id,
+    nextStatus,
+    boughtByUserId
+  );
+
+  if (!updated || !this.groceryList) {
+    return;
+  }
+
+  if (nextStatus === 'needed') {
+    const resetSuccess = await this.groceryService.updateGroceryItemMovedToPantry(
+      item.id,
+      false
+    );
+
+    if (!resetSuccess) {
+      this.error = 'Could not reset pantry state.';
+      this.cdr.detectChanges();
+      return;
+    }
+  }
+
+  this.groceryItems = await this.groceryService.getItemsByListId(
+    this.groceryList.id
+  );
+  this.cdr.detectChanges();
+}
 
   toggleItemMenu(event: Event, item: any): void {
   event.stopPropagation();
