@@ -9,9 +9,7 @@
         <div class="card__header">
           <h3 class="card__title">What’s for today?</h3>
 
-          <button
-            type="button"
-            class="meal-add-btn meal-add-btn--circle today-card__add-btn"
+          <button type="button" class="meal-add-btn meal-add-btn--circle today-card__add-btn"
             (click)="onAddTodayClick($event)">
             +
           </button>
@@ -22,6 +20,7 @@
             <div class="today-card today-card--empty">
               <div class="today-card-body">
                 <p class="today-empty-title">No meal planned yet</p>
+                <div class="today-empty-meta-space" aria-hidden="true"></div>
               </div>
 
               <div class="today-card-image-wrap">

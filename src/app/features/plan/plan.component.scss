@@ -648,8 +648,12 @@
   }
 
   .meal-card--empty .meal-info {
-    gap: 0;
+    min-height: unset;
+    height: auto;
+    flex: none;
+    gap: 4px;
     justify-content: center;
+    padding: 2px 0 0;
   }
 
   .meal-card--empty .meal-empty-text {
@@ -681,8 +685,8 @@
   }
 
   .meal-empty-state {
-    min-height: 34px;
-    padding-top: 2px;
+    min-height: auto;
+    padding-top: 0;
   }
 
   .meal-empty {

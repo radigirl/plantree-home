@@ -83,6 +83,53 @@
   font-weight: 600;
   color: $color-text-muted;
 }
+.today-empty-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: $color-text-muted;
+}
+
+.today-empty-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: $color-text-muted;
+}
+
+.today-empty-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: $color-text-muted;
+}
+
+.today-card--empty .today-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.today-empty-meta-space {
+  height: 32px;
+}
+
+.today-card--empty .today-card-image-wrap {
+  padding: 4px 0 8px;
+}
+
+.today-card--empty .today-card-image {
+  overflow: hidden;
+  border-radius: 24px;
+  transform: scale(1.05);
+}
+
+.today-card--empty .today-meal-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0.9;
+}
 
 .today-cook-row {
   display: flex;
@@ -160,10 +207,8 @@
   width: 100%;
 }
 
-.today-card--empty .today-card-image-wrap {
-  padding: 16px 0 20px;
-  opacity: 0.9
-}
+
+
 
 .today-card-image {
   width: 100%;
