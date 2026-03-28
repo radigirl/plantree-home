@@ -56,8 +56,13 @@ $color-plan-shell: $color-surface;
 $color-plan-card: $color-surface-soft;
 $color-plan-card-hover: $color-primary-light;
 
+// buttons
 $color-button-primary: $color-primary;
 $color-button-primary-hover: $color-primary-dark;
+
+$color-button-secondary-bg: rgba(255, 252, 247, 0.92);
+$color-button-secondary-border: rgba(207, 222, 215, 0.95);
+$color-button-secondary-text: $color-primary-dark;
 
 
 $radius-large: 30px;

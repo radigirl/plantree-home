@@ -21,6 +21,7 @@ import { SupabaseService } from '../../../services/supabase.service';
 import { MEAL_STATUS_LABELS, getNextStatus } from '../../../shared/utils/meal.utils';
 import { filterMealsByQuery } from '../../../shared/utils/meal-search.util';
 import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../../shared/components/responsive-action-menu/responsive-action-menu';
+import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type AddMealMode = 'search' | 'new';
@@ -29,7 +30,7 @@ type ChangeMealMode = 'search' | 'create-from-current';
 @Component({
   selector: 'app-day-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent],
+  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent],
   templateUrl: './day-details.component.html',
   styleUrl: './day-details.component.scss',
 })
@@ -88,6 +89,10 @@ export class DayDetailsComponent implements OnInit {
     { id: 'edit-cook', label: 'Edit cook' },
     { id: 'remove', label: 'Remove' },
   ];
+
+  isDeleteConfirmOpen = false;
+  mealPendingDelete: PlannedMeal | null = null;
+
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -811,18 +816,31 @@ export class DayDetailsComponent implements OnInit {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Remove "${meal.meal.name}" from this day?`
-    );
+    this.mealPendingDelete = meal;
+    this.isDeleteConfirmOpen = true;
+  }
 
-    if (!confirmed) {
+  getDeleteConfirmMessage(): string {
+    return this.mealPendingDelete
+      ? `Remove "${this.mealPendingDelete.meal.name}" from this day?`
+      : 'Do you want to continue?';
+  }
+
+  closeDeleteConfirm(): void {
+    this.isDeleteConfirmOpen = false;
+    this.mealPendingDelete = null;
+  }
+
+  async confirmRemoveMeal(): Promise<void> {
+    if (!this.date || this.isPastDate() || !this.mealPendingDelete) {
       return;
     }
 
     try {
-      await this.mealPlanService.deletePlannedMeal(meal.id);
-      this.meals = this.meals.filter((item) => item.id !== meal.id);
+      await this.mealPlanService.deletePlannedMeal(this.mealPendingDelete.id);
+      this.meals = this.meals.filter((item) => item.id !== this.mealPendingDelete?.id);
       this.closeMealMenu();
+      this.closeDeleteConfirm();
     } catch (error) {
       console.error('Error removing planned meal:', error);
     } finally {

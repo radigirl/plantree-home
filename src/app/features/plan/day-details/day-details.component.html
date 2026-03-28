@@ -557,3 +557,11 @@
   [image]="selectedMealForActions.meal.image || 'assets/meals/default-meal.png'"
   [actions]="getResponsiveMealActions(selectedMealForActions)" (closed)="closeMealMenu()"
   (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
+
+<div class="confirm-dialog-overlay" *ngIf="isDeleteConfirmOpen" (click)="closeDeleteConfirm()">
+  <div class="confirm-dialog-shell" (click)="$event.stopPropagation()">
+    <app-confirmation-dialog title="Remove meal" [message]="getDeleteConfirmMessage()" confirmLabel="Confirm"
+      cancelLabel="Cancel" (cancel)="closeDeleteConfirm()" (confirm)="confirmRemoveMeal()">
+    </app-confirmation-dialog>
+  </div>
+</div>

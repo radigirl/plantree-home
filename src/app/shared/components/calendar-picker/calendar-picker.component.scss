@@ -38,7 +38,7 @@
   height: 36px;
   border: none;
   border-radius: 999px;
-  background: rgba(248, 244, 236, 0.95);
+  background: $color-surface-soft;
   color: $color-primary-dark;
   font-size: 1.2rem;
   cursor: pointer;
@@ -62,7 +62,7 @@
   min-height: 42px;
   border: none;
   border-radius: 12px;
-  background: rgba(255, 252, 247, 0.92);
+  background: $color-button-secondary-bg;
   color: $color-primary-dark;
   font-size: 0.92rem;
   font-weight: 600;
@@ -71,8 +71,8 @@
 }
 
 .calendar-picker__day--selected {
-   background: $color-primary-dark;
-  color: white;
+  background: $color-primary-dark;
+  color: $color-text-on-primary;
   border-radius: 12px;
   font-weight: 600;
 }
@@ -102,8 +102,8 @@
 }
 
 .calendar-picker__primary {
-  background: rgba(92, 143, 134, 0.95);
-  color: #fff;
+  background: $color-button-primary;
+  color: $color-text-on-primary;
 }
 
 .calendar-picker__primary:disabled {
@@ -112,9 +112,9 @@
 }
 
 .calendar-picker__secondary {
-  background: rgba(255, 252, 247, 0.92);
-  color: $color-primary-dark;
-  border-color: rgba(207, 222, 215, 0.95);
+  background: $color-button-secondary-bg;
+  color: $color-button-secondary-text;
+  border-color: $color-button-secondary-border;
 }
 
 @include mobile {

@@ -1,3 +1,5 @@
+@use '../variables' as *;
+
 .btn-add {
   display: inline-flex;
   align-items: center;
@@ -6,8 +8,8 @@
   padding: 8px 14px;
   border-radius: 999px;
 
-  background: rgba(92, 143, 134, 0.95);
-  color: #fff;
+  background: $color-button-primary;
+  color: $color-text-on-primary;
 
   font-size: 0.9rem;
   font-weight: 600;
@@ -17,7 +19,7 @@
   transition: all 0.15s ease;
 
   &:hover {
-    background: rgba(84, 132, 124, 1);
+    background: $color-button-primary-hover;
   }
 }
 
@@ -26,8 +28,6 @@
   height: 16px;
   stroke-width: 2;
 }
-
-
 
 /* Quiet icon button (for 3 dots) */
 .icon-button {
@@ -53,4 +53,45 @@
   width: 18px;
   height: 18px;
   stroke-width: 2;
+}
+
+/* Shared action buttons */
+.button-row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  min-height: 42px;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: $color-button-primary;
+  color: $color-text-on-primary;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: $color-button-primary-hover;
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: $color-button-secondary-bg;
+  color: $color-button-secondary-text;
+  border-color: $color-button-secondary-border;
+}
+
+.btn-secondary:hover {
+  background: $color-surface-soft;
 }

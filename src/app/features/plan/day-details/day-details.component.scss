@@ -852,6 +852,25 @@
   line-height: 1;
 }
 
+.confirm-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+
+  background: rgba(46, 58, 50, 0.28);
+
+  backdrop-filter: blur(1px);
+}
+
+.confirm-dialog-shell {
+  width: 100%;
+  max-width: 420px;
+}
+
 @include mobile {
   .day-details-page {
     gap: 14px;
