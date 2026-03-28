@@ -116,6 +116,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-bottom: 5px;
 }
 
 .today-time-badge,
@@ -157,6 +158,11 @@
 
 .today-card-image-wrap {
   width: 100%;
+}
+
+.today-card--empty .today-card-image-wrap {
+  padding: 16px 0 20px;
+  opacity: 0.9
 }
 
 .today-card-image {
@@ -266,7 +272,7 @@
   }
 
   .card__header {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
   }
 
   .card__title {
@@ -322,7 +328,7 @@
   }
 
   .card:not(.home-grid__featured) .card__header {
-    margin-bottom: 6px;
+    margin-bottom: 15px;
   }
 
   .card:not(.home-grid__featured) .card__title {
@@ -332,7 +338,7 @@
   }
 
   .card:not(.home-grid__featured) .summary-card-content {
-    min-height: 28px;
+    min-height: 30px;
   }
 
   .card:not(.home-grid__featured) .summary-card-main {
