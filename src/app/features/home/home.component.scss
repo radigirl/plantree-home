@@ -83,45 +83,24 @@
   font-weight: 600;
   color: $color-text-muted;
 }
-.today-empty-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: $color-text-muted;
-}
-
-.today-empty-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: $color-text-muted;
-}
-
-.today-empty-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: $color-text-muted;
-}
 
 .today-card--empty .today-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 }
 
 .today-empty-meta-space {
-  height: 32px;
+  height: 6px;
 }
 
 .today-card--empty .today-card-image-wrap {
-  padding: 4px 0 8px;
+  padding: 4px 0 0;
+  margin-top: 6px;
 }
 
 .today-card--empty .today-card-image {
   overflow: hidden;
   border-radius: 24px;
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .today-card--empty .today-meal-image {
@@ -129,6 +108,7 @@
   width: 100%;
   height: auto;
   opacity: 0.9;
+  aspect-ratio: 16 / 14;
 }
 
 .today-cook-row {
@@ -163,7 +143,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
 .today-time-badge,
@@ -201,14 +181,19 @@
   font-size: 0.98rem;
   font-weight: 600;
   color: $color-primary-dark;
+  line-height: 1.15;
+  height: 1.15em;
+  white-space: nowrap;
+}
+
+.today-more-meals--hidden {
+  visibility: hidden;
 }
 
 .today-card-image-wrap {
   width: 100%;
+  margin-top: 0;
 }
-
-
-
 
 .today-card-image {
   width: 100%;
@@ -303,12 +288,12 @@
 @include mobile {
   .home-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
   }
 
   .home-grid__featured {
     grid-column: 1 / -1;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   .card {
@@ -317,7 +302,7 @@
   }
 
   .card__header {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
 
   .card__title {
@@ -337,6 +322,22 @@
     font-size: 1.05rem;
   }
 
+  .today-empty-title {
+    font-size: 1.02rem;
+  }
+
+  .today-card--empty .today-card-body {
+    gap: 4px;
+  }
+
+  .today-empty-meta-space {
+    height: 4px;
+  }
+
+  .today-card--empty .today-card-image {
+    transform: scale(1.01);
+  }
+
   .today-cook-label,
   .today-secondary-text {
     font-size: 0.92rem;
@@ -349,8 +350,14 @@
     font-size: 0.88rem;
   }
 
+  .today-meta-row {
+    gap: 10px;
+    margin-bottom: 2px;
+  }
+
   .today-more-meals {
     font-size: 0.9rem;
+    height: 1.15em;
   }
 
   .today-card-image {
@@ -358,7 +365,7 @@
   }
 
   .today-meal-image {
-    aspect-ratio: 16 / 8.4;
+    aspect-ratio: 16 / 8.2;
   }
 
   .meal-add-btn--circle {
@@ -373,7 +380,7 @@
   }
 
   .card:not(.home-grid__featured) .card__header {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
   }
 
   .card:not(.home-grid__featured) .card__title {
@@ -383,7 +390,7 @@
   }
 
   .card:not(.home-grid__featured) .summary-card-content {
-    min-height: 30px;
+    min-height: 22px;
   }
 
   .card:not(.home-grid__featured) .summary-card-main {
