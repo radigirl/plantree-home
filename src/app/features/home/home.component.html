@@ -92,57 +92,63 @@
         </div>
       </article>
 
-      <!-- WEEK PLAN -->
-      <article class="card card--week" (click)="openWeekPlan()">
-        <div class="card__header">
-          <h3 class="card__title">Week Plan</h3>
-        </div>
-
-        <div class="card__content">
-          <div class="summary-card-content">
-            <p class="summary-card-main">• {{ plannedMealsCount }} planned</p>
+      <!-- RIGHT SIDE GRID -->
+      <div class="home-side-grid">
+        <!-- WEEK PLAN -->
+        <article class="card card--week" (click)="openWeekPlan()">
+          <div class="card__header">
+            <h3 class="card__title">Week Plan</h3>
           </div>
-        </div>
-      </article>
 
-      <!-- MY MEALS -->
-      <article class="card card--meals" (click)="openMeals()">
-        <div class="card__header">
-          <h3 class="card__title">My Meals</h3>
-        </div>
-
-        <div class="card__content">
-          <div class="summary-card-content">
-            <p class="summary-card-main">Browse & Reuse</p>
+          <div class="card__content">
+            <div class="summary-card-content">
+              <p class="summary-card-main">• {{ plannedMealsCount }} planned</p>
+            </div>
           </div>
-        </div>
-      </article>
+        </article>
 
-      <!-- GROCERY LISTS -->
-      <article class="card card--lists" (click)="openGroceryLists()">
-        <div class="card__header">
-          <h3 class="card__title">Shopping</h3>
-        </div>
-
-        <div class="card__content">
-          <div class="summary-card-content">
-            <p class="summary-card-main">Open your lists</p>
+        <!-- MY MEALS -->
+        <article class="card card--meals" (click)="openMeals()">
+          <div class="card__header">
+            <h3 class="card__title">My Meals</h3>
           </div>
-        </div>
-      </article>
 
-      <!-- WEEK STATS -->
-      <article class="card card--stats" (click)="openWeekStats()">
-        <div class="card__header">
-          <h3 class="card__title">Week Stats</h3>
-        </div>
-
-        <div class="card__content">
-          <div class="summary-card-content">
-            <p class="summary-card-main">This week</p>
+          <div class="card__content">
+            <div class="summary-card-content">
+              <p class="summary-card-main">• Last cooked:</p>
+              <p class="summary-card-main second-line">Shopska salad</p>
+            </div>
           </div>
-        </div>
-      </article>
+        </article>
+
+        <!-- GROCERY LISTS -->
+        <article class="card card--lists" (click)="openGroceryLists()">
+          <div class="card__header">
+            <h3 class="card__title">Shopping</h3>
+          </div>
+
+          <div class="card__content">
+            <div class="summary-card-content">
+              <p class="summary-card-main">• {{ plannedMealsCount }} active lists</p>
+              <p class="summary-card-main">• {{ plannedMealsCount }} items left</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- WEEK STATS -->
+        <article class="card card--stats" (click)="openWeekStats()">
+          <div class="card__header">
+            <h3 class="card__title">Week Stats</h3>
+          </div>
+
+          <div class="card__content">
+            <div class="summary-card-content">
+              <p class="summary-card-main">• Chef of the week:</p>
+              <p class="summary-card-main second-line">PrinceesConsuela</p>
+            </div>
+          </div>
+        </article>
+      </div>
 
     </div>
   </div>
