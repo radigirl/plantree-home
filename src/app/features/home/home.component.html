@@ -4,16 +4,17 @@
   <div class="home-page">
     <div class="home-grid">
 
+      <article class="card card--pantry home-grid__pantry">
+          <h3 class="card__title card__title--compact">Cook from your pantry →</h3>
+      </article>
+
       <!-- TODAY CARD -->
       <article class="card home-grid__featured" (click)="openToday()">
         <div class="card__header">
           <h3 class="card__title">What’s for today?</h3>
 
-          <button
-            type="button"
-            class="meal-add-btn meal-add-btn--circle today-card__add-btn"
-            (click)="onAddTodayClick($event)"
-          >
+          <button type="button" class="meal-add-btn meal-add-btn--circle today-card__add-btn"
+            (click)="onAddTodayClick($event)">
             +
           </button>
         </div>
@@ -28,11 +29,7 @@
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image today-card-image--placeholder">
-                  <img
-                    src="assets/meals/blank-meal.png"
-                    alt="Meal placeholder"
-                    class="today-meal-image"
-                  />
+                  <img src="assets/meals/blank-meal.png" alt="Meal placeholder" class="today-meal-image" />
                 </div>
               </div>
             </div>
@@ -48,11 +45,8 @@
                 <div class="today-cook-row">
                   <span class="today-cook-label">Cook:</span>
 
-                  <img
-                    [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-                    class="today-inline-avatar"
-                    [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'"
-                  />
+                  <img [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
+                    class="today-inline-avatar" [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'" />
 
                   <p class="today-secondary-text">
                     {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
@@ -70,21 +64,15 @@
                   </span>
                 </div>
 
-                <p
-                  class="today-more-meals"
-                  [class.today-more-meals--hidden]="!hasMultipleTodayMeals"
-                >
+                <p class="today-more-meals" [class.today-more-meals--hidden]="!hasMultipleTodayMeals">
                   +{{ additionalMealsCount }} more {{ additionalMealsCount > 1 ? 'meals' : 'meal' }}
                 </p>
               </div>
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image">
-                  <img
-                    [src]="firstTodayMeal?.meal?.image || 'assets/meals/default-meal.png'"
-                    class="today-meal-image"
-                    [alt]="firstTodayMeal?.meal?.name || 'Meal image'"
-                  />
+                  <img [src]="firstTodayMeal?.meal?.image || 'assets/meals/default-meal.png'" class="today-meal-image"
+                    [alt]="firstTodayMeal?.meal?.name || 'Meal image'" />
                 </div>
               </div>
             </div>

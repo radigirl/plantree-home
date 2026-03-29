@@ -59,6 +59,47 @@
   grid-column: 1 / -1;
 }
 
+/* pantry card */
+.home-grid__pantry {
+  grid-column: 1 / -1;
+}
+
+.card--pantry,
+.card_pantry {
+.card--pantry:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(46, 58, 50, 0.08);
+}
+  border: 1px solid rgba(220, 210, 190, 0.9);
+  box-shadow: 0 8px 22px rgba(46, 58, 50, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card--pantry:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(46, 58, 50, 0.08);
+}
+
+.card__title--compact,
+.card__title_pantry {
+  margin: 0;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.card--pantry .card__header {
+  margin-bottom: 6px;
+}
+
+.card--pantry .summary-card-main,
+.see_pantry {
+  margin: 0;
+  color: $color-text-muted;
+}
+
+/* today */
 .today-card {
   display: flex;
   flex-direction: column;
@@ -216,6 +257,7 @@
   background: rgba(237, 242, 239, 0.9);
 }
 
+/* summary cards */
 .summary-card-content {
   display: flex;
   flex-direction: column;
@@ -310,7 +352,7 @@
   .home-page {
     margin-left: -8px;
     margin-right: -8px;
-    margin-top: -8px;
+    margin-top: -15px;
   }
 
   .home-grid {
@@ -318,9 +360,9 @@
     gap: 8px;
   }
 
+  .home-grid__pantry,
   .home-grid__featured {
     grid-column: 1 / -1;
-    margin-bottom: 8px;
   }
 
   .home-side-grid {
@@ -429,21 +471,41 @@
   }
 
   .home-side-grid .summary-card-main {
-  font-size: 0.78rem;
-  line-height: 1.16;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: anywhere;
-  overflow: hidden;
-  max-height: calc(1.16em * 3 + 2px);
-}
+    font-size: 0.78rem;
+    line-height: 1.16;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+    max-height: calc(1.16em * 3 + 2px);
+  }
+
+  .card--pantry,
+  .card_pantry {
+    padding: 12px 14px;
+    border-radius: 22px;
+  }
+
+  .card__title--compact,
+  .card__title_pantry {
+    font-size: 1.02rem;
+    line-height: 1.12;
+  }
+
+  .see_pantry,
+  .card--pantry .summary-card-main {
+    font-size: 0.88rem;
+    line-height: 1.16;
+  }
 }
 
 @include tablet {
   .home-page {
     max-width: 1120px;
     margin: 0 auto;
+    margin-top: -8px;
   }
+
 
   .home-grid {
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
@@ -451,12 +513,20 @@
     align-items: start;
   }
 
+  .home-grid__pantry {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
   .home-grid__featured {
     grid-column: 1;
+    grid-row: 2;
     margin-bottom: 0;
   }
 
   .home-side-grid {
+    grid-column: 2;
+    grid-row: 1 / span 2;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
@@ -488,15 +558,29 @@
     gap: 2px;
   }
 
- .home-side-grid .summary-card-main {
-  font-size: 0.82rem;
-  line-height: 1.16;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: anywhere;
-  overflow: hidden;
-  max-height: calc(1.16em * 4 + 2px);
-}
+  .home-side-grid .summary-card-main {
+    font-size: 0.82rem;
+    line-height: 1.16;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+    max-height: calc(1.16em * 4 + 2px);
+  }
+
+  .card--pantry {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 22px;
+    min-height: 0;
+  }
+
+  .card--pantry .card__title {
+    font-size: 0.9rem;
+    line-height: 1.12;
+    margin: 0;
+  }
 
   .today-card-image-wrap {
     margin-top: 2px;
@@ -515,6 +599,7 @@
   .home-page {
     max-width: 1280px;
     margin: 0 auto;
+    margin-top: -10px;
   }
 
   .home-grid {
@@ -523,12 +608,20 @@
     align-items: start;
   }
 
+  .home-grid__pantry {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
   .home-grid__featured {
     grid-column: 1;
+    grid-row: 2;
     margin-bottom: 0;
   }
 
   .home-side-grid {
+    grid-column: 2;
+    grid-row: 1 / span 2;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
@@ -560,15 +653,29 @@
     gap: 2px;
   }
 
- .home-side-grid .summary-card-main {
-  font-size: 0.88rem;
-  line-height: 1.18;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: anywhere;
-  overflow: hidden;
-  max-height: calc(1.18em * 4 + 2px);
-}
+  .home-side-grid .summary-card-main {
+    font-size: 0.88rem;
+    line-height: 1.18;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+    max-height: calc(1.18em * 4 + 2px);
+  }
+
+  .card--pantry {
+    display: flex;
+    align-items: center;
+    padding: 20px 15px;
+    border-radius: 24px;
+    min-height: 0;
+  }
+
+  .card--pantry .card__title {
+    font-size: 0.92rem;
+    line-height: 1.12;
+    margin: 0;
+  }
 
   .today-card-image-wrap {
     margin-top: 4px;
