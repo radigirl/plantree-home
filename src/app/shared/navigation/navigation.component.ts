@@ -4,7 +4,7 @@ import {
   LucideAngularModule,
   House,
   CalendarDays,
-  Package,
+  Refrigerator,
   ShoppingCart
 } from 'lucide-angular';
 
@@ -19,7 +19,7 @@ export class NavigationComponent {
 
   readonly homeIcon = House;
   readonly planIcon = CalendarDays;
-  readonly pantryIcon = Package;
+  readonly pantryIcon = Refrigerator;
   readonly groceryListsIcon = ShoppingCart;
 
   constructor(private router: Router) {}
