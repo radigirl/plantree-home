@@ -40,7 +40,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .card__title {
@@ -305,6 +305,13 @@
   }
 }
 
+.card-icon {
+  flex-shrink: 0;
+  color: $color-primary-dark;
+  opacity: 0.9;
+  transform: translateY(1px);
+}
+
 .meal-add-btn--circle {
   width: 34px;
   height: 34px;
@@ -332,20 +339,22 @@
   right: 0;
 }
 
-.card--week {
-  background: rgba(230, 222, 210, 0.85);
+.card--week { background: rgba(230, 222, 210, 0.85); }
+.card--meals { background: rgba(230, 222, 210, 0.82); }
+.card--lists { background: rgba(230, 222, 210, 0.88); }
+.card--stats { background: rgba(230, 222, 210, 0.80); }
+
+/* summary card header alignment */
+.home-side-grid .card__header {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
 }
 
-.card--meals {
-  background: rgba(223, 235, 237, 0.88);
-}
-
-.card--lists {
-  background: rgba(226, 235, 226, 0.88);
-}
-
-.card--stats {
-  background: rgba(231, 224, 234, 0.88);
+.home-side-grid .card__title {
+  display: block;
+  margin: 0;
+  padding-right: 0;
 }
 
 @include mobile {
@@ -378,7 +387,7 @@
   }
 
   .card__header {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
   }
 
   .card__title {
@@ -456,7 +465,7 @@
   }
 
   .home-side-grid .card__header {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
   }
 
   .home-side-grid .card__title {
@@ -505,7 +514,6 @@
     margin: 0 auto;
     margin-top: -8px;
   }
-
 
   .home-grid {
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);

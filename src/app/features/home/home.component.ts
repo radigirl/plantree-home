@@ -6,11 +6,18 @@ import { PlannedMeal } from '../../models/planned-meal.model';
 import { MealPlanService } from '../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import { getStatusLabel } from '../../shared/utils/meal.utils';
+import {
+  LucideAngularModule,
+  CalendarDays,
+  Utensils,
+  Trophy,
+  ShoppingCart
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, PageLoadingComponent],
+  imports: [CommonModule, PageLoadingComponent, LucideAngularModule],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -19,6 +26,11 @@ export class HomeComponent implements OnInit {
   isLoading = true;
 
   currentWeekStart: Date = this.getStartOfWeek(new Date());
+
+  readonly planIcon = CalendarDays;
+  readonly groceryListsIcon = ShoppingCart;
+  readonly myMealsIcon = Utensils;
+  readonly statsIcon = Trophy;
 
   constructor(
     private router: Router,
@@ -86,15 +98,15 @@ export class HomeComponent implements OnInit {
   }
 
   openToday(): void {
-  const today = this.formatDateLocal(new Date());
+    const today = this.formatDateLocal(new Date());
 
-  this.router.navigate(['/plan/day', today], {
-    queryParams: {
-      source: 'home',
-      ...(this.hasTodayMeals ? {} : { add: 'true' })
-    }
-  });
-}
+    this.router.navigate(['/plan/day', today], {
+      queryParams: {
+        source: 'home',
+        ...(this.hasTodayMeals ? {} : { add: 'true' })
+      }
+    });
+  }
 
   onAddTodayClick(event: MouseEvent): void {
     event.stopPropagation();

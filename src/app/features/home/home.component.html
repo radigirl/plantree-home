@@ -85,6 +85,7 @@
         <!-- WEEK PLAN -->
         <article class="card card--week" (click)="openWeekPlan()">
           <div class="card__header">
+            <lucide-icon [img]="planIcon" [size]="14" class="card-icon"></lucide-icon>
             <h3 class="card__title">Week Plan</h3>
           </div>
 
@@ -98,6 +99,7 @@
         <!-- MY MEALS -->
         <article class="card card--meals" (click)="openMeals()">
           <div class="card__header">
+            <lucide-icon [img]="myMealsIcon" [size]="14" class="card-icon"></lucide-icon>
             <h3 class="card__title">My Meals</h3>
           </div>
 
@@ -112,7 +114,8 @@
         <!-- GROCERY LISTS -->
         <article class="card card--lists" (click)="openGroceryLists()">
           <div class="card__header">
-            <h3 class="card__title">Shopping</h3>
+            <lucide-icon [img]="groceryListsIcon" [size]="14" class="card-icon"></lucide-icon>
+            <h3 class="card__title">Lists</h3>
           </div>
 
           <div class="card__content">
@@ -126,13 +129,14 @@
         <!-- WEEK STATS -->
         <article class="card card--stats" (click)="openWeekStats()">
           <div class="card__header">
+            <lucide-icon [img]="statsIcon" [size]="14" class="card-icon"></lucide-icon>
             <h3 class="card__title">Week Stats</h3>
           </div>
 
           <div class="card__content">
             <div class="summary-card-content">
               <p class="summary-card-main">• Chef of the week:</p>
-              <p class="summary-card-main second-line">PrinceesConsuela</p>
+              <p class="summary-card-main second-line">Mom</p>
             </div>
           </div>
         </article>
