@@ -133,6 +133,10 @@ export class HomeComponent implements OnInit {
     console.log('Week Stats clicked');
   }
 
+  openCookFromPantry() {
+    this.router.navigate(['/cook-from-pantry']);
+  }
+
   getStartOfWeek(date: Date): Date {
     const result = new Date(date);
     const day = result.getDay();
