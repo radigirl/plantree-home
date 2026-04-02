@@ -3,7 +3,8 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeatherModule } from 'angular-feather';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
-import { PantryItem, PantryService } from '../../services/pantry.service';
+import {  PantryService } from '../../services/pantry.service';
+import { PantryItem } from '../../models/pantry-item.model';
 
 @Component({
   selector: 'app-pantry',

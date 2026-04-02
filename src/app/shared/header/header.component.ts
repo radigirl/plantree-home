@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { LucideAngularModule, User } from 'lucide-angular';
 import { Observable } from 'rxjs';
-import { FamilyMember } from '../../models/family-member.model';
+import { Member } from '../../models/member.model';
 import { SupabaseService } from '../../services/supabase.service';
 import { UserStateService } from '../../services/user.state.service';
 
@@ -17,8 +17,8 @@ import { UserStateService } from '../../services/user.state.service';
 export class HeaderComponent implements OnInit {
   readonly userIcon = User;
 
-  users: FamilyMember[] = [];
-  currentUser$: Observable<FamilyMember | null>;
+  users: Member[] = [];
+  currentUser$: Observable<Member | null>;
   isUserMenuOpen = false;
 
   constructor(
@@ -42,7 +42,7 @@ export class HeaderComponent implements OnInit {
     this.isUserMenuOpen = !this.isUserMenuOpen;
   }
 
-  selectUser(user: FamilyMember): void {
+  selectUser(user: Member): void {
     this.userStateService.setCurrentUser(user);
     this.isUserMenuOpen = false;
   }

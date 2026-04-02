@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
-import { FamilyMember } from '../models/family-member.model';
+import { Member } from '../models/member.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +12,7 @@ export class SupabaseService {
     environment.supabaseKey
   );
 
-  async getUsers(): Promise<FamilyMember[]> {
+  async getUsers(): Promise<Member[]> {
     const { data, error } = await this.supabase
       .from('users')
       .select('*')
@@ -23,7 +23,7 @@ export class SupabaseService {
       return [];
     }
 
-    return (data ?? []) as FamilyMember[];
+    return (data ?? []) as Member[];
   }
 
   async uploadMealImage(file: File, fileName: string): Promise<string> {

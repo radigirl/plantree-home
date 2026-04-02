@@ -1,4 +1,4 @@
-import { FamilyMember } from "./family-member.model";
+import { Member } from "./member.model";
 
 export type GroceryItemStatus =
   | 'needed'
@@ -12,6 +12,6 @@ export interface GroceryListItem {
   status: GroceryItemStatus;
   added_by_user_id: number;
   created_at: string;
-  addedBy?: FamilyMember;
+  addedBy?: Member;
   moved_to_pantry: boolean;
 }

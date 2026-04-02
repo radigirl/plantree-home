@@ -1,5 +1,5 @@
 import { Meal } from './meal.model';
-import { FamilyMember } from './family-member.model';
+import { Member } from './member.model';
 
 export type PlannedMealStatus =
   | 'to-prepare'
@@ -9,6 +9,6 @@ export type PlannedMealStatus =
 export interface PlannedMeal {
   id: string;
   meal: Meal;
-  cook?: FamilyMember;
+  cook?: Member;
   status: PlannedMealStatus;
 }

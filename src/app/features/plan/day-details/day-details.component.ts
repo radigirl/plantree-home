@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { PlannedMeal } from '../../../models/planned-meal.model';
-import { FamilyMember } from '../../../models/family-member.model';
+import { Member } from '../../../models/member.model';
 
 import { MealPlanService } from '../../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
@@ -48,7 +48,7 @@ export class DayDetailsComponent implements OnInit {
   newMealName = '';
   newPrepTime: number | null = null;
   selectedCookId: number | null = null;
-  availableUsers: FamilyMember[] = [];
+  availableUsers: Member[] = [];
   openMealMenuId: string | null = null;
 
   selectedImageFile: File | null = null;
