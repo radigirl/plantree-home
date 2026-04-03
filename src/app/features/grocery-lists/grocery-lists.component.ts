@@ -12,7 +12,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { GroceryService } from '../../services/grocery.service';
 import { GroceryList } from '../../models/grocery-list.model';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
-import { UserStateService } from '../../services/user.state.service';
+import { MemberStateService } from '../../services/member.state.service';
 import {
   ResponsiveActionMenuComponent,
   ResponsiveActionMenuItem,
@@ -56,7 +56,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
   constructor(
     private groceryService: GroceryService,
-    private userStateService: UserStateService,
+    private memberStateService: MemberStateService,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private pantryService: PantryService,
@@ -157,12 +157,12 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentUser = this.userStateService.getCurrentUser();
-    const createdByUserId = currentUser?.id ?? 1;
+    const currentMember = this.memberStateService.getCurrentMember();
+    const createdByMemberId = currentMember?.id ?? 1;
 
     const created = await this.groceryService.createGroceryList(
       trimmedName,
-      createdByUserId
+      createdByMemberId
     );
 
     if (!created) {
@@ -440,14 +440,14 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       case 'reuse': {
         this.openMenuListId = null;
 
-        const currentUser = this.userStateService.getCurrentUser();
-        const createdByUserId = currentUser?.id ?? 1;
+        const currentMember = this.memberStateService.getCurrentMember();
+        const createdMemberId = currentMember?.id ?? 1;
 
         const newListName = this.getNextReuseName(list.name);
 
         const newList = await this.groceryService.createGroceryList(
           newListName,
-          createdByUserId
+          createdMemberId
         );
 
         if (!newList) {
@@ -462,7 +462,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
           await this.groceryService.createGroceryItem(
             newList.id,
             item.name,
-            createdByUserId
+            createdMemberId
           );
         }
 

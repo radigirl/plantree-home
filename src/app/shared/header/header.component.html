@@ -14,15 +14,15 @@
     <button
       type="button"
       class="account-circle"
-      (click)="toggleUserMenu()"
+      (click)="toggleMemberMenu()"
       [attr.aria-expanded]="isUserMenuOpen"
-      aria-label="Open user switcher"
+      aria-label="Open member switcher"
     >
-      <ng-container *ngIf="currentUser$ | async as currentUser; else fallbackIcon">
+      <ng-container *ngIf="currentMember$ | async as currentMember; else fallbackIcon">
         <img
-          *ngIf="currentUser?.avatar_url; else fallbackIcon"
-          [src]="currentUser.avatar_url"
-          [alt]="currentUser.name || 'Current user'"
+          *ngIf="currentMember?.avatar_url; else fallbackIcon"
+          [src]="currentMember.avatar_url"
+          [alt]="currentMember.name || 'Current member'"
           class="account-avatar"
         />
       </ng-container>
@@ -36,16 +36,16 @@
       <button
         type="button"
         class="user-menu-item"
-        *ngFor="let user of users"
-        (click)="selectUser(user)"
+        *ngFor="let member of members"
+        (click)="selectMember(member)"
       >
         <img
-          [src]="user.avatar_url || 'assets/avatars/avatar-placeholder.png'"
-          [alt]="user.name"
+          [src]="member.avatar_url || 'assets/avatars/avatar-placeholder.png'"
+          [alt]="member.name"
           class="user-menu-avatar"
         />
 
-        <span>{{ user.name }}</span>
+        <span>{{ member.name }}</span>
       </button>
     </div>
   </div>

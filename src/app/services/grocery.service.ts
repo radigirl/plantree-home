@@ -43,7 +43,7 @@ export class GroceryService {
 
   async createGroceryList(
     name: string,
-    createdByUserId: number
+    createdByMemberId: number
   ): Promise<GroceryList | null> {
     const trimmedName = name.trim();
 
@@ -57,7 +57,7 @@ export class GroceryService {
         {
           name: trimmedName,
           status: 'active',
-          created_by_user_id: createdByUserId,
+          created_by_member_id: createdByMemberId,
         },
       ])
       .select()
@@ -147,12 +147,12 @@ export class GroceryService {
       .from('grocery_list_items')
       .select(`
         *,
-        addedBy:users!grocery_list_items_added_by_user_id_fkey (
+        addedBy:members!grocery_list_items_added_by_member_id_fkey (
           id,
           name,
           avatar_url
         ),
-        boughtBy:users!grocery_list_items_bought_by_user_id_fkey (
+        boughtBy:members!grocery_list_items_bought_by_member_id_fkey (
           id,
           name,
           avatar_url
@@ -173,7 +173,7 @@ export class GroceryService {
   async createGroceryItem(
     listId: string,
     name: string,
-    addedByUserId: number
+    addedByMemberId: number
   ): Promise<any | null> {
     const trimmedName = name.trim();
 
@@ -188,7 +188,7 @@ export class GroceryService {
           grocery_list_id: listId,
           name: trimmedName,
           status: 'needed',
-          added_by_user_id: addedByUserId,
+          added_by_member_id: addedByMemberId,
         },
       ])
       .select()
@@ -205,18 +205,18 @@ export class GroceryService {
   async updateGroceryItemStatus(
     itemId: string,
     status: 'needed' | 'bought',
-    boughtByUserId?: number
+    boughtByMemberId?: number
   ): Promise<boolean> {
     const payload =
       status === 'bought'
         ? {
           status,
-          bought_by_user_id: boughtByUserId ?? null,
+          bought_by_member_id: boughtByMemberId ?? null,
           bought_at: new Date().toISOString(),
         }
         : {
           status,
-          bought_by_user_id: null,
+          bought_by_member_id: null,
           bought_at: null,
         };
 

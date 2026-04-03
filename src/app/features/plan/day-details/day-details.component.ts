@@ -15,7 +15,7 @@ import { Member } from '../../../models/member.model';
 
 import { MealPlanService } from '../../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
-import { UserStateService } from '../../../services/user.state.service';
+import { MemberStateService} from '../../../services/member.state.service';
 import { SupabaseService } from '../../../services/supabase.service';
 
 import { MEAL_STATUS_LABELS, getNextStatus } from '../../../shared/utils/meal.utils';
@@ -48,7 +48,7 @@ export class DayDetailsComponent implements OnInit {
   newMealName = '';
   newPrepTime: number | null = null;
   selectedCookId: number | null = null;
-  availableUsers: Member[] = [];
+  availableMembers: Member[] = [];
   openMealMenuId: string | null = null;
 
   selectedImageFile: File | null = null;
@@ -99,7 +99,7 @@ export class DayDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private mealPlanService: MealPlanService,
-    private userStateService: UserStateService,
+    private memberStateService: MemberStateService,
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
     private router: Router,
@@ -123,7 +123,7 @@ export class DayDetailsComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.date = this.route.snapshot.paramMap.get('date');
 
-    await this.loadUsers();
+    await this.loadMembers();
 
     if (!this.date) {
       this.isLoading = false;
@@ -144,13 +144,13 @@ export class DayDetailsComponent implements OnInit {
     });
   }
 
-  async loadUsers(): Promise<void> {
+  async loadMembers(): Promise<void> {
     try {
-      const users = await this.supabaseService.getUsers();
-      this.availableUsers = users ?? [];
+      const members = await this.supabaseService.getMembers();
+      this.availableMembers = members ?? [];
     } catch (error) {
-      console.error('Error loading users:', error);
-      this.availableUsers = [];
+      console.error('Error loading members:', error);
+      this.availableMembers = [];
     }
   }
 
@@ -171,15 +171,15 @@ export class DayDetailsComponent implements OnInit {
 
   async loadAvailableMeals(): Promise<void> {
     try {
-      const currentUser = this.userStateService.getCurrentUser();
+      const currentMember = this.memberStateService.getCurrentMember();
 
-      if (!currentUser) {
+      if (!currentMember) {
         this.availableMeals = [];
         return;
       }
 
       this.availableMeals = await this.mealPlanService.getAvailableMealsForPlanning(
-        currentUser.id
+        currentMember.id
       );
     } catch (error) {
       console.error('Error loading available meals:', error);
@@ -327,8 +327,8 @@ export class DayDetailsComponent implements OnInit {
     this.showAdvanced = false;
     this.showChangeAdvanced = false;
 
-    const currentUser = this.userStateService.getCurrentUser();
-    this.selectedCookId = currentUser?.id ?? null;
+    const currentMember = this.memberStateService.getCurrentMember();
+    this.selectedCookId = currentMember?.id ?? null;
 
     this.selectedExistingMealId = null;
     this.mealSearchQuery = '';

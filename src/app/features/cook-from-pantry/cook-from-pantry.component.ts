@@ -5,7 +5,7 @@ import { PageLoadingComponent } from '../../shared/components/page-loading/page-
 import {  PantryService } from '../../services/pantry.service';
 import { Meal } from '../../models/meal.model';
 import { MealsService } from '../../services/meal.service';
-import { UserStateService } from '../../services/user.state.service';
+import { MemberStateService } from '../../services/member.state.service';
 import { PantryItem } from '../../models/pantry-item.model';
 
 @Component({
@@ -27,7 +27,7 @@ export class CookFromPantryComponent implements OnInit {
   constructor(
     private pantryService: PantryService,
     private mealsService: MealsService,
-    private userStateService: UserStateService,
+    private memberStateService: MemberStateService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -39,14 +39,14 @@ export class CookFromPantryComponent implements OnInit {
   async loadMeals(): Promise<void> {
     this.isLoading = true;
     try {
-      const user = this.userStateService.getCurrentUser();
+      const member = this.memberStateService.getCurrentMember();
 
-      if (!user) {
+      if (!member) {
         this.meals = [];
         return;
       }
 
-      this.meals = await this.mealsService.getMeals(user.id);
+      this.meals = await this.mealsService.getMeals(member.id);
     } catch (error) {
       console.error('Error loading meals:', error);
       this.error = 'Could not load meals.';

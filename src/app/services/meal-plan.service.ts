@@ -33,7 +33,7 @@ export class MealPlanService {
           image_url,
           instructions
         ),
-        cook:users!planned_meals_cook_user_id_fkey (
+        cook:members!planned_meals_cook_member_id_fkey (
           id,
           name,
           avatar_url
@@ -120,7 +120,7 @@ export class MealPlanService {
           image_url,
           instructions
         ),
-        cook:users!planned_meals_cook_user_id_fkey (
+        cook:members!planned_meals_cook_member_id_fkey (
           id,
           name,
           avatar_url
@@ -173,7 +173,7 @@ export class MealPlanService {
   async createMealAndPlan(
     name: string,
     prepTime: number | null,
-    cookUserId: number | null,
+    cookMemberId: number | null,
     date: string,
     imagePath?: string | null,
     instructions?: string | null,
@@ -205,7 +205,7 @@ export class MealPlanService {
       .insert({
         id: plannedId,
         meal_id: mealId,
-        cook_user_id: cookUserId,
+        cook_member_id: cookMemberId,
         planned_date: date,
         status: 'to-prepare',
       });
@@ -220,7 +220,7 @@ export class MealPlanService {
     plannedMealId: string,
     name: string,
     prepTime: number | null,
-    cookUserId: number | null,
+    cookMemberId: number | null,
     imagePath?: string | null,
     instructions?: string | null,
     ingredients?: string[]
@@ -248,7 +248,7 @@ export class MealPlanService {
       .from('planned_meals')
       .update({
         meal_id: mealId,
-        cook_user_id: cookUserId,
+        cook_member_id: cookMemberId,
       })
       .eq('id', plannedMealId);
 
@@ -258,7 +258,7 @@ export class MealPlanService {
     }
   }
 
-  async getAvailableMealsForPlanning(userId: number): Promise<
+  async getAvailableMealsForPlanning(memberId: number): Promise<
     {
       id: string;
       name: string;
@@ -288,9 +288,9 @@ export class MealPlanService {
     }
 
     const { data: hiddenData } = await this.supabaseService.supabase
-      .from('user_meals')
+      .from('member_meals')
       .select('meal_id')
-      .eq('user_id', userId)
+      .eq('member_id', memberId)
       .eq('is_hidden', true);
 
     const hiddenIds = new Set(hiddenData?.map((h) => h.meal_id));
@@ -310,13 +310,13 @@ export class MealPlanService {
   async updatePlannedMealMeal(
     plannedMealId: string,
     mealId: string,
-    cookUserId: number | null
+    cookMemberId: number | null
   ): Promise<void> {
     const { error } = await this.supabaseService.supabase
       .from('planned_meals')
       .update({
         meal_id: mealId,
-        cook_user_id: cookUserId,
+        cook_member_id: cookMemberId,
       })
       .eq('id', plannedMealId);
 
@@ -358,11 +358,11 @@ export class MealPlanService {
 
   async updatePlannedMealCook(
     plannedMealId: string,
-    cookUserId: number | null
+    cookMemberId: number | null
   ): Promise<void> {
     const { error } = await this.supabaseService.supabase
       .from('planned_meals')
-      .update({ cook_user_id: cookUserId })
+      .update({ cook_member_id: cookMemberId })
       .eq('id', plannedMealId);
 
     if (error) {
@@ -373,7 +373,7 @@ export class MealPlanService {
 
   async createPlannedMealFromExistingMeal(
     mealId: string,
-    cookUserId: number | null,
+    cookMemberId: number | null,
     date: string
   ): Promise<void> {
     const plannedId = crypto.randomUUID();
@@ -383,7 +383,7 @@ export class MealPlanService {
       .insert({
         id: plannedId,
         meal_id: mealId,
-        cook_user_id: cookUserId,
+        cook_member_id: cookMemberId,
         planned_date: date,
         status: 'to-prepare',
       });

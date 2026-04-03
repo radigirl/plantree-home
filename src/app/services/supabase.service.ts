@@ -12,9 +12,9 @@ export class SupabaseService {
     environment.supabaseKey
   );
 
-  async getUsers(): Promise<Member[]> {
+  async getMembers(): Promise<Member[]> {
     const { data, error } = await this.supabase
-      .from('users')
+      .from('members')
       .select('*')
       .order('id', { ascending: true });
 

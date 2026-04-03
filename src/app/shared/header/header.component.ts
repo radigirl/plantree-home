@@ -4,7 +4,7 @@ import { LucideAngularModule, User } from 'lucide-angular';
 import { Observable } from 'rxjs';
 import { Member } from '../../models/member.model';
 import { SupabaseService } from '../../services/supabase.service';
-import { UserStateService } from '../../services/user.state.service';
+import { MemberStateService} from '../../services/member.state.service';
 
 
 @Component({
@@ -17,33 +17,33 @@ import { UserStateService } from '../../services/user.state.service';
 export class HeaderComponent implements OnInit {
   readonly userIcon = User;
 
-  users: Member[] = [];
-  currentUser$: Observable<Member | null>;
+  members: Member[] = [];
+  currentMember$: Observable<Member | null>;
   isUserMenuOpen = false;
 
   constructor(
     private supabaseService: SupabaseService,
-    private userStateService: UserStateService
+    private memberStateService: MemberStateService
   ) {
-    this.currentUser$ = this.userStateService.currentUser$;
+    this.currentMember$ = this.memberStateService.currentMember$;
   }
 
   async ngOnInit(): Promise<void> {
-    this.users = await this.supabaseService.getUsers();
+    this.members = await this.supabaseService.getMembers();
 
-    const currentUser = this.userStateService.getCurrentUser();
+    const currentMember = this.memberStateService.getCurrentMember();
 
-    if (!currentUser && this.users.length > 0) {
-      this.userStateService.setCurrentUser(this.users[1]); // TO DO: change to 0 temporary
+    if (!currentMember && this.members.length > 0) {
+      this.memberStateService.setCurrentMember(this.members[1]); // TO DO: change to 0 temporary
     }
   }
 
-  toggleUserMenu(): void {
+  toggleMemberMenu(): void {
     this.isUserMenuOpen = !this.isUserMenuOpen;
   }
 
-  selectUser(user: Member): void {
-    this.userStateService.setCurrentUser(user);
+  selectMember(member: Member): void {
+    this.memberStateService.setCurrentMember(member);
     this.isUserMenuOpen = false;
   }
 

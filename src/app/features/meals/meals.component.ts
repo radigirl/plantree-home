@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -13,7 +14,7 @@ import { Meal } from '../../models/meal.model';
 import { MealsService } from '../../services/meal.service';
 import { SupabaseService } from '../../services/supabase.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
-import { UserStateService } from '../../services/user.state.service';
+import { MemberStateService } from '../../services/member.state.service';
 import { filterMealsByQuery } from '../../shared/utils/meal-search.util';
 import { MealDetailsModalComponent } from './meal-details-modal/meal-details-modal.component';
 import {
@@ -22,6 +23,8 @@ import {
 } from '../../shared/components/responsive-action-menu/responsive-action-menu';
 import { MealPlanService } from '../../services/meal-plan.service';
 import { CalendarPickerComponent } from '../../shared/components/calendar-picker/calendar-picker.component';
+import { Subject } from 'rxjs';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-meals',
@@ -32,16 +35,15 @@ import { CalendarPickerComponent } from '../../shared/components/calendar-picker
     PageLoadingComponent,
     MealDetailsModalComponent,
     ResponsiveActionMenuComponent,
-    CalendarPickerComponent
+    CalendarPickerComponent,
   ],
   templateUrl: './meals.component.html',
   styleUrl: './meals.component.scss',
 })
-export class MealsComponent implements OnInit {
+export class MealsComponent implements OnInit, OnDestroy {
   meals: Meal[] = [];
   isLoading = true;
   isAddToPlanLoading = false;
-
 
   isAddingMeal = false;
   isEditingMeal = false;
@@ -72,12 +74,13 @@ export class MealsComponent implements OnInit {
   calendarSelectionMode: 'single' | 'multiple' = 'single';
   selectedPlanDates: string[] = [];
 
-
   mealActions: ResponsiveActionMenuItem[] = [
     { id: 'edit', label: 'Edit meal' },
     { id: 'add-to-plan', label: 'Add to Plan' },
     { id: 'remove', label: 'Remove from My Meals' },
   ];
+
+  private destroy$ = new Subject<void>();
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -85,9 +88,9 @@ export class MealsComponent implements OnInit {
     private mealsService: MealsService,
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
-    private userStateService: UserStateService,
+    private memberStateService: MemberStateService,
     private mealPlanService: MealPlanService
-  ) { }
+  ) {}
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -105,21 +108,35 @@ export class MealsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    await this.loadMeals();
+    this.memberStateService.currentMember$
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
+      )
+      .subscribe(async (member) => {
+        this.resetMealsViewState();
+
+        if (!member) {
+          this.meals = [];
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        await this.loadMeals(member.id);
+      });
   }
 
-  async loadMeals(): Promise<void> {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  async loadMeals(memberId: number): Promise<void> {
     this.isLoading = true;
 
     try {
-      const user = this.userStateService.getCurrentUser();
-
-      if (!user) {
-        this.meals = [];
-        return;
-      }
-
-      this.meals = await this.mealsService.getMeals(user.id);
+      this.meals = await this.mealsService.getMeals(memberId);
     } catch (error) {
       console.error('Error loading meals:', error);
       this.meals = [];
@@ -127,6 +144,17 @@ export class MealsComponent implements OnInit {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  private resetMealsViewState(): void {
+    this.openMealMenuId = null;
+    this.expandedMealId = null;
+    this.selectedMealForActions = null;
+    this.selectedSearchMeal = null;
+    this.isSearchMealDetailsOpen = false;
+    this.mealSearchQuery = '';
+    this.mealActionSheetMode = 'actions';
+    this.resetCalendarSelection();
   }
 
   get hasMeals(): boolean {
@@ -228,7 +256,11 @@ export class MealsComponent implements OnInit {
       );
 
       this.cancelMealForm();
-      await this.loadMeals();
+
+      const member = this.memberStateService.getCurrentMember();
+      if (member) {
+        await this.loadMeals(member.id);
+      }
     } catch (error) {
       console.error('Error saving meal:', error);
     } finally {
@@ -276,7 +308,11 @@ export class MealsComponent implements OnInit {
 
       this.closeMealMenu();
 
-      await this.loadMeals();
+      const member = this.memberStateService.getCurrentMember();
+      if (member) {
+        await this.loadMeals(member.id);
+      }
+
       this.restoreToEditedMealCard();
     } catch (error) {
       console.error('Error updating meal:', error);
@@ -289,22 +325,22 @@ export class MealsComponent implements OnInit {
     this.closeMealMenu();
 
     try {
-      const user = this.userStateService.getCurrentUser();
+      const member = this.memberStateService.getCurrentMember();
 
-      if (!user) {
+      if (!member) {
         return;
       }
 
       const confirmed = window.confirm(
-        `Remove "${meal.name}" from your My Meals?\n\nYou can still access it through other users or past plans.`
+        `Remove "${meal.name}" from your My Meals?\n\nYou can still access it through other members or past plans.`
       );
 
       if (!confirmed) {
         return;
       }
 
-      await this.mealsService.hideMealForUser(meal.id, user.id);
-      await this.loadMeals();
+      await this.mealsService.hideMealForMember(meal.id, member.id);
+      await this.loadMeals(member.id);
     } catch (error) {
       console.error('Error hiding meal:', error);
     } finally {
@@ -321,11 +357,11 @@ export class MealsComponent implements OnInit {
   }
 
   closeMealMenu(): void {
-  this.openMealMenuId = null;
-  this.selectedMealForActions = null;
-  this.mealActionSheetMode = 'actions';
-  this.resetCalendarSelection();
-}
+    this.openMealMenuId = null;
+    this.selectedMealForActions = null;
+    this.mealActionSheetMode = 'actions';
+    this.resetCalendarSelection();
+  }
 
   async onMealActionSelected(actionId: string): Promise<void> {
     if (!this.selectedMealForActions) {
@@ -394,7 +430,6 @@ export class MealsComponent implements OnInit {
 
     window.scrollTo(0, Math.max(absoluteTop - topOffset, 0));
   }
-
 
   private restoreToEditedMealCard(): void {
     if (!this.returnToMealId) {
@@ -468,8 +503,9 @@ export class MealsComponent implements OnInit {
     ];
   }
 
-
-  private async handleAddToPlanSelection(action: 'today' | 'tomorrow'): Promise<void> {
+  private async handleAddToPlanSelection(
+    action: 'today' | 'tomorrow'
+  ): Promise<void> {
     if (!this.selectedMealForActions || this.isAddToPlanLoading) return;
 
     const meal = this.selectedMealForActions;
@@ -571,5 +607,4 @@ export class MealsComponent implements OnInit {
     this.selectedPlanDates = [];
     this.calendarSelectionMode = 'single';
   }
-
 }

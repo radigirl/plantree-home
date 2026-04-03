@@ -12,7 +12,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
 import { GroceryService } from '../../../services/grocery.service';
 import { GroceryList } from '../../../models/grocery-list.model';
-import { UserStateService } from '../../../services/user.state.service';
+import {MemberStateService } from '../../../services/member.state.service';
 import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../../shared/components/responsive-action-menu/responsive-action-menu';
 
 @Component({
@@ -45,7 +45,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private groceryService: GroceryService,
-    private userStateService: UserStateService,
+    private memberStateService: MemberStateService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -127,13 +127,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const currentUser = this.userStateService.getCurrentUser();
-    const addedByUserId = currentUser?.id ?? 1;
+    const currentMember = this.memberStateService.getCurrentMember();
+    const addedByMemberId = currentMember?.id ?? 1;
 
     const created = await this.groceryService.createGroceryItem(
       this.groceryList.id,
       trimmedName,
-      addedByUserId
+      addedByMemberId
     );
 
     if (!created) {
@@ -155,13 +155,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   const nextStatus = item.status === 'bought' ? 'needed' : 'bought';
-  const currentUser = this.userStateService.getCurrentUser();
-  const boughtByUserId = currentUser?.id ?? 1;
+  const currentMember = this.memberStateService.getCurrentMember();
+  const boughtByMemberId = currentMember?.id ?? 1;
 
   const updated = await this.groceryService.updateGroceryItemStatus(
     item.id,
     nextStatus,
-    boughtByUserId
+    boughtByMemberId
   );
 
   if (!updated || !this.groceryList) {
@@ -273,10 +273,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   getItemMetaParts(item: any) {
-    const currentUser = this.userStateService.getCurrentUser();
+    const currentMember = this.memberStateService.getCurrentMember();
 
-    const isAddedByYou = currentUser?.id === item.addedBy?.id;
-    const isBoughtByYou = currentUser?.id === item.boughtBy?.id;
+    const isAddedByYou = currentMember?.id === item.addedBy?.id;
+    const isBoughtByYou = currentMember?.id === item.boughtBy?.id;
 
     return {
       addedByName: item.addedBy?.name || 'Someone',

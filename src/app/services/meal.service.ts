@@ -10,7 +10,7 @@ export type MealUsageAction = 'delete' | 'archive' | 'cancel';
 export class MealsService {
   constructor(private supabaseService: SupabaseService) { }
 
-  async getMeals(userId: number, includeArchived = false): Promise<Meal[]> {
+  async getMeals(memberId: number, includeArchived = false): Promise<Meal[]> {
     let query = this.supabaseService.supabase
       .from('meals')
       .select(`
@@ -35,11 +35,11 @@ export class MealsService {
       return [];
     }
 
-    // get hidden meals for this user
+    // get hidden meals for this member
     const { data: hiddenData } = await this.supabaseService.supabase
-      .from('user_meals')
+      .from('member_meals')
       .select('meal_id')
-      .eq('user_id', userId)
+      .eq('member_id', memberId)
       .eq('is_hidden', true);
 
     const hiddenIds = new Set(hiddenData?.map((h) => h.meal_id));
@@ -252,17 +252,18 @@ export class MealsService {
     }
   }
 
-  async hideMealForUser(mealId: string, userId: number): Promise<void> {
+  async hideMealForMember(mealId: string, memberId: number): Promise<void> {
+    console.log(`Hiding meal ${mealId} for member ${memberId}`);
     const { error } = await this.supabaseService.supabase
-      .from('user_meals')
+      .from('member_meals')
       .upsert({
-        user_id: userId,
+        member_id: memberId,
         meal_id: mealId,
         is_hidden: true,
       });
 
     if (error) {
-      console.error('Error hiding meal for user:', error);
+      console.error('Error hiding meal for member:', error);
       throw error;
     }
   }
