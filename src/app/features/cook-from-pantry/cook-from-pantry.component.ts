@@ -1,78 +1,173 @@
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  takeUntil,
+} from 'rxjs/operators';
+
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
-import {  PantryService } from '../../services/pantry.service';
-import { Meal } from '../../models/meal.model';
 import { MealsService } from '../../services/meal.service';
+import { PantryService } from '../../services/pantry.service';
+import { SpaceStateService } from '../../services/space.state.service';
 import { MemberStateService } from '../../services/member.state.service';
+
+import { Meal } from '../../models/meal.model';
 import { PantryItem } from '../../models/pantry-item.model';
+
+type EmptyState =
+  | 'none'
+  | 'no-meals'
+  | 'empty-pantry'
+  | 'both-empty';
+
+interface CookFromPantryMeal extends Meal {
+  score: number;
+  matchedCount: number;
+  totalCount: number;
+}
 
 @Component({
   selector: 'app-cook-from-pantry',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent],
+  imports: [CommonModule, PageLoadingComponent],
   templateUrl: './cook-from-pantry.component.html',
   styleUrl: './cook-from-pantry.component.scss',
 })
-export class CookFromPantryComponent implements OnInit {
-  isLoading = false;
-  error = '';
-  meals: Meal[] = [];
-  pantryItems: PantryItem[] = [];
-  // showHelperMessage = false;
+export class CookFromPantryComponent
+  implements OnInit, OnDestroy
+{
+  isLoading = true;
+  emptyState: EmptyState = 'none';
 
-  
+  sortedMeals: CookFromPantryMeal[] = [];
+
+  private destroy$ = new Subject<void>();
 
   constructor(
-    private pantryService: PantryService,
     private mealsService: MealsService,
+    private pantryService: PantryService,
+    private spaceStateService: SpaceStateService,
     private memberStateService: MemberStateService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  async ngOnInit(): Promise<void> {
-    await this.loadMeals();
-    await this.loadPantryItems();
+  ngOnInit(): void {
+    this.spaceStateService.currentSpace$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((space): space is NonNullable<typeof space> => !!space),
+        map((space) => space.id),
+        distinctUntilChanged()
+      )
+      .subscribe(async () => {
+        await this.loadSuggestions();
+      });
   }
 
-  async loadMeals(): Promise<void> {
+  private async loadSuggestions(): Promise<void> {
     this.isLoading = true;
-    try {
-      const member = this.memberStateService.getCurrentMember();
+    this.emptyState = 'none';
+    this.sortedMeals = [];
 
-      if (!member) {
-        this.meals = [];
+    try {
+      const currentMember =
+        this.memberStateService.getCurrentMember();
+
+      if (!currentMember) {
+        this.isLoading = false;
+        this.cdr.detectChanges();
         return;
       }
 
-      this.meals = await this.mealsService.getMeals(member.id);
+      const [allMeals, pantryItems] = await Promise.all([
+        this.mealsService.getAllMeals(),
+        this.pantryService.getPantryItems(),
+      ]);
+
+      const hasMeals = allMeals.length > 0;
+      const hasPantry = pantryItems.length > 0;
+
+      if (!hasMeals && !hasPantry) {
+        this.emptyState = 'both-empty';
+      } else if (!hasMeals) {
+        this.emptyState = 'no-meals';
+      } else if (!hasPantry) {
+        this.emptyState = 'empty-pantry';
+      } else {
+        this.sortedMeals = this.buildSortedMeals(
+          allMeals,
+          pantryItems
+        );
+      }
     } catch (error) {
-      console.error('Error loading meals:', error);
-      this.error = 'Could not load meals.';
-      this.meals = [];
+      console.error(
+        'Error loading cook from pantry suggestions:',
+        error
+      );
+      this.emptyState = 'both-empty';
+      this.sortedMeals = [];
     } finally {
+      console.log(this.sortedMeals);
       this.isLoading = false;
       this.cdr.detectChanges();
     }
   }
 
-  async loadPantryItems(): Promise<void> {
-    this.isLoading = true;
-    this.error = '';
+  private buildSortedMeals(
+  meals: Meal[],
+  pantryItems: PantryItem[]
+): CookFromPantryMeal[] {
+  const pantrySet = new Set(
+    pantryItems
+      .map((item) =>
+        item.normalized_name?.trim().toLowerCase()
+      )
+      .filter(Boolean)
+  );
 
-    try {
-      this.pantryItems = await this.pantryService.getPantryItems();
-    } catch (error) {
-      console.error('Error loading pantry items:', error);
-      this.error = 'Could not load pantry items.';
-    } finally {
-      this.isLoading = false;
-      this.cdr.detectChanges();
-    }
+  return meals
+    .map((meal) => {
+      const normalizedIngredients = (meal.ingredients ?? [])
+        .map((ingredient) =>
+          ingredient.trim().toLowerCase()
+        )
+        .filter(Boolean);
+
+      const totalCount = normalizedIngredients.length;
+
+      if (totalCount === 0) {
+        return null;
+      }
+
+      const matchedCount = normalizedIngredients.filter(
+        (ingredient) => pantrySet.has(ingredient)
+      ).length;
+
+      if (matchedCount === 0) {
+        return null;
+      }
+
+      return {
+        ...meal,
+        score: matchedCount / totalCount,
+        matchedCount,
+        totalCount,
+      };
+    })
+    .filter((meal): meal is CookFromPantryMeal => meal !== null)
+    .sort((a, b) => b.score - a.score);
+}
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
-
-
-
-  
 }

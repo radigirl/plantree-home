@@ -1,8 +1,76 @@
 <app-page-loading *ngIf="isLoading"></app-page-loading>
 
-<div *ngIf="!isLoading">
-  <div class="cook-from-pantry-page">
-  Content for cook from pantry page
+<div *ngIf="!isLoading" class="cook-from-pantry-page">
 
+  <!-- TITLE -->
+  <h1 class="cook-from-pantry-page__title">
+    Cook from your pantry
+  </h1>
+
+  <!-- BOTH EMPTY -->
+  <div
+    class="cook-from-pantry-empty"
+    *ngIf="emptyState === 'both-empty'"
+  >
+    <h2>Nothing here yet</h2>
+    <p>Add meals and pantry items to get started.</p>
   </div>
+
+  <!-- NO MEALS -->
+  <div
+    class="cook-from-pantry-empty"
+    *ngIf="emptyState === 'no-meals'"
+  >
+    <h2>No meals yet</h2>
+    <p>Add your meals to start cooking from your pantry.</p>
+  </div>
+
+  <!-- EMPTY PANTRY -->
+  <div
+    class="cook-from-pantry-empty"
+    *ngIf="emptyState === 'empty-pantry'"
+  >
+    <h2>Your pantry is empty</h2>
+    <p>Add ingredients to see matching meals here.</p>
+  </div>
+
+  <!-- NO MATCHES -->
+  <div
+    class="cook-from-pantry-empty"
+    *ngIf="emptyState === 'none' && sortedMeals.length === 0"
+  >
+    <h2>No matching meals</h2>
+    <p>None of your meals match your pantry yet.</p>
+  </div>
+
+  <!-- LIST -->
+  <div
+    class="cook-from-pantry-list"
+    *ngIf="emptyState === 'none' && sortedMeals.length > 0"
+  >
+    <article
+      class="cook-from-pantry-card"
+      *ngFor="let meal of sortedMeals"
+    >
+      <!-- IMAGE -->
+      <div class="cook-from-pantry-card__image">
+        <img
+          [src]="meal.image_url || 'assets/meals/default-meal.png'"
+          [alt]="meal.name"
+        />
+      </div>
+
+      <!-- CONTENT -->
+      <div class="cook-from-pantry-card__content">
+        <h3 class="cook-from-pantry-card__title">
+          {{ meal.name }}
+        </h3>
+
+        <div class="cook-from-pantry-card__score">
+          {{ meal.matchedCount }}/{{ meal.totalCount }}
+        </div>
+      </div>
+    </article>
+  </div>
+
 </div>

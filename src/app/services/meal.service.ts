@@ -55,6 +55,39 @@ export class MealsService {
     });
 }
 
+async getAllMeals(): Promise<Meal[]> {
+  const { data, error } = await this.supabaseService.supabase
+    .from('meals')
+    .select(`
+      id,
+      name,
+      prep_time,
+      ingredients,
+      image_url,
+      instructions
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching all meals:', error);
+    return [];
+  }
+
+  return (data ?? []).map((item) => {
+    const imageUrl =
+      this.supabaseService.getMealImageUrl(item.image_url);
+
+    return {
+      id: item.id,
+      name: item.name,
+      prepTime: item.prep_time ?? undefined,
+      ingredients: item.ingredients ?? [],
+      image_url: imageUrl ?? undefined,
+      instructions: item.instructions ?? undefined,
+    };
+  });
+}
+
   async createMeal(
     name: string,
     prepTime: number | null,
