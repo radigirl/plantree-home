@@ -1,7 +1,7 @@
 {
   "name": "Plantree",
   "short_name": "Plantree",
-  "theme_color": "#0f5c4d",
+  "theme_color": "#DAD4C8",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "/plantree-home/",
