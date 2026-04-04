@@ -11,4 +11,5 @@ export interface GroceryList {
   created_by_member_id: number;
   created_at: string;
   updated_at: string;
+  space_id: string;
 }

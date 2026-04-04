@@ -11,7 +11,7 @@ export class MealPlanService {
   constructor(private supabaseService: SupabaseService, private spaceStateService: SpaceStateService) {}
 
   async getWeekPlan(weekStart: Date): Promise<DayPlan[]> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
     const monday = new Date(weekStart);
 
@@ -114,7 +114,7 @@ export class MealPlanService {
   }
 
   async getMealsForDate(date: string): Promise<PlannedMeal[]> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
     const { data, error } = await this.supabaseService.supabase
       .from('planned_meals')
@@ -197,7 +197,7 @@ export class MealPlanService {
     ingredients?: string[]
   ): Promise<void> {
 
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const mealId = crypto.randomUUID();
 
     const { error: mealError } = await this.supabaseService.supabase
@@ -244,7 +244,7 @@ export class MealPlanService {
     instructions?: string | null,
     ingredients?: string[]
   ): Promise<void> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const mealId = crypto.randomUUID();
 
     const { error: mealError } = await this.supabaseService.supabase
@@ -397,27 +397,34 @@ export class MealPlanService {
   }
 
   async createPlannedMealFromExistingMeal(
-    mealId: string,
-    cookMemberId: number | null,
-    date: string
-  ): Promise<void> {
-    const plannedId = crypto.randomUUID();
+  mealId: string,
+  cookMemberId: number | null,
+  date: string
+): Promise<void> {
+  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
-    const { error } = await this.supabaseService.supabase
-      .from('planned_meals')
-      .insert({
-        id: plannedId,
-        meal_id: mealId,
-        cook_member_id: cookMemberId,
-        planned_date: date,
-        status: 'to-prepare',
-      });
-
-    if (error) {
-      console.error('Error creating planned meal from existing meal:', error);
-      throw error;
-    }
+  if (!spaceId) {
+    throw new Error('No current space selected.');
   }
+
+  const plannedId = crypto.randomUUID();
+
+  const { error } = await this.supabaseService.supabase
+    .from('planned_meals')
+    .insert({
+      id: plannedId,
+      meal_id: mealId,
+      cook_member_id: cookMemberId,
+      planned_date: date,
+      status: 'to-prepare',
+      space_id: spaceId,
+    });
+
+  if (error) {
+    console.error('Error creating planned meal from existing meal:', error);
+    throw error;
+  }
+}
 
   private formatDateLocal(date: Date): string {
     const year = date.getFullYear();

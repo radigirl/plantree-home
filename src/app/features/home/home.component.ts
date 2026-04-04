@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DayPlan } from '../../models/day-plan.model';
@@ -13,6 +13,9 @@ import {
   Trophy,
   ShoppingCart
 } from 'lucide-angular';
+import { SpaceStateService } from '../../services/space.state.service';
+import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -21,7 +24,7 @@ import {
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   weekMeals: DayPlan[] = [];
   isLoading = true;
 
@@ -32,15 +35,27 @@ export class HomeComponent implements OnInit {
   readonly myMealsIcon = Utensils;
   readonly statsIcon = Trophy;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private router: Router,
     private mealPlanService: MealPlanService,
+    private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef
   ) { }
 
-  async ngOnInit(): Promise<void> {
-    await this.loadWeekPlan();
-  }
+  ngOnInit(): void {
+  this.spaceStateService.currentSpace$
+    .pipe(
+      takeUntil(this.destroy$),
+      filter((space): space is NonNullable<typeof space> => !!space),
+      map(space => space.id),
+      distinctUntilChanged()
+    )
+    .subscribe(async () => {
+      await this.loadWeekPlan();
+    });
+}
 
   async loadWeekPlan(): Promise<void> {
     this.isLoading = true;
@@ -159,4 +174,9 @@ export class HomeComponent implements OnInit {
   openMeals(): void {
     this.router.navigate(['/meals']);
   }
+
+   ngOnDestroy(): void {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
 }

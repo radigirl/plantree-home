@@ -18,7 +18,7 @@ export class PantryService {
 
   async getPantryItems(): Promise<PantryItem[]> {
 
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
     const { data, error } = await this.supabase
       .from('pantry_items')
@@ -36,7 +36,7 @@ export class PantryService {
 
   async createPantryItem(name: string): Promise<PantryItem | null> {
 
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId =  this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = name.trim();
 
     if (!trimmedName) {
@@ -73,7 +73,7 @@ export class PantryService {
     itemId: string,
     newName: string
   ): Promise<boolean> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId =  this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = newName.trim();
 
     if (!trimmedName) {
@@ -101,7 +101,7 @@ export class PantryService {
     itemId: string,
     amount: number
   ): Promise<boolean> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
     const { error } = await this.supabase
       .from('pantry_items')
@@ -118,7 +118,7 @@ export class PantryService {
   }
 
   async deletePantryItem(itemId: string): Promise<boolean> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const { error } = await this.supabase
       .from('pantry_items')
       .delete()
@@ -134,7 +134,7 @@ export class PantryService {
   }
 
   async addOrIncrementPantryItem(name: string): Promise<PantryItem | null> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId =  this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = name.trim();
 
     if (!trimmedName) {

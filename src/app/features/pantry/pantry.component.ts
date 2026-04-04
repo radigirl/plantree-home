@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeatherModule } from 'angular-feather';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import {  PantryService } from '../../services/pantry.service';
 import { PantryItem } from '../../models/pantry-item.model';
+import { Subject } from 'rxjs';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
+import { SpaceStateService } from '../../services/space.state.service';
 
 @Component({
   selector: 'app-pantry',
@@ -13,7 +16,7 @@ import { PantryItem } from '../../models/pantry-item.model';
   templateUrl: './pantry.component.html',
   styleUrl: './pantry.component.scss',
 })
-export class PantryComponent implements OnInit {
+export class PantryComponent implements OnInit, OnDestroy {
   isLoading = true;
   error = '';
   newItemName = '';
@@ -24,14 +27,41 @@ export class PantryComponent implements OnInit {
   editItemName = '';
   editItemAmount = 1;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private pantryService: PantryService,
+    private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  async ngOnInit(): Promise<void> {
-    await this.loadPantryItems();
-  }
+ async ngOnInit(): Promise<void> {
+  this.spaceStateService.currentSpace$
+    .pipe(
+      takeUntil(this.destroy$),
+      distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
+    )
+    .subscribe(async (space) => {
+      this.resetPantryViewState();
+
+      if (!space) {
+        this.pantryItems = [];
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      await this.loadPantryItems();
+    });
+}
+
+private resetPantryViewState(): void {
+  this.error = '';
+  this.newItemName = '';
+  this.editingItemId = null;
+  this.editItemName = '';
+  this.editItemAmount = 1;
+}
 
   async loadPantryItems(): Promise<void> {
     this.isLoading = true;
@@ -148,4 +178,9 @@ export class PantryComponent implements OnInit {
 
     return Math.floor(value);
   }
+
+  ngOnDestroy(): void {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
 }

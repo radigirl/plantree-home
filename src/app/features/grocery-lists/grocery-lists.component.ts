@@ -19,6 +19,9 @@ import {
 } from '../../shared/components/responsive-action-menu/responsive-action-menu';
 import { FeatherModule } from 'angular-feather';
 import { PantryService } from '../../services/pantry.service';
+import { Subject } from 'rxjs';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
+import { SpaceStateService } from '../../services/space.state.service';
 
 @Component({
   selector: 'app-grocery-lists',
@@ -54,9 +57,12 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
   private listsChannel: RealtimeChannel | null = null;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private groceryService: GroceryService,
     private memberStateService: MemberStateService,
+    private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private pantryService: PantryService,
@@ -90,12 +96,48 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     return this.archivedLists.length;
   }
 
-  async ngOnInit(): Promise<void> {
-    await this.loadGroceryLists();
-    this.subscribeToGroceryLists();
+  ngOnInit(): void {
+    this.spaceStateService.currentSpace$
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
+      )
+      .subscribe(async (space) => {
+        this.resetListsViewState();
+
+        if (!space) {
+          this.groceryLists = [];
+          this.pantryCounts = {};
+          this.isLoading = false;
+          this.listsChannel?.unsubscribe();
+          this.cdr.detectChanges();
+          return;
+        }
+
+        await this.loadGroceryLists();
+        this.subscribeToGroceryLists();
+      });
+  }
+
+  private resetListsViewState(): void {
+    this.error = '';
+
+    this.isCreatingList = false;
+    this.newListName = '';
+
+    this.openMenuListId = null;
+    this.editingListId = null;
+    this.editListName = '';
+
+    this.selectedListForActions = null;
+    this.listActions = [];
+
+    this.showArchived = false;
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.listsChannel?.unsubscribe();
   }
 

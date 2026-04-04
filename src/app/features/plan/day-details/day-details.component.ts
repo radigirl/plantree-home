@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  OnDestroy,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -22,6 +23,9 @@ import { MEAL_STATUS_LABELS, getNextStatus } from '../../../shared/utils/meal.ut
 import { filterMealsByQuery } from '../../../shared/utils/meal-search.util';
 import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../../shared/components/responsive-action-menu/responsive-action-menu';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SpaceStateService } from '../../../services/space.state.service';
+import { Subject } from 'rxjs';
+import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type AddMealMode = 'search' | 'new';
@@ -34,7 +38,7 @@ type ChangeMealMode = 'search' | 'create-from-current';
   templateUrl: './day-details.component.html',
   styleUrl: './day-details.component.scss',
 })
-export class DayDetailsComponent implements OnInit {
+export class DayDetailsComponent implements OnInit, OnDestroy {
   date: string | null = null;
   meals: PlannedMeal[] = [];
   isLoading = true;
@@ -94,6 +98,8 @@ export class DayDetailsComponent implements OnInit {
   isDeleteConfirmOpen = false;
   mealPendingDelete: PlannedMeal | null = null;
 
+  private destroy$ = new Subject<void>();
+
 
   @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
@@ -102,6 +108,7 @@ export class DayDetailsComponent implements OnInit {
     private mealPlanService: MealPlanService,
     private memberStateService: MemberStateService,
     private supabaseService: SupabaseService,
+    private spaceStateService: SpaceStateService, 
     private cdr: ChangeDetectorRef,
     private router: Router,
   ) { }
@@ -122,20 +129,41 @@ export class DayDetailsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.date = this.route.snapshot.paramMap.get('date');
+  this.date = this.route.snapshot.paramMap.get('date');
 
-    await this.loadMembers();
+  await this.loadMembers();
 
-    if (!this.date) {
-      this.isLoading = false;
-      this.meals = [];
-      this.cdr.detectChanges();
-      return;
-    }
+  if (!this.date) {
+    this.isLoading = false;
+    this.meals = [];
+    this.cdr.detectChanges();
+    return;
+  }
 
-    await this.loadMealsForDate(this.date);
+  this.spaceStateService.currentSpace$
+    .pipe(
+      takeUntil(this.destroy$),
+      filter((space): space is NonNullable<typeof space> => !!space),
+      map(space => space.id),
+      distinctUntilChanged()
+    )
+    .subscribe(async () => {
+      if (!this.date) {
+        return;
+      }
 
-    this.route.queryParamMap.subscribe(async (params) => {
+      this.isFormOpen = false;
+      this.openMealMenuId = null;
+      this.selectedMealForActions = null;
+
+      await this.loadMealsForDate(this.date);
+    });
+
+  await this.loadMealsForDate(this.date);
+
+  this.route.queryParamMap
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(async (params) => {
       const shouldOpenAddForm = params.get('add') === 'true';
 
       if (shouldOpenAddForm && !this.isPastDate() && !this.isFormOpen) {
@@ -143,7 +171,7 @@ export class DayDetailsComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
-  }
+}
 
   async loadMembers(): Promise<void> {
     try {
@@ -923,5 +951,10 @@ export class DayDetailsComponent implements OnInit {
         break;
     }
   }
+
+  ngOnDestroy(): void {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
 
 }

@@ -2,6 +2,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  OnDestroy,
   OnInit,
   QueryList,
   ViewChildren,
@@ -19,6 +20,10 @@ import {
   ChevronRight,
   CalendarDays
 } from 'lucide-angular';
+import { SpaceStateService } from '../../services/space.state.service';
+import { Subject } from 'rxjs';
+import { filter, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+
 
 @Component({
   selector: 'app-plan',
@@ -27,7 +32,7 @@ import {
   templateUrl: './plan.component.html',
   styleUrl: './plan.component.scss',
 })
-export class PlanComponent implements OnInit {
+export class PlanComponent implements OnInit, OnDestroy {
   weekMeals: DayPlan[] = [];
   isLoading = true;
   isReady = false; // when returning from details
@@ -40,27 +45,47 @@ export class PlanComponent implements OnInit {
   readonly chevronRightIcon = ChevronRight;
   readonly calendarIcon = CalendarDays;
 
+  private destroy$ = new Subject<void>();
+
 
   @ViewChildren('mealCard') mealCards!: QueryList<ElementRef<HTMLElement>>;
 
   constructor(
     private mealPlanService: MealPlanService,
+    private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) { }
 
-  async ngOnInit(): Promise<void> {
+   ngOnInit(): void {
+  this.spaceStateService.currentSpace$
+    .pipe(
+      takeUntil(this.destroy$),
+      filter((space): space is NonNullable<typeof space> => !!space),
+      map((space) => space.id),
+      distinctUntilChanged()
+    )
+    .subscribe(async () => {
+      await this.initializePlanForCurrentSpace();
+    });
+}
+
+  private async initializePlanForCurrentSpace(): Promise<void> {
     const returnDate = sessionStorage.getItem('planReturnDate');
+
     if (returnDate) {
       this.currentWeekStart = this.getStartOfWeek(new Date(returnDate));
     }
+
     await this.loadWeekPlan(false);
+
     if (returnDate) {
       setTimeout(() => {
         const returnIndex = this.getDayIndexFromDateString(returnDate);
         if (returnIndex !== -1) {
           this.scrollToDayInstant(returnIndex);
         }
+
         sessionStorage.removeItem('planReturnDate');
       }, 0);
     }
@@ -312,28 +337,28 @@ export class PlanComponent implements OnInit {
   }
 
   async confirmCalendarDates(dates: string[]): Promise<void> {
-  if (!dates.length) {
-    return;
-  }
-
-  const pickedDate = new Date(`${dates[0]}T12:00:00`);
-  const pickedWeekStart = this.getStartOfWeek(pickedDate);
-
-  // let the selected state be visible briefly
-  await new Promise((resolve) => setTimeout(resolve, 160));
-
-  this.closeCalendar();
-
-  this.currentWeekStart = pickedWeekStart;
-  await this.loadWeekPlan(false);
-
-  requestAnimationFrame(() => {
-    const pickedIndex = this.getDayIndexInCurrentWeek(pickedDate);
-    if (pickedIndex !== -1) {
-      this.scrollToDayInstant(pickedIndex);
+    if (!dates.length) {
+      return;
     }
-  });
-}
+
+    const pickedDate = new Date(`${dates[0]}T12:00:00`);
+    const pickedWeekStart = this.getStartOfWeek(pickedDate);
+
+    // let the selected state be visible briefly
+    await new Promise((resolve) => setTimeout(resolve, 160));
+
+    this.closeCalendar();
+
+    this.currentWeekStart = pickedWeekStart;
+    await this.loadWeekPlan(false);
+
+    requestAnimationFrame(() => {
+      const pickedIndex = this.getDayIndexInCurrentWeek(pickedDate);
+      if (pickedIndex !== -1) {
+        this.scrollToDayInstant(pickedIndex);
+      }
+    });
+  }
 
   isViewingCurrentWeek(): boolean {
     const today = new Date();
@@ -341,5 +366,10 @@ export class PlanComponent implements OnInit {
 
     return this.formatDateForInput(this.currentWeekStart) === this.formatDateForInput(todayWeekStart);
   }
+
+  ngOnDestroy(): void {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
 
 }

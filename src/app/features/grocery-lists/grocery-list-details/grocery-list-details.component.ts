@@ -6,7 +6,7 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
@@ -14,6 +14,9 @@ import { GroceryService } from '../../../services/grocery.service';
 import { GroceryList } from '../../../models/grocery-list.model';
 import {MemberStateService } from '../../../services/member.state.service';
 import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../../shared/components/responsive-action-menu/responsive-action-menu';
+import { Subject } from 'rxjs';
+import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { SpaceStateService } from '../../../services/space.state.service';
 
 @Component({
   selector: 'app-grocery-list-details',
@@ -39,15 +42,19 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     { id: 'delete', label: 'Delete' },
   ];
 
+  private destroy$ = new Subject<void>();
+
 
   private itemsChannel: RealtimeChannel | null = null;
 
   constructor(
-    private route: ActivatedRoute,
-    private groceryService: GroceryService,
-    private memberStateService: MemberStateService,
-    private cdr: ChangeDetectorRef
-  ) { }
+  private route: ActivatedRoute,
+  private router: Router,
+  private groceryService: GroceryService,
+  private memberStateService: MemberStateService,
+  private spaceStateService: SpaceStateService,
+  private cdr: ChangeDetectorRef
+) { }
 
   @HostListener('document:click')
   onDocumentClick(): void {
@@ -55,21 +62,39 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-    const listId = this.route.snapshot.paramMap.get('id');
+  const listId = this.route.snapshot.paramMap.get('id');
 
-    if (!listId) {
-      this.error = 'Missing grocery list id.';
-      this.isLoading = false;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    await this.loadGroceryList(listId);
+  if (!listId) {
+    this.error = 'Missing grocery list id.';
+    this.isLoading = false;
+    this.cdr.detectChanges();
+    return;
   }
+
+  this.spaceStateService.currentSpace$
+    .pipe(
+      takeUntil(this.destroy$),
+      distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
+    )
+    .subscribe((space) => {
+      if (!space) {
+        this.router.navigate(['/grocery-lists']);
+        return;
+      }
+
+      if (this.groceryList && this.groceryList.space_id !== space.id) {
+        this.router.navigate(['/grocery-lists']);
+      }
+    });
+
+  await this.loadGroceryList(listId);
+}
 
   ngOnDestroy(): void {
-    this.itemsChannel?.unsubscribe();
-  }
+  this.destroy$.next();
+  this.destroy$.complete();
+  this.itemsChannel?.unsubscribe();
+}
 
   async loadGroceryList(listId: string): Promise<void> {
     this.isLoading = true;

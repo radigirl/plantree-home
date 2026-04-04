@@ -14,7 +14,7 @@ export class GroceryService {
   }
 
   async getGroceryLists(): Promise<GroceryList[]> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const { data, error } = await this.supabaseService.supabase
       .from('grocery_lists')
       .select('*')
@@ -30,7 +30,7 @@ export class GroceryService {
   }
 
   async getGroceryListById(id: string): Promise<GroceryList | null> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const { data, error } = await this.supabaseService.supabase
       .from('grocery_lists')
       .select('*')
@@ -50,7 +50,7 @@ export class GroceryService {
     name: string,
     createdByMemberId: number
   ): Promise<GroceryList | null> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = name.trim();
 
     if (!trimmedName) {
@@ -82,7 +82,7 @@ export class GroceryService {
     listId: string,
     newName: string
   ): Promise<boolean> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = newName.trim();
 
     if (!trimmedName) {
@@ -107,7 +107,7 @@ export class GroceryService {
     listId: string,
     status: 'active' | 'completed' | 'archived'
   ): Promise<boolean> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const { error } = await this.supabase
       .from('grocery_lists')
       .update({ status })
@@ -126,7 +126,7 @@ export class GroceryService {
     listId: string,
     isPinned: boolean
   ): Promise<boolean> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const { error } = await this.supabase
       .from('grocery_lists')
       .update({ is_pinned: isPinned })
@@ -142,7 +142,7 @@ export class GroceryService {
   }
 
   async deleteGroceryList(listId: string): Promise<boolean> {
-    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const { error } = await this.supabase
       .from('grocery_lists')
       .delete()
