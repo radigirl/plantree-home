@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
 import { Member } from '../models/member.model';
+import { Space } from '../models/space.model';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +25,21 @@ export class SupabaseService {
     }
 
     return (data ?? []) as Member[];
+  }
+
+
+  async getSpaces(): Promise<Space[]> {
+    const { data, error } = await this.supabase
+      .from('spaces')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return [];
+    }
+
+    return (data ?? []) as Space[];
   }
 
   async uploadMealImage(file: File, fileName: string): Promise<string> {

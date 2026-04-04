@@ -89,7 +89,7 @@
       <button type="button" class="meal-search-result" *ngFor="let meal of filteredMeals; trackBy: trackByMealId"
         (click)="openSearchMealDetails(meal)">
         <div class="meal-search-result__image">
-          <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+          <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
         </div>
 
         <div class="meal-search-result__content">
@@ -176,7 +176,7 @@
           </div>
 
           <div class="meal-image">
-            <img [src]="meal.image || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name" />
+            <img [src]="meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name" />
           </div>
         </div>
 
@@ -224,7 +224,7 @@
   [isOpen]="!!openMealMenuId" [title]="mealActionSheetMode === 'actions' ? selectedMealForActions.name : 'Add to Plan'"
   [subtitle]="mealActionSheetMode === 'actions'
     ? (selectedMealForActions.prepTime != null ? (selectedMealForActions.prepTime + ' min') : '')
-    : selectedMealForActions.name" [image]="selectedMealForActions.image || 'assets/meals/default-meal.png'"
+    : selectedMealForActions.name" [image]="selectedMealForActions.image_url || 'assets/meals/default-meal.png'"
   [actions]="mealActionSheetMode === 'actions' ? mealActions : addToPlanActions" (closed)="closeMealMenu()"
   (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
 

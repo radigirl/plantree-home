@@ -64,9 +64,10 @@ export class DayDetailsComponent implements OnInit {
     id: string;
     name: string;
     prepTime?: number;
-    image?: string;
+    image_url?: string;
     ingredients?: string[];
     instructions?: string;
+    created_at: string;
   }[] = [];
 
   addMealMode: AddMealMode = 'search';
@@ -293,7 +294,7 @@ export class DayDetailsComponent implements OnInit {
 
     this.newMealName = currentMeal?.name ?? '';
     this.newPrepTime = currentMeal?.prepTime ?? null;
-    this.selectedImagePreview = currentMeal?.image ?? null;
+    this.selectedImagePreview = currentMeal?.image_url ?? null;
     this.selectedImageFile = null;
     this.changeMealIngredientsText = (currentMeal?.ingredients ?? []).join('\n');
     this.changeMealInstructions = currentMeal?.instructions ?? '';
@@ -406,7 +407,7 @@ export class DayDetailsComponent implements OnInit {
     this.newPrepTime = meal.meal.prepTime ?? null;
     this.selectedCookId = meal.cook?.id ?? null;
     this.selectedImageFile = null;
-    this.selectedImagePreview = meal.meal.image ?? null;
+    this.selectedImagePreview = meal.meal.image_url ?? null;
 
     this.changeMealIngredientsText = (meal.meal.ingredients ?? []).join('\n');
     this.changeMealInstructions = meal.meal.instructions ?? '';

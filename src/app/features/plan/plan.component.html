@@ -67,7 +67,7 @@
           <ng-container *ngIf="hasMeals(item); else emptyDay">
             <div class="meal-info__main">
               <div class="meal-image">
-                <img [src]="getFirstMeal(item)?.meal?.image || 'assets/meals/default-meal.png'" class="meal-image-img"
+                <img [src]="getFirstMeal(item)?.meal?.image_url || 'assets/meals/default-meal.png'" class="meal-image-img"
                   [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
               </div>
 

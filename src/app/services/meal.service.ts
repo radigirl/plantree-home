@@ -11,54 +11,49 @@ export class MealsService {
   constructor(private supabaseService: SupabaseService) { }
 
   async getMeals(memberId: number, includeArchived = false): Promise<Meal[]> {
-    let query = this.supabaseService.supabase
-      .from('meals')
-      .select(`
+  let query = this.supabaseService.supabase
+    .from('meals')
+    .select(`
       id,
       name,
       prep_time,
       ingredients,
       image_url,
-      is_archived,
+      created_at,
       instructions
     `)
-      .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false });
 
-    if (!includeArchived) {
-      query = query.eq('is_archived', false);
-    }
+  const { data: mealsData, error } = await query;
 
-    const { data: mealsData, error } = await query;
-
-    if (error) {
-      console.error('Error fetching meals:', error);
-      return [];
-    }
-
-    // get hidden meals for this member
-    const { data: hiddenData } = await this.supabaseService.supabase
-      .from('member_meals')
-      .select('meal_id')
-      .eq('member_id', memberId)
-      .eq('is_hidden', true);
-
-    const hiddenIds = new Set(hiddenData?.map((h) => h.meal_id));
-
-    return (mealsData ?? [])
-      .filter((item) => !hiddenIds.has(item.id))
-      .map((item) => {
-        const imageUrl = this.supabaseService.getMealImageUrl(item.image_url);
-
-        return {
-          id: item.id,
-          name: item.name,
-          prepTime: item.prep_time ?? undefined,
-          ingredients: item.ingredients ?? [],
-          image: imageUrl ?? undefined,
-          instructions: item.instructions ?? undefined,
-        };
-      });
+  if (error) {
+    console.error('Error fetching meals:', error);
+    return [];
   }
+
+  const { data: hiddenData } = await this.supabaseService.supabase
+    .from('member_meals')
+    .select('meal_id')
+    .eq('member_id', memberId)
+    .eq('is_hidden', true);
+
+  const hiddenIds = new Set(hiddenData?.map((h) => h.meal_id));
+
+  return (mealsData ?? [])
+    .filter((item) => !hiddenIds.has(item.id))
+    .map((item): Meal => {
+      const imageUrl = this.supabaseService.getMealImageUrl(item.image_url);
+
+      return {
+        id: item.id,
+        name: item.name,
+        prepTime: item.prep_time ?? undefined,
+        ingredients: item.ingredients ?? [],
+        image_url: imageUrl ?? undefined,
+        instructions: item.instructions ?? undefined,
+      };
+    });
+}
 
   async createMeal(
     name: string,
@@ -78,7 +73,6 @@ export class MealsService {
         ingredients,
         image_url: imagePath ?? null,
         instructions: instructions?.trim() ? instructions.trim() : null,
-        is_archived: false,
       });
 
     if (error) {

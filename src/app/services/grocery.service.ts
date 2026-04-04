@@ -1,21 +1,24 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { GroceryList } from '../models/grocery-list.model';
+import { SpaceStateService } from './space.state.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class GroceryService {
-  constructor(private supabaseService: SupabaseService) { }
+  constructor(private supabaseService: SupabaseService, private spaceStateService: SpaceStateService) { }
 
   get supabase() {
     return this.supabaseService.supabase;
   }
 
   async getGroceryLists(): Promise<GroceryList[]> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const { data, error } = await this.supabaseService.supabase
       .from('grocery_lists')
       .select('*')
+      .eq('space_id', spaceId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -27,10 +30,12 @@ export class GroceryService {
   }
 
   async getGroceryListById(id: string): Promise<GroceryList | null> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const { data, error } = await this.supabaseService.supabase
       .from('grocery_lists')
       .select('*')
       .eq('id', id)
+      .eq('space_id', spaceId)
       .single();
 
     if (error) {
@@ -45,6 +50,7 @@ export class GroceryService {
     name: string,
     createdByMemberId: number
   ): Promise<GroceryList | null> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = name.trim();
 
     if (!trimmedName) {
@@ -58,6 +64,7 @@ export class GroceryService {
           name: trimmedName,
           status: 'active',
           created_by_member_id: createdByMemberId,
+          space_id: spaceId,
         },
       ])
       .select()
@@ -75,6 +82,7 @@ export class GroceryService {
     listId: string,
     newName: string
   ): Promise<boolean> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = newName.trim();
 
     if (!trimmedName) {
@@ -84,7 +92,8 @@ export class GroceryService {
     const { error } = await this.supabase
       .from('grocery_lists')
       .update({ name: trimmedName })
-      .eq('id', listId);
+      .eq('id', listId)
+      .eq('space_id', spaceId);
 
     if (error) {
       console.error('Error updating grocery list:', error);
@@ -98,10 +107,12 @@ export class GroceryService {
     listId: string,
     status: 'active' | 'completed' | 'archived'
   ): Promise<boolean> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const { error } = await this.supabase
       .from('grocery_lists')
       .update({ status })
-      .eq('id', listId);
+      .eq('id', listId)
+      .eq('space_id', spaceId);
 
     if (error) {
       console.error('Error updating grocery list status:', error);
@@ -115,10 +126,12 @@ export class GroceryService {
     listId: string,
     isPinned: boolean
   ): Promise<boolean> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const { error } = await this.supabase
       .from('grocery_lists')
       .update({ is_pinned: isPinned })
-      .eq('id', listId);
+      .eq('id', listId)
+      .eq('space_id', spaceId);
 
     if (error) {
       console.error('Error updating grocery list pinned state:', error);
@@ -129,10 +142,12 @@ export class GroceryService {
   }
 
   async deleteGroceryList(listId: string): Promise<boolean> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const { error } = await this.supabase
       .from('grocery_lists')
       .delete()
-      .eq('id', listId);
+      .eq('id', listId)
+      .eq('space_id', spaceId);
 
     if (error) {
       console.error('Error deleting grocery list:', error);

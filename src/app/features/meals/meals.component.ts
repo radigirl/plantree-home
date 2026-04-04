@@ -459,7 +459,7 @@ export class MealsComponent implements OnInit, OnDestroy {
     this.newInstructions = meal.instructions ?? '';
 
     this.selectedImageFile = null;
-    this.selectedImagePreview = meal.image ?? null;
+    this.selectedImagePreview = meal.image_url ?? null;
 
     this.cdr.detectChanges();
 

@@ -4,6 +4,6 @@ export interface Meal {
 
   prepTime?: number;        // minutes
   ingredients?: string[];
-  image?: string;
-  instructions?: string;     
+  image_url?: string;
+  instructions?: string;   
 }

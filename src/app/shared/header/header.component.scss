@@ -1,4 +1,5 @@
 @use '../../../styles/variables' as *;
+@use '../../../styles/breakpoints' as *;
 
 .header {
   background: linear-gradient(
@@ -10,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 40px;
+  padding: 6px 18px;
   border-bottom-left-radius: $radius-medium;
   border-bottom-right-radius: $radius-medium;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -22,21 +23,19 @@
 .logo-area {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 8px;
 }
 
 .logo {
   flex: 0 0 auto;
-  width: 65px;
-  height: 65px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .logo img {
-  width: 65px;
-  height: 65px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   display: block;
 }
@@ -59,9 +58,72 @@
   text-transform: uppercase;
   opacity: 0.7;
   color: rgba(58, 116, 108, 0.8);
+  white-space: nowrap;
 }
 
-.user-switcher {
+
+.right-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.space-switcher {
+  position: relative;
+}
+
+.space-trigger {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: $color-primary-dark;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  line-height: 1;
+}
+
+.space-trigger:hover {
+  opacity: 0.8;
+}
+
+.space-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  padding: 8px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(58, 116, 108, 0.12);
+  box-shadow: 0 10px 24px rgba(46, 58, 50, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 200;
+}
+
+.space-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: $color-primary-dark;
+}
+
+.space-menu-item:hover {
+  background: rgba(92, 143, 134, 0.08);
+}
+
+.member-switcher {
   position: relative;
 }
 
@@ -99,7 +161,7 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
-.user-menu {
+.member-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
@@ -115,7 +177,7 @@
   z-index: 200;
 }
 
-.user-menu-item {
+.member-menu-item {
   width: 100%;
   border: none;
   background: transparent;
@@ -128,14 +190,44 @@
   text-align: left;
 }
 
-.user-menu-item:hover {
+.member-menu-item:hover {
   background: rgba(92, 143, 134, 0.08);
 }
 
-.user-menu-avatar {
+.member-menu-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+}
+
+@include mobile {
+  .space-trigger {
+    font-size: 11px;
+    font-weight: 500;
+    max-width: 92px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+  }
+
+  .right-controls {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+}
+
+@include tablet {
+  .header {
+    padding: 18px 24px;
+  }
+}
+
+@include desktop {
+  .header {
+    padding: 18px 28px;
+  }
 }

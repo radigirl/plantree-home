@@ -75,7 +75,7 @@
 
           <div class="selected-meal-row" *ngIf="selectedAvailableMeal as selectedMeal">
             <div class="selected-meal-row__image">
-              <img [src]="selectedMeal.image || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
+              <img [src]="selectedMeal.image_url || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
             </div>
 
             <div class="selected-meal-row__content">
@@ -105,7 +105,7 @@
                 [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
                 (click)="selectMealForAdd(meal.id)">
                 <div class="meal-search-result__image">
-                  <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+                  <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
                 </div>
 
                 <div class="meal-search-result__content">
@@ -278,7 +278,7 @@
 
           <div class="selected-meal-row" *ngIf="selectedChangeMeal as selectedMeal">
             <div class="selected-meal-row__image">
-              <img [src]="selectedMeal.image || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
+              <img [src]="selectedMeal.image_url || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
             </div>
 
             <div class="selected-meal-row__content">
@@ -308,7 +308,7 @@
                 [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
                 (click)="selectMealForChange(meal.id)">
                 <div class="meal-search-result__image">
-                  <img [src]="meal.image || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+                  <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
                 </div>
 
                 <div class="meal-search-result__content">
@@ -506,7 +506,7 @@
           </div>
 
           <div class="meal-image">
-            <img [src]="meal.meal.image || 'assets/meals/default-meal.png'" class="meal-image-img"
+            <img [src]="meal.meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img"
               [alt]="meal.meal.name || 'Meal image'" />
           </div>
         </div>
@@ -554,7 +554,7 @@
 <app-responsive-action-menu *ngIf="selectedMealForActions && !isDesktopViewport() && !isPastDate()"
   [isOpen]="!!openMealMenuId" [title]="selectedMealForActions.meal.name"
   [subtitle]="selectedMealForActions.meal.prepTime != null ? (selectedMealForActions.meal.prepTime + ' min') : ''"
-  [image]="selectedMealForActions.meal.image || 'assets/meals/default-meal.png'"
+  [image]="selectedMealForActions.meal.image_url || 'assets/meals/default-meal.png'"
   [actions]="getResponsiveMealActions(selectedMealForActions)" (closed)="closeMealMenu()"
   (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
 

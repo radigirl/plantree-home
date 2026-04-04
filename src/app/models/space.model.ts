@@ -1,6 +1,5 @@
-export interface Member {
+export interface Space {
   id: number;
   name: string;
-  avatar_url?: string;
   created_at: string;
 }

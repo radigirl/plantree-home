@@ -2,14 +2,17 @@ import { Injectable } from '@angular/core';
 import { DayPlan } from '../models/day-plan.model';
 import { PlannedMeal } from '../models/planned-meal.model';
 import { SupabaseService } from './supabase.service';
+import { SpaceStateService } from './space.state.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MealPlanService {
-  constructor(private supabaseService: SupabaseService) { }
+  constructor(private supabaseService: SupabaseService, private spaceStateService: SpaceStateService) {}
 
   async getWeekPlan(weekStart: Date): Promise<DayPlan[]> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+
     const monday = new Date(weekStart);
 
     const sunday = new Date(monday);
@@ -31,14 +34,17 @@ export class MealPlanService {
           prep_time,
           ingredients,
           image_url,
-          instructions
+          instructions,
+          created_at
         ),
         cook:members!planned_meals_cook_member_id_fkey (
           id,
           name,
-          avatar_url
+          avatar_url,
+          created_at
         )
       `)
+      .eq('space_id', spaceId)
       .gte('planned_date', startDate)
       .lte('planned_date', endDate)
       .order('planned_date', { ascending: true })
@@ -84,17 +90,20 @@ export class MealPlanService {
         meal: {
           id: mealData.id,
           name: mealData.name,
-          prepTime: mealData.prep_time,
+          prepTime: mealData.prep_time ?? undefined,
           ingredients: mealData.ingredients ?? [],
-          image: this.supabaseService.getMealImageUrl(mealData.image_url) ?? undefined,
+          image_url:
+            this.supabaseService.getMealImageUrl(mealData.image_url) ??
+            undefined,
           instructions: mealData.instructions ?? undefined,
         },
         cook: cookData
           ? {
-            id: cookData.id,
-            name: cookData.name,
-            avatar_url: cookData.avatar_url,
-          }
+              id: cookData.id,
+              name: cookData.name,
+              avatar_url: cookData.avatar_url ?? undefined,
+              created_at: cookData.created_at,
+            }
           : undefined,
       };
 
@@ -105,6 +114,8 @@ export class MealPlanService {
   }
 
   async getMealsForDate(date: string): Promise<PlannedMeal[]> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
+
     const { data, error } = await this.supabaseService.supabase
       .from('planned_meals')
       .select(`
@@ -118,14 +129,17 @@ export class MealPlanService {
           prep_time,
           ingredients,
           image_url,
-          instructions
+          instructions,
+          created_at
         ),
         cook:members!planned_meals_cook_member_id_fkey (
           id,
           name,
-          avatar_url
+          avatar_url,
+          created_at
         )
       `)
+      .eq('space_id', spaceId)
       .eq('planned_date', date)
       .order('created_at', { ascending: false });
 
@@ -150,17 +164,20 @@ export class MealPlanService {
         meal: {
           id: mealData.id,
           name: mealData.name,
-          prepTime: mealData.prep_time,
+          prepTime: mealData.prep_time ?? undefined,
           ingredients: mealData.ingredients ?? [],
-          image: this.supabaseService.getMealImageUrl(mealData.image_url) ?? undefined,
+          image_url:
+            this.supabaseService.getMealImageUrl(mealData.image_url) ??
+            undefined,
           instructions: mealData.instructions ?? undefined,
         },
         cook: cookData
           ? {
-            id: cookData.id,
-            name: cookData.name,
-            avatar_url: cookData.avatar_url,
-          }
+              id: cookData.id,
+              name: cookData.name,
+              avatar_url: cookData.avatar_url ?? undefined,
+              created_at: cookData.created_at,
+            }
           : undefined,
       };
 
@@ -179,6 +196,8 @@ export class MealPlanService {
     instructions?: string | null,
     ingredients?: string[]
   ): Promise<void> {
+
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const mealId = crypto.randomUUID();
 
     const { error: mealError } = await this.supabaseService.supabase
@@ -190,7 +209,6 @@ export class MealPlanService {
         ingredients: ingredients ?? [],
         instructions: instructions?.trim() || null,
         image_url: imagePath ?? null,
-        is_archived: false,
       });
 
     if (mealError) {
@@ -208,6 +226,7 @@ export class MealPlanService {
         cook_member_id: cookMemberId,
         planned_date: date,
         status: 'to-prepare',
+        space_id: spaceId,
       });
 
     if (planError) {
@@ -225,6 +244,7 @@ export class MealPlanService {
     instructions?: string | null,
     ingredients?: string[]
   ): Promise<void> {
+    const spaceId = await this.spaceStateService.getCurrentSpace()?.id;
     const mealId = crypto.randomUUID();
 
     const { error: mealError } = await this.supabaseService.supabase
@@ -236,7 +256,6 @@ export class MealPlanService {
         ingredients: ingredients ?? [],
         instructions: instructions?.trim() || null,
         image_url: imagePath ?? null,
-        is_archived: false,
       });
 
     if (mealError) {
@@ -250,10 +269,14 @@ export class MealPlanService {
         meal_id: mealId,
         cook_member_id: cookMemberId,
       })
-      .eq('id', plannedMealId);
+      .eq('id', plannedMealId)
+      .eq('space_id', spaceId);
 
     if (updatePlannedError) {
-      console.error('Error replacing planned meal meal_id:', updatePlannedError);
+      console.error(
+        'Error replacing planned meal meal_id:',
+        updatePlannedError
+      );
       throw updatePlannedError;
     }
   }
@@ -264,8 +287,9 @@ export class MealPlanService {
       name: string;
       prepTime?: number;
       ingredients?: string[];
-      image?: string;
+      image_url?: string;
       instructions?: string;
+      created_at: string;
     }[]
   > {
     const { data, error } = await this.supabaseService.supabase
@@ -275,11 +299,10 @@ export class MealPlanService {
         name,
         prep_time,
         image_url,
-        is_archived,
         instructions,
-        ingredients
+        ingredients,
+        created_at
       `)
-      .eq('is_archived', false)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -302,8 +325,10 @@ export class MealPlanService {
         name: item.name,
         prepTime: item.prep_time ?? undefined,
         ingredients: item.ingredients ?? [],
-        image: this.supabaseService.getMealImageUrl(item.image_url) ?? undefined,
+        image_url:
+          this.supabaseService.getMealImageUrl(item.image_url) ?? undefined,
         instructions: item.instructions ?? undefined,
+        created_at: item.created_at,
       }));
   }
 
@@ -407,8 +432,9 @@ export class MealPlanService {
     name: string;
     prepTime?: number;
     ingredients?: string[];
-    image?: string;
+    image_url?: string;
     instructions?: string;
+    created_at: string;
   } | null> {
     const { data, error } = await this.supabaseService.supabase
       .from('meals')
@@ -418,7 +444,8 @@ export class MealPlanService {
         prep_time,
         ingredients,
         image_url,
-        instructions
+        instructions,
+        created_at
       `)
       .eq('id', mealId)
       .single();
@@ -433,8 +460,10 @@ export class MealPlanService {
       name: data.name,
       prepTime: data.prep_time ?? undefined,
       ingredients: data.ingredients ?? [],
-      image: this.supabaseService.getMealImageUrl(data.image_url) ?? undefined,
+      image_url:
+        this.supabaseService.getMealImageUrl(data.image_url) ?? undefined,
       instructions: data.instructions ?? undefined,
+      created_at: data.created_at,
     };
   }
 }
