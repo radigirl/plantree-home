@@ -8,69 +8,113 @@
   </h1>
 
   <!-- BOTH EMPTY -->
-  <div
-    class="cook-from-pantry-empty"
-    *ngIf="emptyState === 'both-empty'"
-  >
+  <div class="cook-from-pantry-empty" *ngIf="emptyState === 'both-empty'">
     <h2>Nothing here yet</h2>
     <p>Add meals and pantry items to get started.</p>
   </div>
 
   <!-- NO MEALS -->
-  <div
-    class="cook-from-pantry-empty"
-    *ngIf="emptyState === 'no-meals'"
-  >
+  <div class="cook-from-pantry-empty" *ngIf="emptyState === 'no-meals'">
     <h2>No meals yet</h2>
     <p>Add your meals to start cooking from your pantry.</p>
   </div>
 
   <!-- EMPTY PANTRY -->
-  <div
-    class="cook-from-pantry-empty"
-    *ngIf="emptyState === 'empty-pantry'"
-  >
+  <div class="cook-from-pantry-empty" *ngIf="emptyState === 'empty-pantry'">
     <h2>Your pantry is empty</h2>
     <p>Add ingredients to see matching meals here.</p>
   </div>
 
   <!-- NO MATCHES -->
-  <div
-    class="cook-from-pantry-empty"
-    *ngIf="emptyState === 'none' && sortedMeals.length === 0"
-  >
+  <div class="cook-from-pantry-empty" *ngIf="emptyState === 'none' && sortedMeals.length === 0">
     <h2>No matching meals</h2>
     <p>None of your meals match your pantry yet.</p>
   </div>
 
   <!-- LIST -->
-  <div
-    class="cook-from-pantry-list"
-    *ngIf="emptyState === 'none' && sortedMeals.length > 0"
-  >
-    <article
-      class="cook-from-pantry-card"
-      *ngFor="let meal of sortedMeals"
-    >
+  <div class="cook-from-pantry-list" *ngIf="emptyState === 'none' && sortedMeals.length > 0">
+    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals" (click)="openAddMenu(meal)">
       <!-- IMAGE -->
       <div class="cook-from-pantry-card__image">
-        <img
-          [src]="meal.image_url || 'assets/meals/default-meal.png'"
-          [alt]="meal.name"
-        />
+        <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
       </div>
 
       <!-- CONTENT -->
       <div class="cook-from-pantry-card__content">
-        <h3 class="cook-from-pantry-card__title">
-          {{ meal.name }}
-        </h3>
+        <div class="cook-from-pantry-card__top-row">
+          <h3 class="cook-from-pantry-card__title">
+            {{ meal.name }}
+          </h3>
 
-        <div class="cook-from-pantry-card__score">
-          {{ meal.matchedCount }}/{{ meal.totalCount }}
+          <div class="cook-from-pantry-card__score">
+            {{ meal.matchedCount }}/{{ meal.totalCount }}
+          </div>
+        </div>
+
+        <div class="cook-from-pantry-card__bottom-row">
+          <button type="button" class="cook-from-pantry-card__info-button" (click)="openInfoSheet($event, meal)">
+            ℹ️
+          </button>
         </div>
       </div>
     </article>
   </div>
 
+</div>
+
+
+<app-responsive-action-menu [isOpen]="isActionMenuOpen" [title]="'Add ' + (selectedMeal?.name || '') + ' to plan'"
+  [image]="selectedMeal?.image_url || ''" [actions]="actionMenuItems" (closed)="closeActionMenu()"
+  (actionSelected)="onActionSelected($event)">
+</app-responsive-action-menu>
+
+<div class="cook-from-pantry-sheet-overlay" *ngIf="selectedMealForInfo" (click)="closeInfoSheet()">
+  <div class="cook-from-pantry-sheet" (click)="$event.stopPropagation()">
+    <div class="cook-from-pantry-sheet__handle"></div>
+
+    <h2 class="cook-from-pantry-sheet__title">
+      {{ selectedMealForInfo.name }}
+    </h2>
+
+    <div class="cook-from-pantry-sheet__ingredients">
+      <div class="cook-from-pantry-sheet__ingredient" *ngFor="let ingredient of selectedMealForInfo.ingredients">
+        <span>
+          {{
+          isIngredientAvailable(ingredient) ? '✓' : '✕'
+          }}
+        </span>
+        <span>{{ ingredient }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cook-from-pantry-sheet-overlay" *ngIf="isPickDateOpen && selectedMeal" (click)="closePickDate()">
+  <div class="cook-from-pantry-sheet" (click)="$event.stopPropagation()">
+    <div class="cook-from-pantry-sheet__handle"></div>
+
+    <div class="calendar-picker-sheet__mode-toggle">
+      <button type="button" class="calendar-picker-sheet__mode-btn"
+        [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'single'"
+        (click)="calendarSelectionMode = 'single'; selectedPlanDates = []">
+        Single day
+      </button>
+
+      <button type="button" class="calendar-picker-sheet__mode-btn"
+        [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'multiple'"
+        (click)="calendarSelectionMode = 'multiple'; selectedPlanDates = []">
+        Multiple days
+      </button>
+    </div>
+
+    <app-calendar-picker [title]="'Add ' + selectedMeal.name + ' to plan'" [selectionMode]="calendarSelectionMode"
+      [selectedDates]="selectedPlanDates" [disablePastDates]="true" [showFooterActions]="true"
+      (selectedDatesChange)="onCalendarDatesChange($event)" (confirm)="confirmPickedDates($event)"
+      (cancel)="closePickDate()">
+    </app-calendar-picker>
+  </div>
+</div>
+
+<div class="bottom-toast" *ngIf="toastMessage">
+  {{ toastMessage }}
 </div>
