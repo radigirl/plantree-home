@@ -65,16 +65,16 @@ export class PantryComponent implements OnInit, OnDestroy {
   }
 
   private resetPantryViewState(): void {
-  this.error = '';
-  this.mode = 'all';
-  this.isAlwaysPresentExpanded = false;
-  this.isAddingAlwaysPresent = false;
-  this.newAlwaysPresentName = '';
+    this.error = '';
+    this.mode = 'all';
+    this.isAlwaysPresentExpanded = false;
+    this.isAddingAlwaysPresent = false;
+    this.newAlwaysPresentName = '';
 
-  this.isPantrySheetOpen = false;
-  this.pantrySheetMode = 'add';
-  this.selectedPantryItem = null;
-}
+    this.isPantrySheetOpen = false;
+    this.pantrySheetMode = 'add';
+    this.selectedPantryItem = null;
+  }
 
   async loadPantryItems(): Promise<void> {
     this.isLoading = true;
@@ -103,6 +103,34 @@ export class PantryComponent implements OnInit, OnDestroy {
     }
 
     return `${item.name} ${item.size_amount}${item.size_unit}`;
+  }
+
+  get allItems(): PantryItem[] {
+    return [...this.pantryItems];
+  }
+
+  get expiryItems(): PantryItem[] {
+    return [...this.pantryItems]
+      .filter((item) => !!item.expiry_date)
+      .sort((a, b) => {
+        const aTime = new Date(a.expiry_date as string).getTime();
+        const bTime = new Date(b.expiry_date as string).getTime();
+        return aTime - bTime;
+      });
+  }
+
+  get noExpiryItems(): PantryItem[] {
+    return [...this.pantryItems].filter((item) => !item.expiry_date);
+  }
+
+  get recentItems(): PantryItem[] {
+    return [...this.pantryItems]
+      .sort((a, b) => {
+        const aTime = new Date(a.created_at).getTime();
+        const bTime = new Date(b.created_at).getTime();
+        return bTime - aTime;
+      })
+      .slice(0, 6);
   }
 
   async loadAlwaysPresentItems(): Promise<void> {
@@ -198,18 +226,18 @@ export class PantryComponent implements OnInit, OnDestroy {
   }
 
   onAddItem(): void {
-  this.pantrySheetMode = 'add';
-  this.selectedPantryItem = null;
-  this.isPantrySheetOpen = true;
-  this.cdr.detectChanges();
-}
+    this.pantrySheetMode = 'add';
+    this.selectedPantryItem = null;
+    this.isPantrySheetOpen = true;
+    this.cdr.detectChanges();
+  }
 
-onEditItem(item: PantryItem): void {
-  this.pantrySheetMode = 'edit';
-  this.selectedPantryItem = item;
-  this.isPantrySheetOpen = true;
-  this.cdr.detectChanges();
-}
+  onEditItem(item: PantryItem): void {
+    this.pantrySheetMode = 'edit';
+    this.selectedPantryItem = item;
+    this.isPantrySheetOpen = true;
+    this.cdr.detectChanges();
+  }
 
   onUpdatePantry(): void {
     console.log('Update pantry');
@@ -240,17 +268,41 @@ onEditItem(item: PantryItem): void {
   }
 
   closePantrySheet(): void {
-  this.isPantrySheetOpen = false;
-  this.selectedPantryItem = null;
-  this.pantrySheetMode = 'add';
-  this.cdr.detectChanges();
-}
+    this.isPantrySheetOpen = false;
+    this.selectedPantryItem = null;
+    this.pantrySheetMode = 'add';
+    this.cdr.detectChanges();
+  }
 
-async savePantryItem(value: PantryItemSheetValue): Promise<void> {
-  this.error = '';
+  async savePantryItem(value: PantryItemSheetValue): Promise<void> {
+    this.error = '';
 
-  if (this.pantrySheetMode === 'add') {
-    const created = await this.pantryService.createPantryItem({
+    if (this.pantrySheetMode === 'add') {
+      const created = await this.pantryService.createPantryItem({
+        name: value.name,
+        amount: value.amount,
+        unit: value.unit,
+        size_amount: value.size_amount,
+        size_unit: value.size_unit,
+        expiry_date: value.expiry_date,
+      });
+
+      if (!created) {
+        this.error = 'Could not create pantry item.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      await this.loadPantryItems();
+      this.closePantrySheet();
+      return;
+    }
+
+    if (!this.selectedPantryItem) {
+      return;
+    }
+
+    const success = await this.pantryService.updatePantryItem(this.selectedPantryItem.id, {
       name: value.name,
       amount: value.amount,
       unit: value.unit,
@@ -259,39 +311,15 @@ async savePantryItem(value: PantryItemSheetValue): Promise<void> {
       expiry_date: value.expiry_date,
     });
 
-    if (!created) {
-      this.error = 'Could not create pantry item.';
+    if (!success) {
+      this.error = 'Could not update pantry item.';
       this.cdr.detectChanges();
       return;
     }
 
     await this.loadPantryItems();
     this.closePantrySheet();
-    return;
   }
-
-  if (!this.selectedPantryItem) {
-    return;
-  }
-
-  const success = await this.pantryService.updatePantryItem(this.selectedPantryItem.id, {
-    name: value.name,
-    amount: value.amount,
-    unit: value.unit,
-    size_amount: value.size_amount,
-    size_unit: value.size_unit,
-    expiry_date: value.expiry_date,
-  });
-
-  if (!success) {
-    this.error = 'Could not update pantry item.';
-    this.cdr.detectChanges();
-    return;
-  }
-
-  await this.loadPantryItems();
-  this.closePantrySheet();
-}
 
   async addAlwaysPresentItem(): Promise<void> {
     const trimmedName = this.newAlwaysPresentName.trim();

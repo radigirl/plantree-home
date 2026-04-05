@@ -8,16 +8,16 @@
 
     <ng-container *ngIf="!error">
       <div class="pantry-actions-row">
-        <button type="button" class="button-pill-primary pantry-primary-action" (click)="onAddItem()">
+        <button class="pantry-action-pill pantry-action-pill--primary" (click)="onAddItem()">
           + Add
         </button>
 
-        <button type="button" class="button-pill-secondary pantry-secondary-action" (click)="onUpdatePantry()">
-          Update Pantry
+        <button class="pantry-action-pill pantry-action-pill--secondary" (click)="onUpdatePantry()">
+          Update
         </button>
 
-        <button type="button" class="button-pill-secondary pantry-secondary-action" (click)="onCleanPantry()">
-          Clean Pantry
+        <button class="pantry-action-pill pantry-action-pill--secondary" (click)="onCleanPantry()">
+          Clean
         </button>
       </div>
 
@@ -91,47 +91,139 @@
         </div>
       </div>
 
-      <div *ngIf="pantryItems.length > 0; else empty" class="pantry-items-table">
-        <div class="pantry-item-row" [class.pantry-item-row--all]="mode === 'all'"
-          [class.pantry-item-row--dated]="mode === 'expiry' || mode === 'recent'" *ngFor="let item of pantryItems">
-          <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
-            {{ getDisplayName(item) }}
-          </button>
+      <ng-container *ngIf="pantryItems.length > 0; else empty">
 
-          <div class="pantry-item-amount">
-            <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
-              [attr.aria-label]="'Decrease amount for ' + item.name">
-              -
+        <!-- ALL MODE -->
+        <div *ngIf="mode === 'all'" class="pantry-items-table">
+          <div class="pantry-item-row pantry-item-row--all" *ngFor="let item of allItems">
+            <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
+              {{ getDisplayName(item) }}
             </button>
 
-            <span class="pantry-item-amount-value">{{ item.amount }}</span>
+            <div class="pantry-item-amount">
+              <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
+                [attr.aria-label]="'Decrease amount for ' + item.name">
+                -
+              </button>
 
-            <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
-              [attr.aria-label]="'Increase amount for ' + item.name">
-              +
-            </button>
-          </div>
+              <span class="pantry-item-amount-value">{{ item.amount }}</span>
 
-          <div *ngIf="mode === 'expiry'" class="pantry-item-date">
-            {{ item.expiry_date ? (item.expiry_date | date:'dd MMM') : '' }}
-          </div>
+              <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
+                [attr.aria-label]="'Increase amount for ' + item.name">
+                +
+              </button>
+            </div>
 
-          <div *ngIf="mode === 'recent'" class="pantry-item-date">
-            {{ item.created_at | date:'dd MMM' }}
-          </div>
-
-          <div class="pantry-item-actions">
-            <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
-              [attr.aria-label]="'Delete pantry item ' + item.name">
-              <i-feather name="trash"></i-feather>
-            </button>
+            <div class="pantry-item-actions">
+              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
+                [attr.aria-label]="'Delete pantry item ' + item.name">
+                <span class="pantry-remove">×</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div *ngIf="mode === 'expiry' && pantryItems.length > 0" class="pantry-no-expiry-label">
-          No expiry
+        <!-- EXPIRY MODE -->
+        <div *ngIf="mode === 'expiry'" class="pantry-items-table">
+          <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of expiryItems">
+            <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
+              {{ getDisplayName(item) }}
+            </button>
+
+            <div class="pantry-item-amount">
+              <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
+                [attr.aria-label]="'Decrease amount for ' + item.name">
+                -
+              </button>
+
+              <span class="pantry-item-amount-value">{{ item.amount }}</span>
+
+              <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
+                [attr.aria-label]="'Increase amount for ' + item.name">
+                +
+              </button>
+            </div>
+
+            <div class="pantry-item-date">
+              {{ item.expiry_date | date:'dd MMM' }}
+            </div>
+
+            <div class="pantry-item-actions">
+              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
+                [attr.aria-label]="'Delete pantry item ' + item.name">
+                <i-feather name="trash"></i-feather>
+              </button>
+            </div>
+          </div>
+
+          <ng-container *ngIf="noExpiryItems.length > 0">
+
+            <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of noExpiryItems">
+              <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
+                {{ getDisplayName(item) }}
+              </button>
+
+              <div class="pantry-item-amount">
+                <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
+                  [attr.aria-label]="'Decrease amount for ' + item.name">
+                  -
+                </button>
+
+                <span class="pantry-item-amount-value">{{ item.amount }}</span>
+
+                <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
+                  [attr.aria-label]="'Increase amount for ' + item.name">
+                  +
+                </button>
+              </div>
+
+              <div class="pantry-item-date"></div>
+
+              <div class="pantry-item-actions">
+                <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
+                  [attr.aria-label]="'Delete pantry item ' + item.name">
+                  <i-feather name="trash"></i-feather>
+                </button>
+              </div>
+            </div>
+          </ng-container>
         </div>
-      </div>
+
+        <!-- RECENT MODE -->
+        <div *ngIf="mode === 'recent'" class="pantry-items-table">
+          <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of recentItems">
+            <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
+              {{ getDisplayName(item) }}
+            </button>
+
+            <div class="pantry-item-amount">
+              <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
+                [attr.aria-label]="'Decrease amount for ' + item.name">
+                -
+              </button>
+
+              <span class="pantry-item-amount-value">{{ item.amount }}</span>
+
+              <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
+                [attr.aria-label]="'Increase amount for ' + item.name">
+                +
+              </button>
+            </div>
+
+            <div class="pantry-item-date">
+              {{ item.created_at | date:'dd MMM' }}
+            </div>
+
+            <div class="pantry-item-actions">
+              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
+                [attr.aria-label]="'Delete pantry item ' + item.name">
+                <i-feather name="trash"></i-feather>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
 
       <ng-template #empty>
         <p class="pantry-empty">No pantry items yet.</p>
@@ -143,6 +235,6 @@
 <app-pantry-item-sheet [isOpen]="isPantrySheetOpen" [mode]="pantrySheetMode" [item]="selectedPantryItem"
   (closed)="closePantrySheet()" (saved)="savePantryItem($event)"></app-pantry-item-sheet>
 
-  <div class="bottom-toast" *ngIf="toastMessage">
+<div class="bottom-toast" *ngIf="toastMessage">
   {{ toastMessage }}
 </div>
