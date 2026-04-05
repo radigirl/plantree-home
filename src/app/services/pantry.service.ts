@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { PantryItem } from '../models/pantry-item.model';
 import { SpaceStateService } from './space.state.service';
+import { AlwaysPresentPantryItem } from '../models/always-present-pantry-item.model';
 
 
 
@@ -204,4 +205,31 @@ export class PantryService {
   private normalizeName(name: string): string {
     return name.trim().toLowerCase();
   }
+
+  async getAlwaysPresentItems(spaceId: string): Promise<AlwaysPresentPantryItem[]> {
+  const { data, error } = await this.supabaseService.supabase
+    .from('always_present_items')
+    .select(`
+      id,
+      name,
+      normalized_name,
+      created_at
+    `)
+    .eq('space_id', spaceId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching always present items:', error);
+    return [];
+  }
+
+  return (data ?? []).map((item) => ({
+    id: item.id,
+    name: item.name,
+    normalized_name: item.normalized_name,
+    created_at: item.created_at,
+  }));
+}
+
+  
 }

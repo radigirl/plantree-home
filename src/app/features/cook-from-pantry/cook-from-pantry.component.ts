@@ -21,6 +21,7 @@ import { MemberStateService } from '../../services/member.state.service';
 
 import { Meal } from '../../models/meal.model';
 import { PantryItem } from '../../models/pantry-item.model';
+import { AlwaysPresentPantryItem } from '../../models/always-present-pantry-item.model';
 
 type EmptyState =
   | 'none'
@@ -42,8 +43,7 @@ interface CookFromPantryMeal extends Meal {
   styleUrl: './cook-from-pantry.component.scss',
 })
 export class CookFromPantryComponent
-  implements OnInit, OnDestroy
-{
+  implements OnInit, OnDestroy {
   isLoading = true;
   emptyState: EmptyState = 'none';
 
@@ -57,22 +57,21 @@ export class CookFromPantryComponent
     private spaceStateService: SpaceStateService,
     private memberStateService: MemberStateService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.spaceStateService.currentSpace$
       .pipe(
         takeUntil(this.destroy$),
         filter((space): space is NonNullable<typeof space> => !!space),
-        map((space) => space.id),
-        distinctUntilChanged()
+        distinctUntilChanged((prev, curr) => prev.id === curr.id)
       )
-      .subscribe(async () => {
-        await this.loadSuggestions();
+      .subscribe(async (space) => {
+        await this.loadSuggestions(space.id);
       });
   }
 
-  private async loadSuggestions(): Promise<void> {
+  private async loadSuggestions(spaceId: string): Promise<void> {
     this.isLoading = true;
     this.emptyState = 'none';
     this.sortedMeals = [];
@@ -87,13 +86,17 @@ export class CookFromPantryComponent
         return;
       }
 
-      const [allMeals, pantryItems] = await Promise.all([
-        this.mealsService.getAllMeals(),
-        this.pantryService.getPantryItems(),
-      ]);
+      const [allMeals, pantryItems, alwaysPresentItems] =
+        await Promise.all([
+          this.mealsService.getAllMeals(),
+          this.pantryService.getPantryItems(),
+          this.pantryService.getAlwaysPresentItems(spaceId),
+        ]);
+
+      const availableItems = [...pantryItems, ...alwaysPresentItems];
 
       const hasMeals = allMeals.length > 0;
-      const hasPantry = pantryItems.length > 0;
+      const hasPantry = availableItems.length > 0;
 
       if (!hasMeals && !hasPantry) {
         this.emptyState = 'both-empty';
@@ -104,7 +107,7 @@ export class CookFromPantryComponent
       } else {
         this.sortedMeals = this.buildSortedMeals(
           allMeals,
-          pantryItems
+          availableItems
         );
       }
     } catch (error) {
@@ -115,7 +118,6 @@ export class CookFromPantryComponent
       this.emptyState = 'both-empty';
       this.sortedMeals = [];
     } finally {
-      console.log(this.sortedMeals);
       this.isLoading = false;
       this.cdr.detectChanges();
     }
@@ -123,48 +125,47 @@ export class CookFromPantryComponent
 
   private buildSortedMeals(
   meals: Meal[],
-  pantryItems: PantryItem[]
+  availableItems: (PantryItem | AlwaysPresentPantryItem)[]
 ): CookFromPantryMeal[] {
-  const pantrySet = new Set(
-    pantryItems
-      .map((item) =>
-        item.normalized_name?.trim().toLowerCase()
-      )
-      .filter(Boolean)
-  );
-
-  return meals
-    .map((meal) => {
-      const normalizedIngredients = (meal.ingredients ?? [])
-        .map((ingredient) =>
-          ingredient.trim().toLowerCase()
+    const pantrySet = new Set(
+      availableItems
+        .map((item) =>
+          item.normalized_name?.trim().toLowerCase()
         )
-        .filter(Boolean);
+        .filter(Boolean)
+    );
 
-      const totalCount = normalizedIngredients.length;
+    return meals
+      .map((meal) => {
+        const normalizedIngredients = (meal.ingredients ?? [])
+          .map((ingredient) =>
+            ingredient.trim().toLowerCase()
+          )
+          .filter(Boolean);
 
-      if (totalCount === 0) {
-        return null;
-      }
+        const totalCount = normalizedIngredients.length;
 
-      const matchedCount = normalizedIngredients.filter(
-        (ingredient) => pantrySet.has(ingredient)
-      ).length;
+        if (totalCount === 0) {
+          return null;
+        }
+        const matchedCount = normalizedIngredients.filter(
+          (ingredient) => pantrySet.has(ingredient)
+        ).length;
 
-      if (matchedCount === 0) {
-        return null;
-      }
+        if (matchedCount === 0) {
+          return null;
+        }
 
-      return {
-        ...meal,
-        score: matchedCount / totalCount,
-        matchedCount,
-        totalCount,
-      };
-    })
-    .filter((meal): meal is CookFromPantryMeal => meal !== null)
-    .sort((a, b) => b.score - a.score);
-}
+        return {
+          ...meal,
+          score: matchedCount / totalCount,
+          matchedCount,
+          totalCount,
+        };
+      })
+      .filter((meal): meal is CookFromPantryMeal => meal !== null)
+      .sort((a, b) => b.score - a.score);
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
