@@ -8,4 +8,5 @@ export interface PantryItem {
   size_unit: string | null;
   created_at: string;
   updated_at: string;
+  expiry_date: string | null;
 }

@@ -7,111 +7,129 @@
     <p *ngIf="error" class="pantry-error">{{ error }}</p>
 
     <ng-container *ngIf="!error">
-      <div class="pantry-header-row">
-        <div class="pantry-header">
-          <h1 class="pantry-title">Pantry Items</h1>
-          <p class="pantry-subtitle">Create and manage your pantry items</p>
-        </div>
-      </div>
+      <div class="pantry-actions-row">
+        <button type="button" class="button-pill-primary pantry-primary-action" (click)="onAddItem()">
+          + Add
+        </button>
 
-      <div class="add-item-row">
-        <input
-          type="text"
-          [(ngModel)]="newItemName"
-          placeholder="Add item"
-          class="add-item-input"
-          (keydown.enter)="addItem()"
-          [disabled]="!!editingItemId"
-        />
+        <button type="button" class="button-pill-secondary pantry-secondary-action" (click)="onUpdatePantry()">
+          Update Pantry
+        </button>
 
-        <button
-          type="button"
-          class="button-pill-primary pantry-add-button"
-          (click)="addItem()"
-          [disabled]="!!editingItemId"
-        >
-          Add
+        <button type="button" class="button-pill-secondary pantry-secondary-action" (click)="onCleanPantry()">
+          Clean Pantry
         </button>
       </div>
 
+      <div class="pantry-sort-row">
+        <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'all'"
+          (click)="setMode('all')">
+          All
+        </button>
+
+        <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'expiry'"
+          (click)="setMode('expiry')">
+          Expiry
+        </button>
+
+        <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'recent'"
+          (click)="setMode('recent')">
+          Recent
+        </button>
+      </div>
+
+      <div class="always-present-section">
+        <button type="button" class="always-present-header" (click)="toggleAlwaysPresent()">
+          <span class="always-present-title">
+            Always present
+            <ng-container *ngIf="alwaysPresentItems.length > 0">
+              ({{ alwaysPresentItems.length }})
+            </ng-container>
+          </span>
+
+          <span class="always-present-chevron">
+            {{ isAlwaysPresentExpanded ? '▾' : '▸' }}
+          </span>
+        </button>
+
+        <p *ngIf="alwaysPresentItems.length === 0" class="always-present-helper">
+          Add things like salt, pepper, oil...
+        </p>
+
+        <div *ngIf="isAlwaysPresentExpanded" class="always-present-content">
+          <div *ngIf="alwaysPresentItems.length > 0" class="always-present-chips">
+            <div class="always-present-chip" *ngFor="let item of alwaysPresentItems">
+              <span class="always-present-chip__label">{{ item.name }}</span>
+
+              <button type="button" class="always-present-chip__remove"
+                (click)="deleteAlwaysPresentItem(item); $event.stopPropagation()"
+                [attr.aria-label]="'Remove ' + item.name">
+                ×
+              </button>
+            </div>
+          </div>
+
+          <button *ngIf="!isAddingAlwaysPresent" type="button" class="always-present-add-chip"
+            (click)="startAddingAlwaysPresent(); $event.stopPropagation()">
+            +
+          </button>
+
+          <div *ngIf="isAddingAlwaysPresent" class="always-present-add-row">
+            <input type="text" [(ngModel)]="newAlwaysPresentName" placeholder="Add item" class="always-present-input"
+              (keydown.enter)="addAlwaysPresentItem()" />
+
+            <button type="button" class="button-pill-primary always-present-add-button"
+              (click)="addAlwaysPresentItem()">
+              Add
+            </button>
+
+            <button type="button" class="button-pill-secondary always-present-cancel-button"
+              (click)="cancelAddingAlwaysPresent()">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div *ngIf="pantryItems.length > 0; else empty" class="pantry-items-table">
-        <div
-          class="pantry-item-row"
-          *ngFor="let item of pantryItems"
-          [class.pantry-item-row--editing]="editingItemId === item.id"
-          [class.pantry-item-row--locked]="!!editingItemId && editingItemId !== item.id"
-        >
-          <ng-container *ngIf="editingItemId !== item.id; else editMode">
-            <div class="pantry-item-name">
-              {{ item.name }}
-            </div>
+        <div class="pantry-item-row" [class.pantry-item-row--all]="mode === 'all'"
+          [class.pantry-item-row--dated]="mode === 'expiry' || mode === 'recent'" *ngFor="let item of pantryItems">
+          <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
+            {{ getDisplayName(item) }}
+          </button>
 
-            <div class="pantry-item-amount">
-              {{ item.amount }}x
-            </div>
+          <div class="pantry-item-amount">
+            <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
+              [attr.aria-label]="'Decrease amount for ' + item.name">
+              -
+            </button>
 
-            <div class="pantry-item-actions">
-              <button
-                type="button"
-                class="pantry-icon-button"
-                (click)="startEditItem(item)"
-                [attr.aria-label]="'Edit pantry item ' + item.name"
-                [disabled]="!!editingItemId && editingItemId !== item.id"
-              >
-                <i-feather name="edit"></i-feather>
-              </button>
+            <span class="pantry-item-amount-value">{{ item.amount }}</span>
 
-              <button
-                type="button"
-                class="pantry-icon-button pantry-icon-button--danger"
-                (click)="deleteItem(item)"
-                [attr.aria-label]="'Delete pantry item ' + item.name"
-                [disabled]="!!editingItemId && editingItemId !== item.id"
-              >
-                <i-feather name="trash"></i-feather>
-              </button>
-            </div>
-          </ng-container>
+            <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
+              [attr.aria-label]="'Increase amount for ' + item.name">
+              +
+            </button>
+          </div>
 
-          <ng-template #editMode>
-            <input
-              type="text"
-              [(ngModel)]="editItemName"
-              class="pantry-edit-input pantry-edit-name"
-              placeholder="Edit item"
-              (keydown.enter)="saveEditedItem()"
-            />
+          <div *ngIf="mode === 'expiry'" class="pantry-item-date">
+            {{ item.expiry_date ? (item.expiry_date | date:'dd MMM') : '' }}
+          </div>
 
-            <input
-              type="number"
-              [(ngModel)]="editItemAmount"
-              class="pantry-edit-input pantry-edit-amount"
-              min="1"
-              step="1"
-              placeholder="1"
-              (keydown.enter)="saveEditedItem()"
-            />
+          <div *ngIf="mode === 'recent'" class="pantry-item-date">
+            {{ item.created_at | date:'dd MMM' }}
+          </div>
 
-            <div class="pantry-item-actions pantry-item-actions--editing">
-              <button
-                type="button"
-                class="pantry-icon-button pantry-icon-button--primary"
-                (click)="saveEditedItem()"
-                aria-label="Save"
-              >
-                <i-feather name="check"></i-feather>
-              </button>
+          <div class="pantry-item-actions">
+            <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
+              [attr.aria-label]="'Delete pantry item ' + item.name">
+              <i-feather name="trash"></i-feather>
+            </button>
+          </div>
+        </div>
 
-              <button
-                type="button"
-                class="pantry-icon-button"
-                (click)="cancelEditItem()"
-                aria-label="Cancel"
-              >
-                <i-feather name="x"></i-feather>
-              </button>
-            </div>
-          </ng-template>
+        <div *ngIf="mode === 'expiry' && pantryItems.length > 0" class="pantry-no-expiry-label">
+          No expiry
         </div>
       </div>
 
@@ -121,3 +139,10 @@
     </ng-container>
   </ng-container>
 </section>
+
+<app-pantry-item-sheet [isOpen]="isPantrySheetOpen" [mode]="pantrySheetMode" [item]="selectedPantryItem"
+  (closed)="closePantrySheet()" (saved)="savePantryItem($event)"></app-pantry-item-sheet>
+
+  <div class="bottom-toast" *ngIf="toastMessage">
+  {{ toastMessage }}
+</div>

@@ -35,68 +35,89 @@ export class PantryService {
     return (data ?? []) as PantryItem[];
   }
 
-  async createPantryItem(name: string): Promise<PantryItem | null> {
+ async createPantryItem(payload: {
+  name: string;
+  amount: number;
+  unit: string;
+  size_amount: number | null;
+  size_unit: string | null;
+  expiry_date: string | null;
+}): Promise<PantryItem | null> {
+  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
-    const spaceId =  this.spaceStateService.getCurrentSpace()?.id;
-    const trimmedName = name.trim();
+  const trimmedName = payload.name.trim();
 
-    if (!trimmedName) {
-      return null;
-    }
-
-    const normalizedName = this.normalizeName(trimmedName);
-
-    const { data, error } = await this.supabase
-      .from('pantry_items')
-      .insert([
-        {
-          name: trimmedName,
-          normalized_name: normalizedName,
-          amount: 1,
-          unit: 'item',
-          size_amount: null,
-          size_unit: null,
-          space_id: spaceId,
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating pantry item:', error);
-      return null;
-    }
-
-    return data as PantryItem;
+  if (!trimmedName || !spaceId) {
+    return null;
   }
 
-  async updatePantryItemName(
-    itemId: string,
-    newName: string
-  ): Promise<boolean> {
-    const spaceId =  this.spaceStateService.getCurrentSpace()?.id;
-    const trimmedName = newName.trim();
-
-    if (!trimmedName) {
-      return false;
-    }
-
-    const { error } = await this.supabase
-      .from('pantry_items')
-      .update({
+  const { data, error } = await this.supabase
+    .from('pantry_items')
+    .insert([
+      {
         name: trimmedName,
         normalized_name: this.normalizeName(trimmedName),
-      })
-      .eq('id', itemId)
-      .eq('space_id', spaceId);
+        amount: payload.amount,
+        unit: payload.unit,
+        size_amount: payload.size_amount,
+        size_unit: payload.size_unit,
+        expiry_date: payload.expiry_date,
+        space_id: spaceId,
+      },
+    ])
+    .select()
+    .single();
 
-    if (error) {
-      console.error('Error updating pantry item name:', error);
-      return false;
-    }
-
-    return true;
+  if (error) {
+    console.error('Error creating pantry item:', error);
+    return null;
   }
+
+  return data as PantryItem;
+}
+
+ async updatePantryItem(
+  itemId: string,
+  payload: {
+    name: string;
+    amount: number;
+    unit: string;
+    size_amount: number | null;
+    size_unit: string | null;
+    expiry_date: string | null;
+  }
+): Promise<boolean> {
+  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+  const trimmedName = payload.name.trim();
+
+  if (!trimmedName || !spaceId) {
+    return false;
+  }
+
+  const updateData: any = {
+    name: trimmedName,
+    normalized_name: this.normalizeName(trimmedName),
+    amount: payload.amount,
+    unit: payload.unit,
+    size_amount: payload.size_amount,
+    size_unit: payload.size_unit,
+    expiry_date: payload.expiry_date,
+  };
+
+  const { error } = await this.supabase
+    .from('pantry_items')
+    .update(updateData)
+    .eq('id', itemId)
+    .eq('space_id', spaceId);
+
+  if (error) {
+    console.error('Error updating pantry item:', error);
+    return false;
+  }
+
+  return true;
+}
 
   async updatePantryItemAmount(
     itemId: string,
@@ -229,6 +250,53 @@ export class PantryService {
     normalized_name: item.normalized_name,
     created_at: item.created_at,
   }));
+}
+
+async addAlwaysPresentItem(name: string): Promise<AlwaysPresentPantryItem | null> {
+  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+  const trimmedName = name.trim();
+
+  if (!trimmedName || !spaceId) {
+    return null;
+  }
+
+  const normalizedName = this.normalizeName(trimmedName);
+
+  const { data, error } = await this.supabase
+    .from('always_present_items')
+    .insert([
+      {
+        name: trimmedName,
+        normalized_name: normalizedName,
+        space_id: spaceId,
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating always present item:', error);
+    return null;
+  }
+
+  return data as AlwaysPresentPantryItem;
+}
+
+async deleteAlwaysPresentItem(itemId: string): Promise<boolean> {
+  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+  const { error } = await this.supabase
+    .from('always_present_items')
+    .delete()
+    .eq('id', itemId)
+    .eq('space_id', spaceId);
+
+  if (error) {
+    console.error('Error deleting always present item:', error);
+    return false;
+  }
+
+  return true;
 }
 
   
