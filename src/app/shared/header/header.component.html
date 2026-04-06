@@ -11,49 +11,26 @@
   </div>
 
   <div class="right-controls">
-    <div
-      class="space-switcher"
-      *ngIf="currentSpace$ | async as currentSpace"
-    >
-      <button
-        type="button"
-        class="space-trigger"
-        (click)="toggleSpaceMenu()"
-        [attr.aria-expanded]="isSpaceMenuOpen"
-        aria-label="Open space switcher"
-      >
-        {{ currentSpace.name }}
+    <div class="space-switcher" *ngIf="currentSpace$ | async as currentSpace">
+      <button type="button" class="space-trigger" (click)="toggleSpaceMenu()" [attr.aria-expanded]="isSpaceMenuOpen"
+        aria-label="Open space switcher">
+        <span class="space-label">{{ currentSpace.name }}</span>
+        <span class="chevron">▾</span>
       </button>
 
       <div class="space-menu" *ngIf="isSpaceMenuOpen">
-        <button
-          type="button"
-          class="space-menu-item"
-          *ngFor="let space of spaces"
-          (click)="selectSpace(space)"
-        >
+        <button type="button" class="space-menu-item" *ngFor="let space of spaces" (click)="selectSpace(space)">
           {{ space.name }}
         </button>
       </div>
     </div>
 
     <div class="member-switcher">
-      <button
-        type="button"
-        class="account-circle"
-        (click)="toggleMemberMenu()"
-        [attr.aria-expanded]="isMemberMenuOpen"
-        aria-label="Open member switcher"
-      >
-        <ng-container
-          *ngIf="currentMember$ | async as currentMember; else fallbackIcon"
-        >
-          <img
-            *ngIf="currentMember?.avatar_url; else fallbackIcon"
-            [src]="currentMember.avatar_url"
-            [alt]="currentMember.name || 'Current member'"
-            class="account-avatar"
-          />
+      <button type="button" class="account-circle" (click)="toggleMemberMenu()" [attr.aria-expanded]="isMemberMenuOpen"
+        aria-label="Open member switcher">
+        <ng-container *ngIf="currentMember$ | async as currentMember; else fallbackIcon">
+          <img *ngIf="currentMember?.avatar_url; else fallbackIcon" [src]="currentMember.avatar_url"
+            [alt]="currentMember.name || 'Current member'" class="account-avatar" />
         </ng-container>
 
         <ng-template #fallbackIcon>
@@ -62,17 +39,9 @@
       </button>
 
       <div class="member-menu" *ngIf="isMemberMenuOpen">
-        <button
-          type="button"
-          class="member-menu-item"
-          *ngFor="let member of members"
-          (click)="selectMember(member)"
-        >
-          <img
-            [src]="member.avatar_url || 'assets/avatars/avatar-placeholder.png'"
-            [alt]="member.name"
-            class="member-menu-avatar"
-          />
+        <button type="button" class="member-menu-item" *ngFor="let member of members" (click)="selectMember(member)">
+          <img [src]="member.avatar_url || 'assets/avatars/avatar-placeholder.png'" [alt]="member.name"
+            class="member-menu-avatar" />
 
           <span>{{ member.name }}</span>
         </button>

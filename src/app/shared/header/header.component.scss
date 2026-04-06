@@ -2,16 +2,14 @@
 @use '../../../styles/breakpoints' as *;
 
 .header {
-  background: linear-gradient(
-    180deg,
-    #e8eee6 0%,
-    #d7e1d9 100%
-  );
+  background: linear-gradient(180deg,
+      #e8eee6 0%,
+      #d7e1d9 100%);
   color: $color-primary-dark;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 18px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0;
   border-bottom-left-radius: $radius-medium;
   border-bottom-right-radius: $radius-medium;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -24,6 +22,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  padding-bottom: 18px;
+  padding-top: 14px;
+  margin-left: 18px;
 }
 
 .logo {
@@ -61,31 +62,66 @@
   white-space: nowrap;
 }
 
-
 .right-controls {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-end;
+  align-self: flex-end;
+  min-width: 0;
+  margin-left: auto;
+  padding-bottom: 2px;
 }
 
 .space-switcher {
   position: relative;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .space-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 0;
   border: none;
   background: transparent;
   padding: 0;
   font-size: 13px;
   font-weight: 600;
   color: $color-primary-dark;
+  line-height: 1;
+  text-align: right;
   cursor: pointer;
   transition: opacity 0.2s ease;
-  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .space-trigger:hover {
   opacity: 0.8;
+}
+
+.space-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  font-size: 12px;
+  opacity: 0.6;
+  display: inline-flex;
+  align-items: center;
+  transform: translateY(-1px);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.space-trigger:hover .chevron {
+  opacity: 0.9;
 }
 
 .space-menu {
@@ -125,6 +161,8 @@
 
 .member-switcher {
   position: relative;
+  flex: 0 0 auto;
+  margin: 0 4px;
 }
 
 .account-circle {
@@ -206,28 +244,31 @@
   .space-trigger {
     font-size: 11px;
     font-weight: 500;
-    max-width: 92px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: right;
-  }
-
-  .right-controls {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
   }
 }
 
 @include tablet {
-  .header {
-    padding: 18px 24px;
+  .logo-area {
+    margin-left: 24px;
   }
+
+  .member-switcher {
+    position: relative;
+    flex: 0 0 auto;
+    margin: 0 24px 0 12px;
+  }
+
 }
 
 @include desktop {
-  .header {
-    padding: 18px 28px;
+  .logo-area {
+    margin-left: 28px;
   }
+
+  .member-switcher {
+    position: relative;
+    flex: 0 0 auto;
+    margin: 0 45px 0 12px;
+  }
+
 }
