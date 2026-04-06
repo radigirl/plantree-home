@@ -32,9 +32,9 @@ app-root {
   margin: 0;
   background: $color-surface;
   padding: $layout-padding-mobile;
-  padding-bottom: 0;
+  padding-bottom: calc(#{$layout-bottom-nav-height} + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  min-height: calc(100dvh - #{$layout-header-height-mobile} - #{$layout-bottom-nav-height});
+  min-height: calc(100dvh - #{$layout-header-height-mobile} - env(safe-area-inset-top));
 }
 
 @include desktop {
