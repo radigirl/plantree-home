@@ -70,7 +70,9 @@
     </h2>
     <div class="cook-from-pantry-sheet__ingredients">
       <div class="cook-from-pantry-sheet__ingredient" *ngFor="let ingredient of selectedMealForInfo.ingredients">
-        <span>
+        <span class="cook-from-pantry-sheet__icon"
+          [class.cook-from-pantry-sheet__icon--available]="isIngredientAvailable(ingredient)"
+          [class.cook-from-pantry-sheet__icon--missing]="!isIngredientAvailable(ingredient)">
           {{ isIngredientAvailable(ingredient) ? '✓' : '✕' }}
         </span>
         <span>{{ ingredient }}</span>
