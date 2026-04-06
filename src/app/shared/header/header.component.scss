@@ -124,41 +124,6 @@
   opacity: 0.9;
 }
 
-.space-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 200px;
-  padding: 8px;
-  border-radius: 16px;
-  background: #ffffff;
-  border: 1px solid rgba(58, 116, 108, 0.12);
-  box-shadow: 0 10px 24px rgba(46, 58, 50, 0.12);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  z-index: 200;
-}
-
-.space-menu-item {
-  width: 100%;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  text-align: left;
-  font-size: 14px;
-  font-weight: 500;
-  color: $color-primary-dark;
-}
-
-.space-menu-item:hover {
-  background: rgba(92, 143, 134, 0.08);
-}
-
 .member-switcher {
   position: relative;
   flex: 0 0 auto;
@@ -199,19 +164,54 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
-.member-menu {
+.space-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 4px);
   right: 0;
   min-width: 180px;
-  padding: 8px;
-  border-radius: 16px;
-  background: #ffffff;
-  border: 1px solid rgba(58, 116, 108, 0.12);
-  box-shadow: 0 10px 24px rgba(46, 58, 50, 0.12);
+  padding: 6px;
+  border-radius: 14px;
+  background: #fbfbfa;
+  border: 1px solid rgba(58, 116, 108, 0.08);
+  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.10);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  z-index: 200;
+}
+
+.space-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  color: $color-primary-dark;
+}
+
+.space-menu-item:hover {
+  background: rgba(92, 143, 134, 0.08);
+}
+
+.member-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 180px;
+  padding: 6px;
+  border-radius: 14px;
+  background: #fbfbfa;
+  border: 1px solid rgba(58, 116, 108, 0.08);
+  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.10);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   z-index: 200;
 }
 
@@ -222,7 +222,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: 12px;
   cursor: pointer;
   text-align: left;

@@ -34,7 +34,7 @@ app-root {
   padding: $layout-padding-mobile;
   padding-bottom: calc(#{$layout-bottom-nav-height} + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  min-height: calc(100dvh - #{$layout-header-height-mobile} - #{$layout-bottom-nav-height} - env(safe-area-inset-bottom));
+  min-height: calc(100dvh - #{$layout-header-height-mobile});
 }
 
 @include desktop {
