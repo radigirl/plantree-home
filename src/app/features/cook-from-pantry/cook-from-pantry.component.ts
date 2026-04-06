@@ -385,6 +385,16 @@ export class CookFromPantryComponent
     this.selectedMealForInfo = null;
   }
 
+  onAddFromInfo(): void {
+  if (!this.selectedMealForInfo) {
+    return;
+  }
+
+  this.selectedMeal = this.selectedMealForInfo;
+  this.selectedMealForInfo = null;
+  this.isActionMenuOpen = true;
+}
+
   ngOnDestroy(): void {
     this.destroy$.next();
     if (this.toastTimeout) {

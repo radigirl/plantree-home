@@ -33,7 +33,7 @@
 
   <!-- LIST -->
   <div class="cook-from-pantry-list" *ngIf="emptyState === 'none' && sortedMeals.length > 0">
-    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals" (click)="openAddMenu(meal)">
+    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals" (click)="openInfoSheet($event, meal)">
       <!-- IMAGE -->
       <div class="cook-from-pantry-card__image">
         <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
@@ -50,12 +50,6 @@
             {{ meal.matchedCount }}/{{ meal.totalCount }}
           </div>
         </div>
-
-        <div class="cook-from-pantry-card__bottom-row">
-          <button type="button" class="cook-from-pantry-card__info-button" (click)="openInfoSheet($event, meal)">
-            ℹ️
-          </button>
-        </div>
       </div>
     </article>
   </div>
@@ -71,20 +65,26 @@
 <div class="cook-from-pantry-sheet-overlay" *ngIf="selectedMealForInfo" (click)="closeInfoSheet()">
   <div class="cook-from-pantry-sheet" (click)="$event.stopPropagation()">
     <div class="cook-from-pantry-sheet__handle"></div>
-
     <h2 class="cook-from-pantry-sheet__title">
       {{ selectedMealForInfo.name }}
     </h2>
-
     <div class="cook-from-pantry-sheet__ingredients">
       <div class="cook-from-pantry-sheet__ingredient" *ngFor="let ingredient of selectedMealForInfo.ingredients">
         <span>
-          {{
-          isIngredientAvailable(ingredient) ? '✓' : '✕'
-          }}
+          {{ isIngredientAvailable(ingredient) ? '✓' : '✕' }}
         </span>
         <span>{{ ingredient }}</span>
       </div>
+    </div>
+    <div class="cook-from-pantry-sheet__footer">
+      <button type="button" class="cook-from-pantry-sheet__button cook-from-pantry-sheet__button--secondary"
+        (click)="closeInfoSheet()">
+        Cancel
+      </button>
+      <button type="button" class="cook-from-pantry-sheet__button cook-from-pantry-sheet__button--primary"
+        (click)="onAddFromInfo()">
+        Add to plan
+      </button>
     </div>
   </div>
 </div>
