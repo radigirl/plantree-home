@@ -320,6 +320,7 @@
   color: $color-primary-dark;
   opacity: 0.9;
   transform: translateY(1px);
+  padding-left: 6px;
 }
 
 .meal-add-btn--circle {
@@ -354,7 +355,11 @@
 .home-side-grid .card__header {
   justify-content: flex-start;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+}
+
+.long-icon {
+  transform: translateY(2px);
 }
 
 .home-side-grid .card__title {

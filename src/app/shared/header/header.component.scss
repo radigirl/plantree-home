@@ -68,7 +68,7 @@
   align-self: flex-end;
   min-width: 0;
   margin-left: auto;
-  padding-bottom: 2px;
+  padding-bottom: 4px;
 }
 
 .space-switcher {
@@ -242,7 +242,7 @@
 
 @include mobile {
   .space-trigger {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
   }
 }
