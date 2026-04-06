@@ -162,7 +162,7 @@
 .member-switcher {
   position: relative;
   flex: 0 0 auto;
-  margin: 0 4px;
+  margin: 0 4px 0 8px;
 }
 
 .account-circle {
@@ -241,6 +241,9 @@
 }
 
 @include mobile {
+  .space-switcher {
+    margin-left: -30px;
+  }
   .space-trigger {
     font-size: 12px;
     font-weight: 500;
