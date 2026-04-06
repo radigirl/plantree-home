@@ -275,8 +275,9 @@
 .meals-empty {
   padding: 22px 18px;
   border-radius: 24px;
-  background: rgba(251, 248, 241, 0.82);
-  border: 1px solid rgba(224, 216, 198, 0.9);
+  background: $card-primary-bg;
+  border: $card-primary-border;
+  box-shadow: $card-primary-shadow;
 }
 
 .meals-empty-text {
@@ -306,9 +307,9 @@
   margin: 0;
   padding: 16px;
   border-radius: 24px;
-  background: rgba(251, 248, 241, 0.82);
-  border: 1px solid rgba(224, 216, 198, 0.9);
-  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.03);
+  background: $card-primary-bg;
+  border: $card-primary-border;
+  box-shadow: $card-primary-shadow;
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,

@@ -17,11 +17,11 @@
 }
 
 .card {
-  background: rgba(251, 248, 241, 0.88);
-  border: 1px solid rgba(224, 216, 198, 0.9);
+  background: $card-primary-bg;
+  border: $card-primary-border;
   border-radius: 28px;
   padding: 22px;
-  box-shadow: 0 8px 22px rgba(46, 58, 50, 0.05);
+  box-shadow: $card-primary-shadow;
   cursor: pointer;
   transition:
     transform 0.18s ease,
@@ -70,8 +70,8 @@
   transform: translateY(-1px);
   box-shadow: 0 10px 20px rgba(46, 58, 50, 0.08);
 }
-  border: 1px solid rgba(220, 210, 190, 0.9);
-  box-shadow: 0 8px 22px rgba(46, 58, 50, 0.05);
+  border: $card-primary-border;
+  box-shadow: $card-primary-shadow;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -266,12 +266,10 @@
   flex: 1;
 }
 
-
-.card--week  { background: #f4efe6; }
-.card--meals { background: #f2ede2; }
-.card--lists { background: #efe9db; }
-.card--stats { background: #f5f0e7; }
-
+.card--week  { background: $card-summary-week; }
+.card--meals { background: $card-summary-meals; }
+.card--lists { background: $card-summary-lists; }
+.card--stats { background: $card-summary-stats; }
 
 .card--week,
 .card--meals,
@@ -279,10 +277,8 @@
 .card--stats {
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow:
-  0 1px 0 rgba(0, 0, 0, 0.04),
-  0 6px 12px rgba(0, 0, 0, 0.05);
+  border: $card-primary-border;
+  box-shadow: $card-primary-shadow;
   background-clip: padding-box;
 }
 

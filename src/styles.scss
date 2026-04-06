@@ -24,13 +24,12 @@ app-root {
 
 .layout {
   display: block;
-  min-height: 100dvh;
+  min-height: auto;
 }
 
 .content {
   position: relative;
   margin: 0;
-  margin-bottom: 16px;
   background: $color-surface;
   padding: $layout-padding-mobile;
   padding-bottom: calc(#{$layout-bottom-nav-height} + env(safe-area-inset-bottom));

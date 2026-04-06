@@ -40,6 +40,17 @@ $color-plan-shell: $color-surface;
 $color-plan-card: $color-surface-soft;
 $color-plan-card-hover: $color-primary-light;
 
+$card-primary-bg: #f6f1e7;
+$card-primary-border-color: rgba(224, 216, 198, 0.6);
+$card-primary-border: 1px solid $card-primary-border-color;
+$card-primary-shadow: 0 1px 0 rgba(0, 0, 0, 0.04),
+    0 6px 14px rgba(46, 58, 50, 0.05);
+
+$card-summary-week:  #ede3d2;
+$card-summary-meals: #f4ede1;
+$card-summary-lists: #f2eadc;
+$card-summary-stats: #ece2d1;
+
 // buttons
 $color-button-primary: $color-primary;
 $color-button-primary-hover: $color-primary-dark;
