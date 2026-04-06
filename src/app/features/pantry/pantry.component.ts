@@ -283,10 +283,6 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  onUpdatePantry(): void {
-    console.log('Update pantry');
-  }
-
   onCleanPantry(): void {
     console.log('Clean pantry');
   }
