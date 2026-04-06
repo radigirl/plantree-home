@@ -266,12 +266,24 @@
   flex: 1;
 }
 
+
+.card--week  { background: #f4efe6; }
+.card--meals { background: #f2ede2; }
+.card--lists { background: #efe9db; }
+.card--stats { background: #f5f0e7; }
+
+
 .card--week,
 .card--meals,
 .card--lists,
 .card--stats {
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow:
+  0 1px 0 rgba(0, 0, 0, 0.04),
+  0 6px 12px rgba(0, 0, 0, 0.05);
+  background-clip: padding-box;
 }
 
 .summary-card-main {
@@ -341,10 +353,6 @@
   right: 0;
 }
 
-.card--week { background: rgba(230, 222, 210, 0.85); }
-.card--meals { background: rgba(230, 222, 210, 0.82); }
-.card--lists { background: rgba(230, 222, 210, 0.88); }
-.card--stats { background: rgba(230, 222, 210, 0.80); }
 
 /* summary card header alignment */
 .home-side-grid .card__header {

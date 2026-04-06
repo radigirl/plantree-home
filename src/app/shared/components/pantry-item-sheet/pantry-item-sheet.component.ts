@@ -37,12 +37,13 @@ export class PantryItemSheetComponent implements OnChanges {
   @Output() closed = new EventEmitter<void>();
   @Output() saved = new EventEmitter<PantryItemSheetValue>();
 
+ 
   name = '';
   amount = 1;
-  unit = '';
+  unit = 'item';
   sizeAmount: number | null = null;
   sizeUnit = '';
-  expiryDate = '';
+  expiryDate: string | null = null;
 
   get isDesktop(): boolean {
     return window.innerWidth >= this.DESKTOP_BREAKPOINT;
@@ -91,45 +92,45 @@ export class PantryItemSheetComponent implements OnChanges {
       return;
     }
 
-    if (!this.unit.trim()) {
-      return;
-    }
+    const safeUnit = this.unit?.trim() || 'item';
 
     this.saved.emit({
       name: trimmedName,
       amount: Math.floor(this.amount),
-      unit: this.unit.trim(),
+      unit: safeUnit,
       size_amount:
-        this.sizeAmount === null || this.sizeAmount === undefined || this.sizeAmount === 0
+        this.sizeAmount === null ||
+          this.sizeAmount === undefined ||
+          this.sizeAmount === 0
           ? null
           : this.sizeAmount,
-      size_unit: this.sizeUnit.trim() ? this.sizeUnit.trim() : null,
+      size_unit: this.sizeUnit?.trim() || null,
       expiry_date: this.expiryDate || null,
     });
   }
 
   private patchFormFromInputs(): void {
-    if (!this.isOpen) {
-      return;
-    }
-
-    if (this.mode === 'edit' && this.item) {
-      this.name = this.item.name ?? '';
-      this.amount = this.item.amount ?? 1;
-      this.unit = this.item.unit ?? '';
-      this.sizeAmount = this.item.size_amount ?? null;
-      this.sizeUnit = this.item.size_unit ?? '';
-      this.expiryDate = this.toDateInputValue(this.item.expiry_date);
-      return;
-    }
-
-    this.name = '';
-    this.amount = 1;
-    this.unit = '';
-    this.sizeAmount = null;
-    this.sizeUnit = '';
-    this.expiryDate = '';
+  if (!this.isOpen) {
+    return;
   }
+
+  if (this.mode === 'edit' && this.item) {
+    this.name = this.item.name ?? '';
+    this.amount = this.item.amount ?? 1;
+    this.unit = this.item.unit ?? 'item';
+    this.sizeAmount = this.item.size_amount ?? null;
+    this.sizeUnit = this.item.size_unit ?? '';
+    this.expiryDate = this.toDateInputValue(this.item.expiry_date);
+    return;
+  }
+
+  this.name = '';
+  this.amount = 1;
+  this.unit = 'item';
+  this.sizeAmount = null;
+  this.sizeUnit = '';
+  this.expiryDate = '';
+}
 
   private toDateInputValue(value?: string | null): string {
     if (!value) {

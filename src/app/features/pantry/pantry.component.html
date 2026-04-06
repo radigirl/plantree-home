@@ -91,6 +91,10 @@
         </div>
       </div>
 
+      <div class="pantry-cook-link" (click)="goToCookFromPantry()">
+        See what you can cook →
+      </div>
+
       <ng-container *ngIf="pantryItems.length > 0; else empty">
 
         <!-- ALL MODE -->
@@ -235,6 +239,35 @@
 <app-pantry-item-sheet [isOpen]="isPantrySheetOpen" [mode]="pantrySheetMode" [item]="selectedPantryItem"
   (closed)="closePantrySheet()" (saved)="savePantryItem($event)"></app-pantry-item-sheet>
 
+  <div
+  *ngIf="isDeleteDialogOpen"
+  class="pantry-confirmation-backdrop"
+  (click)="cancelDeleteItem()"
+>
+  <div
+    class="pantry-confirmation-dialog-wrap"
+    (click)="$event.stopPropagation()"
+  >
+    <app-confirmation-dialog
+      title="Remove item"
+      [message]="'Remove &quot;' + (itemPendingDelete?.name || '') + '&quot; from your pantry?'"
+      confirmLabel="Remove"
+      cancelLabel="Cancel"
+      (cancel)="cancelDeleteItem()"
+      (confirm)="confirmDeleteItem()"
+    ></app-confirmation-dialog>
+  </div>
+</div>
+
 <div class="bottom-toast" *ngIf="toastMessage">
-  {{ toastMessage }}
+  <span class="bottom-toast__message">{{ toastMessage }}</span>
+
+  <button
+    *ngIf="toastActionLabel"
+    type="button"
+    class="bottom-toast__action"
+    (click)="onToastAction()"
+  >
+    {{ toastActionLabel }}
+  </button>
 </div>

@@ -10,11 +10,13 @@ import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { SpaceStateService } from '../../services/space.state.service';
 import { AlwaysPresentPantryItem } from '../../models/always-present-pantry-item.model';
 import { PantryItemSheetComponent, PantryItemSheetValue } from '../../shared/components/pantry-item-sheet/pantry-item-sheet.component';
+import { Router } from '@angular/router';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-pantry',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent],
+  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent, ConfirmationDialogComponent],
   templateUrl: './pantry.component.html',
   styleUrl: './pantry.component.scss',
 })
@@ -31,15 +33,26 @@ export class PantryComponent implements OnInit, OnDestroy {
   isPantrySheetOpen = false;
   pantrySheetMode: 'add' | 'edit' = 'add';
   selectedPantryItem: PantryItem | null = null;
+
+
   toastMessage: string | null = null;
-  toastTimeout: any = null;
+  toastActionLabel: string | null = null;
+  toastAction: (() => void) | null = null;
+  toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  lastRemovedPantryItem: PantryItem | null = null;
+
+  isDeleteDialogOpen = false;
+  itemPendingDelete: PantryItem | null = null;
+
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pantryService: PantryService,
     private spaceStateService: SpaceStateService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -70,6 +83,9 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.isAlwaysPresentExpanded = false;
     this.isAddingAlwaysPresent = false;
     this.newAlwaysPresentName = '';
+
+    this.isDeleteDialogOpen = false;
+    this.itemPendingDelete = null;
 
     this.isPantrySheetOpen = false;
     this.pantrySheetMode = 'add';
@@ -172,10 +188,13 @@ export class PantryComponent implements OnInit, OnDestroy {
 
   async decrementItem(item: PantryItem): Promise<void> {
     if (item.amount <= 1) {
+      this.lastRemovedPantryItem = { ...item };
+
       const success = await this.pantryService.deletePantryItem(item.id);
 
       if (!success) {
         this.error = 'Could not delete pantry item.';
+        this.lastRemovedPantryItem = null;
         this.cdr.detectChanges();
         return;
       }
@@ -183,6 +202,11 @@ export class PantryComponent implements OnInit, OnDestroy {
       this.pantryItems = this.pantryItems.filter(
         (currentItem) => currentItem.id !== item.id
       );
+
+      this.showToast(`Removed "${item.name}"`, 'Undo', () => {
+        this.undoLastRemovedItem();
+      });
+
       this.cdr.detectChanges();
       return;
     }
@@ -204,11 +228,24 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  async deleteItem(item: PantryItem): Promise<void> {
-    const confirmed = window.confirm(`Delete "${item.name}"?`);
-    if (!confirmed) {
+  deleteItem(item: PantryItem): void {
+    this.itemPendingDelete = item;
+    this.isDeleteDialogOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelDeleteItem(): void {
+    this.isDeleteDialogOpen = false;
+    this.itemPendingDelete = null;
+    this.cdr.detectChanges();
+  }
+
+  async confirmDeleteItem(): Promise<void> {
+    if (!this.itemPendingDelete) {
       return;
     }
+
+    const item = this.itemPendingDelete;
 
     const success = await this.pantryService.deletePantryItem(item.id);
 
@@ -221,6 +258,13 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.pantryItems = this.pantryItems.filter(
       (currentItem) => currentItem.id !== item.id
     );
+
+    this.isDeleteDialogOpen = false;
+    this.itemPendingDelete = null;
+
+
+    this.lastRemovedPantryItem = null;
+    this.showToast(`Removed "${item.name}"`);
 
     this.cdr.detectChanges();
   }
@@ -295,6 +339,8 @@ export class PantryComponent implements OnInit, OnDestroy {
 
       await this.loadPantryItems();
       this.closePantrySheet();
+      this.lastRemovedPantryItem = null;
+      this.showToast(`Added "${value.name}"`);
       return;
     }
 
@@ -319,6 +365,8 @@ export class PantryComponent implements OnInit, OnDestroy {
 
     await this.loadPantryItems();
     this.closePantrySheet();
+    this.lastRemovedPantryItem = null;
+    this.showToast(`Updated "${value.name}"`);
   }
 
   async addAlwaysPresentItem(): Promise<void> {
@@ -356,8 +404,14 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  private showToast(message: string): void {
+  private showToast(
+    message: string,
+    actionLabel?: string,
+    action?: () => void
+  ): void {
     this.toastMessage = message;
+    this.toastActionLabel = actionLabel ?? null;
+    this.toastAction = action ?? null;
     this.cdr.detectChanges();
 
     if (this.toastTimeout) {
@@ -365,13 +419,63 @@ export class PantryComponent implements OnInit, OnDestroy {
     }
 
     this.toastTimeout = setTimeout(() => {
-      this.toastMessage = null;
-      this.cdr.detectChanges();
+      this.clearToast();
     }, 2500);
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  onToastAction(): void {
+    if (this.toastAction) {
+      this.toastAction();
+    }
+    this.clearToast();
   }
+
+  async undoLastRemovedItem(): Promise<void> {
+    if (!this.lastRemovedPantryItem) {
+      return;
+    }
+
+    const item = this.lastRemovedPantryItem;
+
+    const restored = await this.pantryService.createPantryItem({
+      name: item.name,
+      amount: item.amount,
+      unit: item.unit,
+      size_amount: item.size_amount,
+      size_unit: item.size_unit,
+      expiry_date: item.expiry_date ?? null,
+    });
+
+    if (!restored) {
+      this.error = 'Could not restore pantry item.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    await this.loadPantryItems();
+    this.lastRemovedPantryItem = null;
+    this.showToast(`Restored "${item.name}"`);
+  }
+
+  private clearToast(): void {
+    this.toastMessage = null;
+    this.toastActionLabel = null;
+    this.toastAction = null;
+    this.cdr.detectChanges();
+  }
+
+  goToCookFromPantry(): void {
+    this.router.navigate(['/cook-from-pantry'], {
+      queryParams: { source: 'pantry' }
+    });
+  }
+
+  ngOnDestroy(): void {
+  if (this.toastTimeout) {
+    clearTimeout(this.toastTimeout);
+  }
+
+  this.destroy$.next();
+  this.destroy$.complete();
+}
 }

@@ -12,7 +12,6 @@ body {
 
 body {
   margin: 0;
-  background: $color-background;
   color: $color-text;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto;
 }
@@ -20,18 +19,19 @@ body {
 app-root {
   display: block;
   min-height: 100dvh;
-  background: $color-background;
+  background: $color-surface;
 }
 
 .layout {
   display: block;
+  min-height: 100dvh;
 }
 
 .content {
   position: relative;
   margin: 0;
   margin-bottom: 16px;
-  background: $color-background;
+  background: $color-surface;
   padding: $layout-padding-mobile;
   padding-bottom: calc(#{$layout-bottom-nav-height} + env(safe-area-inset-bottom));
   box-sizing: border-box;
@@ -39,6 +39,10 @@ app-root {
 }
 
 @include desktop {
+  app-root {
+  background: $color-background;
+}
+
   .content {
     background: $color-surface;
     border-radius: $radius-large;
