@@ -31,13 +31,10 @@ app-root {
   position: relative;
   margin: 0;
   background: $color-surface;
-
   padding: $layout-padding-mobile;
   padding-bottom: calc(#{$layout-bottom-nav-height} + env(safe-area-inset-bottom));
-
   box-sizing: border-box;
-
-  min-height: calc(100dvh - #{$layout-header-height-mobile});
+  min-height: calc(100dvh - #{$layout-header-height-mobile} + 15px);
 }
 
 @include desktop {
