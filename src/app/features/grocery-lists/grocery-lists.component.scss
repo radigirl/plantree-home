@@ -447,6 +447,24 @@
   stroke: #facc15 !important;
 }
 
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+  background: rgba(34, 34, 34, 0.28);
+}
+
+.modal-shell {
+  width: 100%;
+  max-width: 520px;
+}
+
 @include mobile {
   .lists-page {
     gap: 12px;

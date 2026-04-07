@@ -22,6 +22,9 @@ import { PantryService } from '../../services/pantry.service';
 import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { SpaceStateService } from '../../services/space.state.service';
+import { PantryActionDialogComponent } from '../../shared/components/pantry-action-dialog/pantry-action-dialog.component';
+import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-grocery-lists',
@@ -32,6 +35,9 @@ import { SpaceStateService } from '../../services/space.state.service';
     FormsModule,
     ResponsiveActionMenuComponent,
     FeatherModule,
+    PantryActionDialogComponent,
+    SnackbarComponent,
+    ConfirmationDialogComponent
   ],
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
@@ -48,12 +54,30 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   editingListId: string | null = null;
   editListName = '';
 
+  isPantryDialogOpen = false;
+  pantryDialogTitle = '';
+  pantryDialogMessage = '';
+  pantryDialogShowSkip = false;
+  pantryDialogShowArchive = false;
+  pendingPantryAction: 'complete' | 'archive' | null = null;
+  pendingPantryList: GroceryList | null = null;
+
   selectedListForActions: GroceryList | null = null;
 
   listActions: ResponsiveActionMenuItem[] = [];
   showArchived = false;
 
   pantryCounts: Record<string, number> = {};
+
+  toastMessage = '';
+  toastActionLabel: string | null = null;
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  isDeleteDialogOpen = false;
+  listPendingDelete: GroceryList | null = null;
+
+  undoCompletedList: GroceryList | null = null;
+  toastActionType: 'undo-complete' | null = null;
 
   private listsChannel: RealtimeChannel | null = null;
 
@@ -133,12 +157,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.listActions = [];
 
     this.showArchived = false;
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.listsChannel?.unsubscribe();
+    this.isDeleteDialogOpen = false;
+    this.listPendingDelete = null;
   }
 
   async loadGroceryLists(): Promise<void> {
@@ -250,36 +270,31 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   getListActions(list: GroceryList): ResponsiveActionMenuItem[] {
     const actions: ResponsiveActionMenuItem[] = [];
 
-    // ✅ ONLY allow edit for active lists
     if (list.status === 'active') {
-      actions.push({ id: 'edit', label: 'Edit' });
-    }
-
-    if (list.status === 'active') {
-      actions.push({
-        id: 'complete',
-        label: 'Complete list',
-      });
+      actions.push(
+        {
+          id: 'edit',
+          label: 'Edit',
+        },
+        {
+          id: 'complete',
+          label: 'Complete list',
+        }
+      );
     }
 
     if (list.status === 'completed') {
-      actions.push(
-        {
-          id: 'continue',
-          label: 'Continue list',
-        },
-        {
-          id: 'reuse',
-          label: 'Reuse list',
-        }
-      );
+      actions.push({
+        id: 'reuse',
+        label: 'Reuse list',
+      });
 
       const pendingPantryItems = this.getPendingPantryItemsCount(list);
 
       if (pendingPantryItems > 0) {
         actions.push({
           id: 'add-to-pantry',
-          label: `Move ${pendingPantryItems} new ${pendingPantryItems === 1 ? 'item' : 'items'
+          label: `Move ${pendingPantryItems} ${pendingPantryItems === 1 ? 'item' : 'items'
             } to pantry`,
         });
       }
@@ -291,16 +306,10 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     }
 
     if (list.status === 'archived') {
-      actions.push(
-        {
-          id: 'continue',
-          label: 'Continue list',
-        },
-        {
-          id: 'reuse',
-          label: 'Reuse list',
-        }
-      );
+      actions.push({
+        id: 'reuse',
+        label: 'Reuse list',
+      });
     }
 
     actions.push({
@@ -310,7 +319,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     return actions;
   }
-
 
   startEditList(event: Event, list: GroceryList): void {
     event.stopPropagation();
@@ -361,11 +369,22 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.editListName = '';
   }
 
-  async deleteList(event: Event, list: GroceryList): Promise<void> {
+  openDeleteDialog(event: Event, list: GroceryList): void {
     event.stopPropagation();
+    this.isDeleteDialogOpen = true;
+    this.listPendingDelete = list;
+  }
 
-    const confirmed = window.confirm(`Delete "${list.name}"?`);
-    if (!confirmed) {
+  closeDeleteDialog(): void {
+    this.isDeleteDialogOpen = false;
+    this.listPendingDelete = null;
+  }
+
+  async confirmDeleteList(): Promise<void> {
+    const list = this.listPendingDelete;
+
+    if (!list) {
+      this.closeDeleteDialog();
       return;
     }
 
@@ -373,6 +392,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     if (!success) {
       this.error = 'Could not delete grocery list.';
+      this.closeDeleteDialog();
       this.cdr.detectChanges();
       return;
     }
@@ -390,6 +410,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       this.editListName = '';
     }
 
+    this.closeDeleteDialog();
+    this.showToast('List deleted');
     this.cdr.detectChanges();
   }
 
@@ -442,40 +464,14 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         return;
 
       case 'complete': {
-        const success = await this.groceryService.updateGroceryListStatus(
-          list.id,
-          'completed'
-        );
+        const pending = this.getPendingPantryItemsCount(list);
 
-        if (!success) {
-          this.error = 'Could not complete list.';
-          this.cdr.detectChanges();
+        if (pending > 0) {
+          this.openPantryDialogForComplete(list);
           return;
         }
 
-        list.status = 'completed';
-        list.updated_at = new Date().toISOString();
-        this.openMenuListId = null;
-        this.cdr.detectChanges();
-        return;
-      }
-
-      case 'continue': {
-        const success = await this.groceryService.updateGroceryListStatus(
-          list.id,
-          'active'
-        );
-
-        if (!success) {
-          this.error = 'Could not continue list.';
-          this.cdr.detectChanges();
-          return;
-        }
-
-        list.status = 'active';
-        list.updated_at = new Date().toISOString();
-        this.openMenuListId = null;
-        this.cdr.detectChanges();
+        await this.completeList(list, true, true);
         return;
       }
 
@@ -514,51 +510,30 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       }
 
       case 'archive': {
-        const success = await this.groceryService.updateGroceryListStatus(
-          list.id,
-          'archived'
-        );
+        const pending = this.getPendingPantryItemsCount(list);
 
-        if (!success) {
-          this.error = 'Could not archive list.';
-          this.cdr.detectChanges();
+        if (pending > 0) {
+          this.openPantryDialogForArchive(list);
           return;
         }
 
-        this.openMenuListId = null;
-        await this.loadGroceryLists();
-        this.cdr.detectChanges();
+        await this.archiveList(list);
         return;
       }
 
       case 'delete':
-        await this.deleteList(new Event('click'), list);
+        this.openDeleteDialog(new Event('click'), list);
         return;
 
       case 'add-to-pantry': {
         this.openMenuListId = null;
 
-        const items = await this.groceryService.getItemsByListId(list.id);
+        const movedCount = await this.moveItemsToPantry(list);
 
-        const itemsToMove = items.filter(
-          (item: any) => item.status === 'bought' && !item.moved_to_pantry
-        );
-
-        for (const item of itemsToMove) {
-          await this.pantryService.addOrIncrementPantryItem(item.name);
-
-          await this.groceryService.updateGroceryItemMovedToPantry(
-            item.id,
-            true
-          );
+        if (movedCount > 0) {
+          this.showMovedToPantryToast(movedCount);
         }
 
-        // refresh pantry counts after update
-        await this.loadPantryCounts();
-
-        console.log(`Moved ${itemsToMove.length} items to pantry`);
-
-        this.cdr.detectChanges();
         return;
       }
     }
@@ -601,6 +576,286 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     return maxCopyNumber === 0
       ? `${baseName} (copy)`
       : `${baseName} (copy ${maxCopyNumber + 1})`;
+  }
+
+  // helper methods pantry dialog
+  openPantryDialogForComplete(list: GroceryList): void {
+    const pending = this.getPendingPantryItemsCount(list);
+
+    this.pendingPantryAction = 'complete';
+    this.pendingPantryList = list;
+
+    this.pantryDialogTitle = 'Move to pantry?';
+    this.pantryDialogMessage = `This list has ${pending} bought ${pending === 1 ? 'item' : 'items'} that can be moved to pantry.`;
+    this.pantryDialogShowSkip = true;
+    this.pantryDialogShowArchive = false;
+
+    this.isPantryDialogOpen = true;
+  }
+
+  openPantryDialogForArchive(list: GroceryList): void {
+    const pending = this.getPendingPantryItemsCount(list);
+
+    this.pendingPantryAction = 'archive';
+    this.pendingPantryList = list;
+
+    this.pantryDialogTitle = 'Before archiving';
+    this.pantryDialogMessage = `This list still has ${pending} ${pending === 1 ? 'item' : 'items'} that can be moved to pantry.`;
+    this.pantryDialogShowSkip = false;
+    this.pantryDialogShowArchive = true;
+
+    this.isPantryDialogOpen = true;
+  }
+
+  closePantryDialog(): void {
+    this.isPantryDialogOpen = false;
+    this.pantryDialogTitle = '';
+    this.pantryDialogMessage = '';
+    this.pantryDialogShowSkip = false;
+    this.pantryDialogShowArchive = false;
+    this.pendingPantryAction = null;
+    this.pendingPantryList = null;
+  }
+
+  // reusable action methods 
+  async completeList(
+    list: GroceryList,
+    showToast: boolean = true,
+    allowUndo: boolean = false
+  ): Promise<void> {
+    const success = await this.groceryService.updateGroceryListStatus(
+      list.id,
+      'completed'
+    );
+
+    if (!success) {
+      this.error = 'Could not complete list.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    list.status = 'completed';
+    list.updated_at = new Date().toISOString();
+
+    if (showToast) {
+      if (allowUndo) {
+        this.showCompletedUndoToast(list);
+      } else {
+        this.showToast('List marked as completed');
+      }
+    }
+
+    this.openMenuListId = null;
+    this.cdr.detectChanges();
+  }
+
+  async archiveList(
+    list: GroceryList,
+    showToast: boolean = true
+  ): Promise<void> {
+    const success = await this.groceryService.updateGroceryListStatus(
+      list.id,
+      'archived'
+    );
+
+    if (!success) {
+      this.error = 'Could not archive list.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (showToast) {
+      this.showToast('List archived');
+    }
+
+    this.openMenuListId = null;
+    await this.loadGroceryLists();
+    this.cdr.detectChanges();
+  }
+
+  async moveItemsToPantry(list: GroceryList): Promise<number> {
+    try {
+      const items = await this.groceryService.getItemsByListId(list.id);
+      const itemsToMove = items.filter(
+        (item: any) => item.status === 'bought' && !item.moved_to_pantry
+      );
+      for (const item of itemsToMove) {
+        await this.pantryService.addOrIncrementPantryItem(item.name);
+        await this.groceryService.updateGroceryItemMovedToPantry(
+          item.id,
+          true
+        );
+      }
+      await this.loadPantryCounts();
+      this.cdr.detectChanges();
+      return itemsToMove.length;
+    } catch (error) {
+      console.error('Move to pantry failed:', error);
+      this.error = 'Could not move items to pantry.';
+      this.cdr.detectChanges();
+      return 0;
+    }
+  }
+
+  // dialog action handler
+  async onPantryDialogAction(
+    action: 'move' | 'skip' | 'archive' | 'cancel'
+  ): Promise<void> {
+    const list = this.pendingPantryList;
+    const pendingAction = this.pendingPantryAction;
+
+    if (!list || !pendingAction) {
+      this.closePantryDialog();
+      return;
+    }
+
+    this.closePantryDialog();
+
+    if (pendingAction === 'complete') {
+      if (action === 'move') {
+        const movedCount = await this.moveItemsToPantry(list);
+        await this.completeList(list, false);
+
+        this.showMovedToPantryAndCompletedToast(movedCount);
+      } else if (action === 'skip') {
+        await this.completeList(list, true, false);
+      }
+    }
+
+    if (pendingAction === 'archive') {
+      if (action === 'move') {
+        const movedCount = await this.moveItemsToPantry(list);
+        await this.archiveList(list, false);
+
+        this.showMovedToPantryAndArchivedToast(movedCount);
+      } else if (action === 'archive') {
+        await this.archiveList(list);
+      }
+    }
+  }
+
+  async undoCompleteList(): Promise<void> {
+    const list = this.undoCompletedList;
+
+    if (!list) {
+      this.clearToastState();
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const success = await this.groceryService.updateGroceryListStatus(
+      list.id,
+      'active'
+    );
+
+    if (!success) {
+      this.error = 'Could not undo completed list.';
+      this.clearToastState();
+      this.cdr.detectChanges();
+      return;
+    }
+
+    list.status = 'active';
+    list.updated_at = new Date().toISOString();
+
+    this.clearToastState();
+    this.cdr.detectChanges();
+  }
+
+  // toasts
+  showToast(message: string, actionLabel?: string): void {
+    this.toastMessage = message;
+    this.toastActionLabel = actionLabel ?? null;
+
+    if (!actionLabel) {
+      this.toastActionType = null;
+      this.undoCompletedList = null;
+    }
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = null;
+    }
+
+    this.cdr.detectChanges();
+
+    const duration = actionLabel
+      ? 3500
+      : message.includes('moved')
+        ? 2500
+        : 2000;
+
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage = '';
+      this.toastActionLabel = null;
+      this.toastActionType = null;
+      this.undoCompletedList = null;
+      this.toastTimeout = null;
+      this.cdr.detectChanges();
+    }, duration);
+  }
+
+  async onToastAction(): Promise<void> {
+    if (this.toastActionType === 'undo-complete') {
+      await this.undoCompleteList();
+      return;
+    }
+
+    this.clearToastState();
+    this.cdr.detectChanges();
+  }
+
+  showMovedToPantryToast(count: number): void {
+    this.showToast(
+      count === 1
+        ? '1 item moved to pantry'
+        : `${count} items moved to pantry`
+    );
+  }
+
+  showMovedToPantryAndCompletedToast(count: number): void {
+    this.showToast(
+      count === 1
+        ? '1 item moved to pantry and list completed'
+        : `${count} items moved to pantry and list completed`
+    );
+  }
+
+  showMovedToPantryAndArchivedToast(count: number): void {
+    this.showToast(
+      count === 1
+        ? '1 item moved to pantry and list archived'
+        : `${count} items moved to pantry and list archived`
+    );
+  }
+
+  clearToastState(): void {
+    this.toastMessage = '';
+    this.toastActionLabel = null;
+    this.toastActionType = null;
+    this.undoCompletedList = null;
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = null;
+    }
+  }
+
+  showCompletedUndoToast(list: GroceryList): void {
+    this.undoCompletedList = list;
+    this.toastActionType = 'undo-complete';
+    this.showToast('List marked as completed', 'Undo');
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.listsChannel?.unsubscribe();
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = null;
+    }
   }
 
 }

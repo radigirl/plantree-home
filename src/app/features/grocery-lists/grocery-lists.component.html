@@ -220,3 +220,46 @@
   (closed)="closeActions()"
   (actionSelected)="onActionSelected($event)"
 ></app-responsive-action-menu>
+
+<div
+  class="modal-overlay"
+  *ngIf="isPantryDialogOpen"
+  (click)="closePantryDialog()"
+>
+  <div class="modal-shell" (click)="$event.stopPropagation()">
+    <app-pantry-action-dialog
+      [title]="pantryDialogTitle"
+      [message]="pantryDialogMessage"
+      [showSkip]="pantryDialogShowSkip"
+      [showArchive]="pantryDialogShowArchive"
+      (action)="onPantryDialogAction($event)"
+    >
+    </app-pantry-action-dialog>
+  </div>
+</div>
+
+
+<div
+  class="modal-overlay"
+  *ngIf="isDeleteDialogOpen"
+  (click)="closeDeleteDialog()"
+>
+  <div class="modal-shell" (click)="$event.stopPropagation()">
+    <app-confirmation-dialog
+      [title]="'Delete list?'"
+      [message]="'Are you sure you want to delete &quot;' + (listPendingDelete?.name || '') + '&quot;?'"
+      [confirmLabel]="'Delete'"
+      [cancelLabel]="'Cancel'"
+      (confirm)="confirmDeleteList()"
+      (cancel)="closeDeleteDialog()"
+    ></app-confirmation-dialog>
+  </div>
+</div>
+
+
+<app-snackbar
+  [isVisible]="!!toastMessage"
+  [message]="toastMessage"
+  [actionLabel]="toastActionLabel"
+  (actionClicked)="onToastAction()"
+></app-snackbar>

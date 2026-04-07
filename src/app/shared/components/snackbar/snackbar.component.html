@@ -1,0 +1,14 @@
+<div class="bottom-toast" *ngIf="isVisible && message">
+  <span class="bottom-toast__message">
+    {{ message }}
+  </span>
+
+  <button
+    *ngIf="actionLabel"
+    type="button"
+    class="bottom-toast__action"
+    (click)="onActionClick()"
+  >
+    {{ actionLabel }}
+  </button>
+</div>

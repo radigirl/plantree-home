@@ -1,0 +1,53 @@
+<div class="confirmation-dialog">
+  <div class="confirmation-dialog__content">
+    <h3 class="confirmation-dialog__title">
+      {{ title }}
+    </h3>
+
+    <p class="confirmation-dialog__message">
+      {{ message }}
+    </p>
+  </div>
+
+  <div class="button-row confirmation-dialog__actions">
+
+    <!-- Cancel -->
+    <button
+      type="button"
+      class="btn-secondary"
+      (click)="onCancel()"
+    >
+      Cancel
+    </button>
+
+    <!-- Optional Skip -->
+    <button
+      *ngIf="showSkip"
+      type="button"
+      class="btn-secondary"
+      (click)="onSkip()"
+    >
+      Skip
+    </button>
+
+    <!-- Optional Archive -->
+    <button
+      *ngIf="showArchive"
+      type="button"
+      class="btn-secondary"
+      (click)="onArchive()"
+    >
+      Archive anyway
+    </button>
+
+    <!-- Primary -->
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="onMove()"
+    >
+      Move to pantry
+    </button>
+
+  </div>
+</div>
