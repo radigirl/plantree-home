@@ -33,7 +33,8 @@
 
   <!-- LIST -->
   <div class="cook-from-pantry-list" *ngIf="emptyState === 'none' && sortedMeals.length > 0">
-    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals" (click)="openInfoSheet($event, meal)">
+    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals" (pointerdown)="onCardPointerDown($event)"
+      (click)="openInfoSheet($event, meal)">
       <!-- IMAGE -->
       <div class="cook-from-pantry-card__image">
         <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />

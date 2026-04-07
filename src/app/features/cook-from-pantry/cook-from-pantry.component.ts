@@ -366,6 +366,11 @@ export class CookFromPantryComponent
     }, 2500);
   }
 
+
+  onCardPointerDown(event: PointerEvent): void {
+    event.preventDefault();
+  }
+
   private formatToastDayLabel(dateString: string): string {
     const date = new Date(`${dateString}T12:00:00`);
     return date.toLocaleDateString('en-US', { weekday: 'long' });
@@ -386,14 +391,14 @@ export class CookFromPantryComponent
   }
 
   onAddFromInfo(): void {
-  if (!this.selectedMealForInfo) {
-    return;
-  }
+    if (!this.selectedMealForInfo) {
+      return;
+    }
 
-  this.selectedMeal = this.selectedMealForInfo;
-  this.selectedMealForInfo = null;
-  this.isActionMenuOpen = true;
-}
+    this.selectedMeal = this.selectedMealForInfo;
+    this.selectedMealForInfo = null;
+    this.isActionMenuOpen = true;
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
