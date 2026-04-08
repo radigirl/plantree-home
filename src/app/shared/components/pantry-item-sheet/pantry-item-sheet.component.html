@@ -1,120 +1,82 @@
 <ng-container *ngIf="isOpen">
-  <div
-    class="pantry-item-sheet-backdrop"
-    [class.pantry-item-sheet-backdrop--desktop]="isDesktop"
-    (click)="onBackdropClick($event)"
-  >
+  <div class="pantry-item-sheet-backdrop" [class.pantry-item-sheet-backdrop--desktop]="isDesktop"
+    (click)="onBackdropClick($event)">
     <div class="pantry-item-sheet" (click)="$event.stopPropagation()">
       <div class="pantry-item-sheet__handle" (click)="close()"></div>
 
       <div class="pantry-item-sheet__header">
-        <div class="pantry-item-sheet__header-text">
-          <p class="pantry-item-sheet__title">{{ title }}</p>
-        </div>
+        <p class="pantry-item-sheet__title">{{ title }}</p>
       </div>
 
       <div class="pantry-item-sheet__content">
+
+        <!-- Name -->
         <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label" for="pantry-item-name">Name</label>
-          <input
-            id="pantry-item-name"
-            type="text"
-            class="pantry-item-sheet__input"
-            [(ngModel)]="name"
-            placeholder="Milk"
-          />
+          <label class="pantry-item-sheet__label">Name</label>
+          <input type="text" class="pantry-item-sheet__input" [(ngModel)]="name" placeholder="e.g. Milk" />
         </div>
 
-        <div class="pantry-item-sheet__row pantry-item-sheet__row--two">
-          <div class="pantry-item-sheet__field">
-            <label class="pantry-item-sheet__label" for="pantry-item-amount">Quantity</label>
-            <input
-              id="pantry-item-amount"
-              type="number"
-              min="1"
-              step="1"
-              class="pantry-item-sheet__input"
-              [(ngModel)]="amount"
-            />
-          </div>
-
-          <div class="pantry-item-sheet__field">
-            <label class="pantry-item-sheet__label" for="pantry-item-unit">Unit</label>
-            <input
-              id="pantry-item-unit"
-              type="text"
-              class="pantry-item-sheet__input"
-              [(ngModel)]="unit"
-              placeholder="pack / bottle / pcs"
-            />
-          </div>
-        </div>
-
-        <div class="pantry-item-sheet__row pantry-item-sheet__row--two">
-          <div class="pantry-item-sheet__field">
-            <label class="pantry-item-sheet__label" for="pantry-item-size-amount">
-              Size
-            </label>
-            <input
-              id="pantry-item-size-amount"
-              type="number"
-              min="0"
-              step="any"
-              class="pantry-item-sheet__input"
-              [(ngModel)]="sizeAmount"
-              placeholder="500"
-            />
-          </div>
-
-          <div class="pantry-item-sheet__field">
-            <label class="pantry-item-sheet__label" for="pantry-item-size-unit">
-              Size unit
-            </label>
-            <input
-              id="pantry-item-size-unit"
-              type="text"
-              class="pantry-item-sheet__input"
-              [(ngModel)]="sizeUnit"
-              placeholder="g / kg / ml / l"
-            />
-          </div>
-        </div>
-
+        <!-- Quantity -->
         <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label" for="pantry-item-expiry">
-            Expiry date
-          </label>
-          <input
-            id="pantry-item-expiry"
-            type="date"
-            class="pantry-item-sheet__input"
-            [(ngModel)]="expiryDate"
-          />
+          <label class="pantry-item-sheet__label">Quantity</label>
+          <input type="number" min="1" step="1" class="pantry-item-sheet__input" [(ngModel)]="amount" />
         </div>
 
-        <div
-          *ngIf="mode === 'edit' && createdAtLabel"
-          class="pantry-item-sheet__meta"
-        >
+        <!-- Type -->
+        <div class="pantry-item-sheet__field">
+          <label class="pantry-item-sheet__label">Type</label>
+          <select class="pantry-item-sheet__input" [(ngModel)]="type">
+            <option value="__none">— (optional)</option>
+             <option value="pcs">pcs</option>
+            <option value="pack">pack</option>
+            <option value="bottle">bottle</option>
+          </select>
+        </div>
+
+        <!-- Unit -->
+        <div class="pantry-item-sheet__field">
+          <label class="pantry-item-sheet__label">Unit</label>
+          <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit">
+            <option value="">— (optional)</option>
+            <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+          </select>
+        </div>
+
+        <!-- Size -->
+        <div class="pantry-item-sheet__field">
+          <label class="pantry-item-sheet__label">Size</label>
+          <input type="number" min="0" step="any" class="pantry-item-sheet__input" [(ngModel)]="sizeAmount"
+            [placeholder]="sizePlaceholder" />
+        </div>
+
+        <!-- Error -->
+        <p class="pantry-item-sheet__error" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </p>
+
+        <!-- Expiry -->
+        <div class="pantry-item-sheet__field">
+          <label class="pantry-item-sheet__label">Expiry date</label>
+          <input type="date" class="pantry-item-sheet__input" [(ngModel)]="expiryDate" />
+        </div>
+
+        <!-- Meta -->
+        <div *ngIf="mode === 'edit' && createdAtLabel" class="pantry-item-sheet__meta">
           <span class="pantry-item-sheet__meta-label">Added on</span>
-          <span class="pantry-item-sheet__meta-value">{{ createdAtLabel }}</span>
+          <span class="pantry-item-sheet__meta-value">
+            {{ createdAtLabel }}
+          </span>
         </div>
+
       </div>
 
+      <!-- Footer -->
       <div class="pantry-item-sheet__footer">
-        <button
-          type="button"
-          class="pantry-item-sheet__button pantry-item-sheet__button--secondary"
-          (click)="close()"
-        >
+        <button type="button" class="pantry-item-sheet__button pantry-item-sheet__button--secondary" (click)="close()">
           Cancel
         </button>
 
-        <button
-          type="button"
-          class="pantry-item-sheet__button pantry-item-sheet__button--primary"
-          (click)="save()"
-        >
+        <button type="button" class="pantry-item-sheet__button pantry-item-sheet__button--primary" (click)="save()">
           {{ submitLabel }}
         </button>
       </div>

@@ -149,6 +149,12 @@
   border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+.pantry-item-sheet__error {
+  margin: -4px 0 0;
+  font-size: 12px;
+  color: #d14343;
+}
+
 @media (max-width: 767px) {
   .pantry-item-sheet__row--two {
     grid-template-columns: 1fr;

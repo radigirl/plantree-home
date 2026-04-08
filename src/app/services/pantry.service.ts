@@ -35,7 +35,7 @@ export class PantryService {
     return (data ?? []) as PantryItem[];
   }
 
- async createPantryItem(payload: {
+async createPantryItem(payload: {
   name: string;
   amount: number;
   unit: string;
@@ -51,16 +51,59 @@ export class PantryService {
     return null;
   }
 
+  const normalizedName = this.normalizeName(trimmedName);
+  const normalizedSizeUnit = payload.size_unit?.trim() || null;
+
+  const { data: existingItems, error: fetchError } = await this.supabase
+    .from('pantry_items')
+    .select('*')
+    .eq('space_id', spaceId)
+    .eq('normalized_name', normalizedName);
+
+  if (fetchError) {
+    console.error('Error checking existing pantry item:', fetchError);
+    return null;
+  }
+
+  const exactMatch = (existingItems ?? []).find((item) => {
+    const itemSizeUnit = item.size_unit?.trim() || null;
+
+    return (
+      item.size_amount === payload.size_amount &&
+      itemSizeUnit === normalizedSizeUnit
+    );
+  });
+
+  if (exactMatch) {
+    const { data, error } = await this.supabase
+      .from('pantry_items')
+      .update({
+        amount: exactMatch.amount + payload.amount,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', exactMatch.id)
+      .eq('space_id', spaceId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error incrementing pantry item:', error);
+      return null;
+    }
+
+    return data as PantryItem;
+  }
+
   const { data, error } = await this.supabase
     .from('pantry_items')
     .insert([
       {
         name: trimmedName,
-        normalized_name: this.normalizeName(trimmedName),
+        normalized_name: normalizedName,
         amount: payload.amount,
         unit: payload.unit,
         size_amount: payload.size_amount,
-        size_unit: payload.size_unit,
+        size_unit: normalizedSizeUnit,
         expiry_date: payload.expiry_date,
         space_id: spaceId,
       },
