@@ -13,51 +13,73 @@
         <!-- Name -->
         <div class="pantry-item-sheet__field">
           <label class="pantry-item-sheet__label">Name</label>
-          <input type="text" class="pantry-item-sheet__input" [(ngModel)]="name" placeholder="e.g. Milk" />
+          <input type="text" class="pantry-item-sheet__input" [(ngModel)]="name" (ngModelChange)="updateNameError()"
+            placeholder="e.g. Milk" />
         </div>
 
-        <!-- Quantity -->
-        <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label">Quantity</label>
-          <input type="number" min="1" step="1" class="pantry-item-sheet__input" [(ngModel)]="amount" />
-        </div>
-
-        <!-- Type -->
-        <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label">Type</label>
-          <select class="pantry-item-sheet__input" [(ngModel)]="type">
-            <option value="__none">— (optional)</option>
-             <option value="pcs">pcs</option>
-            <option value="pack">pack</option>
-            <option value="bottle">bottle</option>
-          </select>
-        </div>
-
-        <!-- Unit -->
-        <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label">Unit</label>
-          <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit">
-            <option value="">— (optional)</option>
-            <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
-          </select>
-        </div>
-
-        <!-- Size -->
-        <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label">Size</label>
-          <input type="number" min="0" step="any" class="pantry-item-sheet__input" [(ngModel)]="sizeAmount"
-            [placeholder]="sizePlaceholder" />
-        </div>
-
-        <!-- Error -->
-        <p class="pantry-item-sheet__error" *ngIf="errorMessage">
-          {{ errorMessage }}
+        <p class="pantry-item-sheet__error-slot" [class.is-visible]="!!nameErrorMessage">
+          {{ nameErrorMessage || '\u00A0' }}
         </p>
 
+        <!-- Type + Quantity -->
+        <div class="pantry-item-sheet__row">
+          <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
+            <label class="pantry-item-sheet__label">Type</label>
+            <select class="pantry-item-sheet__input" [(ngModel)]="type" (ngModelChange)="onTypeChange()">
+              <option value="countable">Countable</option>
+              <option value="loose">Loose</option>
+            </select>
+          </div>
+
+          <div class="pantry-item-sheet__field pantry-item-sheet__field--right pantry-item-sheet__field--quantity"
+            [class.is-hidden]="type === 'loose'" [attr.aria-hidden]="type === 'loose'">
+            <label class="pantry-item-sheet__label">Quantity</label>
+            <input type="number" min="1" step="1" class="pantry-item-sheet__input" [(ngModel)]="amount" />
+          </div>
+        </div>
+
+        <!-- Helper -->
+        <p class="pantry-item-sheet__helper">
+          {{ type === 'loose' ? '· bulk' : '· pcs, bottles, packs' }}
+        </p>
+
+        <!-- Unit + Size -->
+        <div class="pantry-item-sheet__row">
+          <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
+            <label class="pantry-item-sheet__label">Unit</label>
+            <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
+              <option value="">
+                {{ type === 'loose' ? 'Select unit' : 'No unit' }}
+              </option>
+              <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+            </select>
+          </div>
+
+          <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
+            <label class="pantry-item-sheet__label">Size</label>
+            <input type="number" min="0" step="any" class="pantry-item-sheet__input" [(ngModel)]="sizeAmount"
+              (ngModelChange)="updateSizeUnitError()" [placeholder]="sizePlaceholder" />
+          </div>
+        </div>
+
+        <!-- Error slot -->
+        <p class="pantry-item-sheet__error-slot" [class.is-visible]="!!errorMessage">
+          {{ errorMessage || '\u00A0' }}
+        </p>
         <!-- Expiry -->
+
         <div class="pantry-item-sheet__field">
           <label class="pantry-item-sheet__label">Expiry date</label>
-          <input type="date" class="pantry-item-sheet__input" [(ngModel)]="expiryDate" />
+
+          <div class="pantry-item-sheet__date-input">
+            <input type="text" class="pantry-item-sheet__input pantry-item-sheet__input--date" [value]="expiryDate"
+              placeholder="mm / dd / yyyy" readonly (click)="openDatePicker()" />
+
+            <button type="button" class="pantry-item-sheet__date-button" (click)="openDatePicker()"
+              aria-label="Open calendar">
+              <lucide-icon [img]="calendarIcon"></lucide-icon>
+            </button>
+          </div>
         </div>
 
         <!-- Meta -->
@@ -71,12 +93,12 @@
       </div>
 
       <!-- Footer -->
-      <div class="pantry-item-sheet__footer">
-        <button type="button" class="pantry-item-sheet__button pantry-item-sheet__button--secondary" (click)="close()">
+      <div class="pantry-item-sheet__footer button-row">
+        <button type="button" class="pantry-item-sheet__button btn-secondary" (click)="close()">
           Cancel
         </button>
 
-        <button type="button" class="pantry-item-sheet__button pantry-item-sheet__button--primary" (click)="save()">
+        <button type="button" class="pantry-item-sheet__button btn-primary" (click)="save()">
           {{ submitLabel }}
         </button>
       </div>

@@ -57,11 +57,12 @@
 .pantry-action-pill--primary:hover {
   background: $color-primary-dark;
 }
+
 .pantry-action-pill--secondary {
   background: rgba(92, 143, 134, 0.08);
   border-color: rgba(92, 143, 134, 0.28);
-  padding-left:16px;
-  padding-right:16px;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .pantry-action-pill--secondary:hover {
@@ -298,40 +299,13 @@
 }
 
 .pantry-item-amount {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  justify-self: end;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.pantry-stepper-button {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(92, 143, 134, 0.24);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.78);
-  color: $color-primary-dark;
-  font: inherit;
-  font-size: 0.98rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.pantry-stepper-button:hover {
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.pantry-stepper-button:active {
-  transform: scale(0.96);
+.pantry-item-amount--loose {
+  justify-content: center;
 }
 
 .pantry-item-amount-value {
@@ -342,6 +316,85 @@
   font-weight: 600;
   display: inline-block;
   color: $color-primary-dark;
+}
+
+.pantry-item-amount-value--loose {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.pantry-amount-pill {
+  min-height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(92, 143, 134, 0.08);
+  color: $color-primary-dark;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.pantry-amount-pill:hover {
+  background: rgba(92, 143, 134, 0.14);
+}
+
+.pantry-amount-pill:active {
+  transform: scale(0.98);
+}
+
+.pantry-amount-pill__action {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pantry-amount-pill__value {
+  min-width: 16px;
+  text-align: center;
+}
+
+.pantry-amount-pill--loose {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.pantry-stepper-button {
+  width: auto;
+  height: auto;
+  min-width: 28px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.pantry-stepper-button:hover {
+  opacity: 0.8;
+}
+
+.pantry-stepper-button:active {
+  transform: scale(0.94);
 }
 
 .pantry-item-date {
@@ -553,7 +606,7 @@
 
   .pantry-item-row {
     gap: 6px;
-    padding: 8px 0;
+    padding: 4px 0;
   }
 
   .pantry-item-row--all {
@@ -566,39 +619,47 @@
 
   .pantry-item-name {
     font-size: 0.94rem;
-    line-height: 1.08;
+    line-height: 1.15;
   }
 
   .pantry-item-amount {
-    gap: 4px;
-  }
-
-  .pantry-stepper-button {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    min-height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
-    border: 1px solid rgba(92, 143, 134, 0.24);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.78);
-    color: $color-primary-dark;
-
-    font: inherit;
-    font-size: 0.95rem;
-    font-weight: 700;
-    line-height: 1;
-
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.2s ease;
+    gap: 0;
   }
 
   .pantry-item-amount-value {
     min-width: 12px;
+    width: auto;
     font-size: 0.92rem;
+  }
+
+  .pantry-amount-pill {
+    min-height: 28px;
+    padding: 0 8px;
+    gap: 4px;
+    font-size: 0.9rem;
+  }
+
+  .pantry-amount-pill__action {
+    width: 12px;
+    height: 12px;
+  }
+
+  .pantry-amount-pill__value {
+    min-width: 14px;
+  }
+
+  .pantry-amount-pill--loose {
+    padding-left: 10px;
+    padding-right: 10px;
+    min-width: 64px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .pantry-stepper-button {
+    min-width: 24px;
+    min-height: 24px;
+    font-size: 0.95rem;
   }
 
   .pantry-item-date {
@@ -649,5 +710,16 @@
 
   .pantry-item-name {
     font-size: 0.95rem;
+  }
+
+  .pantry-amount-pill {
+    min-height: 31px;
+    padding: 0 9px;
+    gap: 5px;
+  }
+
+  .pantry-stepper-button {
+    min-width: 26px;
+    min-height: 26px;
   }
 }

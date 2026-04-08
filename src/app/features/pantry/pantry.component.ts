@@ -107,20 +107,20 @@ export class PantryComponent implements OnInit, OnDestroy {
     }
   }
 
+getDisplayName(item: PantryItem): string {
+  const name = item.name ?? '';
 
-  getDisplayName(item: PantryItem): string {
-    const hasSize =
-      item.size_amount !== null &&
-      item.size_amount !== undefined &&
-      item.size_unit;
-
-    if (!hasSize) {
-      return item.name;
-    }
-
-    return `${item.name} ${item.size_amount}${item.size_unit}`;
+  if (item.unit === 'loose') {
+    return name;
   }
 
+  if (item.size_amount && item.size_unit) {
+    return `${name} ${item.size_amount}${item.size_unit}`;
+  }
+
+  return name;
+}
+ 
   get allItems(): PantryItem[] {
     return [...this.pantryItems];
   }

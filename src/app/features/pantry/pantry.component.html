@@ -100,23 +100,35 @@
               {{ getDisplayName(item) }}
             </button>
 
-            <div class="pantry-item-amount">
-              <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
-                [attr.aria-label]="'Decrease amount for ' + item.name">
-                -
-              </button>
+            <div class="pantry-item-amount" [class.pantry-item-amount--loose]="item.unit === 'loose'">
+              <ng-container *ngIf="item.unit !== 'loose'; else looseAmountAll">
+                <div class="pantry-amount-pill">
+                  <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
+                    <span class="pantry-amount-pill__action">-</span>
+                  </button>
 
-              <span class="pantry-item-amount-value">{{ item.amount }}</span>
+                  <span class="pantry-amount-pill__value">{{ item.amount }}</span>
 
-              <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
-                [attr.aria-label]="'Increase amount for ' + item.name">
-                +
-              </button>
+                  <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
+                    <span class="pantry-amount-pill__action">+</span>
+                  </button>
+                </div>
+              </ng-container>
+
+              <ng-template #looseAmountAll>
+                <button
+                  type="button"
+                  class="pantry-amount-pill pantry-amount-pill--loose"
+                  (click)="onEditItem(item)"
+                  [attr.aria-label]="'Edit pantry item ' + item.name"
+                >
+                  {{ item.size_amount }}&nbsp;{{ item.size_unit }}
+                </button>
+              </ng-template>
             </div>
 
             <div class="pantry-item-actions">
-              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
-                [attr.aria-label]="'Delete pantry item ' + item.name">
+              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
                 <span class="pantry-remove">×</span>
               </button>
             </div>
@@ -130,18 +142,31 @@
               {{ getDisplayName(item) }}
             </button>
 
-            <div class="pantry-item-amount">
-              <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
-                [attr.aria-label]="'Decrease amount for ' + item.name">
-                -
-              </button>
+            <div class="pantry-item-amount" [class.pantry-item-amount--loose]="item.unit === 'loose'">
+              <ng-container *ngIf="item.unit !== 'loose'; else looseAmountExpiry">
+                <div class="pantry-amount-pill">
+                  <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
+                    <span class="pantry-amount-pill__action">-</span>
+                  </button>
 
-              <span class="pantry-item-amount-value">{{ item.amount }}</span>
+                  <span class="pantry-amount-pill__value">{{ item.amount }}</span>
 
-              <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
-                [attr.aria-label]="'Increase amount for ' + item.name">
-                +
-              </button>
+                  <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
+                    <span class="pantry-amount-pill__action">+</span>
+                  </button>
+                </div>
+              </ng-container>
+
+              <ng-template #looseAmountExpiry>
+                <button
+                  type="button"
+                  class="pantry-amount-pill pantry-amount-pill--loose"
+                  (click)="onEditItem(item)"
+                  [attr.aria-label]="'Edit pantry item ' + item.name"
+                >
+                  {{ item.size_amount }}&nbsp;{{ item.size_unit }}
+                </button>
+              </ng-template>
             </div>
 
             <div class="pantry-item-date">
@@ -149,39 +174,49 @@
             </div>
 
             <div class="pantry-item-actions">
-              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
-                [attr.aria-label]="'Delete pantry item ' + item.name">
+              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
                 <i-feather name="trash"></i-feather>
               </button>
             </div>
           </div>
 
           <ng-container *ngIf="noExpiryItems.length > 0">
-
             <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of noExpiryItems">
               <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
                 {{ getDisplayName(item) }}
               </button>
 
-              <div class="pantry-item-amount">
-                <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
-                  [attr.aria-label]="'Decrease amount for ' + item.name">
-                  -
-                </button>
+              <div class="pantry-item-amount" [class.pantry-item-amount--loose]="item.unit === 'loose'">
+                <ng-container *ngIf="item.unit !== 'loose'; else looseAmountNoExpiry">
+                  <div class="pantry-amount-pill">
+                    <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
+                      <span class="pantry-amount-pill__action">-</span>
+                    </button>
 
-                <span class="pantry-item-amount-value">{{ item.amount }}</span>
+                    <span class="pantry-amount-pill__value">{{ item.amount }}</span>
 
-                <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
-                  [attr.aria-label]="'Increase amount for ' + item.name">
-                  +
-                </button>
+                    <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
+                      <span class="pantry-amount-pill__action">+</span>
+                    </button>
+                  </div>
+                </ng-container>
+
+                <ng-template #looseAmountNoExpiry>
+                  <button
+                    type="button"
+                    class="pantry-amount-pill pantry-amount-pill--loose"
+                    (click)="onEditItem(item)"
+                    [attr.aria-label]="'Edit pantry item ' + item.name"
+                  >
+                    {{ item.size_amount }}&nbsp;{{ item.size_unit }}
+                  </button>
+                </ng-template>
               </div>
 
               <div class="pantry-item-date"></div>
 
               <div class="pantry-item-actions">
-                <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
-                  [attr.aria-label]="'Delete pantry item ' + item.name">
+                <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
                   <i-feather name="trash"></i-feather>
                 </button>
               </div>
@@ -196,18 +231,31 @@
               {{ getDisplayName(item) }}
             </button>
 
-            <div class="pantry-item-amount">
-              <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)"
-                [attr.aria-label]="'Decrease amount for ' + item.name">
-                -
-              </button>
+            <div class="pantry-item-amount" [class.pantry-item-amount--loose]="item.unit === 'loose'">
+              <ng-container *ngIf="item.unit !== 'loose'; else looseAmountRecent">
+                <div class="pantry-amount-pill">
+                  <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
+                    <span class="pantry-amount-pill__action">-</span>
+                  </button>
 
-              <span class="pantry-item-amount-value">{{ item.amount }}</span>
+                  <span class="pantry-amount-pill__value">{{ item.amount }}</span>
 
-              <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)"
-                [attr.aria-label]="'Increase amount for ' + item.name">
-                +
-              </button>
+                  <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
+                    <span class="pantry-amount-pill__action">+</span>
+                  </button>
+                </div>
+              </ng-container>
+
+              <ng-template #looseAmountRecent>
+                <button
+                  type="button"
+                  class="pantry-amount-pill pantry-amount-pill--loose"
+                  (click)="onEditItem(item)"
+                  [attr.aria-label]="'Edit pantry item ' + item.name"
+                >
+                  {{ item.size_amount }}&nbsp;{{ item.size_unit }}
+                </button>
+              </ng-template>
             </div>
 
             <div class="pantry-item-date">
@@ -215,8 +263,7 @@
             </div>
 
             <div class="pantry-item-actions">
-              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)"
-                [attr.aria-label]="'Delete pantry item ' + item.name">
+              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
                 <i-feather name="trash"></i-feather>
               </button>
             </div>
@@ -232,10 +279,15 @@
   </ng-container>
 </section>
 
-<app-pantry-item-sheet [isOpen]="isPantrySheetOpen" [mode]="pantrySheetMode" [item]="selectedPantryItem"
-  (closed)="closePantrySheet()" (saved)="savePantryItem($event)"></app-pantry-item-sheet>
+<app-pantry-item-sheet
+  [isOpen]="isPantrySheetOpen"
+  [mode]="pantrySheetMode"
+  [item]="selectedPantryItem"
+  (closed)="closePantrySheet()"
+  (saved)="savePantryItem($event)">
+</app-pantry-item-sheet>
 
-  <div
+<div
   *ngIf="isDeleteDialogOpen"
   class="pantry-confirmation-backdrop"
   (click)="cancelDeleteItem()"
@@ -250,8 +302,8 @@
       confirmLabel="Remove"
       cancelLabel="Cancel"
       (cancel)="cancelDeleteItem()"
-      (confirm)="confirmDeleteItem()"
-    ></app-confirmation-dialog>
+      (confirm)="confirmDeleteItem()">
+    </app-confirmation-dialog>
   </div>
 </div>
 
