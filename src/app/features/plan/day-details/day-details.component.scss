@@ -1,6 +1,7 @@
 @use '../../../../styles/variables' as *;
 @use '../../../../styles/breakpoints' as *;
 @use '../../../../styles/components/buttons' as *;
+@use '../../../../styles/components/inputs' as *;
 
 :host {
   display: block;
@@ -947,37 +948,6 @@
     background: rgba(92, 143, 134, 0.14);
     color: $color-primary-dark;
     box-shadow: inset 0 0 0 1px rgba(92, 143, 134, 0.22);
-  }
-
-  .meal-search-input-wrap {
-    position: relative;
-    width: 100%;
-  }
-
-  .meal-search-input-wrap input {
-    padding-right: 44px;
-  }
-
-  .meal-search-input-wrap input[type='search']::-webkit-search-cancel-button {
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  .meal-search-clear {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(207, 222, 215, 0.4);
-    color: $color-primary-dark;
-    font-size: 1rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .meal-search-results-container {

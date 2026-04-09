@@ -95,10 +95,6 @@
   border-top: 1px solid rgba(92, 143, 134, 0.12);
 }
 
-.grocery-item--editing {
-  padding: 14px 0;
-}
-
 .grocery-item--menu-open {
   z-index: 20;
 }
@@ -258,70 +254,6 @@
   color: $color-primary-dark;
 }
 
-/* EDIT MODE */
-
-.grocery-item-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-}
-
-.grocery-item-edit-input {
-  width: 100%;
-  min-height: 42px;
-  padding: 10px 14px;
-  border: 1px solid $color-border;
-  border-radius: 999px;
-  background: #fff;
-  box-sizing: border-box;
-  font: inherit;
-  color: $color-primary-dark;
-  outline: none;
-}
-
-.grocery-item-edit-input::placeholder {
-  color: $color-text-muted;
-}
-
-.grocery-item-edit-input:focus {
-  border-color: rgba(92, 143, 134, 0.42);
-  box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.08);
-}
-
-.grocery-item-edit-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.grocery-item-edit-save,
-.grocery-item-edit-cancel {
-  min-height: 32px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.grocery-item-edit-save {
-  border: none;
-  background: $color-button-primary;
-  color: $color-text-on-primary;
-  opacity: 0.95;
-}
-
-.grocery-item-edit-cancel {
-  border: 1px solid rgba(92, 143, 134, 0.25);
-  background: #fff;
-  color: $color-primary-dark;
-  opacity: 0.9;
-}
-
 /* ADD ITEM */
 
 .add-item-row {
@@ -349,6 +281,24 @@
   width: fit-content;
   min-width: 100px;
   align-self: flex-end;
+}
+
+/* EDIT DIALOG */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(31, 41, 38, 0.38);
+  backdrop-filter: blur(2px);
+}
+
+.dialog-shell {
+  width: min(100%, 440px);
 }
 
 /* RESPONSIVE */
@@ -405,6 +355,17 @@
   .grocery-item-actions:hover {
     background: rgba(207, 222, 215, 0.35);
   }
+
+  .dialog-overlay {
+    padding: 16px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dialog-shell {
+    width: min(100%, 440px);
+  }
+ 
 }
 
 @include tablet {

@@ -25,6 +25,7 @@ import { SpaceStateService } from '../../services/space.state.service';
 import { PantryActionDialogComponent } from '../../shared/components/pantry-action-dialog/pantry-action-dialog.component';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { EditTextDialogComponent } from '../../shared/components/edit-text-dialog/edit-text-dialog.component';
 
 @Component({
   selector: 'app-grocery-lists',
@@ -37,7 +38,8 @@ import { ConfirmationDialogComponent } from '../../shared/components/confirmatio
     FeatherModule,
     PantryActionDialogComponent,
     SnackbarComponent,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    EditTextDialogComponent,
   ],
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
@@ -51,7 +53,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   newListName = '';
 
   openMenuListId: string | null = null;
-  editingListId: string | null = null;
+  selectedListForEdit: GroceryList | null = null;
   editListName = '';
 
   isPantryDialogOpen = false;
@@ -80,7 +82,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   toastActionType: 'undo-complete' | null = null;
 
   private listsChannel: RealtimeChannel | null = null;
-
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -90,7 +91,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private pantryService: PantryService,
-  ) { }
+  ) {}
 
   @HostListener('document:click')
   onDocumentClick(): void {
@@ -118,6 +119,10 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
   get archivedCount(): number {
     return this.archivedLists.length;
+  }
+
+  get isEditDialogOpen(): boolean {
+    return !!this.selectedListForEdit;
   }
 
   ngOnInit(): void {
@@ -150,7 +155,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.newListName = '';
 
     this.openMenuListId = null;
-    this.editingListId = null;
+    this.selectedListForEdit = null;
     this.editListName = '';
 
     this.selectedListForActions = null;
@@ -203,8 +208,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.error = '';
 
     this.openMenuListId = null;
-    this.editingListId = null;
-    this.editListName = '';
+    this.closeEditDialog();
   }
 
   cancelCreateList(): void {
@@ -294,8 +298,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       if (pendingPantryItems > 0) {
         actions.push({
           id: 'add-to-pantry',
-          label: `Move ${pendingPantryItems} ${pendingPantryItems === 1 ? 'item' : 'items'
-            } to pantry`,
+          label: `Move ${pendingPantryItems} ${pendingPantryItems === 1 ? 'item' : 'items'} to pantry`,
         });
       }
 
@@ -320,26 +323,33 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     return actions;
   }
 
-  startEditList(event: Event, list: GroceryList): void {
+  openEditDialog(event: Event, list: GroceryList): void {
     event.stopPropagation();
 
     this.isCreatingList = false;
     this.newListName = '';
-    this.editingListId = list.id;
-    this.editListName = list.name;
     this.openMenuListId = null;
+    this.selectedListForActions = null;
+    this.selectedListForEdit = list;
+    this.editListName = list.name;
     this.error = '';
   }
 
-  async saveEditedList(): Promise<void> {
-    const trimmedName = this.editListName.trim();
+  closeEditDialog(): void {
+    this.selectedListForEdit = null;
+    this.editListName = '';
+  }
 
-    if (!this.editingListId || !trimmedName) {
+  async confirmEditList(): Promise<void> {
+    const trimmedName = this.editListName.trim();
+    const listId = this.selectedListForEdit?.id;
+
+    if (!listId || !trimmedName) {
       return;
     }
 
     const success = await this.groceryService.updateGroceryListName(
-      this.editingListId,
+      listId,
       trimmedName
     );
 
@@ -350,23 +360,17 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     }
 
     this.groceryLists = this.groceryLists.map((list) =>
-      list.id === this.editingListId
+      list.id === listId
         ? {
-          ...list,
-          name: trimmedName,
-          updated_at: new Date().toISOString(),
-        }
+            ...list,
+            name: trimmedName,
+            updated_at: new Date().toISOString(),
+          }
         : list
     );
 
-    this.editingListId = null;
-    this.editListName = '';
+    this.closeEditDialog();
     this.cdr.detectChanges();
-  }
-
-  cancelEditList(): void {
-    this.editingListId = null;
-    this.editListName = '';
   }
 
   openDeleteDialog(event: Event, list: GroceryList): void {
@@ -405,9 +409,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       this.openMenuListId = null;
     }
 
-    if (this.editingListId === list.id) {
-      this.editingListId = null;
-      this.editListName = '';
+    if (this.selectedListForEdit?.id === list.id) {
+      this.closeEditDialog();
     }
 
     this.closeDeleteDialog();
@@ -460,7 +463,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     switch (actionId) {
       case 'edit':
-        this.startEditList(new Event('click'), list);
+        this.openEditDialog(new Event('click'), list);
         return;
 
       case 'complete': {
@@ -578,7 +581,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       : `${baseName} (copy ${maxCopyNumber + 1})`;
   }
 
-  // helper methods pantry dialog
   openPantryDialogForComplete(list: GroceryList): void {
     const pending = this.getPendingPantryItemsCount(list);
 
@@ -617,7 +619,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.pendingPantryList = null;
   }
 
-  // reusable action methods 
   async completeList(
     list: GroceryList,
     showToast: boolean = true,
@@ -697,7 +698,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // dialog action handler
   async onPantryDialogAction(
     action: 'move' | 'skip' | 'archive' | 'cancel'
   ): Promise<void> {
@@ -762,7 +762,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  // toasts
   showToast(message: string, actionLabel?: string): void {
     this.toastMessage = message;
     this.toastActionLabel = actionLabel ?? null;
@@ -782,8 +781,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     const duration = actionLabel
       ? 3500
       : message.includes('moved')
-        ? 2500
-        : 2000;
+      ? 2500
+      : 2000;
 
     this.toastTimeout = setTimeout(() => {
       this.toastMessage = '';
@@ -857,5 +856,4 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       this.toastTimeout = null;
     }
   }
-
 }

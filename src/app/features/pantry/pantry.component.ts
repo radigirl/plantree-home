@@ -46,6 +46,8 @@ export class PantryComponent implements OnInit, OnDestroy {
   isDeleteDialogOpen = false;
   itemPendingDelete: PantryItem | null = null;
 
+  pantrySearchQuery = '';
+
 
   private destroy$ = new Subject<void>();
 
@@ -464,6 +466,10 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.router.navigate(['/cook-from-pantry'], {
       queryParams: { source: 'pantry' }
     });
+  }
+
+  clearPantrySearch() {
+    console.log('clear search');
   }
 
   ngOnDestroy(): void {

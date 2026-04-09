@@ -1,0 +1,72 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/components/buttons' as *;
+
+.edit-text-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  border-radius: $radius-large;
+  background: $color-surface-soft;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.edit-text-dialog__content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.edit-text-dialog__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.edit-text-dialog__subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: $color-text;
+}
+
+.edit-text-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.edit-text-dialog__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $color-primary-dark;
+}
+
+.edit-text-dialog__input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(92, 143, 134, 0.22);
+  border-radius: 14px;
+  background: #fff;
+  box-sizing: border-box;
+  font: inherit;
+  color: $color-text;
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.edit-text-dialog__input:focus {
+  border-color: rgba(92, 143, 134, 0.5);
+  box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.1);
+}
+
+.edit-text-dialog__actions {
+  margin-top: 4px;
+}

@@ -1,0 +1,43 @@
+<div class="edit-text-dialog">
+  <div class="edit-text-dialog__content">
+    <h3 class="edit-text-dialog__title">{{ title }}</h3>
+
+    <p *ngIf="subtitle" class="edit-text-dialog__subtitle">
+      {{ subtitle }}
+    </p>
+
+    <div class="edit-text-dialog__field">
+      <label class="edit-text-dialog__label">
+        {{ label }}
+      </label>
+
+      <input
+        type="text"
+        class="edit-text-dialog__input"
+        [value]="value"
+        [placeholder]="placeholder"
+        (input)="onValueChange(($any($event.target).value))"
+        (keydown.enter)="onConfirm()"
+      />
+    </div>
+  </div>
+
+  <div class="button-row edit-text-dialog__actions">
+    <button
+      type="button"
+      class="btn-secondary"
+      (click)="onCancel()"
+    >
+      {{ cancelLabel }}
+    </button>
+
+    <button
+      type="button"
+      class="btn-primary"
+      [disabled]="!value.trim()"
+      (click)="onConfirm()"
+    >
+      {{ confirmLabel }}
+    </button>
+  </div>
+</div>

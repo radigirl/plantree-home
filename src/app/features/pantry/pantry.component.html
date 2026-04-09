@@ -7,15 +7,31 @@
     <p *ngIf="error" class="pantry-error">{{ error }}</p>
 
     <ng-container *ngIf="!error">
-      <div class="pantry-actions-row">
-        <button class="action-pill action-pill--primary" (click)="onAddItem()">
-          + Add
-        </button>
 
-        <button class="action-pill action-pill--secondary" (click)="onCleanPantry()">
-          Clean
+
+      <div class="page-header-row">
+      <div class="page-header">
+        <h1 class="page-title">Pantry</h1>
+        <p class="page-subtitle">Create and manage your pantry items</p>
+      </div>
+
+      <button type="button" class="action-pill action-pill--primary"
+         (click)="onAddItem()">
+        + Add
+      </button>
+    </div>
+
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <input type="text" [(ngModel)]="pantrySearchQuery" placeholder="Search pantry..." />
+
+        <button *ngIf="pantrySearchQuery" type="button" class="search-clear" (click)="clearPantrySearch()">
+          ×
         </button>
       </div>
+    </div>
+
+
 
       <div class="pantry-sort-row">
         <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'all'"
@@ -32,6 +48,11 @@
           (click)="setMode('recent')">
           Recent
         </button>
+
+          <button class="action-pill action-pill--secondary" (click)="onCleanPantry()">
+          Clean
+        </button>
+
       </div>
 
       <div class="always-present-section">

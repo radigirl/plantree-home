@@ -61,12 +61,12 @@
           <div class="add-meal-field">
             <label for="mealSearch">Search meals</label>
 
-            <div class="meal-search-input-wrap">
+            <div class="search-input-wrap">
               <input id="mealSearch" type="search" inputmode="search" [(ngModel)]="mealSearchQuery"
                 placeholder="Search by title or ingredient" autocomplete="off" autocorrect="off" autocapitalize="off"
                 spellcheck="false" enterkeyhint="search" />
 
-              <button *ngIf="mealSearchQuery || selectedExistingMealId" type="button" class="meal-search-clear"
+              <button *ngIf="mealSearchQuery || selectedExistingMealId" type="button" class="search-clear"
                 (click)="clearMealSearch()" aria-label="Clear search">
                 ×
               </button>
@@ -264,12 +264,12 @@
           <div class="add-meal-field">
             <label for="changeMealSearch">Search meals</label>
 
-            <div class="meal-search-input-wrap">
+            <div class="search-input-wrap">
               <input id="changeMealSearch" type="search" inputmode="search" [(ngModel)]="changeMealSearchQuery"
                 placeholder="Search by title or ingredient" autocomplete="off" autocorrect="off" autocapitalize="off"
                 spellcheck="false" enterkeyhint="search" />
 
-              <button *ngIf="changeMealSearchQuery || selectedExistingMealId" type="button" class="meal-search-clear"
+              <button *ngIf="changeMealSearchQuery || selectedExistingMealId" type="button" class="search-clear"
                 (click)="clearChangeMealSearch()" aria-label="Clear search">
                 ×
               </button>

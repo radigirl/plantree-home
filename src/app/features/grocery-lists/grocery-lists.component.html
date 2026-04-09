@@ -4,7 +4,6 @@
   </div>
 
   <ng-container *ngIf="!isLoading">
-
     <div class="page-header-row">
       <div class="page-header">
         <h1 class="page-title">Grocery Lists</h1>
@@ -40,29 +39,9 @@
       </div>
     </div>
 
-    <div *ngIf="editingListId !== null" class="list-form-card">
-      <input
-        type="text"
-        placeholder="Edit list name"
-        [(ngModel)]="editListName"
-        class="list-form-input"
-      />
-
-      <div class="list-form-actions">
-        <button class="save-button" (click)="saveEditedList()">
-          Save
-        </button>
-
-        <button class="cancel-button" (click)="cancelEditList()">
-          Cancel
-        </button>
-      </div>
-    </div>
-
     <p *ngIf="error" class="lists-error">{{ error }}</p>
 
     <div *ngIf="!error && groceryLists.length > 0; else empty">
-
       <div class="lists-list">
         <div
           class="list-card"
@@ -71,7 +50,6 @@
           (click)="openList(list)"
         >
           <div class="list-row">
-
             <div class="list-main">
               <p class="list-name">
                 {{ list.name }}
@@ -123,7 +101,6 @@
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -144,7 +121,6 @@
           (click)="openList(list)"
         >
           <div class="list-row">
-
             <div class="list-main">
               <p class="list-name">
                 {{ list.name }}
@@ -196,17 +172,14 @@
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
-
     </div>
 
     <ng-template #empty>
       <p class="lists-empty">No grocery lists yet.</p>
     </ng-template>
-
   </ng-container>
 </section>
 
@@ -238,6 +211,26 @@
   </div>
 </div>
 
+<div
+  class="modal-overlay"
+  *ngIf="isEditDialogOpen"
+  (click)="closeEditDialog()"
+>
+  <div class="modal-shell" (click)="$event.stopPropagation()">
+    <app-edit-text-dialog
+      [title]="'Edit list'"
+      [subtitle]="'Update the grocery list name.'"
+      [label]="'List name'"
+      [value]="editListName"
+      [placeholder]="'Enter list name'"
+      [confirmLabel]="'Save'"
+      [cancelLabel]="'Cancel'"
+      (valueChange)="editListName = $event"
+      (confirm)="confirmEditList()"
+      (cancel)="closeEditDialog()"
+    ></app-edit-text-dialog>
+  </div>
+</div>
 
 <div
   class="modal-overlay"
@@ -255,7 +248,6 @@
     ></app-confirmation-dialog>
   </div>
 </div>
-
 
 <app-snackbar
   [isVisible]="!!toastMessage"

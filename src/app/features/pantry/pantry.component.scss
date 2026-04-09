@@ -1,6 +1,8 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/breakpoints' as *;
 @use '../../../styles/components/buttons' as *;
+@use '../../../styles/components/inputs' as *;
+@use '../../../styles/components/page-headings' as *;
 
 :host {
   display: block;

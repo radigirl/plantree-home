@@ -1,6 +1,7 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/breakpoints' as *;
 @use '../../../styles/components/page-headings' as *;
+@use '../../../styles/components/inputs' as *;
 
 :host {
   display: block;
@@ -506,51 +507,6 @@
   white-space: pre-line;
 }
 
-.meal-search-bar {
-  margin: 4px 0 8px;
-}
-
-.meal-search-input-wrap {
-  position: relative;
-  width: 100%;
-}
-
-.meal-search-input-wrap input {
-  width: 100%;
-  min-height: 42px;
-  padding: 0 42px 0 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(207, 222, 215, 0.95);
-  background: rgba(255, 252, 247, 0.92);
-  color: $color-primary-dark;
-  font-size: 0.98rem;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.meal-search-input-wrap input:focus {
-  border-color: rgba(92, 143, 134, 0.7);
-  box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.08);
-}
-
-.meal-search-clear {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  transform: translateY(-50%);
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(207, 222, 215, 0.32);
-  color: $color-primary-dark;
-  font-size: 1rem;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .meal-search-results {
   display: flex;
   flex-direction: column;
@@ -976,15 +932,6 @@
     width: 40px;
     height: 40px;
     font-size: 1.4rem;
-  }
-
-  .meal-search-bar {
-    margin: 4px 0 8px;
-  }
-
-  .meal-search-input-wrap input {
-    min-height: 42px;
-    font-size: 0.94rem;
   }
 
   .meal-search-result {

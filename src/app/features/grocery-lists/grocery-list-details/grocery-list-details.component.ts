@@ -13,15 +13,27 @@ import { PageLoadingComponent } from '../../../shared/components/page-loading/pa
 import { GroceryService } from '../../../services/grocery.service';
 import { GroceryList } from '../../../models/grocery-list.model';
 import { MemberStateService } from '../../../services/member.state.service';
-import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../../shared/components/responsive-action-menu/responsive-action-menu';
+import {
+  ResponsiveActionMenuComponent,
+  ResponsiveActionMenuItem,
+} from '../../../shared/components/responsive-action-menu/responsive-action-menu';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { SpaceStateService } from '../../../services/space.state.service';
+import { EditTextDialogComponent } from '../../../shared/components/edit-text-dialog/edit-text-dialog.component';
+import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-grocery-list-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    PageLoadingComponent,
+    ResponsiveActionMenuComponent,
+    EditTextDialogComponent,
+    ConfirmationDialogComponent,
+  ],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
 })
@@ -33,18 +45,19 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   newItemName = '';
 
   openItemMenuId: string | null = null;
-  editingItemId: string | null = null;
-  editItemName = '';
 
   selectedItemForActions: any | null = null;
+  selectedItemForEdit: any | null = null;
+  selectedItemForDelete: any | null = null;
+
+  editItemName = '';
+
   itemActions: ResponsiveActionMenuItem[] = [
     { id: 'edit', label: 'Edit' },
     { id: 'delete', label: 'Delete' },
   ];
 
   private destroy$ = new Subject<void>();
-
-
   private itemsChannel: RealtimeChannel | null = null;
 
   constructor(
@@ -54,7 +67,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     private memberStateService: MemberStateService,
     private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {}
 
   @HostListener('document:click')
   onDocumentClick(): void {
@@ -146,6 +159,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   async addItem(): Promise<void> {
     if (this.isReadOnly) return;
+
     const trimmedName = this.newItemName.trim();
 
     if (!trimmedName || !this.groceryList) {
@@ -175,7 +189,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async toggleItem(item: any): Promise<void> {
-    if (this.isReadOnly || this.editingItemId === item.id) {
+    if (this.isReadOnly || this.isEditDialogOpen || this.isDeleteDialogOpen) {
       return;
     }
 
@@ -226,23 +240,31 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  startEditItem(event: Event, item: any): void {
+  openEditDialog(event: Event, item: any): void {
     if (this.isReadOnly) return;
+
     event.stopPropagation();
     this.openItemMenuId = null;
-    this.editingItemId = item.id;
-    this.editItemName = item.name;
+    this.selectedItemForActions = null;
+    this.selectedItemForEdit = item;
+    this.editItemName = item.name ?? '';
   }
 
-  async saveEditedItem(): Promise<void> {
-    const trimmedName = this.editItemName.trim();
+  closeEditDialog(): void {
+    this.selectedItemForEdit = null;
+    this.editItemName = '';
+  }
 
-    if (!this.editingItemId || !trimmedName) {
+  async confirmEditItem(): Promise<void> {
+    const trimmedName = this.editItemName.trim();
+    const itemId = this.selectedItemForEdit?.id;
+
+    if (!itemId || !trimmedName) {
       return;
     }
 
     const success = await this.groceryService.updateGroceryItemName(
-      this.editingItemId,
+      itemId,
       trimmedName
     );
 
@@ -253,25 +275,30 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     }
 
     this.groceryItems = this.groceryItems.map((item) =>
-      item.id === this.editingItemId ? { ...item, name: trimmedName } : item
+      item.id === itemId ? { ...item, name: trimmedName } : item
     );
 
-    this.editingItemId = null;
-    this.editItemName = '';
+    this.closeEditDialog();
     this.cdr.detectChanges();
   }
 
-  cancelEditItem(): void {
-    this.editingItemId = null;
-    this.editItemName = '';
+  openDeleteDialog(event: Event, item: any): void {
+    if (this.isReadOnly) return;
+
+    event.stopPropagation();
+    this.openItemMenuId = null;
+    this.selectedItemForActions = null;
+    this.selectedItemForDelete = item;
   }
 
-  async deleteItem(event: Event, item: any): Promise<void> {
-    if (this.isReadOnly) return;
-    event.stopPropagation();
+  closeDeleteDialog(): void {
+    this.selectedItemForDelete = null;
+  }
 
-    const confirmed = window.confirm(`Delete "${item.name}"?`);
-    if (!confirmed) {
+  async confirmDeleteItem(): Promise<void> {
+    const item = this.selectedItemForDelete;
+
+    if (!item) {
       return;
     }
 
@@ -287,14 +314,20 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       (currentItem) => currentItem.id !== item.id
     );
 
-    this.openItemMenuId = null;
-
-    if (this.editingItemId === item.id) {
-      this.editingItemId = null;
-      this.editItemName = '';
+    if (this.selectedItemForEdit?.id === item.id) {
+      this.closeEditDialog();
     }
 
+    this.closeDeleteDialog();
     this.cdr.detectChanges();
+  }
+
+  getDeleteMessage(): string {
+    if (!this.selectedItemForDelete?.name) {
+      return 'Are you sure you want to delete this item?';
+    }
+
+    return `Are you sure you want to delete "${this.selectedItemForDelete.name}"?`;
   }
 
   getItemMetaParts(item: any) {
@@ -328,11 +361,11 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
     switch (actionId) {
       case 'edit':
-        this.startEditItem(new Event('click'), item);
+        this.openEditDialog(new Event('click'), item);
         break;
 
       case 'delete':
-        await this.deleteItem(new Event('click'), item);
+        this.openDeleteDialog(new Event('click'), item);
         break;
     }
   }
@@ -344,19 +377,15 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
+  get isEditDialogOpen(): boolean {
+    return !!this.selectedItemForEdit;
+  }
+
+  get isDeleteDialogOpen(): boolean {
+    return !!this.selectedItemForDelete;
+  }
+
   async onCompleteList(): Promise<void> {
-  // if (!this.list) return;
-
-  // const pending = await this.getPendingPantryItemsCount(this.list);
-
-  // if (pending > 0) {
-  //   this.openPantryDialogForComplete(this.list);
-  //   return;
-  // }
-
-  // await this.completeList(this.list);
-
-  console.log('complete list inline')
-}
- 
+    console.log('complete list inline');
+  }
 }
