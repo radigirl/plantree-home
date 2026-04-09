@@ -13,7 +13,7 @@
         <!-- Name -->
         <div class="pantry-item-sheet__field">
           <label class="pantry-item-sheet__label">Name</label>
-          <input type="text" class="pantry-item-sheet__input" [(ngModel)]="name" (ngModelChange)="updateNameError()"
+          <input type="text" class="input-field" [(ngModel)]="name" (ngModelChange)="updateNameError()"
             placeholder="e.g. Milk" />
         </div>
 
@@ -37,7 +37,7 @@
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
               <label class="pantry-item-sheet__label">Quantity</label>
-              <input type="number" min="1" step="1" class="pantry-item-sheet__input" [(ngModel)]="amount" />
+              <input type="number" min="1" step="1" class="input-field" [(ngModel)]="amount" />
             </div>
           </div>
 
@@ -45,7 +45,7 @@
             <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
               <label class="pantry-item-sheet__label">Unit</label>
               <div class="select-wrapper">
-                <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
+                <select class="input-field" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
                 <option value="">No unit</option>
                 <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
               </select>
@@ -54,7 +54,7 @@
 
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
               <label class="pantry-item-sheet__label">Size</label>
-              <input type="number" min="0" step="any" class="pantry-item-sheet__input" [(ngModel)]="sizeAmount"
+              <input type="number" min="0" step="any" class="input-field" [(ngModel)]="sizeAmount"
                 (ngModelChange)="updateSizeUnitError()" [placeholder]="sizePlaceholder" />
             </div>
           </div>
@@ -66,7 +66,7 @@
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
               <label class="pantry-item-sheet__label">Unit</label>
               <div class="select-wrapper">
-                <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
+                <select class="input-field" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
                 <option value="">Select unit</option>
                 <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
               </select>
@@ -77,7 +77,7 @@
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
               <label class="pantry-item-sheet__label">Size</label>
-              <input type="number" min="0" step="any" class="pantry-item-sheet__input" [(ngModel)]="sizeAmount"
+              <input type="number" min="0" step="any" class="input-field" [(ngModel)]="sizeAmount"
                 (ngModelChange)="updateSizeUnitError()" [placeholder]="sizePlaceholder" />
             </div>
           </div>
@@ -92,7 +92,7 @@
         <div class="pantry-item-sheet__field">
           <label class="pantry-item-sheet__label">Expiry date</label>
           <div class="pantry-item-sheet__date-input">
-            <input type="text" class="pantry-item-sheet__input pantry-item-sheet__input--date"
+            <input type="text" class="input-field input-field--date"
               [value]="formatDateForDisplay(expiryDate)" placeholder="dd-mm-yyyy" readonly (click)="openCalendar()" />
 
             <button type="button" class="pantry-item-sheet__date-button" (click)="openCalendar()"

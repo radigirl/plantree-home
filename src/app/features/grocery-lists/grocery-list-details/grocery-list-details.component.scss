@@ -1,6 +1,7 @@
 @use '../../../../styles/variables' as *;
 @use '../../../../styles/breakpoints' as *;
 @use '../../../../styles/components/buttons' as *;
+@use '../../../../styles/components/inputs' as *;
 
 :host {
   display: block;
@@ -46,8 +47,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
+  margin-bottom: 4px;
 }
 
 .grocery-list-details-header-left {
@@ -60,6 +62,7 @@
 
 .grocery-list-title {
   margin: 0;
+  margin-bottom: 10px;
   min-width: 0;
   font-size: 1.5rem;
   font-weight: 700;
@@ -327,75 +330,12 @@
   gap: 10px;
 }
 
-.add-item-input {
-  flex: 1;
-  min-height: 42px;
-  padding: 0 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(207, 222, 215, 0.95);
-  background: rgba(255, 252, 247, 0.92);
-  color: $color-primary-dark;
-  font-size: 0.95rem;
-  outline: none;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
-
-  &::placeholder {
-    color: $color-text-muted;
-    opacity: 1;
-  }
-
-  &:focus {
-    border-color: rgba(92, 143, 134, 0.7);
-    box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.08);
-  }
-
-  &:disabled {
-    background: rgba(255, 252, 247, 0.92);
-    color: $color-text-muted;
-    opacity: 1;
-    cursor: not-allowed;
-    -webkit-text-fill-color: $color-text-muted;
-  }
-
-  &:disabled::placeholder {
-    color: $color-text-muted;
-    opacity: 1;
-    -webkit-text-fill-color: $color-text-muted;
-  }
-}
-
-.add-item-button {
-  height: 42px;
-  padding: 0 16px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(92, 143, 134, 0.95);
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.18s ease;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(92, 143, 134, 0.18);
-  }
-
-  &:disabled {
-    background: rgba(200, 200, 200, 0.5);
-    color: rgba(100, 100, 100, 0.7);
-    cursor: not-allowed;
-  }
-}
-
 .read-only-inline {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 10px 0 4px;
-  border-bottom: 1px solid rgba(207, 222, 215, 0.75);
 }
 
 .read-only-inline__text {
@@ -405,26 +345,10 @@
   color: $color-text-muted;
 }
 
-.read-only-inline__button {
-  min-height: 40px;
-  padding: 0 18px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(92, 143, 134, 0.95);
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.read-only-inline__button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(92, 143, 134, 0.16);
+.read-only-inline .action-pill {
+  width: fit-content;
+  min-width: 100px;
+  align-self: flex-end;
 }
 
 /* RESPONSIVE */
@@ -443,7 +367,7 @@
   }
 
   .grocery-list-details-shell {
-    gap: 16px;
+    gap: 6px;
   }
 
   .grocery-list-details-header {

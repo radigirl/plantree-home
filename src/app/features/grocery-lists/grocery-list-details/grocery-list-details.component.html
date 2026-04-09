@@ -9,25 +9,24 @@
     <ng-container *ngIf="!error && groceryList">
       <div class="grocery-list-details-shell">
         <div class="grocery-list-details-header">
-          <div class="grocery-list-details-header-left">
-            <button type="button" class="back-link" (click)="goBack()">
-              <span class="back-link__icon">←</span>
-              <span class="back-link__text">Lists</span>
-            </button>
+          <button type="button" class="back-link" (click)="goBack()">
+            <span class="back-link__icon">←</span>
+            <span class="back-link__text">Lists</span>
+          </button>
 
-            <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
-          </div>
-          
-          <span class="list-status-chip" [ngClass]="'list-status--' + groceryList.status.toLowerCase()">
+          <button *ngIf="!isReadOnly" type="button" class="action-pill action-pill--complete"
+            (click)="onCompleteList()">
+            Complete
+          </button>
+
+          <span *ngIf="isReadOnly" class="list-status-chip"
+            [ngClass]="'list-status--' + groceryList.status.toLowerCase()">
             {{ groceryList.status }}
           </span>
         </div>
 
-        <div *ngIf="!isReadOnly" class="read-only-inline">
-          <button type="button" class="read-only-inline__button" (click)="onCompleteList()">
-            Complete list
-          </button>
-        </div>
+        <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
+
 
         <div *ngIf="isReadOnly" class="read-only-inline">
           <p class="read-only-inline__text">
@@ -36,9 +35,9 @@
         </div>
 
         <div *ngIf="!isReadOnly" class="add-item-row">
-          <input type="text" [(ngModel)]="newItemName" class="add-item-input" placeholder="Add item..." />
+          <input type="text" [(ngModel)]="newItemName" class="input-field" placeholder="Add item..." />
 
-          <button class="add-item-button" (click)="addItem()">
+          <button class="action-pill action-pill--primary" (click)="addItem()">
             Add
           </button>
         </div>
