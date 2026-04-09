@@ -110,17 +110,15 @@
 
 .pantry-sort-pill:hover {
   background: rgba(255, 255, 255, 0.92);
-}
-
-.pantry-sort-pill:active {
-  transform: scale(0.98);
+  outline: none;
 }
 
 .pantry-sort-pill--active {
   background: rgba(255, 255, 255, 0.96);
   border-color: rgba(92, 143, 134, 0.55);
-  box-shadow: inset 0 0 0 2px rgba(31, 41, 55, 0.9);
   color: $color-primary-dark;
+  transform: scale(0.98);
+  outline: none;
 }
 
 .always-present-section {

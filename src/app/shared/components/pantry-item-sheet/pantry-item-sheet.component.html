@@ -85,15 +85,13 @@
         </p>
 
         <!-- Expiry -->
-
         <div class="pantry-item-sheet__field">
           <label class="pantry-item-sheet__label">Expiry date</label>
-
           <div class="pantry-item-sheet__date-input">
-            <input type="text" class="pantry-item-sheet__input pantry-item-sheet__input--date" [value]="expiryDate"
-              placeholder="mm / dd / yyyy" readonly (click)="openDatePicker()" />
+            <input type="text" class="pantry-item-sheet__input pantry-item-sheet__input--date"
+              [value]="formatDateForDisplay(expiryDate)" placeholder="dd-mm-yyyy" readonly (click)="openCalendar()" />
 
-            <button type="button" class="pantry-item-sheet__date-button" (click)="openDatePicker()"
+            <button type="button" class="pantry-item-sheet__date-button" (click)="openCalendar()"
               aria-label="Open calendar">
               <lucide-icon [img]="calendarIcon"></lucide-icon>
             </button>
@@ -123,3 +121,16 @@
     </div>
   </div>
 </ng-container>
+
+<div class="calendar-picker-sheet-overlay" *ngIf="isCalendarOpen" (click)="onCalendarBackdropClick($event)">
+
+  <div class="calendar-picker-sheet" (click)="$event.stopPropagation()">
+    <div class="calendar-picker-sheet__handle"></div>
+
+    <app-calendar-picker [title]="'Pick a date'" [selectionMode]="'single'" [selectedDates]="selectedCalendarDates"
+      [showFooterActions]="false" [autoConfirmOnSingleSelect]="true"
+      (selectedDatesChange)="onCalendarDatesChange($event)" (confirm)="confirmCalendarDates($event)">
+    </app-calendar-picker>
+
+  </div>
+</div>

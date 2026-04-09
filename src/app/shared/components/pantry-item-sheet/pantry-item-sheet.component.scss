@@ -203,6 +203,36 @@
   @extend .btn-secondary;
 }
 
+  // calendar 
+  .calendar-picker-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: rgba(46, 58, 50, 0.18);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.calendar-picker-sheet {
+  position: relative;
+  z-index: 1401;
+  width: 100%;
+  max-width: 560px;
+  padding: 14px 16px 20px;
+  border-radius: 24px 24px 0 0;
+  background: rgba(255, 252, 247, 0.98);
+  box-shadow: 0 -8px 24px rgba(46, 58, 50, 0.12);
+}
+
+.calendar-picker-sheet__handle {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(207, 222, 215, 0.95);
+  margin: 0 auto 14px;
+}
+
 @include mobile {
   .pantry-item-sheet__row--two {
     grid-template-columns: 1fr;
@@ -219,4 +249,16 @@
   .pantry-item-sheet__footer {
     padding: 16px;
   }
+
+@include desktop {
+  .calendar-picker-sheet-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .calendar-picker-sheet {
+    border-radius: 24px;
+    max-height: min(90vh, 720px);
+  }
+}
 }

@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import {
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   Input,
+  NgZone,
   OnChanges,
   Output,
   SimpleChanges,
@@ -11,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { PantryItem } from '../../../models/pantry-item.model';
 import { CalendarDays, LucideAngularModule } from 'lucide-angular';
 import { ToggleSwitchComponent } from '../toggle-switch/toggle-switch.component';
+import { CalendarPickerComponent } from '../calendar-picker/calendar-picker.component';
 
 export interface PantryItemSheetValue {
   name: string;
@@ -24,7 +27,7 @@ export interface PantryItemSheetValue {
 @Component({
   selector: 'app-pantry-item-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, ToggleSwitchComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ToggleSwitchComponent, CalendarPickerComponent],
   templateUrl: './pantry-item-sheet.component.html',
   styleUrls: ['./pantry-item-sheet.component.scss'],
 })
@@ -47,8 +50,13 @@ export class PantryItemSheetComponent implements OnChanges {
   errorMessage = '';
   hasTriedSave = false;
   nameErrorMessage = '';
+  isCalendarOpen = false;
+  selectedCalendarDates: string[] = [];
+  private isClosingCalendar = false;
 
   readonly calendarIcon = CalendarDays;
+
+ constructor(private cdr: ChangeDetectorRef, private ngZone : NgZone) {}
 
   get isDesktop(): boolean {
     return window.innerWidth >= this.DESKTOP_BREAKPOINT;
@@ -229,7 +237,81 @@ export class PantryItemSheetComponent implements OnChanges {
     return value.slice(0, 10);
   }
 
-  openDatePicker() {
-    console.log('Opening date picker');
+
+  // calendar
+openCalendar(): void {
+  if (this.isCalendarOpen) {
+    return;
   }
+
+  this.isCalendarOpen = true;
+  this.selectedCalendarDates = [
+    this.expiryDate || this.formatDateForInput(this.getTodayAtStart())
+  ];
+  document.body.style.overflow = 'hidden';
+}
+
+closeCalendar(): void {
+  this.isClosingCalendar = true;
+  this.isCalendarOpen = false;
+  this.selectedCalendarDates = [];
+  document.body.style.overflow = '';
+
+  setTimeout(() => {
+    this.isClosingCalendar = false;
+  }, 220);
+}
+
+onCalendarDatesChange(dates: string[]): void {
+  this.selectedCalendarDates = dates;
+}
+
+async confirmCalendarDates(dates: string[]): Promise<void> {
+  if (!dates.length) {
+    return;
+  }
+
+  this.expiryDate = dates[0];
+
+  // let the selected state be visible briefly
+  await new Promise((resolve) => setTimeout(resolve, 160));
+
+  this.ngZone.run(() => {
+    this.isCalendarOpen = false;
+    this.selectedCalendarDates = [];
+    document.body.style.overflow = '';
+    this.cdr.detectChanges();
+  });
+}
+
+private getTodayAtStart(): Date {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+private formatDateForInput(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+private formatDateForDisplay(dateStr: string | null): string {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  if (!year || !month || !day) return '';
+  return `${day}-${month}-${year}`;
+}
+
+
+
+onCalendarBackdropClick(event: MouseEvent): void {
+  if (event.target === event.currentTarget) {
+    this.closeCalendar();
+  }
+}
+
+
+
 }
