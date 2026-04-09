@@ -110,7 +110,7 @@ export class PantryComponent implements OnInit, OnDestroy {
 getDisplayName(item: PantryItem): string {
   const name = item.name ?? '';
 
-  if (item.unit === 'loose') {
+  if (item.unit === 'measured') {
     return name;
   }
 

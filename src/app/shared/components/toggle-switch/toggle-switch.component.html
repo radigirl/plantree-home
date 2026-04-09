@@ -1,0 +1,11 @@
+<div class="toggle">
+  <button
+    *ngFor="let option of options"
+    type="button"
+    class="toggle__button"
+    [class.toggle__button--active]="value === option.value"
+    (click)="select(option.value)"
+  >
+    {{ option.label }}
+  </button>
+</div>

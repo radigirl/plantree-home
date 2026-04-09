@@ -21,51 +21,69 @@
           {{ nameErrorMessage || '\u00A0' }}
         </p>
 
-        <!-- Type + Quantity -->
-        <div class="pantry-item-sheet__row">
-          <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
-            <label class="pantry-item-sheet__label">Type</label>
-            <select class="pantry-item-sheet__input" [(ngModel)]="type" (ngModelChange)="onTypeChange()">
-              <option value="countable">Countable</option>
-              <option value="loose">Loose</option>
-            </select>
-          </div>
-
-          <div class="pantry-item-sheet__field pantry-item-sheet__field--right pantry-item-sheet__field--quantity"
-            [class.is-hidden]="type === 'loose'" [attr.aria-hidden]="type === 'loose'">
-            <label class="pantry-item-sheet__label">Quantity</label>
-            <input type="number" min="1" step="1" class="pantry-item-sheet__input" [(ngModel)]="amount" />
-          </div>
-        </div>
+        <!-- Type switcher -->
+        <app-toggle-switch [options]="[
+    { label: 'Countable', value: 'countable' },
+    { label: 'Measured', value: 'measured' }
+  ]" [value]="type" (valueChange)="onTypeChange($event)"></app-toggle-switch>
 
         <!-- Helper -->
         <p class="pantry-item-sheet__helper">
-          {{ type === 'loose' ? '· bulk' : '· pcs, bottles, packs' }}
+          {{ type === 'measured' ? '· by weight or by volume' : '· pcs, bottles, packs' }}
         </p>
 
-        <!-- Unit + Size -->
-        <div class="pantry-item-sheet__row">
-          <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
-            <label class="pantry-item-sheet__label">Unit</label>
-            <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
-              <option value="">
-                {{ type === 'loose' ? 'Select unit' : 'No unit' }}
-              </option>
-              <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
-            </select>
+        <!-- COUNTABLE -->
+        <ng-container *ngIf="type === 'countable'; else measuredFields">
+          <div class="pantry-item-sheet__row">
+            <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
+              <label class="pantry-item-sheet__label">Quantity</label>
+              <input type="number" min="1" step="1" class="pantry-item-sheet__input" [(ngModel)]="amount" />
+            </div>
           </div>
 
-          <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
-            <label class="pantry-item-sheet__label">Size</label>
-            <input type="number" min="0" step="any" class="pantry-item-sheet__input" [(ngModel)]="sizeAmount"
-              (ngModelChange)="updateSizeUnitError()" [placeholder]="sizePlaceholder" />
+          <div class="pantry-item-sheet__row">
+            <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
+              <label class="pantry-item-sheet__label">Unit</label>
+              <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
+                <option value="">No unit</option>
+                <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+              </select>
+            </div>
+
+            <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
+              <label class="pantry-item-sheet__label">Size</label>
+              <input type="number" min="0" step="any" class="pantry-item-sheet__input" [(ngModel)]="sizeAmount"
+                (ngModelChange)="updateSizeUnitError()" [placeholder]="sizePlaceholder" />
+            </div>
           </div>
-        </div>
+        </ng-container>
+
+        <!-- MEASURED -->
+        <ng-template #measuredFields>
+          <div class="pantry-item-sheet__row">
+            <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
+              <label class="pantry-item-sheet__label">Unit</label>
+              <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
+                <option value="">Select unit</option>
+                <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pantry-item-sheet__row">
+            <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
+              <label class="pantry-item-sheet__label">Size</label>
+              <input type="number" min="0" step="any" class="pantry-item-sheet__input" [(ngModel)]="sizeAmount"
+                (ngModelChange)="updateSizeUnitError()" [placeholder]="sizePlaceholder" />
+            </div>
+          </div>
+        </ng-template>
 
         <!-- Error slot -->
         <p class="pantry-item-sheet__error-slot" [class.is-visible]="!!errorMessage">
           {{ errorMessage || '\u00A0' }}
         </p>
+
         <!-- Expiry -->
 
         <div class="pantry-item-sheet__field">

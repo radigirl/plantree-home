@@ -304,28 +304,28 @@
   justify-content: center;
 }
 
-.pantry-item-amount--loose {
+.pantry-item-amount--measured {
   justify-content: center;
 }
 
 .pantry-item-amount-value {
   width: 28px;
   text-align: center;
-  font-size: 0.92rem;
+  font-size: 0.96rem;
   line-height: 1;
   font-weight: 600;
   display: inline-block;
   color: $color-primary-dark;
 }
 
-.pantry-item-amount-value--loose {
+.pantry-item-amount-value--measured {
   white-space: nowrap;
   text-align: center;
 }
 
 .pantry-amount-pill {
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 36px;
+  padding: 0 8px;
   border: none;
   border-radius: 999px;
   background: rgba(92, 143, 134, 0.08);
@@ -337,7 +337,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease;
@@ -352,8 +352,8 @@
 }
 
 .pantry-amount-pill__action {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -361,32 +361,35 @@
 }
 
 .pantry-amount-pill__value {
-  min-width: 16px;
+  min-width: 18px;
   text-align: center;
 }
 
-.pantry-amount-pill--loose {
+.pantry-amount-pill--measured {
   padding-left: 12px;
   padding-right: 12px;
 }
 
 .pantry-stepper-button {
-  width: auto;
-  height: auto;
-  min-width: 28px;
-  min-height: 28px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  margin: -2px;
   border: none;
   background: transparent;
   color: inherit;
   font: inherit;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   border-radius: 999px;
   transition: opacity 0.2s ease, transform 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pantry-stepper-button:hover {
@@ -635,7 +638,7 @@
   .pantry-amount-pill {
     min-height: 28px;
     padding: 0 8px;
-    gap: 4px;
+    gap: 2px;
     font-size: 0.9rem;
   }
 
@@ -648,9 +651,8 @@
     min-width: 14px;
   }
 
-  .pantry-amount-pill--loose {
-    padding-left: 10px;
-    padding-right: 10px;
+  .pantry-amount-pill--measured {
+    padding: 10px 10px;
     min-width: 64px;
     justify-content: center;
     text-align: center;

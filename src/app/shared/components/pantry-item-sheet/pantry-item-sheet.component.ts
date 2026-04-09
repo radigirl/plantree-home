@@ -10,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { PantryItem } from '../../../models/pantry-item.model';
 import { CalendarDays, LucideAngularModule } from 'lucide-angular';
+import { ToggleSwitchComponent } from '../toggle-switch/toggle-switch.component';
 
 export interface PantryItemSheetValue {
   name: string;
@@ -23,7 +24,7 @@ export interface PantryItemSheetValue {
 @Component({
   selector: 'app-pantry-item-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ToggleSwitchComponent],
   templateUrl: './pantry-item-sheet.component.html',
   styleUrls: ['./pantry-item-sheet.component.scss'],
 })
@@ -39,7 +40,7 @@ export class PantryItemSheetComponent implements OnChanges {
 
   name = '';
   amount = 1;
-  type: 'countable' | 'loose' = 'countable';
+  type: 'countable' | 'measured' = 'countable';
   sizeAmount: number | null = null;
   sizeUnit = '';
   expiryDate: string | null = null;
@@ -71,23 +72,28 @@ export class PantryItemSheetComponent implements OnChanges {
   }
 
   get sizePlaceholder(): string {
-  if (!this.sizeUnit) {
-    return '—'; // neutral state
+    if (!this.sizeUnit) {
+      return '—'; // neutral state
+    }
+
+    if (this.sizeUnit === 'g' || this.sizeUnit === 'ml') {
+      return 'e.g. 500';
+    }
+
+    return 'e.g. 1';
   }
 
-  if (this.sizeUnit === 'g' || this.sizeUnit === 'ml') {
-    return 'e.g. 500';
+  onTypeChange(value: string): void {
+  if (value !== 'countable' && value !== 'measured') {
+    return;
   }
 
-  return 'e.g. 1';
-}
+  this.type = value;
+  if (this.type === 'measured' && !this.sizeUnit) {
+      this.sizeUnit = '';
+    }
 
-  onTypeChange(): void {
-  if (this.type === 'loose' && !this.sizeUnit) {
-    this.sizeUnit = '';
-  }
-
-  this.updateSizeUnitError();
+    this.updateSizeUnitError();
 }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -119,7 +125,7 @@ export class PantryItemSheetComponent implements OnChanges {
 
     const hasUnit = !!this.sizeUnit?.trim();
 
-    if (this.type === 'loose') {
+    if (this.type === 'measured') {
       if (!hasSize && !hasUnit) {
         this.errorMessage = 'Please select a unit and enter a size';
         return;
@@ -180,7 +186,7 @@ export class PantryItemSheetComponent implements OnChanges {
     this.saved.emit({
       name: trimmedName,
       amount: Math.floor(this.amount),
-      unit: this.type === 'loose' ? 'loose' : 'item',
+      unit: this.type === 'measured' ? 'measured' : 'item',
       size_amount: hasSize ? this.sizeAmount : null,
       size_unit: hasUnit ? this.sizeUnit.trim() : null,
       expiry_date: this.expiryDate || null,
@@ -199,7 +205,7 @@ export class PantryItemSheetComponent implements OnChanges {
     if (this.mode === 'edit' && this.item) {
       this.name = this.item.name ?? '';
       this.amount = this.item.amount ?? 1;
-      this.type = this.item.unit === 'loose' ? 'loose' : 'countable';
+      this.type = this.item.unit === 'measured' ? 'measured' : 'countable';
       this.sizeAmount = this.item.size_amount ?? null;
       this.sizeUnit = this.item.size_unit ?? '';
       this.expiryDate = this.toDateInputValue(this.item.expiry_date);

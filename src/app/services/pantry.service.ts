@@ -66,17 +66,17 @@ export class PantryService {
       return null;
     }
 
-    // LOOSE → merge by name + loose + size unit, and add size_amount
-    if (normalizedUnit === 'loose') {
-      const looseMatch = (existingItems ?? []).find((item) => {
+    // measured → merge by name + measured + size unit, and add size_amount
+    if (normalizedUnit === 'measured') {
+      const measuredMatch = (existingItems ?? []).find((item) => {
         const itemUnit = item.unit?.trim() || 'item';
         const itemSizeUnit = item.size_unit?.trim() || null;
 
-        return itemUnit === 'loose' && itemSizeUnit === normalizedSizeUnit;
+        return itemUnit === 'measured' && itemSizeUnit === normalizedSizeUnit;
       });
 
-      if (looseMatch) {
-        const currentSizeAmount = looseMatch.size_amount ?? 0;
+      if (measuredMatch) {
+        const currentSizeAmount = measuredMatch.size_amount ?? 0;
         const incomingSizeAmount = payload.size_amount ?? 0;
 
         const { data, error } = await this.supabase
@@ -85,13 +85,13 @@ export class PantryService {
             size_amount: currentSizeAmount + incomingSizeAmount,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', looseMatch.id)
+          .eq('id', measuredMatch.id)
           .eq('space_id', spaceId)
           .select()
           .single();
 
         if (error) {
-          console.error('Error incrementing loose pantry item:', error);
+          console.error('Error incrementing measured pantry item:', error);
           return null;
         }
 
@@ -105,7 +105,7 @@ export class PantryService {
             name: trimmedName,
             normalized_name: normalizedName,
             amount: 1,
-            unit: 'loose',
+            unit: 'measured',
             size_amount: payload.size_amount,
             size_unit: normalizedSizeUnit,
             expiry_date: payload.expiry_date,
@@ -116,7 +116,7 @@ export class PantryService {
         .single();
 
       if (error) {
-        console.error('Error creating loose pantry item:', error);
+        console.error('Error creating measured pantry item:', error);
         return null;
       }
 
@@ -129,7 +129,7 @@ export class PantryService {
       const itemSizeUnit = item.size_unit?.trim() || null;
 
       return (
-        itemUnit !== 'loose' &&
+        itemUnit !== 'measured' &&
         item.size_amount === payload.size_amount &&
         itemSizeUnit === normalizedSizeUnit
       );

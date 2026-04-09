@@ -1,0 +1,33 @@
+@use '../../../../styles/variables' as *;
+
+.toggle {
+  display: flex;
+  background: $color-button-secondary-bg;
+  border-radius: 16px;
+  padding: 4px;
+}
+
+.toggle__button {
+  flex: 1;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: $color-primary-dark;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toggle__button:focus,
+.toggle__button:active {
+  outline: none;
+}
+
+.toggle__button--active {
+  background: rgba(92, 143, 134, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(92, 143, 134, 0.2);
+}

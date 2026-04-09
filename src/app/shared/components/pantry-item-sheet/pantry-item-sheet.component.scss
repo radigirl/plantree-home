@@ -71,12 +71,6 @@
   align-items: flex-end;
 }
 
-.pantry-item-sheet__row--two {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
 .pantry-item-sheet__field {
   display: flex;
   flex-direction: column;
@@ -91,15 +85,6 @@
 .pantry-item-sheet__field--right {
   flex: 1;
   min-width: 0;
-}
-
-.pantry-item-sheet__field--quantity {
-  transition: opacity 0.15s ease;
-}
-
-.pantry-item-sheet__field--quantity.is-hidden {
-  opacity: 0;
-  pointer-events: none;
 }
 
 .pantry-item-sheet__label {

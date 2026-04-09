@@ -100,8 +100,8 @@
               {{ getDisplayName(item) }}
             </button>
 
-            <div class="pantry-item-amount" [class.pantry-item-amount--loose]="item.unit === 'loose'">
-              <ng-container *ngIf="item.unit !== 'loose'; else looseAmountAll">
+            <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
+              <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountAll">
                 <div class="pantry-amount-pill">
                   <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
                     <span class="pantry-amount-pill__action">-</span>
@@ -115,10 +115,10 @@
                 </div>
               </ng-container>
 
-              <ng-template #looseAmountAll>
+              <ng-template #measuredAmountAll>
                 <button
                   type="button"
-                  class="pantry-amount-pill pantry-amount-pill--loose"
+                  class="pantry-amount-pill pantry-amount-pill--measured"
                   (click)="onEditItem(item)"
                   [attr.aria-label]="'Edit pantry item ' + item.name"
                 >
@@ -142,8 +142,8 @@
               {{ getDisplayName(item) }}
             </button>
 
-            <div class="pantry-item-amount" [class.pantry-item-amount--loose]="item.unit === 'loose'">
-              <ng-container *ngIf="item.unit !== 'loose'; else looseAmountExpiry">
+            <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
+              <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountExpiry">
                 <div class="pantry-amount-pill">
                   <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
                     <span class="pantry-amount-pill__action">-</span>
@@ -157,10 +157,10 @@
                 </div>
               </ng-container>
 
-              <ng-template #looseAmountExpiry>
+              <ng-template #measuredAmountExpiry>
                 <button
                   type="button"
-                  class="pantry-amount-pill pantry-amount-pill--loose"
+                  class="pantry-amount-pill pantry-amount-pill--measured"
                   (click)="onEditItem(item)"
                   [attr.aria-label]="'Edit pantry item ' + item.name"
                 >
@@ -186,8 +186,8 @@
                 {{ getDisplayName(item) }}
               </button>
 
-              <div class="pantry-item-amount" [class.pantry-item-amount--loose]="item.unit === 'loose'">
-                <ng-container *ngIf="item.unit !== 'loose'; else looseAmountNoExpiry">
+              <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
+                <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountNoExpiry">
                   <div class="pantry-amount-pill">
                     <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
                       <span class="pantry-amount-pill__action">-</span>
@@ -201,10 +201,10 @@
                   </div>
                 </ng-container>
 
-                <ng-template #looseAmountNoExpiry>
+                <ng-template #measuredAmountNoExpiry>
                   <button
                     type="button"
-                    class="pantry-amount-pill pantry-amount-pill--loose"
+                    class="pantry-amount-pill pantry-amount-pill--measured"
                     (click)="onEditItem(item)"
                     [attr.aria-label]="'Edit pantry item ' + item.name"
                   >
@@ -231,8 +231,8 @@
               {{ getDisplayName(item) }}
             </button>
 
-            <div class="pantry-item-amount" [class.pantry-item-amount--loose]="item.unit === 'loose'">
-              <ng-container *ngIf="item.unit !== 'loose'; else looseAmountRecent">
+            <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
+              <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountRecent">
                 <div class="pantry-amount-pill">
                   <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
                     <span class="pantry-amount-pill__action">-</span>
@@ -246,10 +246,10 @@
                 </div>
               </ng-container>
 
-              <ng-template #looseAmountRecent>
+              <ng-template #measuredAmountRecent>
                 <button
                   type="button"
-                  class="pantry-amount-pill pantry-amount-pill--loose"
+                  class="pantry-amount-pill pantry-amount-pill--measured"
                   (click)="onEditItem(item)"
                   [attr.aria-label]="'Edit pantry item ' + item.name"
                 >
