@@ -107,3 +107,76 @@
 .button-secondary:active {
   outline: none;
 }
+
+// back button link
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $color-primary-dark;
+
+  opacity: 0.75;
+  cursor: pointer;
+
+  transition: opacity 0.18s ease, transform 0.12s ease;
+}
+
+.back-link:hover {
+  opacity: 1;
+}
+
+.back-link:active {
+  transform: translateY(1px);
+}
+
+.back-link__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.back-link__text {
+  line-height: 1;
+}
+
+//action pills
+.pantry-action-pill {
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(92, 143, 134, 0.25);
+  background: rgba(255, 255, 255, 0.8);
+  color: $color-primary-dark;
+  font: inherit;
+  font-size: 0.93rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pantry-action-pill--primary {
+  background: $color-primary;
+  color: #fff;
+  border-color: $color-primary;
+}
+
+.pantry-action-pill--primary:hover {
+  background: $color-primary-dark;
+}
+
+.pantry-action-pill--secondary {
+  background: rgba(92, 143, 134, 0.08);
+  border-color: rgba(92, 143, 134, 0.28);
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.pantry-action-pill--secondary:hover {
+  background: rgba(255, 255, 255, 1);
+}

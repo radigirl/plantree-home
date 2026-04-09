@@ -17,29 +17,28 @@
 
             <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
           </div>
-
-          <span class="meal-info-chip">
-            {{ groceryList.status | titlecase }}
+          
+          <span class="list-status-chip" [ngClass]="'list-status--' + groceryList.status.toLowerCase()">
+            {{ groceryList.status }}
           </span>
         </div>
 
-        <div *ngIf="isReadOnly" class="read-only-banner">
-          <div class="read-only-banner__content">
-            <p class="read-only-banner__text">
-              This list is {{ groceryList.status }} and read-only.
-            </p>
-
-            <button type="button" class="read-only-banner__button" (click)="continueList()">
-              Continue list
-            </button>
-          </div>
+        <div *ngIf="!isReadOnly" class="read-only-inline">
+          <button type="button" class="read-only-inline__button" (click)="onCompleteList()">
+            Complete list
+          </button>
         </div>
 
-        <div class="add-item-row">
-          <input type="text" [(ngModel)]="newItemName" class="add-item-input" [disabled]="isReadOnly"
-            placeholder="Add item..." />
+        <div *ngIf="isReadOnly" class="read-only-inline">
+          <p class="read-only-inline__text">
+            This list is {{ groceryList.status }} and read-only.
+          </p>
+        </div>
 
-          <button class="add-item-button" (click)="addItem()" [disabled]="isReadOnly">
+        <div *ngIf="!isReadOnly" class="add-item-row">
+          <input type="text" [(ngModel)]="newItemName" class="add-item-input" placeholder="Add item..." />
+
+          <button class="add-item-button" (click)="addItem()">
             Add
           </button>
         </div>

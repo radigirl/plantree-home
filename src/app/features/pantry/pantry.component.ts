@@ -12,11 +12,12 @@ import { AlwaysPresentPantryItem } from '../../models/always-present-pantry-item
 import { PantryItemSheetComponent, PantryItemSheetValue } from '../../shared/components/pantry-item-sheet/pantry-item-sheet.component';
 import { Router } from '@angular/router';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 
 @Component({
   selector: 'app-pantry',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent, ConfirmationDialogComponent],
+  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent, ConfirmationDialogComponent, SnackbarComponent],
   templateUrl: './pantry.component.html',
   styleUrl: './pantry.component.scss',
 })
@@ -63,6 +64,8 @@ export class PantryComponent implements OnInit, OnDestroy {
       )
       .subscribe(async (space) => {
         this.resetPantryViewState();
+        this.isLoading = true;
+        this.error = '';
 
         if (!space) {
           this.pantryItems = [];
@@ -72,8 +75,13 @@ export class PantryComponent implements OnInit, OnDestroy {
           return;
         }
 
-        await this.loadPantryItems();
-        await this.loadAlwaysPresentItems();
+        try {
+          await this.loadPantryItems();
+          await this.loadAlwaysPresentItems();
+        } finally {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
       });
   }
 
@@ -93,34 +101,28 @@ export class PantryComponent implements OnInit, OnDestroy {
   }
 
   async loadPantryItems(): Promise<void> {
-    this.isLoading = true;
-    this.error = '';
-
     try {
       this.pantryItems = await this.pantryService.getPantryItems();
     } catch (error) {
       console.error('Error loading pantry items:', error);
       this.error = 'Could not load pantry items.';
-    } finally {
-      this.isLoading = false;
-      this.cdr.detectChanges();
     }
   }
 
-getDisplayName(item: PantryItem): string {
-  const name = item.name ?? '';
+  getDisplayName(item: PantryItem): string {
+    const name = item.name ?? '';
 
-  if (item.unit === 'measured') {
+    if (item.unit === 'measured') {
+      return name;
+    }
+
+    if (item.size_amount && item.size_unit) {
+      return `${name} ${item.size_amount}${item.size_unit}`;
+    }
+
     return name;
   }
 
-  if (item.size_amount && item.size_unit) {
-    return `${name} ${item.size_amount}${item.size_unit}`;
-  }
-
-  return name;
-}
- 
   get allItems(): PantryItem[] {
     return [...this.pantryItems];
   }
@@ -150,23 +152,21 @@ getDisplayName(item: PantryItem): string {
   }
 
   async loadAlwaysPresentItems(): Promise<void> {
-    try {
-      const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+  try {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
-      if (!spaceId) {
-        this.alwaysPresentItems = [];
-        return;
-      }
-
-      this.alwaysPresentItems =
-        await this.pantryService.getAlwaysPresentItems(spaceId);
-    } catch (error) {
-      console.error('Error loading always present items:', error);
-      this.error = 'Could not load always present items.';
-    } finally {
-      this.cdr.detectChanges();
+    if (!spaceId) {
+      this.alwaysPresentItems = [];
+      return;
     }
+
+    this.alwaysPresentItems =
+      await this.pantryService.getAlwaysPresentItems(spaceId);
+  } catch (error) {
+    console.error('Error loading always present items:', error);
+    this.error = 'Could not load always present items.';
   }
+}
 
   async incrementItem(item: PantryItem): Promise<void> {
     const nextAmount = item.amount + 1;
@@ -467,11 +467,11 @@ getDisplayName(item: PantryItem): string {
   }
 
   ngOnDestroy(): void {
-  if (this.toastTimeout) {
-    clearTimeout(this.toastTimeout);
-  }
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
 
-  this.destroy$.next();
-  this.destroy$.complete();
-}
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

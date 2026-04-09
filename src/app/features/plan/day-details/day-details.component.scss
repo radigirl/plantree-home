@@ -816,42 +816,6 @@
   white-space: pre-line;
 }
 
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  padding: 4px 6px;
-  border: none;
-  background: transparent;
-
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: $color-primary-dark;
-
-  opacity: 0.75;
-  cursor: pointer;
-
-  transition: opacity 0.18s ease, transform 0.12s ease;
-}
-
-.back-link:hover {
-  opacity: 1;
-}
-
-.back-link:active {
-  transform: translateY(1px);
-}
-
-.back-link__icon {
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.back-link__text {
-  line-height: 1;
-}
-
 .confirm-dialog-overlay {
   position: fixed;
   inset: 0;

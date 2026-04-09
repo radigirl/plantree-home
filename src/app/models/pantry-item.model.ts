@@ -3,7 +3,7 @@ export interface PantryItem {
   name: string;
   normalized_name: string;
   amount: number;
-  unit: string;
+  unit: 'item' | 'measured';
   size_amount: number | null;
   size_unit: string | null;
   created_at: string;

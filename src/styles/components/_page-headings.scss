@@ -1,0 +1,46 @@
+@use '../variables' as *;
+@use '../breakpoints' as *;
+
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.page-subtitle {
+  margin: 0;
+  margin-top: -2px;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: $color-text-muted;
+}
+
+@include mobile {
+
+  .page-title {
+    font-size: 1.45rem;
+    line-height: 1.05;
+  }
+
+  .page-subtitle {
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+}

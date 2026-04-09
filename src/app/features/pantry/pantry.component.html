@@ -307,15 +307,9 @@
   </div>
 </div>
 
-<div class="bottom-toast" *ngIf="toastMessage">
-  <span class="bottom-toast__message">{{ toastMessage }}</span>
-
-  <button
-    *ngIf="toastActionLabel"
-    type="button"
-    class="bottom-toast__action"
-    (click)="onToastAction()"
-  >
-    {{ toastActionLabel }}
-  </button>
-</div>
+<app-snackbar
+  [message]="toastMessage"
+  [actionLabel]="toastActionLabel"
+  [isVisible]="!!toastMessage"
+  (actionClicked)="onToastAction()"
+></app-snackbar>

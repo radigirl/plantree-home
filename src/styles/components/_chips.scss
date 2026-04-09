@@ -13,3 +13,28 @@
   font-weight: 600;
   line-height: 1;
 }
+
+.list-status--active {
+  background: #dff5e3;
+  color: #2e7d32;
+}
+
+.list-status--completed {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.list-status--archived {
+  background: #eef2f5;
+  color: #64748b;
+}
+
+.list-status-chip {
+  min-height: 24px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+}

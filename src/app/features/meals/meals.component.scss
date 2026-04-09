@@ -1,5 +1,6 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/breakpoints' as *;
+@use '../../../styles/components/page-headings' as *;
 
 :host {
   display: block;
@@ -21,37 +22,6 @@
   gap: 5px;
   width: 100%;
   min-width: 0;
-}
-
-.meals-header-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-}
-
-.meals-header {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.meals-title {
-  margin: 0;
-  font-size: 2rem;
-  line-height: 1.1;
-  font-weight: 700;
-  color: $color-primary-dark;
-}
-
-.meals-subtitle {
-  margin: 0;
-  margin-top: -2px;
-  font-size: 0.98rem;
-  line-height: 1.45;
-  color: $color-text-muted;
 }
 
 /* BUTTONS */

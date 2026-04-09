@@ -34,41 +34,6 @@
   font-weight: 500;
 }
 
-.pantry-action-pill {
-  min-height: 36px;
-  padding: 0 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(92, 143, 134, 0.25);
-  background: rgba(255, 255, 255, 0.8);
-  color: $color-primary-dark;
-  font: inherit;
-  font-size: 0.93rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.pantry-action-pill--primary {
-  background: $color-primary;
-  color: #fff;
-  border-color: $color-primary;
-}
-
-.pantry-action-pill--primary:hover {
-  background: $color-primary-dark;
-}
-
-.pantry-action-pill--secondary {
-  background: rgba(92, 143, 134, 0.08);
-  border-color: rgba(92, 143, 134, 0.28);
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
-.pantry-action-pill--secondary:hover {
-  background: rgba(255, 255, 255, 1);
-}
-
 .pantry-actions-row {
   display: flex;
   align-items: center;
@@ -508,39 +473,6 @@
   max-width: 420px;
 }
 
-.bottom-toast {
-  position: fixed;
-  left: 50%;
-  bottom: 96px;
-  transform: translateX(-50%);
-  z-index: 1400;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  max-width: calc(100vw - 32px);
-  padding: 12px 16px;
-  border-radius: 999px;
-  background: rgba(31, 41, 55, 0.92);
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-.bottom-toast__message {
-  font-size: 0.92rem;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.bottom-toast__action {
-  border: none;
-  background: transparent;
-  color: #fff;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-}
-
 @include mobile {
   .pantry-page {
     gap: 7px;
@@ -686,15 +618,6 @@
 
   .pantry-remove {
     font-size: 0.98rem;
-  }
-
-  .bottom-toast {
-    bottom: 104px;
-    padding: 10px 14px;
-  }
-
-  .bottom-toast__message {
-    font-size: 0.88rem;
   }
 }
 

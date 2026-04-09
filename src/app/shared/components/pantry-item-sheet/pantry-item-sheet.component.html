@@ -29,7 +29,7 @@
 
         <!-- Helper -->
         <p class="pantry-item-sheet__helper">
-          {{ type === 'measured' ? '· by weight or by volume' : '· pcs, bottles, packs' }}
+          {{ type === 'measured' ? '· by weight or volume' : '· pcs, bottles, packs' }}
         </p>
 
         <!-- COUNTABLE -->
@@ -44,10 +44,12 @@
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
               <label class="pantry-item-sheet__label">Unit</label>
-              <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
+              <div class="select-wrapper">
+                <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
                 <option value="">No unit</option>
                 <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
               </select>
+              </div>
             </div>
 
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
@@ -63,10 +65,12 @@
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
               <label class="pantry-item-sheet__label">Unit</label>
-              <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
+              <div class="select-wrapper">
+                <select class="pantry-item-sheet__input" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
                 <option value="">Select unit</option>
                 <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
               </select>
+              </div>
             </div>
           </div>
 

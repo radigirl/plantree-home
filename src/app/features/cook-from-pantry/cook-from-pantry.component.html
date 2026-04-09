@@ -2,10 +2,15 @@
 
 <div *ngIf="!isLoading" class="cook-from-pantry-page">
 
-  <!-- TITLE -->
-  <h1 class="cook-from-pantry-page__title">
-    Cook from your pantry
-  </h1>
+
+  <div class="page-header-row">
+    <div class="page-header">
+      <h1 class="page-title">
+        Cook from your pantry
+      </h1>
+    </div>
+  </div>
+
 
   <!-- BOTH EMPTY -->
   <div class="cook-from-pantry-empty" *ngIf="emptyState === 'both-empty'">

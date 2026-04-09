@@ -12,7 +12,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
 import { GroceryService } from '../../../services/grocery.service';
 import { GroceryList } from '../../../models/grocery-list.model';
-import {MemberStateService } from '../../../services/member.state.service';
+import { MemberStateService } from '../../../services/member.state.service';
 import { ResponsiveActionMenuComponent, ResponsiveActionMenuItem } from '../../../shared/components/responsive-action-menu/responsive-action-menu';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
@@ -48,13 +48,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   private itemsChannel: RealtimeChannel | null = null;
 
   constructor(
-  private route: ActivatedRoute,
-  private router: Router,
-  private groceryService: GroceryService,
-  private memberStateService: MemberStateService,
-  private spaceStateService: SpaceStateService,
-  private cdr: ChangeDetectorRef
-) { }
+    private route: ActivatedRoute,
+    private router: Router,
+    private groceryService: GroceryService,
+    private memberStateService: MemberStateService,
+    private spaceStateService: SpaceStateService,
+    private cdr: ChangeDetectorRef
+  ) { }
 
   @HostListener('document:click')
   onDocumentClick(): void {
@@ -62,39 +62,39 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-  const listId = this.route.snapshot.paramMap.get('id');
+    const listId = this.route.snapshot.paramMap.get('id');
 
-  if (!listId) {
-    this.error = 'Missing grocery list id.';
-    this.isLoading = false;
-    this.cdr.detectChanges();
-    return;
+    if (!listId) {
+      this.error = 'Missing grocery list id.';
+      this.isLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.spaceStateService.currentSpace$
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
+      )
+      .subscribe((space) => {
+        if (!space) {
+          this.router.navigate(['/grocery-lists']);
+          return;
+        }
+
+        if (this.groceryList && this.groceryList.space_id !== space.id) {
+          this.router.navigate(['/grocery-lists']);
+        }
+      });
+
+    await this.loadGroceryList(listId);
   }
 
-  this.spaceStateService.currentSpace$
-    .pipe(
-      takeUntil(this.destroy$),
-      distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
-    )
-    .subscribe((space) => {
-      if (!space) {
-        this.router.navigate(['/grocery-lists']);
-        return;
-      }
-
-      if (this.groceryList && this.groceryList.space_id !== space.id) {
-        this.router.navigate(['/grocery-lists']);
-      }
-    });
-
-  await this.loadGroceryList(listId);
-}
-
   ngOnDestroy(): void {
-  this.destroy$.next();
-  this.destroy$.complete();
-  this.itemsChannel?.unsubscribe();
-}
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.itemsChannel?.unsubscribe();
+  }
 
   async loadGroceryList(listId: string): Promise<void> {
     this.isLoading = true;
@@ -174,57 +174,57 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
- async toggleItem(item: any): Promise<void> {
-  if (this.isReadOnly || this.editingItemId === item.id) {
-    return;
-  }
-
-  const nextStatus = item.status === 'bought' ? 'needed' : 'bought';
-  const currentMember = this.memberStateService.getCurrentMember();
-  const boughtByMemberId = currentMember?.id ?? 1;
-
-  const updated = await this.groceryService.updateGroceryItemStatus(
-    item.id,
-    nextStatus,
-    boughtByMemberId
-  );
-
-  if (!updated || !this.groceryList) {
-    return;
-  }
-
-  if (nextStatus === 'needed') {
-    const resetSuccess = await this.groceryService.updateGroceryItemMovedToPantry(
-      item.id,
-      false
-    );
-
-    if (!resetSuccess) {
-      this.error = 'Could not reset pantry state.';
-      this.cdr.detectChanges();
+  async toggleItem(item: any): Promise<void> {
+    if (this.isReadOnly || this.editingItemId === item.id) {
       return;
     }
-  }
 
-  this.groceryItems = await this.groceryService.getItemsByListId(
-    this.groceryList.id
-  );
-  this.cdr.detectChanges();
-}
+    const nextStatus = item.status === 'bought' ? 'needed' : 'bought';
+    const currentMember = this.memberStateService.getCurrentMember();
+    const boughtByMemberId = currentMember?.id ?? 1;
+
+    const updated = await this.groceryService.updateGroceryItemStatus(
+      item.id,
+      nextStatus,
+      boughtByMemberId
+    );
+
+    if (!updated || !this.groceryList) {
+      return;
+    }
+
+    if (nextStatus === 'needed') {
+      const resetSuccess = await this.groceryService.updateGroceryItemMovedToPantry(
+        item.id,
+        false
+      );
+
+      if (!resetSuccess) {
+        this.error = 'Could not reset pantry state.';
+        this.cdr.detectChanges();
+        return;
+      }
+    }
+
+    this.groceryItems = await this.groceryService.getItemsByListId(
+      this.groceryList.id
+    );
+    this.cdr.detectChanges();
+  }
 
   toggleItemMenu(event: Event, item: any): void {
-  event.stopPropagation();
+    event.stopPropagation();
 
-  if (this.isReadOnly) {
-    return;
-  }
+    if (this.isReadOnly) {
+      return;
+    }
 
-  if (this.isMobileViewport()) {
-    this.selectedItemForActions = item;
-  } else {
-    this.openItemMenuId = this.openItemMenuId === item.id ? null : item.id;
+    if (this.isMobileViewport()) {
+      this.selectedItemForActions = item;
+    } else {
+      this.openItemMenuId = this.openItemMenuId === item.id ? null : item.id;
+    }
   }
-}
 
   startEditItem(event: Event, item: any): void {
     if (this.isReadOnly) return;
@@ -344,28 +344,19 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
-  async continueList(): Promise<void> {
-  if (!this.groceryList) {
-    return;
-  }
+  async onCompleteList(): Promise<void> {
+  // if (!this.list) return;
 
-  const success = await this.groceryService.updateGroceryListStatus(
-    this.groceryList.id,
-    'active'
-  );
+  // const pending = await this.getPendingPantryItemsCount(this.list);
 
-  if (!success) {
-    this.error = 'Could not continue list.';
-    this.cdr.detectChanges();
-    return;
-  }
+  // if (pending > 0) {
+  //   this.openPantryDialogForComplete(this.list);
+  //   return;
+  // }
 
-  this.groceryList = {
-    ...this.groceryList,
-    status: 'active',
-  };
+  // await this.completeList(this.list);
 
-  this.cdr.detectChanges();
+  console.log('complete list inline')
 }
-
+ 
 }

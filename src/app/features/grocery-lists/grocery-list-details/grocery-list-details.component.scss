@@ -68,43 +68,6 @@
   word-break: break-word;
 }
 
-/* ADD ITEM */
-
-.add-item-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.add-item-input {
-  flex: 1;
-  min-width: 0;
-  min-height: 44px;
-  padding: 10px 18px;
-  border: 1px solid $color-border;
-  border-radius: 999px;
-  background: #fff;
-  box-sizing: border-box;
-  font: inherit;
-  color: $color-primary-dark;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.add-item-input::placeholder {
-  color: $color-text-muted;
-  opacity: 0.9;
-}
-
-.add-item-input:focus {
-  border-color: rgba(92, 143, 134, 0.42);
-  box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.08);
-}
-
-.add-item-button {
-  flex-shrink: 0;
-}
-
 /* LIST */
 
 .grocery-items-list {
@@ -356,6 +319,8 @@
   opacity: 0.9;
 }
 
+/* ADD ITEM */
+
 .add-item-row {
   display: flex;
   align-items: center;
@@ -385,7 +350,6 @@
     box-shadow: 0 0 0 3px rgba(92, 143, 134, 0.08);
   }
 
-  /* 🔥 FIX: keep style when disabled */
   &:disabled {
     background: rgba(255, 252, 247, 0.92);
     color: $color-text-muted;
@@ -425,66 +389,59 @@
   }
 }
 
-.read-only-banner {
-  margin: 8px 0 14px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: rgba(255, 252, 247, 0.72);
-  border: 1px solid rgba(207, 222, 215, 0.95);
-  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.04);
-}
-
-.read-only-banner__content {
+.read-only-inline {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 10px 0 4px;
+  border-bottom: 1px solid rgba(207, 222, 215, 0.75);
 }
 
-.read-only-banner__text {
+.read-only-inline__text {
   margin: 0;
-  font-size: 0.94rem;
+  font-size: 0.96rem;
   line-height: 1.4;
-  color: $color-primary-dark;
+  color: $color-text-muted;
 }
 
-.read-only-banner__button {
-  height: 38px;
-  padding: 0 14px;
+.read-only-inline__button {
+  min-height: 40px;
+  padding: 0 18px;
   border: none;
   border-radius: 999px;
   background: rgba(92, 143, 134, 0.95);
   color: #fff;
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   transition:
+    background-color 0.18s ease,
     transform 0.18s ease,
-    box-shadow 0.18s ease,
-    background-color 0.18s ease;
+    box-shadow 0.18s ease;
 }
 
-.read-only-banner__button:hover {
+.read-only-inline__button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(92, 143, 134, 0.18);
-}
-
-@include mobile {
-  .read-only-banner__content {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .read-only-banner__button {
-    width: 100%;
-  }
+  box-shadow: 0 10px 22px rgba(92, 143, 134, 0.16);
 }
 
 /* RESPONSIVE */
 
-/* Mobile only */
 @include mobile {
+  .read-only-inline {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .read-only-inline__button {
+    width: fit-content;
+    min-width: 140px;
+    align-self: flex-start;
+  }
+
   .grocery-list-details-shell {
     gap: 16px;
   }
@@ -526,14 +483,12 @@
   }
 }
 
-/* Tablet */
 @include tablet {
   .grocery-list-details-shell {
     max-width: 820px;
   }
 }
 
-/* Desktop */
 @include desktop {
   .grocery-list-details-shell {
     max-width: 1100px;
@@ -542,7 +497,6 @@
   }
 }
 
-/* XL Desktop */
 @include desktop-xl {
   .grocery-list-details-shell {
     max-width: 1200px;

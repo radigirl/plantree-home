@@ -5,10 +5,10 @@
 
   <ng-container *ngIf="!isLoading">
 
-    <div class="lists-header-row">
-      <div class="lists-header">
-        <h1 class="lists-title">Grocery Lists</h1>
-        <p class="lists-subtitle">Create and manage your lists</p>
+    <div class="page-header-row">
+      <div class="page-header">
+        <h1 class="page-title">Grocery Lists</h1>
+        <p class="page-subtitle">Create and manage your lists</p>
       </div>
 
       <button
@@ -79,7 +79,7 @@
 
               <div class="list-meta">
                 <span
-                  class="meal-info-chip list-status"
+                  class="list-status-chip"
                   [ngClass]="'list-status--' + list.status.toLowerCase()"
                 >
                   {{ list.status }}

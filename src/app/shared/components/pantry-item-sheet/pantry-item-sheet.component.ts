@@ -18,7 +18,7 @@ import { CalendarPickerComponent } from '../calendar-picker/calendar-picker.comp
 export interface PantryItemSheetValue {
   name: string;
   amount: number;
-  unit: string;
+  unit: 'item' | 'measured';
   size_amount: number | null;
   size_unit: string | null;
   expiry_date: string | null;

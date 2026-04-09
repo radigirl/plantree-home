@@ -9,7 +9,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrls: ['./snackbar.component.scss'],
 })
 export class SnackbarComponent {
-  @Input() message: string = '';
+ @Input() message: string | null = null;
   @Input() actionLabel: string | null = null;
   @Input() isVisible: boolean = false;
 
