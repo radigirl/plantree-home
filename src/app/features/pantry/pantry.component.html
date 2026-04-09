@@ -10,49 +10,49 @@
 
 
       <div class="page-header-row">
-      <div class="page-header">
-        <h1 class="page-title">Pantry</h1>
-        <p class="page-subtitle">Create and manage your pantry items</p>
-      </div>
+        <div class="page-header">
+          <h1 class="page-title">Pantry</h1>
+          <p class="page-subtitle">Create and manage your pantry items</p>
+        </div>
 
-      <button type="button" class="action-pill action-pill--primary"
-         (click)="onAddItem()">
-        + Add
-      </button>
-    </div>
-
-    <div class="search-bar">
-      <div class="search-input-wrap">
-        <input type="text" [(ngModel)]="pantrySearchQuery" placeholder="Search pantry..." />
-
-        <button *ngIf="pantrySearchQuery" type="button" class="search-clear" (click)="clearPantrySearch()">
-          ×
+        <button type="button" class="action-pill action-pill--primary" (click)="onAddItem()">
+          + Add
         </button>
       </div>
-    </div>
 
+      <div class="pantry-search-sticky">
+        <div class="search-bar">
+          <div class="search-input-wrap">
+            <input type="text" [(ngModel)]="pantrySearchQuery" placeholder="Search pantry items..." />
 
+            <button *ngIf="pantrySearchQuery" type="button" class="search-clear" (click)="clearPantrySearch()">
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div class="pantry-sort-row">
-        <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'all'"
-          (click)="setMode('all')">
-          All
-        </button>
+        <div class="pantry-sort-left">
+          <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'all'"
+            (click)="setMode('all')">
+            All
+          </button>
 
-        <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'expiry'"
-          (click)="setMode('expiry')">
-          Expiry
-        </button>
+          <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'expiry'"
+            (click)="setMode('expiry')">
+            Expiry
+          </button>
 
-        <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'recent'"
-          (click)="setMode('recent')">
-          Recent
-        </button>
+          <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'recent'"
+            (click)="setMode('recent')">
+            Recent
+          </button>
+        </div>
 
-          <button class="action-pill action-pill--secondary" (click)="onCleanPantry()">
-          Clean
+        <button type="button" class="pantry-clean-trigger" (click)="onCleanPantry()">
+         Clean ▾
         </button>
-
       </div>
 
       <div class="always-present-section">
@@ -137,12 +137,8 @@
               </ng-container>
 
               <ng-template #measuredAmountAll>
-                <button
-                  type="button"
-                  class="pantry-amount-pill pantry-amount-pill--measured"
-                  (click)="onEditItem(item)"
-                  [attr.aria-label]="'Edit pantry item ' + item.name"
-                >
+                <button type="button" class="pantry-amount-pill pantry-amount-pill--measured" (click)="onEditItem(item)"
+                  [attr.aria-label]="'Edit pantry item ' + item.name">
                   {{ item.size_amount }}&nbsp;{{ item.size_unit }}
                 </button>
               </ng-template>
@@ -179,70 +175,21 @@
               </ng-container>
 
               <ng-template #measuredAmountExpiry>
-                <button
-                  type="button"
-                  class="pantry-amount-pill pantry-amount-pill--measured"
-                  (click)="onEditItem(item)"
-                  [attr.aria-label]="'Edit pantry item ' + item.name"
-                >
+                <button type="button" class="pantry-amount-pill pantry-amount-pill--measured" (click)="onEditItem(item)"
+                  [attr.aria-label]="'Edit pantry item ' + item.name">
                   {{ item.size_amount }}&nbsp;{{ item.size_unit }}
                 </button>
               </ng-template>
             </div>
-
             <div class="pantry-item-date">
               {{ item.expiry_date | date:'dd MMM' }}
             </div>
-
             <div class="pantry-item-actions">
               <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
                 <span class="pantry-remove">×</span>
               </button>
             </div>
           </div>
-
-          <ng-container *ngIf="noExpiryItems.length > 0">
-            <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of noExpiryItems">
-              <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
-                {{ getDisplayName(item) }}
-              </button>
-
-              <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
-                <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountNoExpiry">
-                  <div class="pantry-amount-pill">
-                    <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
-                      <span class="pantry-amount-pill__action">-</span>
-                    </button>
-
-                    <span class="pantry-amount-pill__value">{{ item.amount }}</span>
-
-                    <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
-                      <span class="pantry-amount-pill__action">+</span>
-                    </button>
-                  </div>
-                </ng-container>
-
-                <ng-template #measuredAmountNoExpiry>
-                  <button
-                    type="button"
-                    class="pantry-amount-pill pantry-amount-pill--measured"
-                    (click)="onEditItem(item)"
-                    [attr.aria-label]="'Edit pantry item ' + item.name"
-                  >
-                    {{ item.size_amount }}&nbsp;{{ item.size_unit }}
-                  </button>
-                </ng-template>
-              </div>
-
-              <div class="pantry-item-date"></div>
-
-              <div class="pantry-item-actions">
-                <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
-                <span class="pantry-remove">×</span>
-              </button>
-              </div>
-            </div>
-          </ng-container>
         </div>
 
         <!-- RECENT MODE -->
@@ -268,12 +215,8 @@
               </ng-container>
 
               <ng-template #measuredAmountRecent>
-                <button
-                  type="button"
-                  class="pantry-amount-pill pantry-amount-pill--measured"
-                  (click)="onEditItem(item)"
-                  [attr.aria-label]="'Edit pantry item ' + item.name"
-                >
+                <button type="button" class="pantry-amount-pill pantry-amount-pill--measured" (click)="onEditItem(item)"
+                  [attr.aria-label]="'Edit pantry item ' + item.name">
                   {{ item.size_amount }}&nbsp;{{ item.size_unit }}
                 </button>
               </ng-template>
@@ -300,37 +243,18 @@
   </ng-container>
 </section>
 
-<app-pantry-item-sheet
-  [isOpen]="isPantrySheetOpen"
-  [mode]="pantrySheetMode"
-  [item]="selectedPantryItem"
-  (closed)="closePantrySheet()"
-  (saved)="savePantryItem($event)">
+<app-pantry-item-sheet [isOpen]="isPantrySheetOpen" [mode]="pantrySheetMode" [item]="selectedPantryItem"
+  (closed)="closePantrySheet()" (saved)="savePantryItem($event)">
 </app-pantry-item-sheet>
 
-<div
-  *ngIf="isDeleteDialogOpen"
-  class="pantry-confirmation-backdrop"
-  (click)="cancelDeleteItem()"
->
-  <div
-    class="pantry-confirmation-dialog-wrap"
-    (click)="$event.stopPropagation()"
-  >
-    <app-confirmation-dialog
-      title="Remove item"
-      [message]="'Remove &quot;' + (itemPendingDelete?.name || '') + '&quot; from your pantry?'"
-      confirmLabel="Remove"
-      cancelLabel="Cancel"
-      (cancel)="cancelDeleteItem()"
-      (confirm)="confirmDeleteItem()">
+<div *ngIf="isDeleteDialogOpen" class="pantry-confirmation-backdrop" (click)="cancelDeleteItem()">
+  <div class="pantry-confirmation-dialog-wrap" (click)="$event.stopPropagation()">
+    <app-confirmation-dialog title="Remove item"
+      [message]="'Remove &quot;' + (itemPendingDelete?.name || '') + '&quot; from your pantry?'" confirmLabel="Remove"
+      cancelLabel="Cancel" (cancel)="cancelDeleteItem()" (confirm)="confirmDeleteItem()">
     </app-confirmation-dialog>
   </div>
 </div>
 
-<app-snackbar
-  [message]="toastMessage"
-  [actionLabel]="toastActionLabel"
-  [isVisible]="!!toastMessage"
-  (actionClicked)="onToastAction()"
-></app-snackbar>
+<app-snackbar [message]="toastMessage" [actionLabel]="toastActionLabel" [isVisible]="!!toastMessage"
+  (actionClicked)="onToastAction()"></app-snackbar>

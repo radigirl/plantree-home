@@ -126,21 +126,19 @@ export class PantryComponent implements OnInit, OnDestroy {
   }
 
   get allItems(): PantryItem[] {
-    return [...this.pantryItems];
+    return this.filterItems([...this.pantryItems]);
   }
 
   get expiryItems(): PantryItem[] {
-    return [...this.pantryItems]
-      .filter((item) => !!item.expiry_date)
-      .sort((a, b) => {
-        const aTime = new Date(a.expiry_date as string).getTime();
-        const bTime = new Date(b.expiry_date as string).getTime();
-        return aTime - bTime;
-      });
-  }
-
-  get noExpiryItems(): PantryItem[] {
-    return [...this.pantryItems].filter((item) => !item.expiry_date);
+    return this.filterItems(
+      [...this.pantryItems]
+        .filter(item => !!item.expiry_date)
+        .sort((a, b) => {
+          const aTime = new Date(a.expiry_date as string).getTime();
+          const bTime = new Date(b.expiry_date as string).getTime();
+          return aTime - bTime;
+        })
+    );
   }
 
   get recentItems(): PantryItem[] {
@@ -149,26 +147,25 @@ export class PantryComponent implements OnInit, OnDestroy {
         const aTime = new Date(a.created_at).getTime();
         const bTime = new Date(b.created_at).getTime();
         return bTime - aTime;
-      })
-      .slice(0, 6);
+      });
   }
 
   async loadAlwaysPresentItems(): Promise<void> {
-  try {
-    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+    try {
+      const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
-    if (!spaceId) {
-      this.alwaysPresentItems = [];
-      return;
+      if (!spaceId) {
+        this.alwaysPresentItems = [];
+        return;
+      }
+
+      this.alwaysPresentItems =
+        await this.pantryService.getAlwaysPresentItems(spaceId);
+    } catch (error) {
+      console.error('Error loading always present items:', error);
+      this.error = 'Could not load always present items.';
     }
-
-    this.alwaysPresentItems =
-      await this.pantryService.getAlwaysPresentItems(spaceId);
-  } catch (error) {
-    console.error('Error loading always present items:', error);
-    this.error = 'Could not load always present items.';
   }
-}
 
   async incrementItem(item: PantryItem): Promise<void> {
     const nextAmount = item.amount + 1;
@@ -290,9 +287,10 @@ export class PantryComponent implements OnInit, OnDestroy {
   }
 
   setMode(mode: 'all' | 'expiry' | 'recent'): void {
-    this.mode = mode;
-    this.cdr.detectChanges();
-  }
+  this.mode = mode;
+  this.pantrySearchQuery = '';
+  this.cdr.detectChanges();
+}
 
   toggleAlwaysPresent(): void {
     this.isAlwaysPresentExpanded = !this.isAlwaysPresentExpanded;
@@ -468,8 +466,19 @@ export class PantryComponent implements OnInit, OnDestroy {
     });
   }
 
-  clearPantrySearch() {
-    console.log('clear search');
+  clearPantrySearch(): void {
+    this.pantrySearchQuery = '';
+    this.cdr.detectChanges();
+  }
+
+  private filterItems(items: PantryItem[]): PantryItem[] {
+    const query = this.pantrySearchQuery.trim().toLowerCase();
+
+    if (!query) return items;
+
+    return items.filter(item =>
+      this.getDisplayName(item).toLowerCase().includes(query)
+    );
   }
 
   ngOnDestroy(): void {

@@ -55,6 +55,33 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.pantry-sort-left {
+  display: flex;
+  gap: 8px;
+}
+
+.pantry-clean-trigger {
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $color-primary-dark;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.18s ease, transform 0.12s ease;
+  &:hover {
+    background: rgba(92, 143, 134, 0.08);
+  }
+  &:active {
+    transform: scale(0.96);
+  }
 }
 
 .pantry-sort-pill {
@@ -69,10 +96,10 @@
   font-weight: 600;
   cursor: pointer;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+  background-color 0.18s ease,
+  border-color 0.18s ease,
+  box-shadow 0.18s ease,
+  transform 0.12s ease;
 }
 
 .pantry-sort-pill:hover {
@@ -80,12 +107,19 @@
   outline: none;
 }
 
-.pantry-sort-pill--active {
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(92, 143, 134, 0.55);
+.pantry-sort-pill.pantry-sort-pill--active {
+  background: rgba(92, 143, 134, 0.16);
+  border-color: rgba(92, 143, 134, 0.3);
   color: $color-primary-dark;
-  transform: scale(0.98);
-  outline: none;
+  box-shadow: 0 2px 6px rgba(46, 58, 50, 0.06);
+}
+
+.pantry-sort-pill.pantry-sort-pill--active:hover,
+.pantry-sort-pill.pantry-sort-pill--active:focus,
+.pantry-sort-pill.pantry-sort-pill--active:active {
+  background: rgba(92, 143, 134, 0.16);
+  border-color: rgba(92, 143, 134, 0.3);
+  color: $color-primary-dark;
 }
 
 .always-present-section {
@@ -475,6 +509,22 @@
   max-width: 420px;
 }
 
+.pantry-search-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: $color-surface;
+  padding-top: 2px;
+  padding-bottom: 6px;
+}
+
+.pantry-search-sticky::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: transparent;
+}
+
 @include mobile {
   .pantry-page {
     gap: 7px;
@@ -621,6 +671,12 @@
   .pantry-remove {
     font-size: 0.98rem;
   }
+
+  .pantry-search-sticky {
+  top: 0;
+  padding-top: 2px;
+  padding-bottom: 5px;
+}
 }
 
 @include desktop {
