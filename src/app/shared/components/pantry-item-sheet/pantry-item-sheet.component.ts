@@ -297,7 +297,7 @@ private formatDateForInput(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-private formatDateForDisplay(dateStr: string | null): string {
+formatDateForDisplay(dateStr: string | null): string {
   if (!dateStr) return '';
   const [year, month, day] = dateStr.split('-');
   if (!year || !month || !day) return '';
