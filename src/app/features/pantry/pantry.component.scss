@@ -511,7 +511,7 @@
 
 .pantry-search-sticky {
   position: sticky;
-  top: 0;
+  top: $layout-header-height-mobile + 6px;
   z-index: 20;
   background: $color-surface;
   padding-top: 2px;
@@ -672,11 +672,7 @@
     font-size: 0.98rem;
   }
 
-  .pantry-search-sticky {
-  top: 0;
-  padding-top: 2px;
-  padding-bottom: 5px;
-}
+
 }
 
 @include desktop {
@@ -702,5 +698,9 @@
   .pantry-stepper-button {
     min-width: 26px;
     min-height: 26px;
+  }
+
+   .pantry-search-sticky {
+    top: 86px;
   }
 }

@@ -14,15 +14,17 @@
       </button>
     </div>
 
-    <div class="search-bar">
-      <div class="search-input-wrap">
-        <input type="text" [(ngModel)]="mealSearchQuery" placeholder="Search meals..." />
+    <div class="meals-search-sticky">
+  <div class="search-bar">
+    <div class="search-input-wrap">
+      <input type="text" [(ngModel)]="mealSearchQuery" placeholder="Search meals..." />
 
-        <button *ngIf="mealSearchQuery" type="button" class="search-clear" (click)="clearMealSearch()">
-          ×
-        </button>
-      </div>
+      <button *ngIf="mealSearchQuery" type="button" class="search-clear" (click)="clearMealSearch()">
+        ×
+      </button>
     </div>
+  </div>
+</div>
 
     <div class="add-meal-form" *ngIf="isAddingMeal || isEditingMeal" #mealFormContainer>
       <div class="add-meal-field">

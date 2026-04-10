@@ -788,6 +788,16 @@
   box-shadow: inset 0 0 0 1px rgba(92, 143, 134, 0.22);
 }
 
+.meals-search-sticky {
+  position: sticky;
+  top: calc(#{$layout-header-height-mobile} + 6px);
+  z-index: 20;
+  background: $color-surface;
+  padding-top: 2px;
+  padding-bottom: 6px;
+}
+
+
 @include mobile {
   .meals-page {
     gap: 10px;
@@ -996,6 +1006,9 @@
 
   .meal-actions-sheet-backdrop {
     display: flex;
+  }
+   .meals-search-sticky {
+    top: 86px;
   }
 }
 
