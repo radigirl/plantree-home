@@ -8,82 +8,20 @@
         <p class="page-subtitle">Create and manage your saved meals</p>
       </div>
 
-      <button type="button" class="action-pill action-pill--primary"
-        *ngIf="!isAddingMeal && !isEditingMeal" (click)="startAddMeal()">
+      <button type="button" class="action-pill action-pill--primary" *ngIf="!isMealDialogOpen" (click)="startAddMeal()">
         + Add
       </button>
     </div>
 
     <div class="meals-search-sticky">
-  <div class="search-bar">
-    <div class="search-input-wrap">
-      <input type="text" [(ngModel)]="mealSearchQuery" placeholder="Search meals..." />
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <input type="text" [(ngModel)]="mealSearchQuery" placeholder="Search meals..." />
 
-      <button *ngIf="mealSearchQuery" type="button" class="search-clear" (click)="clearMealSearch()">
-        ×
-      </button>
-    </div>
-  </div>
-</div>
-
-    <div class="add-meal-form" *ngIf="isAddingMeal || isEditingMeal" #mealFormContainer>
-      <div class="add-meal-field">
-        <label for="mealName">Meal name</label>
-        <input id="mealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
-      </div>
-
-      <div class="add-meal-field">
-        <label for="prepTime">Prep time (minutes)</label>
-        <input id="prepTime" type="number" min="0" [(ngModel)]="newPrepTime" placeholder="Optional" />
-      </div>
-
-      <div class="add-meal-field">
-        <label for="ingredients">Ingredients</label>
-        <input id="ingredients" type="text" [(ngModel)]="newIngredientsText"
-          placeholder="e.g. Pasta, Tomato sauce, Parmesan" />
-      </div>
-
-      <div class="add-meal-field">
-        <label for="newMealInstructions">Instructions</label>
-        <textarea id="newMealInstructions" [(ngModel)]="newInstructions" rows="4"
-          placeholder="e.g. Cook pasta, prepare sauce, mix and serve."></textarea>
-      </div>
-
-      <div class="add-meal-field">
-        <label for="mealImage">Meal photo</label>
-
-        <div class="meal-image-block">
-          <div class="meal-image-thumb" *ngIf="selectedImagePreview">
-            <img [src]="selectedImagePreview" alt="Meal preview" />
-          </div>
-
-          <div class="meal-image-content">
-            <label for="mealImage" class="meal-image-upload">
-              <span class="meal-image-upload__button">Choose file</span>
-              <span class="meal-image-upload__name">
-                {{ selectedImageFile?.name || 'No file chosen' }}
-              </span>
-            </label>
-
-            <input id="mealImage" class="meal-image-upload__input" type="file" accept="image/*"
-              (change)="onMealImageSelected($event)" />
-
-            <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
-              (click)="removeSelectedMealImage()">
-              ✕ Remove
-            </button>
-          </div>
+          <button *ngIf="mealSearchQuery" type="button" class="search-clear" (click)="clearMealSearch()">
+            ×
+          </button>
         </div>
-      </div>
-
-      <div class="add-meal-actions">
-        <button type="button" class="save-button" (click)="isEditingMeal ? updateMeal() : saveMeal()">
-          {{ isEditingMeal ? 'Update' : 'Save' }}
-        </button>
-
-        <button type="button" class="cancel-button" (click)="cancelMealForm()">
-          Cancel
-        </button>
       </div>
     </div>
 
@@ -136,6 +74,16 @@
             <button type="button" class="meal-menu-item"
               (click)="$event.stopPropagation(); closeMealMenu(); startEditMeal(meal)">
               Edit meal
+            </button>
+
+            <button type="button" class="meal-menu-item"
+              (click)="$event.stopPropagation(); closeMealMenu(); mealDialogMode = 'createFromExisting'; mealDialogInitialMeal = meal; isMealDialogOpen = true">
+              Create from this
+            </button>
+
+            <button type="button" class="meal-menu-item"
+              (click)="$event.stopPropagation(); closeMealMenu(); selectedMealForActions = meal; mealActionSheetMode = 'addToPlan'; openMealMenuId = meal.id">
+              Add to Plan
             </button>
 
             <button type="button" class="meal-menu-item meal-menu-item--danger"
@@ -257,12 +205,28 @@
 </div>
 
 
-
 <app-meal-details-modal [meal]="selectedSearchMeal" [isOpen]="isSearchMealDetailsOpen"
   (close)="closeSearchMealDetails()"></app-meal-details-modal>
 
-  
+<app-meal-dialog [isOpen]="isMealDialogOpen" [mode]="mealDialogMode" [initialMeal]="mealDialogInitialMeal"
+  (close)="closeMealDialog()" (save)="onMealDialogSave($event)"></app-meal-dialog>
 
-<div class="bottom-toast" *ngIf="toastMessage">
-  {{ toastMessage }}
+  <div class="delete-dialog-overlay" *ngIf="isDeleteDialogOpen" (click)="closeDeleteDialog()">
+  <div class="delete-dialog-shell" (click)="$event.stopPropagation()">
+    <app-confirmation-dialog
+      [title]="'Remove meal'"
+      [message]="'Remove &quot;' + (mealToDelete?.name || '') + '&quot; from your My Meals? You can still access it through other members or past plans.'"
+      [confirmLabel]="'Remove'"
+      [cancelLabel]="'Cancel'"
+      (cancel)="closeDeleteDialog()"
+      (confirm)="confirmDeleteMeal()"
+    ></app-confirmation-dialog>
+  </div>
 </div>
+
+<app-snackbar
+  [message]="snackbarMessage"
+  [isVisible]="isSnackbarVisible"
+  [actionLabel]="snackbarActionLabel"
+  (actionClicked)="hideToast()"
+></app-snackbar>

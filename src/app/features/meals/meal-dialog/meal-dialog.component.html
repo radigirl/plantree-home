@@ -1,0 +1,82 @@
+<div class="meal-dialog-overlay" *ngIf="isOpen" (click)="onOverlayClick()">
+  <div class="meal-dialog" (click)="$event.stopPropagation()">
+
+    <div class="meal-dialog__content">
+      <h3 class="meal-dialog__title">
+        {{ mode === 'edit' ? 'Edit meal' : 'Create meal' }}
+      </h3>
+
+      <!-- Meal name -->
+      <div class="meal-field">
+        <label for="dialogMealName">Meal name</label>
+        <input id="dialogMealName" type="text" [(ngModel)]="mealName" placeholder="Enter meal name" />
+      </div>
+
+      <!-- Prep time -->
+      <div class="meal-field">
+        <label for="prepTime">Prep time (minutes)</label>
+        <input id="prepTime" type="number" min="0" [(ngModel)]="prepTime" placeholder="Optional" />
+      </div>
+
+      <!-- Ingredients -->
+      <div class="meal-field">
+        <label for="ingredients">Ingredients</label>
+        <input id="ingredients" type="text" [(ngModel)]="ingredientsText" placeholder="e.g. 2 eggs or 200 g cheese" />
+      </div>
+
+      <!-- Instructions -->
+      <div class="meal-field">
+        <label for="instructions">Instructions</label>
+        <textarea id="instructions" [(ngModel)]="instructions" rows="4"
+          placeholder="e.g. Cook pasta, prepare sauce, mix and serve."></textarea>
+      </div>
+
+      <!-- Image -->
+      <div class="meal-field">
+        <label>Meal photo</label>
+
+        <div class="meal-image-block">
+
+          <!-- Preview -->
+          <div class="meal-image-thumb" *ngIf="selectedImagePreview">
+            <img [src]="selectedImagePreview" alt="Meal preview" />
+          </div>
+
+          <!-- Upload -->
+          <div class="meal-image-content">
+            <label class="meal-image-upload">
+              <span class="meal-image-upload__button">Choose file</span>
+
+              <span class="meal-image-upload__name">
+                {{ selectedImageFile?.name || imageName || 'No file chosen' }}
+              </span>
+
+              <input type="file" accept="image/*" class="meal-image-upload__input"
+                (change)="onMealImageSelected($event)" />
+            </label>
+
+            <!-- Remove -->
+            <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
+              (click)="removeSelectedMealImage()">
+              ✕ Remove
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="button-row meal-dialog__actions">
+      <button type="button" class="btn-secondary" (click)="onCancel()">
+        Cancel
+      </button>
+
+      <button type="button" class="btn-primary" [disabled]="isSaving" (click)="onSave()">
+        {{ isSaving
+        ? 'Saving...'
+        : (mode === 'edit' ? 'Update' : 'Save') }}
+      </button>
+    </div>
+
+  </div>
+</div>

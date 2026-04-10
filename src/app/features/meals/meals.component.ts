@@ -1,11 +1,9 @@
 import {
   ChangeDetectorRef,
   Component,
-  ElementRef,
   HostListener,
   OnDestroy,
   OnInit,
-  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +23,9 @@ import { MealPlanService } from '../../services/meal-plan.service';
 import { CalendarPickerComponent } from '../../shared/components/calendar-picker/calendar-picker.component';
 import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
+import { MealDialogComponent } from './meal-dialog/meal-dialog.component';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 
 @Component({
   selector: 'app-meals',
@@ -36,6 +37,9 @@ import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
     MealDetailsModalComponent,
     ResponsiveActionMenuComponent,
     CalendarPickerComponent,
+    MealDialogComponent,
+    ConfirmationDialogComponent,
+    SnackbarComponent
   ],
   templateUrl: './meals.component.html',
   styleUrl: './meals.component.scss',
@@ -45,21 +49,8 @@ export class MealsComponent implements OnInit, OnDestroy {
   isLoading = true;
   isAddToPlanLoading = false;
 
-  isAddingMeal = false;
-  isEditingMeal = false;
-  editingMealId: string | null = null;
-
-  newMealName = '';
-  newPrepTime: number | null = null;
-  newIngredientsText = '';
-  newInstructions = '';
-
-  selectedImageFile: File | null = null;
-  selectedImagePreview: string | null = null;
-
   openMealMenuId: string | null = null;
   expandedMealId: string | null = null;
-  private returnToMealId: string | null = null;
 
   mealSearchQuery = '';
   selectedSearchMeal: Meal | null = null;
@@ -68,21 +59,30 @@ export class MealsComponent implements OnInit, OnDestroy {
   selectedMealForActions: Meal | null = null;
   mealActionSheetMode: 'actions' | 'addToPlan' | 'pickDate' = 'actions';
 
-  toastMessage: string | null = null;
-  toastTimeout: any = null;
+  snackbarMessage: string | null = null;
+  isSnackbarVisible = false;
+  snackbarActionLabel: string | null = null;
+  toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
   calendarSelectionMode: 'single' | 'multiple' = 'single';
   selectedPlanDates: string[] = [];
 
+  isDeleteDialogOpen = false;
+  mealToDelete: Meal | null = null;
+
   mealActions: ResponsiveActionMenuItem[] = [
     { id: 'edit', label: 'Edit meal' },
+    { id: 'create-from-this', label: 'Create from this' },
     { id: 'add-to-plan', label: 'Add to Plan' },
     { id: 'remove', label: 'Remove from My Meals' },
   ];
 
+  isMealDialogOpen = false;
+  mealDialogMode: 'create' | 'edit' | 'createFromExisting' = 'create';
+  mealDialogInitialMeal: Meal | null = null;
+
   private destroy$ = new Subject<void>();
 
-  @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
   constructor(
     private mealsService: MealsService,
@@ -90,7 +90,7 @@ export class MealsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private memberStateService: MemberStateService,
     private mealPlanService: MealPlanService
-  ) {}
+  ) { }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -129,6 +129,9 @@ export class MealsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroy$.next();
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
     this.destroy$.complete();
   }
 
@@ -166,163 +169,25 @@ export class MealsComponent implements OnInit, OnDestroy {
   }
 
   startAddMeal(): void {
-    this.isAddingMeal = true;
-    this.cdr.detectChanges();
-
-    this.isEditingMeal = false;
-    this.editingMealId = null;
     this.closeMealMenu();
-
-    this.newMealName = '';
-    this.newPrepTime = null;
-    this.newIngredientsText = '';
-    this.newInstructions = '';
-    this.selectedImageFile = null;
-    this.selectedImagePreview = null;
+    this.mealDialogMode = 'create';
+    this.mealDialogInitialMeal = null;
+    this.isMealDialogOpen = true;
   }
 
-  cancelMealForm(): void {
-    const shouldRestoreToMeal = this.isEditingMeal && !!this.returnToMealId;
-
-    this.isAddingMeal = false;
-    this.isEditingMeal = false;
-    this.editingMealId = null;
-
-    this.newMealName = '';
-    this.newPrepTime = null;
-    this.newIngredientsText = '';
-    this.newInstructions = '';
-    this.selectedImageFile = null;
-    this.selectedImagePreview = null;
-
+  onDeleteMeal(meal: Meal): void {
     this.closeMealMenu();
-
-    if (shouldRestoreToMeal) {
-      this.restoreToEditedMealCard();
-    } else {
-      this.returnToMealId = null;
-    }
+    this.mealToDelete = meal;
+    this.isDeleteDialogOpen = true;
   }
 
-  onMealImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-
-    if (!file) {
-      this.selectedImageFile = null;
-      this.selectedImagePreview = null;
+  async confirmDeleteMeal(): Promise<void> {
+    if (!this.mealToDelete) {
       return;
     }
 
-    this.selectedImageFile = file;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.selectedImagePreview = reader.result as string;
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(file);
-  }
-
-  removeSelectedMealImage(): void {
-    this.selectedImageFile = null;
-    this.selectedImagePreview = null;
-  }
-
-  async saveMeal(): Promise<void> {
-    if (!this.newMealName.trim()) {
-      return;
-    }
-
-    try {
-      let imagePath: string | null = null;
-
-      if (this.selectedImageFile) {
-        const extension = this.selectedImageFile.name.split('.').pop() || 'jpg';
-        const fileName = `${crypto.randomUUID()}.${extension}`;
-
-        imagePath = await this.supabaseService.uploadMealImage(
-          this.selectedImageFile,
-          fileName
-        );
-      }
-
-      await this.mealsService.createMeal(
-        this.newMealName.trim(),
-        this.newPrepTime,
-        this.parseIngredients(this.newIngredientsText),
-        imagePath,
-        this.newInstructions
-      );
-
-      this.cancelMealForm();
-
-      const member = this.memberStateService.getCurrentMember();
-      if (member) {
-        await this.loadMeals(member.id);
-      }
-    } catch (error) {
-      console.error('Error saving meal:', error);
-    } finally {
-      this.cdr.detectChanges();
-    }
-  }
-
-  async updateMeal(): Promise<void> {
-    if (!this.editingMealId || !this.newMealName.trim()) {
-      return;
-    }
-
-    try {
-      let imagePath: string | undefined;
-
-      if (this.selectedImageFile) {
-        const extension = this.selectedImageFile.name.split('.').pop() || 'jpg';
-        const fileName = `${crypto.randomUUID()}.${extension}`;
-
-        imagePath = await this.supabaseService.uploadMealImage(
-          this.selectedImageFile,
-          fileName
-        );
-      }
-
-      await this.mealsService.updateMeal(
-        this.editingMealId,
-        this.newMealName.trim(),
-        this.newPrepTime,
-        this.parseIngredients(this.newIngredientsText),
-        imagePath,
-        this.newInstructions
-      );
-
-      this.isAddingMeal = false;
-      this.isEditingMeal = false;
-      this.editingMealId = null;
-
-      this.newMealName = '';
-      this.newPrepTime = null;
-      this.newIngredientsText = '';
-      this.newInstructions = '';
-      this.selectedImageFile = null;
-      this.selectedImagePreview = null;
-
-      this.closeMealMenu();
-
-      const member = this.memberStateService.getCurrentMember();
-      if (member) {
-        await this.loadMeals(member.id);
-      }
-
-      this.restoreToEditedMealCard();
-    } catch (error) {
-      console.error('Error updating meal:', error);
-    } finally {
-      this.cdr.detectChanges();
-    }
-  }
-
-  async onDeleteMeal(meal: Meal): Promise<void> {
-    this.closeMealMenu();
+    const meal = this.mealToDelete;
+    this.closeDeleteDialog();
 
     try {
       const member = this.memberStateService.getCurrentMember();
@@ -331,16 +196,9 @@ export class MealsComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const confirmed = window.confirm(
-        `Remove "${meal.name}" from your My Meals?\n\nYou can still access it through other members or past plans.`
-      );
-
-      if (!confirmed) {
-        return;
-      }
-
       await this.mealsService.hideMealForMember(meal.id, member.id);
       await this.loadMeals(member.id);
+      this.showToast(`${meal.name} removed from My Meals`);
     } catch (error) {
       console.error('Error hiding meal:', error);
     } finally {
@@ -348,9 +206,13 @@ export class MealsComponent implements OnInit, OnDestroy {
     }
   }
 
+  closeDeleteDialog(): void {
+    this.isDeleteDialogOpen = false;
+    this.mealToDelete = null;
+  }
+
   toggleMealMenu(meal: Meal): void {
     const isSameMeal = this.openMealMenuId === meal.id;
-
     this.openMealMenuId = isSameMeal ? null : meal.id;
     this.selectedMealForActions = isSameMeal ? null : meal;
     this.mealActionSheetMode = 'actions';
@@ -374,6 +236,13 @@ export class MealsComponent implements OnInit, OnDestroy {
       case 'edit':
         this.closeMealMenu();
         this.startEditMeal(meal);
+        break;
+
+      case 'create-from-this':
+        this.closeMealMenu();
+        this.mealDialogMode = 'createFromExisting';
+        this.mealDialogInitialMeal = meal;
+        this.isMealDialogOpen = true;
         break;
 
       case 'add-to-plan':
@@ -410,62 +279,11 @@ export class MealsComponent implements OnInit, OnDestroy {
     return window.innerWidth < 1024;
   }
 
-  private parseIngredients(value: string): string[] {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter((item) => item.length > 0);
-  }
-
-  private scrollToMealCardInstant(mealId: string): void {
-    const card = document.getElementById(`meal-card-${mealId}`);
-
-    if (!card) {
-      return;
-    }
-
-    const rect = card.getBoundingClientRect();
-    const absoluteTop = window.scrollY + rect.top;
-    const topOffset = 200;
-
-    window.scrollTo(0, Math.max(absoluteTop - topOffset, 0));
-  }
-
-  private restoreToEditedMealCard(): void {
-    if (!this.returnToMealId) {
-      return;
-    }
-
-    const mealId = this.returnToMealId;
-    this.returnToMealId = null;
-
-    setTimeout(() => {
-      this.scrollToMealCardInstant(mealId);
-    }, 0);
-  }
-
   startEditMeal(meal: Meal): void {
-    const currentScrollY = window.scrollY;
-
-    this.isAddingMeal = false;
-    this.isEditingMeal = true;
-    this.editingMealId = meal.id;
-    this.returnToMealId = meal.id;
+    this.mealDialogMode = 'edit';
+    this.mealDialogInitialMeal = meal;
+    this.isMealDialogOpen = true;
     this.closeMealMenu();
-
-    this.newMealName = meal.name ?? '';
-    this.newPrepTime = meal.prepTime ?? null;
-    this.newIngredientsText = (meal.ingredients ?? []).join(', ');
-    this.newInstructions = meal.instructions ?? '';
-
-    this.selectedImageFile = null;
-    this.selectedImagePreview = meal.image_url ?? null;
-
-    this.cdr.detectChanges();
-
-    requestAnimationFrame(() => {
-      window.scrollTo(0, currentScrollY);
-    });
   }
 
   get isSearching(): boolean {
@@ -474,10 +292,6 @@ export class MealsComponent implements OnInit, OnDestroy {
 
   get filteredMeals(): Meal[] {
     return filterMealsByQuery(this.meals, this.mealSearchQuery).slice(0, 10);
-  }
-
-  selectMealFromSearch(meal: Meal): void {
-    this.expandedMealId = meal.id;
   }
 
   openSearchMealDetails(meal: Meal): void {
@@ -538,8 +352,10 @@ export class MealsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private showToast(message: string): void {
-    this.toastMessage = message;
+  private showToast(message: string, actionLabel: string | null = null): void {
+    this.snackbarMessage = message;
+    this.snackbarActionLabel = actionLabel;
+    this.isSnackbarVisible = true;
     this.cdr.detectChanges();
 
     if (this.toastTimeout) {
@@ -547,9 +363,15 @@ export class MealsComponent implements OnInit, OnDestroy {
     }
 
     this.toastTimeout = setTimeout(() => {
-      this.toastMessage = null;
-      this.cdr.detectChanges();
+      this.hideToast();
     }, 2500);
+  }
+
+  hideToast(): void {
+    this.isSnackbarVisible = false;
+    this.snackbarMessage = null;
+    this.snackbarActionLabel = null;
+    this.cdr.detectChanges();
   }
 
   private formatDate(date: Date): string {
@@ -607,4 +429,81 @@ export class MealsComponent implements OnInit, OnDestroy {
     this.selectedPlanDates = [];
     this.calendarSelectionMode = 'single';
   }
+
+  async onMealDialogSave(data: {
+    mealName: string;
+    prepTime: number | null;
+    ingredients: string[];
+    instructions: string;
+    imageFile: File | null;
+    mode: 'create' | 'edit' | 'createFromExisting';
+  }): Promise<void> {
+    const mealToUpdate = this.mealDialogInitialMeal;
+
+    this.closeMealDialog();
+
+    try {
+      let imagePathForCreate: string | null = null;
+      let imagePathForUpdate: string | undefined = undefined;
+
+      if (data.mode === 'createFromExisting' && mealToUpdate?.image_path) {
+        imagePathForCreate = mealToUpdate.image_path;
+      }
+
+      if (data.mode === 'edit' && mealToUpdate?.image_path) {
+        imagePathForUpdate = mealToUpdate.image_path;
+      }
+
+      if (data.imageFile) {
+        const extension = data.imageFile.name.split('.').pop() || 'jpg';
+        const fileName = `${crypto.randomUUID()}.${extension}`;
+
+        const uploadedImagePath = await this.supabaseService.uploadMealImage(
+          data.imageFile,
+          fileName
+        );
+
+        imagePathForCreate = uploadedImagePath;
+        imagePathForUpdate = uploadedImagePath;
+      }
+
+      if (data.mode === 'edit' && mealToUpdate) {
+        await this.mealsService.updateMeal(
+          mealToUpdate.id,
+          data.mealName,
+          data.prepTime,
+          data.ingredients,
+          imagePathForUpdate,
+          data.instructions
+        );
+      } else {
+        await this.mealsService.createMeal(
+          data.mealName,
+          data.prepTime,
+          data.ingredients,
+          imagePathForCreate,
+          data.instructions
+        );
+      }
+
+      const member = this.memberStateService.getCurrentMember();
+      if (member) {
+        await this.loadMeals(member.id);
+        this.showToast(
+          data.mode === 'edit'
+            ? `${data.mealName} updated`
+            : `${data.mealName} saved to My Meals`
+        );
+      }
+    } catch (error) {
+      console.error('Error saving meal:', error);
+    }
+  }
+
+  closeMealDialog(): void {
+    this.isMealDialogOpen = false;
+    this.mealDialogInitialMeal = null;
+    this.mealDialogMode = 'create';
+  }
+
 }

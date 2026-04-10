@@ -25,6 +25,7 @@ import { ConfirmationDialogComponent } from '../../../shared/components/confirma
 import { SnackbarComponent } from '../../../shared/components/snackbar/snackbar.component';
 import { PantryActionDialogComponent } from '../../../shared/components/pantry-action-dialog/pantry-action-dialog.component';
 import { PantryService } from '../../../services/pantry.service';
+import { classifyPantryMoveItems } from '../../../shared/utils/pantry-review.util';
 
 @Component({
   selector: 'app-grocery-list-details',

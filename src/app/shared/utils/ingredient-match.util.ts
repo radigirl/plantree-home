@@ -1,40 +1,138 @@
-function normalizeIngredientBase(value: string): string {
-  const word = value.trim().toLowerCase();
+/**
+ * Ingredient matching utility (name-based only)
+ *
+ * IMPORTANT:
+ * This util is intentionally limited to NAME matching.
+ * It does NOT parse or compare quantities or units.
+ *
+ * Future extension plan:
+ * - Quantity parsing (e.g. "100g", "2", "250 ml") should be handled in a separate parser.
+ * - Sufficiency checks (do we have enough?) should ONLY run when BOTH:
+ *    - the recipe ingredient has a parsed quantity
+ *    - the pantry item has a parsed quantity
+ *
+ * Example:
+ * - "100g flour" vs "flour" → match (name only)
+ * - "100g flour" vs "50g flour" → requires quantity logic (NOT here)
+ *
+ * Keep responsibilities separated:
+ * - This file → normalization + name matching
+ * - Parser util → extract quantity/unit
+ * - Availability logic → compare amounts
+ *  * NOTE:
+ * This util is reused across multiple features (cook-from-pantry, pantry move, etc.),
+ * so it must stay simple and predictable.
+ */
+function normalizeText(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
+}
 
-  if (!word) return '';
+function isBulgarian(value: string): boolean {
+  return /[а-я]/i.test(value);
+}
 
-  // --- BULGARIAN  ---
-  // remove common endings
-  const bg = word.replace(/(а|я|и|е|о|та|то|те)$/u, '');
-
-  // --- ENGLISH ---
-  // berries -> berry
-  if (bg.endsWith('ies') && bg.length > 3) {
-    return bg.slice(0, -3) + 'y';
+function normalizeEnglishWord(word: string): string {
+  if (word.length <= 3) {
+    return word;
   }
 
-  // tomatoes -> tomato, potatoes -> potato
-  if (bg.endsWith('es') && bg.length > 3) {
-    return bg.slice(0, -2);
+  if (word.endsWith('ies') && word.length > 4) {
+    return word.slice(0, -3) + 'y';
   }
 
-  // eggs -> egg
-  if (bg.endsWith('s') && bg.length > 2) {
-    return bg.slice(0, -1);
+  if (
+    word.endsWith('es') &&
+    word.length > 4 &&
+    !word.endsWith('ses') &&
+    !word.endsWith('xes')
+  ) {
+    return word.slice(0, -2);
   }
 
-  return bg;
+  if (word.endsWith('s') && word.length > 3) {
+    return word.slice(0, -1);
+  }
+
+  return word;
+}
+
+function normalizeBulgarianWord(word: string): string {
+  if (word.length <= 4) {
+    return word;
+  }
+
+  if (word.endsWith('ите') && word.length > 6) {
+    return word.slice(0, -3);
+  }
+
+  if (word.endsWith('та') && word.length > 5) {
+    return word.slice(0, -2);
+  }
+
+  if (word.endsWith('то') && word.length > 5) {
+    return word.slice(0, -2);
+  }
+
+  if (word.endsWith('те') && word.length > 5) {
+    return word.slice(0, -2);
+  }
+
+  if (word.endsWith('и') && word.length > 5) {
+    return word.slice(0, -1);
+  }
+
+  if (word.endsWith('а') && word.length > 5) {
+    return word.slice(0, -1);
+  }
+
+  if (word.endsWith('я') && word.length > 5) {
+    return word.slice(0, -1);
+  }
+
+  return word;
+}
+
+function normalizeWord(word: string): string {
+  const clean = normalizeText(word);
+
+  if (!clean) {
+    return '';
+  }
+
+  return isBulgarian(clean)
+    ? normalizeBulgarianWord(clean)
+    : normalizeEnglishWord(clean);
+}
+
+function tokenizeIngredient(value: string): string[] {
+  return normalizeText(value)
+    .split(' ')
+    .map(normalizeWord)
+    .filter(Boolean);
 }
 
 export function isIngredientMatch(a: string, b: string): boolean {
-  const left = a.trim().toLowerCase();
-  const right = b.trim().toLowerCase();
+  const leftTokens = tokenizeIngredient(a);
+  const rightTokens = tokenizeIngredient(b);
 
-  if (!left || !right) return false;
+  if (!leftTokens.length || !rightTokens.length) {
+    return false;
+  }
 
-  // exact match first (fast + safe)
-  if (left === right) return true;
+  const leftJoined = leftTokens.join(' ');
+  const rightJoined = rightTokens.join(' ');
 
-  // fallback to base match
-  return normalizeIngredientBase(left) === normalizeIngredientBase(right);
+  if (leftJoined === rightJoined) {
+    return true;
+  }
+
+  if (leftJoined.includes(rightJoined) || rightJoined.includes(leftJoined)) {
+    return true;
+  }
+
+  return leftTokens.some((leftToken) => rightTokens.includes(leftToken));
 }

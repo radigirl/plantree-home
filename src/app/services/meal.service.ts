@@ -50,6 +50,7 @@ export class MealsService {
         prepTime: item.prep_time ?? undefined,
         ingredients: item.ingredients ?? [],
         image_url: imageUrl ?? undefined,
+        image_path: item.image_url ?? undefined,
         instructions: item.instructions ?? undefined,
       };
     });
@@ -83,6 +84,7 @@ async getAllMeals(): Promise<Meal[]> {
       prepTime: item.prep_time ?? undefined,
       ingredients: item.ingredients ?? [],
       image_url: imageUrl ?? undefined,
+      image_path: item.image_url ?? undefined,
       instructions: item.instructions ?? undefined,
     };
   });
