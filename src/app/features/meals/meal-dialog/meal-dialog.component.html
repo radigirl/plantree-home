@@ -20,9 +20,19 @@
 
       <!-- Ingredients -->
       <div class="meal-field">
-        <label for="ingredients">Ingredients</label>
-        <input id="ingredients" type="text" [(ngModel)]="ingredientsText" placeholder="e.g. 2 eggs or 200 g cheese" />
+        <label>Ingredients</label>
+
+        <div class="form-helper">
+         One per line or comma separated
+        </div>
+
+        <div class="form-helper examples">
+          Examples: 2 eggs · 200 g cheese · olive oil
+        </div>
+
+        <textarea [(ngModel)]="ingredientsText" placeholder="Add ingredients" rows="4"></textarea>
       </div>
+
 
       <!-- Instructions -->
       <div class="meal-field">

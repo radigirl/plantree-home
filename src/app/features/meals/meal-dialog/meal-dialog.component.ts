@@ -1,8 +1,16 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Meal } from '../../../models/meal.model';
 import { FormsModule } from '@angular/forms';
-import { OnChanges, SimpleChanges } from '@angular/core';
+
+import { Meal } from '../../../models/meal.model';
 
 @Component({
   selector: 'app-meal-dialog',
@@ -14,8 +22,6 @@ import { OnChanges, SimpleChanges } from '@angular/core';
 export class MealDialogComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() mode: 'create' | 'edit' | 'createFromExisting' = 'create';
-
-  // Optional initial data (for edit / create from existing)
   @Input() initialMeal: Meal | null = null;
 
   @Output() close = new EventEmitter<void>();
@@ -40,53 +46,50 @@ export class MealDialogComponent implements OnChanges {
 
   constructor(private cdr: ChangeDetectorRef) { }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && !this.isOpen) {
+      this.isSaving = false;
+      return;
+    }
+    if (!this.isOpen) {
+      return;
+    }
+    if (this.mode === 'edit' || this.mode === 'createFromExisting') {
+      if (this.initialMeal) {
+        this.mealName = this.initialMeal.name || '';
+        this.prepTime = this.initialMeal.prepTime ?? null;
+        this.ingredientsText = (this.initialMeal.ingredients || []).join('\n');
+        this.instructions = this.initialMeal.instructions || '';
+        this.selectedImagePreview = this.initialMeal.image_url || null;
+        this.selectedImageFile = null;
+        this.imageName = this.initialMeal.image_url
+          ? this.initialMeal.image_url.split('/').pop() || 'image'
+          : null;
+      }
+      return;
+    }
+    if (this.mode === 'create') {
+      this.resetForm();
+    }
+  }
+
+  resetForm(): void {
+    this.mealName = '';
+    this.prepTime = null;
+    this.ingredientsText = '';
+    this.instructions = '';
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+    this.imageName = null;
+  }
 
   onOverlayClick(): void {
     this.onCancel();
   }
 
- ngOnChanges(changes: SimpleChanges): void {
-  if (changes['isOpen'] && !this.isOpen) {
-    this.isSaving = false;
-    return;
-  }
-  if (!this.isOpen) {
-    return;
-  }
-  if (this.mode === 'edit' || this.mode === 'createFromExisting') {
-    if (this.initialMeal) {
-      this.mealName = this.initialMeal.name || '';
-      this.prepTime = this.initialMeal.prepTime ?? null;
-      this.ingredientsText = (this.initialMeal.ingredients || []).join(', ');
-      this.instructions = this.initialMeal.instructions || '';
-
-      this.selectedImagePreview = this.initialMeal.image_url || null;
-      this.selectedImageFile = null;
-      this.imageName = this.initialMeal.image_url
-        ? this.initialMeal.image_url.split('/').pop() || 'image'
-        : null;
-    }
-    return;
-  }
-  if (this.mode === 'create') {
-    this.resetForm();
-  }
-}
-
- resetForm(): void {
-  this.mealName = '';
-  this.prepTime = null;
-  this.ingredientsText = '';
-  this.instructions = '';
-  this.selectedImageFile = null;
-  this.selectedImagePreview = null;
-  this.imageName = null;
-}
-
   onMealImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
-
     if (!file) {
       this.selectedImageFile = null;
       this.selectedImagePreview = null;
@@ -117,23 +120,22 @@ export class MealDialogComponent implements OnChanges {
     this.close.emit();
   }
 
-
   onSave(): void {
-  if (this.isSaving) return;
+    if (this.isSaving) return;
+    if (!this.mealName.trim()) return;
 
-  this.isSaving = true;
+    this.isSaving = true;
 
-  this.save.emit({
-  mealName: this.mealName,
-  prepTime: this.prepTime,
-  ingredients: this.ingredientsText
-    .split(',')
-    .map(i => i.trim())
-    .filter(i => i),
-  instructions: this.instructions,
-  imageFile: this.selectedImageFile,
-  mode: this.mode,
-});
-}
-
+    this.save.emit({
+      mealName: this.mealName.trim(),
+      prepTime: this.prepTime,
+      ingredients: this.ingredientsText
+        .split(/[\n,]+/)
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0),
+      instructions: this.instructions,
+      imageFile: this.selectedImageFile,
+      mode: this.mode,
+    });
+  }
 }
