@@ -302,5 +302,23 @@ export class GroceryService {
     return true;
   }
 
+  //reusable for Lists and List Details
+  async getPendingPantryItems(listId: string): Promise<any[]> {
+  const items = await this.getItemsByListId(listId);
+
+  return items.filter(
+    (item: any) => item.status === 'bought' && !item.moved_to_pantry
+  );
+}
+
+async getPendingPantryItemsCount(listId: string): Promise<number> {
+  const items = await this.getPendingPantryItems(listId);
+  return items.length;
+}
+
+async completeGroceryList(listId: string): Promise<boolean> {
+  return this.updateGroceryListStatus(listId, 'completed');
+}
+
 
 }

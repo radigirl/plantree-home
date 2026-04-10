@@ -258,18 +258,16 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   }
 
   async loadPantryCounts(): Promise<void> {
-    const counts: Record<string, number> = {};
+  const counts: Record<string, number> = {};
 
-    for (const list of this.groceryLists) {
-      const items = await this.groceryService.getItemsByListId(list.id);
-
-      counts[list.id] = items.filter(
-        (item: any) => item.status === 'bought' && !item.moved_to_pantry
-      ).length;
-    }
-
-    this.pantryCounts = counts;
+  for (const list of this.groceryLists) {
+    counts[list.id] = await this.groceryService.getPendingPantryItemsCount(
+      list.id
+    );
   }
+
+  this.pantryCounts = counts;
+}
 
   getListActions(list: GroceryList): ResponsiveActionMenuItem[] {
     const actions: ResponsiveActionMenuItem[] = [];
@@ -624,10 +622,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     showToast: boolean = true,
     allowUndo: boolean = false
   ): Promise<void> {
-    const success = await this.groceryService.updateGroceryListStatus(
-      list.id,
-      'completed'
-    );
+    const success = await this.groceryService.completeGroceryList(list.id);
 
     if (!success) {
       this.error = 'Could not complete list.';
@@ -699,40 +694,40 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   }
 
   async onPantryDialogAction(
-    action: 'move' | 'skip' | 'archive' | 'cancel'
-  ): Promise<void> {
-    const list = this.pendingPantryList;
-    const pendingAction = this.pendingPantryAction;
+  action: 'move' | 'skip' | 'archive' | 'cancel'
+): Promise<void> {
+  const list = this.pendingPantryList;
+  const pendingAction = this.pendingPantryAction;
 
-    if (!list || !pendingAction) {
-      this.closePantryDialog();
-      return;
-    }
-
+  if (!list || !pendingAction) {
     this.closePantryDialog();
+    return;
+  }
 
-    if (pendingAction === 'complete') {
-      if (action === 'move') {
-        const movedCount = await this.moveItemsToPantry(list);
-        await this.completeList(list, false);
+  this.closePantryDialog();
 
-        this.showMovedToPantryAndCompletedToast(movedCount);
-      } else if (action === 'skip') {
-        await this.completeList(list, true, false);
-      }
-    }
+  if (pendingAction === 'complete') {
+    if (action === 'move') {
+      const movedCount = await this.moveItemsToPantry(list);
+      await this.completeList(list, false);
 
-    if (pendingAction === 'archive') {
-      if (action === 'move') {
-        const movedCount = await this.moveItemsToPantry(list);
-        await this.archiveList(list, false);
-
-        this.showMovedToPantryAndArchivedToast(movedCount);
-      } else if (action === 'archive') {
-        await this.archiveList(list);
-      }
+      this.showMovedToPantryAndCompletedToast(movedCount);
+    } else if (action === 'skip') {
+      await this.completeList(list, true, true);
     }
   }
+
+  if (pendingAction === 'archive') {
+    if (action === 'move') {
+      const movedCount = await this.moveItemsToPantry(list);
+      await this.archiveList(list, false);
+
+      this.showMovedToPantryAndArchivedToast(movedCount);
+    } else if (action === 'archive') {
+      await this.archiveList(list);
+    }
+  }
+}
 
   async undoCompleteList(): Promise<void> {
     const list = this.undoCompletedList;

@@ -169,3 +169,23 @@
     ></app-confirmation-dialog>
   </div>
 </div>
+
+<div class="dialog-overlay" *ngIf="isPantryDialogOpen" (click)="closePantryDialog()">
+  <div class="dialog-shell" (click)="$event.stopPropagation()">
+    <app-pantry-action-dialog
+      [title]="pantryDialogTitle"
+      [message]="pantryDialogMessage"
+      [showSkip]="pantryDialogShowSkip"
+      [showArchive]="false"
+      (action)="onPantryDialogAction($event)"
+    >
+    </app-pantry-action-dialog>
+  </div>
+</div>
+
+<app-snackbar
+  [isVisible]="!!toastMessage"
+  [message]="toastMessage"
+  [actionLabel]="toastActionLabel"
+  (actionClicked)="onToastAction()"
+></app-snackbar>

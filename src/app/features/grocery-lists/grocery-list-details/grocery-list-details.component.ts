@@ -22,6 +22,9 @@ import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { SpaceStateService } from '../../../services/space.state.service';
 import { EditTextDialogComponent } from '../../../shared/components/edit-text-dialog/edit-text-dialog.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SnackbarComponent } from '../../../shared/components/snackbar/snackbar.component';
+import { PantryActionDialogComponent } from '../../../shared/components/pantry-action-dialog/pantry-action-dialog.component';
+import { PantryService } from '../../../services/pantry.service';
 
 @Component({
   selector: 'app-grocery-list-details',
@@ -33,6 +36,8 @@ import { ConfirmationDialogComponent } from '../../../shared/components/confirma
     ResponsiveActionMenuComponent,
     EditTextDialogComponent,
     ConfirmationDialogComponent,
+    SnackbarComponent,
+    PantryActionDialogComponent
   ],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
@@ -57,6 +62,20 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     { id: 'delete', label: 'Delete' },
   ];
 
+  isPantryDialogOpen = false;
+  pantryDialogTitle = '';
+  pantryDialogMessage = '';
+  pantryDialogShowSkip = false;
+
+  pendingPantryList: GroceryList | null = null;
+
+  toastMessage = '';
+  toastActionLabel: string | null = null;
+  toastActionType: 'undo-complete' | null = null;
+  undoCompletedList: GroceryList | null = null;
+
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
   private destroy$ = new Subject<void>();
   private itemsChannel: RealtimeChannel | null = null;
 
@@ -66,8 +85,9 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     private groceryService: GroceryService,
     private memberStateService: MemberStateService,
     private spaceStateService: SpaceStateService,
+    private pantryService: PantryService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   @HostListener('document:click')
   onDocumentClick(): void {
@@ -101,12 +121,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       });
 
     await this.loadGroceryList(listId);
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.itemsChannel?.unsubscribe();
   }
 
   async loadGroceryList(listId: string): Promise<void> {
@@ -386,6 +400,207 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onCompleteList(): Promise<void> {
-    console.log('complete list inline');
+    if (!this.groceryList) {
+      return;
+    }
+    const pending = await this.groceryService.getPendingPantryItemsCount(
+      this.groceryList.id
+    );
+    if (pending > 0) {
+      this.openPantryDialogForComplete(this.groceryList, pending);
+      return;
+    }
+    const success = await this.groceryService.completeGroceryList(
+      this.groceryList.id
+    );
+    if (!success) {
+      this.error = 'Could not complete list.';
+      this.cdr.detectChanges();
+      return;
+    }
+    this.groceryList = {
+      ...this.groceryList,
+      status: 'completed',
+      updated_at: new Date().toISOString(),
+    };
+
+    this.showCompletedUndoToast(this.groceryList);
+    this.cdr.detectChanges();
+  }
+
+  openPantryDialogForComplete(list: GroceryList, pending: number): void {
+  this.pendingPantryList = list;
+  this.pantryDialogTitle = 'Move to pantry?';
+  this.pantryDialogMessage = `This list has ${pending} bought ${pending === 1 ? 'item' : 'items'} that can be moved to pantry.`;
+  this.pantryDialogShowSkip = true;
+  this.isPantryDialogOpen = true;
+
+  this.cdr.detectChanges();
+}
+
+  showToast(message: string, actionLabel?: string): void {
+    this.toastMessage = message;
+    this.toastActionLabel = actionLabel ?? null;
+
+    if (!actionLabel) {
+      this.toastActionType = null;
+      this.undoCompletedList = null;
+    }
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+
+    this.cdr.detectChanges();
+
+    const duration = actionLabel ? 3500 : 2500;
+
+    this.toastTimeout = setTimeout(() => {
+      this.clearToastState();
+      this.cdr.detectChanges();
+    }, duration);
+  }
+
+  async undoCompleteList(): Promise<void> {
+    const list = this.undoCompletedList;
+
+    if (!list) {
+      this.clearToastState();
+      return;
+    }
+
+    const success = await this.groceryService.updateGroceryListStatus(
+      list.id,
+      'active'
+    );
+
+    if (!success) {
+      this.error = 'Could not undo completed list.';
+      this.clearToastState();
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.groceryList = {
+      ...this.groceryList!,
+      status: 'active',
+      updated_at: new Date().toISOString(),
+    };
+
+    this.clearToastState();
+    this.cdr.detectChanges();
+  }
+
+  async onToastAction(): Promise<void> {
+    if (this.toastActionType === 'undo-complete') {
+      await this.undoCompleteList();
+      return;
+    }
+
+    this.clearToastState();
+  }
+
+  clearToastState(): void {
+    this.toastMessage = '';
+    this.toastActionLabel = null;
+    this.toastActionType = null;
+    this.undoCompletedList = null;
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = null;
+    }
+  }
+
+  showCompletedUndoToast(list: GroceryList): void {
+    this.undoCompletedList = list;
+    this.toastActionType = 'undo-complete';
+    this.showToast('List marked as completed', 'Undo');
+  }
+
+ async onPantryDialogAction(
+  action: 'move' | 'skip' | 'archive' | 'cancel'
+): Promise<void> {
+  const list = this.pendingPantryList;
+
+  if (!list) {
+    this.closePantryDialog();
+    return;
+  }
+
+  this.closePantryDialog();
+
+  if (action === 'move') {
+    const movedCount = await this.moveItemsToPantry(list);
+    const success = await this.groceryService.completeGroceryList(list.id);
+    if (!success) {
+      this.error = 'Could not complete list.';
+      this.cdr.detectChanges();
+      return;
+    }
+    this.groceryList = {
+      ...this.groceryList!,
+      status: 'completed',
+      updated_at: new Date().toISOString(),
+    };
+    this.showToast(
+      movedCount === 1
+        ? '1 item moved to pantry and list completed'
+        : `${movedCount} items moved to pantry and list completed`
+    );
+    this.cdr.detectChanges();
+    return;
+  }
+  if (action === 'skip') {
+    const success = await this.groceryService.completeGroceryList(list.id);
+    if (!success) {
+      this.error = 'Could not complete list.';
+      this.cdr.detectChanges();
+      return;
+    }
+    this.groceryList = {
+      ...this.groceryList!,
+      status: 'completed',
+      updated_at: new Date().toISOString(),
+    };
+    this.showCompletedUndoToast(this.groceryList);
+    this.cdr.detectChanges();
+  }
+}
+
+  closePantryDialog(): void {
+  this.isPantryDialogOpen = false;
+  this.pantryDialogTitle = '';
+  this.pantryDialogMessage = '';
+  this.pantryDialogShowSkip = false;
+  this.pendingPantryList = null;
+}
+
+async moveItemsToPantry(list: GroceryList): Promise<number> {
+  try {
+    const items = await this.groceryService.getItemsByListId(list.id);
+    const itemsToMove = items.filter(
+      (item: any) => item.status === 'bought' && !item.moved_to_pantry
+    );
+    for (const item of itemsToMove) {
+      await this.pantryService.addOrIncrementPantryItem(item.name);
+      await this.groceryService.updateGroceryItemMovedToPantry(
+        item.id,
+        true
+      );
+    }
+    return itemsToMove.length;
+  } catch (error) {
+    console.error('Move to pantry failed:', error);
+    this.error = 'Could not move items to pantry.';
+    this.cdr.detectChanges();
+    return 0;
+  }
+}
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.itemsChannel?.unsubscribe();
   }
 }
