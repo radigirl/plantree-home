@@ -44,7 +44,7 @@
   height: 42px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 252, 247, 0.96);
+  background: transparent;
   color: $color-primary-dark;
   font-size: 1.55rem;
   line-height: 1;
@@ -151,7 +151,6 @@
 
 .meal-image {
   width: 100%;
-  margin-top: 30px;
 }
 
 .meal-image-img {
@@ -167,12 +166,9 @@
 }
 
 .meal-expanded-content {
-  margin-top: 10px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(207, 222, 215, 0.6);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .meal-ingredients,
@@ -284,7 +280,7 @@
 
   .meal-details-modal-sheet {
     width: min(680px, 92vw);
-    max-height: 84vh;
+    max-height: 80vh;
     padding: 20px;
     border-radius: 28px;
   }

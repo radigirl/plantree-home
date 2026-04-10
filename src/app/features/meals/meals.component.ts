@@ -50,7 +50,6 @@ export class MealsComponent implements OnInit, OnDestroy {
   isAddToPlanLoading = false;
 
   openMealMenuId: string | null = null;
-  expandedMealId: string | null = null;
 
   mealSearchQuery = '';
   selectedSearchMeal: Meal | null = null;
@@ -151,7 +150,6 @@ export class MealsComponent implements OnInit, OnDestroy {
 
   private resetMealsViewState(): void {
     this.openMealMenuId = null;
-    this.expandedMealId = null;
     this.selectedMealForActions = null;
     this.selectedSearchMeal = null;
     this.isSearchMealDetailsOpen = false;
@@ -269,10 +267,6 @@ export class MealsComponent implements OnInit, OnDestroy {
       default:
         break;
     }
-  }
-
-  toggleMeal(mealId: string): void {
-    this.expandedMealId = this.expandedMealId === mealId ? null : mealId;
   }
 
   isMobileViewport(): boolean {

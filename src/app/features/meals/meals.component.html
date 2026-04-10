@@ -44,8 +44,7 @@
           </div>
 
           <div class="meal-search-result__menu-wrapper" (click)="$event.stopPropagation()">
-            <button type="button" class="meal-search-result__menu"
-              (click)="$event.stopPropagation(); toggleMealMenu(meal)" aria-label="Meal actions">
+            <button type="button" class="meal-search-result__menu" (click)="$event.stopPropagation(); toggleMealMenu(meal)" aria-label="Meal actions">
               ⋮
             </button>
           </div>
@@ -62,11 +61,11 @@
     </div>
 
     <div class="meals-list" *ngIf="!isSearching && hasMeals">
-      <div class="meal-card" [attr.id]="'meal-card-' + meal.id" [class.expanded]="expandedMealId === meal.id"
-        *ngFor="let meal of meals; trackBy: trackByMealId" (click)="toggleMeal(meal.id)">
+      <div class="meal-card" [attr.id]="'meal-card-' + meal.id" *ngFor="let meal of meals; trackBy: trackByMealId"
+        (click)="openSearchMealDetails(meal)">
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
-          <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal)"
-            aria-label="Meal actions" aria-haspopup="menu" [attr.aria-expanded]="openMealMenuId === meal.id">
+          <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal)" aria-label="Meal actions" aria-haspopup="menu"
+            [attr.aria-expanded]="openMealMenuId === meal.id">
             ⋮
           </button>
 
@@ -114,55 +113,10 @@
               </div>
             </div>
 
-            <div class="meal-actions-row">
-              <p class="meal-tap-hint" *ngIf="expandedMealId !== meal.id">
-                View recipe
-              </p>
-
-              <p class="meal-collapse-hint" *ngIf="expandedMealId === meal.id">
-                Hide recipe
-              </p>
-            </div>
           </div>
 
           <div class="meal-image">
             <img [src]="meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name" />
-          </div>
-        </div>
-
-        <div class="meal-expanded" *ngIf="expandedMealId === meal.id">
-          <div class="meal-expanded-content">
-            <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length && !meal.instructions">
-              No recipe details added
-            </p>
-
-            <ng-container *ngIf="meal.ingredients?.length || meal.instructions">
-              <div class="meal-ingredients">
-                <p class="meal-ingredients-title">Ingredients</p>
-
-                <ul class="meal-ingredients-list" *ngIf="meal.ingredients?.length">
-                  <li *ngFor="let ingredient of meal.ingredients">
-                    {{ ingredient }}
-                  </li>
-                </ul>
-
-                <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length">
-                  No ingredients added
-                </p>
-              </div>
-
-              <div class="meal-instructions">
-                <p class="meal-instructions-title">Instructions</p>
-
-                <p class="meal-instructions-text" *ngIf="meal.instructions">
-                  {{ meal.instructions }}
-                </p>
-
-                <p class="meal-ingredients-empty" *ngIf="!meal.instructions">
-                  No instructions added
-                </p>
-              </div>
-            </ng-container>
           </div>
         </div>
       </div>
@@ -211,22 +165,14 @@
 <app-meal-dialog [isOpen]="isMealDialogOpen" [mode]="mealDialogMode" [initialMeal]="mealDialogInitialMeal"
   (close)="closeMealDialog()" (save)="onMealDialogSave($event)"></app-meal-dialog>
 
-  <div class="delete-dialog-overlay" *ngIf="isDeleteDialogOpen" (click)="closeDeleteDialog()">
+<div class="delete-dialog-overlay" *ngIf="isDeleteDialogOpen" (click)="closeDeleteDialog()">
   <div class="delete-dialog-shell" (click)="$event.stopPropagation()">
-    <app-confirmation-dialog
-      [title]="'Remove meal'"
+    <app-confirmation-dialog [title]="'Remove meal'"
       [message]="'Remove &quot;' + (mealToDelete?.name || '') + '&quot; from your My Meals? You can still access it through other members or past plans.'"
-      [confirmLabel]="'Remove'"
-      [cancelLabel]="'Cancel'"
-      (cancel)="closeDeleteDialog()"
-      (confirm)="confirmDeleteMeal()"
-    ></app-confirmation-dialog>
+      [confirmLabel]="'Remove'" [cancelLabel]="'Cancel'" (cancel)="closeDeleteDialog()"
+      (confirm)="confirmDeleteMeal()"></app-confirmation-dialog>
   </div>
 </div>
 
-<app-snackbar
-  [message]="snackbarMessage"
-  [isVisible]="isSnackbarVisible"
-  [actionLabel]="snackbarActionLabel"
-  (actionClicked)="hideToast()"
-></app-snackbar>
+<app-snackbar [message]="snackbarMessage" [isVisible]="isSnackbarVisible" [actionLabel]="snackbarActionLabel"
+  (actionClicked)="hideToast()"></app-snackbar>
