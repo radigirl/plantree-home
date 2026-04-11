@@ -18,7 +18,8 @@ import {
   LucideAngularModule,
   ChevronLeft,
   ChevronRight,
-  CalendarDays
+  CalendarDays,
+  ShoppingCart
 } from 'lucide-angular';
 import { SpaceStateService } from '../../services/space.state.service';
 import { Subject } from 'rxjs';
@@ -44,6 +45,7 @@ export class PlanComponent implements OnInit, OnDestroy {
   readonly chevronLeftIcon = ChevronLeft;
   readonly chevronRightIcon = ChevronRight;
   readonly calendarIcon = CalendarDays;
+  readonly groceryListsIcon = ShoppingCart;
 
   private destroy$ = new Subject<void>();
 
@@ -235,6 +237,18 @@ export class PlanComponent implements OnInit, OnDestroy {
 
     return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}`;
   }
+
+  get hasMealsInSelectedWeek(): boolean {
+  return this.weekMeals.some(day => day.meals.length > 0);
+}
+
+generateWeeklyList(): void {
+  console.log('Generate weekly list clicked');
+
+  // later:
+  // navigate to lists or trigger generation
+  // this.router.navigate(['/lists']);
+}
 
   scrollToDay(index: number): void {
     const card = this.mealCards?.toArray()[index]?.nativeElement;

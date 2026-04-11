@@ -464,7 +464,7 @@
 }
 
 .week-nav-btn,
-.calendar-btn,
+.calendar-btn, .lists-btn,
 .today-btn {
   height: 36px;
   min-height: 36px;
@@ -483,7 +483,7 @@
 }
 
 .week-nav-btn,
-.calendar-btn {
+.calendar-btn, .lists-btn {
   width: 36px;
   min-width: 36px;
   padding: 0;
@@ -503,6 +503,7 @@
 
 .week-nav-btn:hover,
 .calendar-btn:hover,
+.lists-btn:hover,
 .today-btn:hover {
   background: rgba(248, 244, 236, 0.98);
   border-color: rgba(92, 143, 134, 0.28);
@@ -510,11 +511,13 @@
 
 .week-nav-btn:active,
 .calendar-btn:active,
+.lists-btn:active,
 .today-btn:active {
   transform: translateY(0);
 }
 
 .week-nav-btn lucide-icon,
+.lists-btn lucide-icon,
 .calendar-btn lucide-icon {
   width: 16px;
   height: 16px;
@@ -524,6 +527,7 @@
 }
 
 .week-nav-btn lucide-icon svg,
+.lists-btn lucide-icon svg,
 .calendar-btn lucide-icon svg {
   width: 16px;
   height: 16px;
@@ -541,6 +545,26 @@
   background: rgba(84, 132, 124, 0.98);
   border-color: rgba(84, 132, 124, 0.98);
 }
+
+//  .plan-sticky-generate {
+//   position: fixed;
+//   left: 24px;
+//   right: 24px;
+//   bottom: 80px;
+//   z-index: 20;
+// }
+
+// .plan-sticky-generate:active {
+//   transform: scale(0.98);
+// }
+
+// .card__title--compact {
+//   margin: 0;
+//   font-weight: 700;
+//   color: $color-primary-dark;
+//   font-size: 1.02rem;
+//   line-height: 1.12;
+// }
 
 @include mobile {
   .plan-page {

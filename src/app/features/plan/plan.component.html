@@ -31,6 +31,10 @@
           (click)="goToToday()">
           Today
         </button>
+
+          <button type="button" class="lists-btn" (click)="generateWeeklyList()">
+          <lucide-icon [img]="groceryListsIcon"></lucide-icon>
+        </button>
       </div>
     </div>
 
@@ -120,6 +124,17 @@
       </div>
     </div>
   </ng-container>
+
+  <!-- <div
+  class="card card--pantry plan-sticky-generate"
+  *ngIf="hasMealsInSelectedWeek"
+  (click)="generateWeeklyList()"
+>
+  <h3 class="card__title card__title--compact">
+    Generate weekly list
+  </h3>
+</div> -->
+
 </div>
 
 <div class="calendar-picker-sheet-overlay" *ngIf="isCalendarOpen" (click)="closeCalendar()">

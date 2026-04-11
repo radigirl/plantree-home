@@ -50,8 +50,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   groceryLists: GroceryList[] = [];
   error = '';
 
-  isCreatingList = false;
-  newListName = '';
+  isCreateDialogOpen = false;
+  createListName = '';
 
   openMenuListId: string | null = null;
   selectedListForEdit: GroceryList | null = null;
@@ -149,23 +149,37 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       });
   }
 
-  private resetListsViewState(): void {
+  openCreateDialog(): void {
+    this.isCreateDialogOpen = true;
+    this.createListName = '';
     this.error = '';
 
-    this.isCreatingList = false;
-    this.newListName = '';
-
     this.openMenuListId = null;
-    this.selectedListForEdit = null;
-    this.editListName = '';
-
-    this.selectedListForActions = null;
-    this.listActions = [];
-
-    this.showArchived = false;
-    this.isDeleteDialogOpen = false;
-    this.listPendingDelete = null;
+    this.closeEditDialog();
   }
+
+  closeCreateDialog(): void {
+    this.isCreateDialogOpen = false;
+    this.createListName = '';
+  }
+
+  private resetListsViewState(): void {
+  this.error = '';
+
+  this.isCreateDialogOpen = false;
+  this.createListName = '';
+
+  this.openMenuListId = null;
+  this.selectedListForEdit = null;
+  this.editListName = '';
+
+  this.selectedListForActions = null;
+  this.listActions = [];
+
+  this.showArchived = false;
+  this.isDeleteDialogOpen = false;
+  this.listPendingDelete = null;
+}
 
   async loadGroceryLists(): Promise<void> {
     this.isLoading = true;
@@ -203,26 +217,10 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
-  startCreateList(): void {
-    this.isCreatingList = true;
-    this.newListName = '';
-    this.error = '';
+  async confirmCreateList(): Promise<void> {
+    const trimmedName = this.createListName.trim();
 
-    this.openMenuListId = null;
-    this.closeEditDialog();
-  }
-
-  cancelCreateList(): void {
-    this.isCreatingList = false;
-    this.newListName = '';
-  }
-
-  async saveNewList(): Promise<void> {
-    const trimmedName = this.newListName.trim();
-
-    if (!trimmedName) {
-      return;
-    }
+    if (!trimmedName) return;
 
     const currentMember = this.memberStateService.getCurrentMember();
     const createdByMemberId = currentMember?.id ?? 1;
@@ -238,10 +236,9 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isCreatingList = false;
-    this.newListName = '';
-
     this.groceryLists = [created, ...this.groceryLists];
+
+    this.closeCreateDialog();
     this.cdr.detectChanges();
   }
 
@@ -323,16 +320,16 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   }
 
   openEditDialog(event: Event, list: GroceryList): void {
-    event.stopPropagation();
+  event.stopPropagation();
 
-    this.isCreatingList = false;
-    this.newListName = '';
-    this.openMenuListId = null;
-    this.selectedListForActions = null;
-    this.selectedListForEdit = list;
-    this.editListName = list.name;
-    this.error = '';
-  }
+  this.isCreateDialogOpen = false;
+  this.createListName = '';
+  this.openMenuListId = null;
+  this.selectedListForActions = null;
+  this.selectedListForEdit = list;
+  this.editListName = list.name;
+  this.error = '';
+}
 
   closeEditDialog(): void {
     this.selectedListForEdit = null;
