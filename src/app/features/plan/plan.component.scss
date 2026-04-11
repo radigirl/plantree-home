@@ -567,6 +567,11 @@
   line-height: 0;
 }
 
+.lists-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .today-btn {
   min-width: 62px;
   padding: 0 10px;
@@ -676,7 +681,7 @@
   }
 
   .week-label {
-    font-size: 0.98rem;
+    font-size: 0.92rem;
   }
 
   .week-strip {

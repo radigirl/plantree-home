@@ -61,7 +61,7 @@
                           {{ day.label }} {{ day.date }}
                         </span>
                         <span class="generate-sheet__day-meta">
-                          {{ day.meals.length }} meals
+                          {{ day.meals.length }} {{ day.meals.length === 1 ? 'meal' : 'meals' }}
                         </span>
                       </span>
                     </label>
@@ -98,7 +98,7 @@
             <div class="generate-sheet__footer">
               <button
                 type="button"
-                class="generate-sheet__confirm-btn"
+                class="generate-sheet__confirm-btn btn-primary"
                 [disabled]="selectedMealsCount === 0"
                 (click)="onGenerateSelected()"
               >

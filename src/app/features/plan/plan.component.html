@@ -32,7 +32,7 @@
             Today
           </button>
 
-          <button type="button" class="lists-btn" (click)="generateWeeklyList()">
+          <button type="button" class="lists-btn" (click)="generateWeeklyList()" [disabled]="isPastWeek()">
             <lucide-icon [img]="groceryListsIcon"></lucide-icon>
           </button>
         </div>

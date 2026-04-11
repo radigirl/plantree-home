@@ -45,30 +45,7 @@ export class PlanComponent implements OnInit, OnDestroy {
   selectedCalendarDates: string[] = [];
   isGenerateSheetOpen = false;
 
-  generateSheetDays = [
-  {
-    key: '2026-04-11',
-    label: 'Sat',
-    date: '11 Apr',
-    isToday: true,
-    isPast: false,
-    meals: [
-      { id: 'meal-1', name: 'Pasta' },
-      { id: 'meal-2', name: 'Salad' },
-    ],
-  },
-  {
-    key: '2026-04-12',
-    label: 'Sun',
-    date: '12 Apr',
-    isToday: false,
-    isPast: false,
-    meals: [
-      { id: 'meal-3', name: 'Soup' },
-    ],
-  },
-];
-
+  generateSheetDays: any[] = [];
 
   readonly chevronLeftIcon = ChevronLeft;
   readonly chevronRightIcon = ChevronRight;
@@ -138,11 +115,13 @@ export class PlanComponent implements OnInit, OnDestroy {
     try {
       const data = await this.mealPlanService.getWeekPlan(this.currentWeekStart);
       this.weekMeals = data;
+      this.buildGenerateSheetDays();
       const todayIndex = this.getTodayIndexInCurrentWeek();
       this.selectedDayIndex = todayIndex !== -1 ? todayIndex : null;
     } catch (error) {
       console.error('Error loading week plan:', error);
       this.weekMeals = [];
+      this.generateSheetDays = [];
     }
 
     this.isLoading = false;
@@ -395,6 +374,17 @@ onGenerateSelectedList(selection: any): void {
     return itemDate.getTime() < today.getTime();
   }
 
+  isPastWeek(): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(this.currentWeekStart);
+  endOfWeek.setDate(this.currentWeekStart.getDate() + 6);
+  endOfWeek.setHours(0, 0, 0, 0);
+
+  return endOfWeek < today;
+}
+
   private getTodayIndexInCurrentWeek(): number {
     for (let i = 0; i < this.weekMeals.length; i++) {
       if (this.isTodayIndex(i)) {
@@ -452,6 +442,31 @@ onGenerateSelectedList(selection: any): void {
 
     return this.formatDateForInput(this.currentWeekStart) === this.formatDateForInput(todayWeekStart);
   }
+
+  private buildGenerateSheetDays(): void {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  this.generateSheetDays = this.weekMeals
+    .map((day, index) => {
+      const itemDate = new Date(this.currentWeekStart);
+      itemDate.setDate(this.currentWeekStart.getDate() + index);
+      itemDate.setHours(0, 0, 0, 0);
+
+      return {
+        key: this.formatDateForInput(itemDate),
+        label: day.day,
+        date: day.date,
+        isToday: itemDate.getTime() === today.getTime(),
+        isPast: itemDate.getTime() < today.getTime(),
+        meals: day.meals.map((meal, mealIndex) => ({
+          id: `${this.formatDateForInput(itemDate)}-${meal.meal?.id ?? mealIndex}`,
+          name: meal.meal?.name || 'Untitled meal',
+        })),
+      };
+    })
+    .filter((day) => !day.isPast && day.meals.length > 0);
+}
 
   ngOnDestroy(): void {
     this.destroy$.next();
