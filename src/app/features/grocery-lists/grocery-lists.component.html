@@ -125,8 +125,8 @@
   </div>
 </div>
 
-<div class="modal-overlay" *ngIf="isCreateDialogOpen" (click)="closeCreateDialog()">
-  <div class="modal-shell" (click)="$event.stopPropagation()">
+<div class="modal-overlay modal-overlay--form" *ngIf="isCreateDialogOpen" (click)="closeCreateDialog()">
+  <div class="modal-shell modal-shell--form" (click)="$event.stopPropagation()">
     <app-edit-text-dialog [title]="'Add list'" [label]="'List name'" [value]="createListName"
       [placeholder]="'Enter list name'" [confirmLabel]="'Save'" [cancelLabel]="'Cancel'"
       (valueChange)="createListName = $event" (confirm)="confirmCreateList()"
@@ -134,8 +134,8 @@
   </div>
 </div>
 
-<div class="modal-overlay" *ngIf="isEditDialogOpen" (click)="closeEditDialog()">
-  <div class="modal-shell" (click)="$event.stopPropagation()">
+<div class="modal-overlay modal-overlay--form" *ngIf="isEditDialogOpen" (click)="closeEditDialog()">
+  <div class="modal-shell modal-shell--form" (click)="$event.stopPropagation()">
     <app-edit-text-dialog [title]="'Edit list'" [subtitle]="''" [label]="'List name'" [value]="editListName"
       [placeholder]="'Enter list name'" [confirmLabel]="'Save'" [cancelLabel]="'Cancel'"
       (valueChange)="editListName = $event" (confirm)="confirmEditList()"

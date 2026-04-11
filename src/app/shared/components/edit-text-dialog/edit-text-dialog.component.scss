@@ -1,4 +1,5 @@
 @use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
 @use '../../../../styles/components/buttons' as *;
 
 .edit-text-dialog {
@@ -10,6 +11,8 @@
   background: $color-surface-soft;
   box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
+  margin: 0;
 }
 
 .edit-text-dialog__content {
@@ -69,4 +72,16 @@
 
 .edit-text-dialog__actions {
   margin-top: 4px;
+}
+
+@include mobile {
+  .edit-text-dialog {
+    margin-top: 90px;
+  }
+}
+
+@include tablet {
+  .edit-text-dialog {
+    margin-top: 90px;
+  }
 }

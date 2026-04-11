@@ -511,11 +511,15 @@
 
 .pantry-search-sticky {
   position: sticky;
-  top: $layout-header-height-mobile + 6px;
+  top: 80px;
   z-index: 20;
   background: $color-surface;
-  padding-top: 2px;
-  padding-bottom: 6px;
+  padding: 0;
+  transition: padding 0.18s ease;
+  padding-top:12px;
+  padding-bottom: 12px;
+  margin-top: -6px;
+  margin-bottom: -6px;
 }
 
 .pantry-search-sticky::after {
