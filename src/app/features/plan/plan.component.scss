@@ -546,25 +546,18 @@
   border-color: rgba(84, 132, 124, 0.98);
 }
 
-//  .plan-sticky-generate {
-//   position: fixed;
-//   left: 24px;
-//   right: 24px;
-//   bottom: 80px;
-//   z-index: 20;
-// }
-
-// .plan-sticky-generate:active {
-//   transform: scale(0.98);
-// }
-
-// .card__title--compact {
-//   margin: 0;
-//   font-weight: 700;
-//   color: $color-primary-dark;
-//   font-size: 1.02rem;
-//   line-height: 1.12;
-// }
+.controls {
+  position: sticky;
+  top: 80px;
+  z-index: 20;
+  background: $color-surface;
+  padding: 0;
+  transition: padding 0.18s ease;
+  padding-top:10px;
+  padding-bottom: 10px;
+  margin-top: -10px;
+  margin-bottom: -10px;
+}
 
 @include mobile {
   .plan-page {
@@ -612,7 +605,6 @@
   }
 
   .week-strip {
-    margin-top: -12px;
     margin-left: -8px;
     margin-right: -8px;
     padding: 4px 8px 0;
@@ -743,7 +735,6 @@
   .week-strip {
     gap: 10px;
     padding-top: 0;
-    margin-top: -8px;
   }
 
   .week-strip__day {

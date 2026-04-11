@@ -79,7 +79,7 @@ export class PlanComponent implements OnInit, OnDestroy {
       this.currentWeekStart = this.getStartOfWeek(new Date(returnDate));
     }
 
-    await this.loadWeekPlan(false);
+    await this.loadWeekPlan(true);
 
     if (returnDate) {
       setTimeout(() => {
@@ -120,7 +120,7 @@ export class PlanComponent implements OnInit, OnDestroy {
       setTimeout(() => {
         const todayIndex = this.getTodayIndexInCurrentWeek();
         if (todayIndex !== -1) {
-          this.scrollToDay(todayIndex);
+          this.scrollToDayInstant(todayIndex);
         }
       }, 50);
     }

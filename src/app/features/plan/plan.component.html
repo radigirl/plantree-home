@@ -4,7 +4,7 @@
   </div>
 
   <ng-container *ngIf="!isLoading">
-
+   <div class="controls">
     <div class="week-navigation">
       <div class="week-navigation__side week-navigation__side--left">
         <button type="button" class="week-nav-btn" (click)="goToPreviousWeek()" aria-label="Previous week">
@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <div class="week-strip">
+     <div class="week-strip">
       <button type="button" class="week-strip__day" *ngFor="let item of weekMeals; let i = index"
         [class.week-strip__day--today]="isTodayIndex(i)" [class.week-strip__day--past]="isPastDayIndex(i)"
         (click)="scrollToDay(i)">
@@ -46,6 +46,7 @@
         <span class="week-strip__date">{{ item.date }}</span>
       </button>
     </div>
+   </div>
 
     <div class="meal-list">
       <div #mealCard class="meal-card" *ngFor="let item of weekMeals; let i = index"
