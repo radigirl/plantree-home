@@ -25,6 +25,8 @@ import { SpaceStateService } from '../../services/space.state.service';
 import { Subject } from 'rxjs';
 import { filter, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { GenerateSheetListComponent } from './generate-list-sheet/generate-sheet-list.component';
+import { GroceryService } from '../../services/grocery.service';
+import { MemberStateService } from '../../services/member.state.service';
 
 
 @Component({
@@ -62,7 +64,9 @@ export class PlanComponent implements OnInit, OnDestroy {
     private mealPlanService: MealPlanService,
     private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private groceryService: GroceryService,
+    private memberStateService: MemberStateService
   ) { }
 
   ngOnInit(): void {
@@ -257,31 +261,33 @@ export class PlanComponent implements OnInit, OnDestroy {
     return this.weekMeals.some(day => day.meals.length > 0);
   }
 
- generateWeeklyList(): void {
-  this.isGenerateSheetOpen = true;
+  generateWeeklyList(): void {
+    this.isGenerateSheetOpen = true;
+  }
+
+  closeGenerateSheet(): void {
+    this.isGenerateSheetOpen = false;
+  }
+
+  async onQuickGenerateList(): Promise<void> {
+  const selectedDayKeys = this.generateSheetDays.map((day) => day.key);
+  const selectedMealIds = this.generateSheetDays.flatMap((day) =>
+    day.meals.map((meal: any) => meal.id)
+  );
+  this.isGenerateSheetOpen = false;
+  await this.createGeneratedListFromSelection(selectedDayKeys, selectedMealIds);
 }
 
-closeGenerateSheet(): void {
-  this.isGenerateSheetOpen = false;
-}
-
-onQuickGenerateList(): void {
-  console.log('Quick generate list');
-
+  async onGenerateSelectedList(selection: {
+  selectedDayKeys: string[];
+  selectedMealIds: string[];
+}): Promise<void> {
   this.isGenerateSheetOpen = false;
 
-  // later:
-  // const selection = this.getDefaultUpcomingSelection();
-  // this.createListFromSelection(selection);
-}
-
-onGenerateSelectedList(selection: any): void {
-  console.log('Generate with selection:', selection);
-
-  this.isGenerateSheetOpen = false;
-
-  // later:
-  // this.createListFromSelection(selection);
+  await this.createGeneratedListFromSelection(
+    selection.selectedDayKeys,
+    selection.selectedMealIds
+  );
 }
 
   scrollToDay(index: number): void {
@@ -375,15 +381,15 @@ onGenerateSelectedList(selection: any): void {
   }
 
   isPastWeek(): boolean {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const endOfWeek = new Date(this.currentWeekStart);
-  endOfWeek.setDate(this.currentWeekStart.getDate() + 6);
-  endOfWeek.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(this.currentWeekStart);
+    endOfWeek.setDate(this.currentWeekStart.getDate() + 6);
+    endOfWeek.setHours(0, 0, 0, 0);
 
-  return endOfWeek < today;
-}
+    return endOfWeek < today;
+  }
 
   private getTodayIndexInCurrentWeek(): number {
     for (let i = 0; i < this.weekMeals.length; i++) {
@@ -444,28 +450,101 @@ onGenerateSelectedList(selection: any): void {
   }
 
   private buildGenerateSheetDays(): void {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  this.generateSheetDays = this.weekMeals
-    .map((day, index) => {
-      const itemDate = new Date(this.currentWeekStart);
-      itemDate.setDate(this.currentWeekStart.getDate() + index);
-      itemDate.setHours(0, 0, 0, 0);
+    this.generateSheetDays = this.weekMeals
+      .map((day, index) => {
+        const itemDate = new Date(this.currentWeekStart);
+        itemDate.setDate(this.currentWeekStart.getDate() + index);
+        itemDate.setHours(0, 0, 0, 0);
 
-      return {
-        key: this.formatDateForInput(itemDate),
-        label: day.day,
-        date: day.date,
-        isToday: itemDate.getTime() === today.getTime(),
-        isPast: itemDate.getTime() < today.getTime(),
-        meals: day.meals.map((meal, mealIndex) => ({
-          id: `${this.formatDateForInput(itemDate)}-${meal.meal?.id ?? mealIndex}`,
-          name: meal.meal?.name || 'Untitled meal',
-        })),
-      };
-    })
-    .filter((day) => !day.isPast && day.meals.length > 0);
+        return {
+          key: this.formatDateForInput(itemDate),
+          label: day.day,
+          date: day.date,
+          isToday: itemDate.getTime() === today.getTime(),
+          isPast: itemDate.getTime() < today.getTime(),
+          meals: day.meals.map((meal, mealIndex) => ({
+            id: String(meal.meal?.id),
+            name: meal.meal?.name || 'Untitled meal',
+          })),
+        };
+      })
+      .filter((day) => !day.isPast && day.meals.length > 0);
+  }
+
+  private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
+  const ingredients: string[] = [];
+  for (const day of this.weekMeals) {
+    for (const plannedMeal of day.meals) {
+      const mealId = String(plannedMeal.meal?.id);
+      if (!selectedMealIds.includes(mealId)) {
+        continue;
+      }
+      const mealIngredients = Array.isArray(plannedMeal.meal?.ingredients)
+        ? plannedMeal.meal.ingredients
+        : [];
+      for (const ingredient of mealIngredients) {
+        const cleaned = typeof ingredient === 'string' ? ingredient.trim() : '';
+        if (cleaned) {
+          ingredients.push(cleaned);
+        }
+      }
+    }
+  }
+
+  return ingredients;
+}
+
+private buildGeneratedListName(selectedDayKeys: string[]): string {
+  if (!selectedDayKeys.length) {
+    return 'Plan list';
+  }
+  const sortedKeys = [...selectedDayKeys].sort();
+  const first = new Date(`${sortedKeys[0]}T12:00:00`);
+  const last = new Date(`${sortedKeys[sortedKeys.length - 1]}T12:00:00`);
+  const formatDay = (date: Date): string =>
+    date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  return `Plan list ${formatDay(first)}–${formatDay(last)}`;
+}
+
+private async createGeneratedListFromSelection(
+  selectedDayKeys: string[],
+  selectedMealIds: string[]
+): Promise<void> {
+  const currentMember = this.memberStateService.getCurrentMember();
+
+  if (!currentMember) {
+    console.error('No current member selected');
+    return;
+  }
+  const ingredients = this.getIngredientsFromSelectedMealIds(selectedMealIds);
+  if (!ingredients.length) {
+    console.warn('No ingredients found for selected meals');
+    return;
+  }
+  const listName = this.buildGeneratedListName(selectedDayKeys);
+  const createdList = await this.groceryService.createGroceryList(
+    listName,
+    currentMember.id,
+    true
+  );
+  if (!createdList) {
+    console.error('Failed to create generated grocery list');
+    return;
+  }
+  for (const ingredient of ingredients) {
+    await this.groceryService.createGroceryItem(
+      createdList.id,
+      ingredient,
+      currentMember.id
+    );
+  }
+  console.log('Generated list created:', createdList.name, ingredients);
 }
 
   ngOnDestroy(): void {

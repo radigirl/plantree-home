@@ -47,36 +47,35 @@ export class GroceryService {
   }
 
   async createGroceryList(
-    name: string,
-    createdByMemberId: number
-  ): Promise<GroceryList | null> {
-    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
-    const trimmedName = name.trim();
-
-    if (!trimmedName) {
-      return null;
-    }
-
-    const { data, error } = await this.supabaseService.supabase
-      .from('grocery_lists')
-      .insert([
-        {
-          name: trimmedName,
-          status: 'active',
-          created_by_member_id: createdByMemberId,
-          space_id: spaceId,
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating grocery list:', error);
-      return null;
-    }
-
-    return data as GroceryList;
+  name: string,
+  createdByMemberId: number,
+  generated = false
+): Promise<GroceryList | null> {
+  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    return null;
   }
+  const { data, error } = await this.supabaseService.supabase
+    .from('grocery_lists')
+    .insert([
+      {
+        name: trimmedName,
+        status: 'active',
+        created_by_member_id: createdByMemberId,
+        space_id: spaceId,
+        generated,
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating grocery list:', error);
+    return null;
+  }
+  return data as GroceryList;
+}
 
   async updateGroceryListName(
     listId: string,
