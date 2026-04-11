@@ -27,12 +27,13 @@ import { filter, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { GenerateSheetListComponent } from './generate-list-sheet/generate-sheet-list.component';
 import { GroceryService } from '../../services/grocery.service';
 import { MemberStateService } from '../../services/member.state.service';
+import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 
 
 @Component({
   selector: 'app-plan',
   standalone: true,
-  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule, GenerateSheetListComponent],
+  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule, GenerateSheetListComponent, SnackbarComponent],
   templateUrl: './plan.component.html',
   styleUrl: './plan.component.scss',
 })
@@ -48,6 +49,13 @@ export class PlanComponent implements OnInit, OnDestroy {
   isGenerateSheetOpen = false;
 
   generateSheetDays: any[] = [];
+
+  snackbarMessage: string | null = null;
+  snackbarActionLabel: string | null = null;
+  isSnackbarVisible = false;
+
+  private lastGeneratedListId: string | null = null;
+  private snackbarTimeout: any;
 
   readonly chevronLeftIcon = ChevronLeft;
   readonly chevronRightIcon = ChevronRight;
@@ -270,25 +278,25 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   async onQuickGenerateList(): Promise<void> {
-  const selectedDayKeys = this.generateSheetDays.map((day) => day.key);
-  const selectedMealIds = this.generateSheetDays.flatMap((day) =>
-    day.meals.map((meal: any) => meal.id)
-  );
-  this.isGenerateSheetOpen = false;
-  await this.createGeneratedListFromSelection(selectedDayKeys, selectedMealIds);
-}
+    const selectedDayKeys = this.generateSheetDays.map((day) => day.key);
+    const selectedMealIds = this.generateSheetDays.flatMap((day) =>
+      day.meals.map((meal: any) => meal.id)
+    );
+    this.isGenerateSheetOpen = false;
+    await this.createGeneratedListFromSelection(selectedDayKeys, selectedMealIds);
+  }
 
   async onGenerateSelectedList(selection: {
-  selectedDayKeys: string[];
-  selectedMealIds: string[];
-}): Promise<void> {
-  this.isGenerateSheetOpen = false;
+    selectedDayKeys: string[];
+    selectedMealIds: string[];
+  }): Promise<void> {
+    this.isGenerateSheetOpen = false;
 
-  await this.createGeneratedListFromSelection(
-    selection.selectedDayKeys,
-    selection.selectedMealIds
-  );
-}
+    await this.createGeneratedListFromSelection(
+      selection.selectedDayKeys,
+      selection.selectedMealIds
+    );
+  }
 
   scrollToDay(index: number): void {
     this.selectedDayIndex = index;
@@ -475,77 +483,108 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
-  const ingredients: string[] = [];
-  for (const day of this.weekMeals) {
-    for (const plannedMeal of day.meals) {
-      const mealId = String(plannedMeal.meal?.id);
-      if (!selectedMealIds.includes(mealId)) {
-        continue;
-      }
-      const mealIngredients = Array.isArray(plannedMeal.meal?.ingredients)
-        ? plannedMeal.meal.ingredients
-        : [];
-      for (const ingredient of mealIngredients) {
-        const cleaned = typeof ingredient === 'string' ? ingredient.trim() : '';
-        if (cleaned) {
-          ingredients.push(cleaned);
+    const ingredients: string[] = [];
+    for (const day of this.weekMeals) {
+      for (const plannedMeal of day.meals) {
+        const mealId = String(plannedMeal.meal?.id);
+        if (!selectedMealIds.includes(mealId)) {
+          continue;
+        }
+        const mealIngredients = Array.isArray(plannedMeal.meal?.ingredients)
+          ? plannedMeal.meal.ingredients
+          : [];
+        for (const ingredient of mealIngredients) {
+          const cleaned = typeof ingredient === 'string' ? ingredient.trim() : '';
+          if (cleaned) {
+            ingredients.push(cleaned);
+          }
         }
       }
     }
+
+    return ingredients;
   }
 
-  return ingredients;
-}
+  private buildGeneratedListName(selectedDayKeys: string[]): string {
+    if (!selectedDayKeys.length) {
+      return 'Plan list';
+    }
+    const sortedKeys = [...selectedDayKeys].sort();
+    const first = new Date(`${sortedKeys[0]}T12:00:00`);
+    const last = new Date(`${sortedKeys[sortedKeys.length - 1]}T12:00:00`);
+    const formatDay = (date: Date): string =>
+      date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+    return `Plan list ${formatDay(first)}–${formatDay(last)}`;
+  }
 
-private buildGeneratedListName(selectedDayKeys: string[]): string {
-  if (!selectedDayKeys.length) {
-    return 'Plan list';
-  }
-  const sortedKeys = [...selectedDayKeys].sort();
-  const first = new Date(`${sortedKeys[0]}T12:00:00`);
-  const last = new Date(`${sortedKeys[sortedKeys.length - 1]}T12:00:00`);
-  const formatDay = (date: Date): string =>
-    date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-  return `Plan list ${formatDay(first)}–${formatDay(last)}`;
-}
+  private async createGeneratedListFromSelection(
+    selectedDayKeys: string[],
+    selectedMealIds: string[]
+  ): Promise<void> {
+    const currentMember = this.memberStateService.getCurrentMember();
 
-private async createGeneratedListFromSelection(
-  selectedDayKeys: string[],
-  selectedMealIds: string[]
-): Promise<void> {
-  const currentMember = this.memberStateService.getCurrentMember();
-
-  if (!currentMember) {
-    console.error('No current member selected');
-    return;
-  }
-  const ingredients = this.getIngredientsFromSelectedMealIds(selectedMealIds);
-  if (!ingredients.length) {
-    console.warn('No ingredients found for selected meals');
-    return;
-  }
-  const listName = this.buildGeneratedListName(selectedDayKeys);
-  const createdList = await this.groceryService.createGroceryList(
-    listName,
-    currentMember.id,
-    true
-  );
-  if (!createdList) {
-    console.error('Failed to create generated grocery list');
-    return;
-  }
-  for (const ingredient of ingredients) {
-    await this.groceryService.createGroceryItem(
-      createdList.id,
-      ingredient,
-      currentMember.id
+    if (!currentMember) {
+      console.error('No current member selected');
+      return;
+    }
+    const ingredients = this.getIngredientsFromSelectedMealIds(selectedMealIds);
+    if (!ingredients.length) {
+      console.warn('No ingredients found for selected meals');
+      return;
+    }
+    const listName = this.buildGeneratedListName(selectedDayKeys);
+    const createdList = await this.groceryService.createGroceryList(
+      listName,
+      currentMember.id,
+      true
     );
+    if (!createdList) {
+      console.error('Failed to create generated grocery list');
+      return;
+    }
+    for (const ingredient of ingredients) {
+      await this.groceryService.createGroceryItem(
+        createdList.id,
+        ingredient,
+        currentMember.id
+      );
+    }
+    console.log('Generated list created:', createdList.name, ingredients);
+    this.lastGeneratedListId = createdList.id;
+    this.showSnackbar('Grocery list created', 'Undo');
   }
-  console.log('Generated list created:', createdList.name, ingredients);
+
+ private showSnackbar(message: string, actionLabel?: string): void {
+  this.snackbarMessage = message;
+  this.snackbarActionLabel = actionLabel || null;
+  this.isSnackbarVisible = true;
+  this.cdr.detectChanges();
+  if (this.snackbarTimeout) {
+    clearTimeout(this.snackbarTimeout);
+  }
+  this.snackbarTimeout = setTimeout(() => {
+    this.hideSnackbar();
+  }, 4000);
 }
+
+ private hideSnackbar(): void {
+  this.isSnackbarVisible = false;
+  this.snackbarMessage = null;
+  this.snackbarActionLabel = null;
+  this.cdr.detectChanges();
+}
+
+  async onSnackbarAction(): Promise<void> {
+    if (!this.lastGeneratedListId) return;
+
+    await this.groceryService.deleteGroceryList(this.lastGeneratedListId);
+
+    this.hideSnackbar();
+    this.lastGeneratedListId = null;
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();

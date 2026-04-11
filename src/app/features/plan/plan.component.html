@@ -142,3 +142,10 @@
   (quickGenerate)="onQuickGenerateList()"
   (generateSelected)="onGenerateSelectedList($event)"
 ></app-generate-sheet-list>
+
+<app-snackbar
+  [message]="snackbarMessage"
+  [actionLabel]="snackbarActionLabel"
+  [isVisible]="isSnackbarVisible"
+  (actionClicked)="onSnackbarAction()"
+></app-snackbar>
