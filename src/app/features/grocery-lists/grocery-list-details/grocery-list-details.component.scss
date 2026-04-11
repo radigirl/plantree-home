@@ -13,7 +13,7 @@
   flex-direction: column;
   margin-left: -8px;
   margin-right: -8px;
-  margin-top: -8px;
+  margin-top: -15px;
 }
 
 .grocery-list-details-loading-shell {
@@ -42,7 +42,6 @@
 }
 
 /* HEADER */
-
 .grocery-list-details-header {
   display: flex;
   align-items: center;
@@ -72,7 +71,6 @@
 }
 
 /* LIST */
-
 .grocery-items-list {
   display: flex;
   flex-direction: column;
@@ -100,7 +98,6 @@
 }
 
 /* ROW MAIN */
-
 .grocery-item-main {
   display: flex;
   align-items: flex-start;
@@ -111,7 +108,6 @@
 }
 
 /* CHECKBOX */
-
 .grocery-item-checkbox {
   display: inline-flex;
   align-items: center;
@@ -135,7 +131,6 @@
 }
 
 /* CONTENT */
-
 .grocery-item-content {
   flex: 1;
   min-width: 0;
@@ -284,25 +279,32 @@
 }
 
 /* EDIT DIALOG */
-
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 2500;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(31, 41, 38, 0.38);
-  backdrop-filter: blur(2px);
+  background: rgba(34, 34, 34, 0.28);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 .dialog-shell {
-  width: min(100%, 440px);
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100dvh - 40px);
+}
+
+.dialog-shell--form {
+  align-self: flex-start;
+  margin-top: 70px;
 }
 
 /* RESPONSIVE */
-
 @include mobile {
   .read-only-inline {
     flex-direction: column;
@@ -356,19 +358,16 @@
     background: rgba(207, 222, 215, 0.35);
   }
 
-  .dialog-overlay {
-    padding: 16px;
-    align-items: center;
-    justify-content: center;
-  }
-
   .dialog-shell {
     width: min(100%, 440px);
   }
- 
+
 }
 
 @include tablet {
+  .grocery-list-details-shell {
+    max-width: 820px;
+  }
   .grocery-list-details-shell {
     max-width: 820px;
   }
@@ -380,9 +379,28 @@
     width: 100%;
     margin: 0 auto;
   }
+  .dialog-shell--form {
+    align-self: center;
+    margin-top: 0;
+  }
+
+  .grocery-list-details-shell {
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+  }
 }
 
 @include desktop-xl {
+  .grocery-list-details-shell {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .dialog-shell--form {
+    align-self: center;
+    margin-top: 0;
+  }
+
   .grocery-list-details-shell {
     max-width: 1200px;
     margin: 0 auto;

@@ -140,8 +140,8 @@
   (actionSelected)="onItemActionSelected($event)"
 ></app-responsive-action-menu>
 
-<div class="dialog-overlay" *ngIf="isEditDialogOpen" (click)="closeEditDialog()">
-  <div class="dialog-shell" (click)="$event.stopPropagation()">
+<div class="dialog-overlay dialog-overlay--form" *ngIf="isEditDialogOpen" (click)="closeEditDialog()">
+  <div class="dialog-shell dialog-shell--form" (click)="$event.stopPropagation()">
     <app-edit-text-dialog
       [title]="'Edit item'"
       [subtitle]="''"
