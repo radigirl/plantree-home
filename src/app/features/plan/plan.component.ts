@@ -24,12 +24,13 @@ import {
 import { SpaceStateService } from '../../services/space.state.service';
 import { Subject } from 'rxjs';
 import { filter, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { GenerateSheetListComponent } from './generate-list-sheet/generate-sheet-list.component';
 
 
 @Component({
   selector: 'app-plan',
   standalone: true,
-  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule],
+  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule, GenerateSheetListComponent],
   templateUrl: './plan.component.html',
   styleUrl: './plan.component.scss',
 })
@@ -38,9 +39,36 @@ export class PlanComponent implements OnInit, OnDestroy {
   isLoading = true;
   isReady = false; // when returning from details
   currentWeekStart: Date = this.getStartOfWeek(new Date());
+  selectedDayIndex: number | null = null;
 
   isCalendarOpen = false;
   selectedCalendarDates: string[] = [];
+  isGenerateSheetOpen = false;
+
+  generateSheetDays = [
+  {
+    key: '2026-04-11',
+    label: 'Sat',
+    date: '11 Apr',
+    isToday: true,
+    isPast: false,
+    meals: [
+      { id: 'meal-1', name: 'Pasta' },
+      { id: 'meal-2', name: 'Salad' },
+    ],
+  },
+  {
+    key: '2026-04-12',
+    label: 'Sun',
+    date: '12 Apr',
+    isToday: false,
+    isPast: false,
+    meals: [
+      { id: 'meal-3', name: 'Soup' },
+    ],
+  },
+];
+
 
   readonly chevronLeftIcon = ChevronLeft;
   readonly chevronRightIcon = ChevronRight;
@@ -51,6 +79,7 @@ export class PlanComponent implements OnInit, OnDestroy {
 
 
   @ViewChildren('mealCard') mealCards!: QueryList<ElementRef<HTMLElement>>;
+  @ViewChildren('dayBtn') dayButtons!: QueryList<ElementRef<HTMLElement>>;
 
   constructor(
     private mealPlanService: MealPlanService,
@@ -59,18 +88,18 @@ export class PlanComponent implements OnInit, OnDestroy {
     private router: Router
   ) { }
 
-   ngOnInit(): void {
-  this.spaceStateService.currentSpace$
-    .pipe(
-      takeUntil(this.destroy$),
-      filter((space): space is NonNullable<typeof space> => !!space),
-      map((space) => space.id),
-      distinctUntilChanged()
-    )
-    .subscribe(async () => {
-      await this.initializePlanForCurrentSpace();
-    });
-}
+  ngOnInit(): void {
+    this.spaceStateService.currentSpace$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((space): space is NonNullable<typeof space> => !!space),
+        map((space) => space.id),
+        distinctUntilChanged()
+      )
+      .subscribe(async () => {
+        await this.initializePlanForCurrentSpace();
+      });
+  }
 
   private async initializePlanForCurrentSpace(): Promise<void> {
     const returnDate = sessionStorage.getItem('planReturnDate');
@@ -79,12 +108,13 @@ export class PlanComponent implements OnInit, OnDestroy {
       this.currentWeekStart = this.getStartOfWeek(new Date(returnDate));
     }
 
-    await this.loadWeekPlan(true);
+    await this.loadWeekPlan(false);
 
     if (returnDate) {
       setTimeout(() => {
         const returnIndex = this.getDayIndexFromDateString(returnDate);
         if (returnIndex !== -1) {
+          this.selectedDayIndex = returnIndex;
           this.scrollToDayInstant(returnIndex);
         }
 
@@ -108,6 +138,8 @@ export class PlanComponent implements OnInit, OnDestroy {
     try {
       const data = await this.mealPlanService.getWeekPlan(this.currentWeekStart);
       this.weekMeals = data;
+      const todayIndex = this.getTodayIndexInCurrentWeek();
+      this.selectedDayIndex = todayIndex !== -1 ? todayIndex : null;
     } catch (error) {
       console.error('Error loading week plan:', error);
       this.weekMeals = [];
@@ -115,12 +147,15 @@ export class PlanComponent implements OnInit, OnDestroy {
 
     this.isLoading = false;
     this.cdr.detectChanges();
+    setTimeout(() => {
+      this.scrollStripToToday();
+    });
 
     if (scrollToTodayAfterLoad) {
       setTimeout(() => {
         const todayIndex = this.getTodayIndexInCurrentWeek();
         if (todayIndex !== -1) {
-          this.scrollToDayInstant(todayIndex);
+          this.scrollToDay(todayIndex);
         }
       }, 50);
     }
@@ -218,6 +253,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       const todayIndex = this.getTodayIndexInCurrentWeek();
       if (todayIndex !== -1) {
+        this.selectedDayIndex = todayIndex;
         this.scrollToDay(todayIndex);
       }
     }, 50);
@@ -239,18 +275,38 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   get hasMealsInSelectedWeek(): boolean {
-  return this.weekMeals.some(day => day.meals.length > 0);
+    return this.weekMeals.some(day => day.meals.length > 0);
+  }
+
+ generateWeeklyList(): void {
+  this.isGenerateSheetOpen = true;
 }
 
-generateWeeklyList(): void {
-  console.log('Generate weekly list clicked');
+closeGenerateSheet(): void {
+  this.isGenerateSheetOpen = false;
+}
+
+onQuickGenerateList(): void {
+  console.log('Quick generate list');
+
+  this.isGenerateSheetOpen = false;
 
   // later:
-  // navigate to lists or trigger generation
-  // this.router.navigate(['/lists']);
+  // const selection = this.getDefaultUpcomingSelection();
+  // this.createListFromSelection(selection);
+}
+
+onGenerateSelectedList(selection: any): void {
+  console.log('Generate with selection:', selection);
+
+  this.isGenerateSheetOpen = false;
+
+  // later:
+  // this.createListFromSelection(selection);
 }
 
   scrollToDay(index: number): void {
+    this.selectedDayIndex = index;
     const card = this.mealCards?.toArray()[index]?.nativeElement;
 
     if (!card) return;
@@ -283,6 +339,21 @@ generateWeeklyList(): void {
     const day = String(date.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+  }
+
+  // for week strip
+  private scrollStripToToday(): void {
+    const todayIndex = this.getTodayIndexInCurrentWeek();
+    if (todayIndex === -1) return;
+
+    const el = this.dayButtons?.toArray()[todayIndex]?.nativeElement;
+    if (!el) return;
+
+    el.scrollIntoView({
+      behavior: 'auto',
+      inline: 'center',
+      block: 'nearest',
+    });
   }
 
   private getDayIndexInCurrentWeek(date: Date): number {
@@ -369,6 +440,7 @@ generateWeeklyList(): void {
     requestAnimationFrame(() => {
       const pickedIndex = this.getDayIndexInCurrentWeek(pickedDate);
       if (pickedIndex !== -1) {
+        this.selectedDayIndex = pickedIndex;
         this.scrollToDayInstant(pickedIndex);
       }
     });
@@ -382,8 +454,8 @@ generateWeeklyList(): void {
   }
 
   ngOnDestroy(): void {
-  this.destroy$.next();
-  this.destroy$.complete();
-}
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
 }

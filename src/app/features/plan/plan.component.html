@@ -4,49 +4,49 @@
   </div>
 
   <ng-container *ngIf="!isLoading">
-   <div class="controls">
-    <div class="week-navigation">
-      <div class="week-navigation__side week-navigation__side--left">
-        <button type="button" class="week-nav-btn" (click)="goToPreviousWeek()" aria-label="Previous week">
-          <lucide-icon [img]="chevronLeftIcon"></lucide-icon>
-        </button>
-      </div>
+    <div class="controls">
+      <div class="week-navigation">
+        <div class="week-navigation__side week-navigation__side--left">
+          <button type="button" class="week-nav-btn" (click)="goToPreviousWeek()" aria-label="Previous week">
+            <lucide-icon [img]="chevronLeftIcon"></lucide-icon>
+          </button>
+        </div>
 
-      <div class="week-navigation__center">
-        <div class="week-label">
-          {{ getWeekLabel() }}
+        <div class="week-navigation__center">
+          <div class="week-label">
+            {{ getWeekLabel() }}
+          </div>
+        </div>
+
+        <div class="week-navigation__side week-navigation__side--right">
+          <button type="button" class="week-nav-btn" (click)="goToNextWeek()" aria-label="Next week">
+            <lucide-icon [img]="chevronRightIcon"></lucide-icon>
+          </button>
+
+          <button type="button" class="calendar-btn" (click)="openCalendar()" aria-label="Pick a date">
+            <lucide-icon [img]="calendarIcon"></lucide-icon>
+          </button>
+
+          <button type="button" class="today-btn" [class.today-btn--active]="!isViewingCurrentWeek()"
+            (click)="goToToday()">
+            Today
+          </button>
+
+          <button type="button" class="lists-btn" (click)="generateWeeklyList()">
+            <lucide-icon [img]="groceryListsIcon"></lucide-icon>
+          </button>
         </div>
       </div>
 
-      <div class="week-navigation__side week-navigation__side--right">
-        <button type="button" class="week-nav-btn" (click)="goToNextWeek()" aria-label="Next week">
-          <lucide-icon [img]="chevronRightIcon"></lucide-icon>
-        </button>
-
-        <button type="button" class="calendar-btn" (click)="openCalendar()" aria-label="Pick a date">
-          <lucide-icon [img]="calendarIcon"></lucide-icon>
-        </button>
-
-        <button type="button" class="today-btn" [class.today-btn--active]="!isViewingCurrentWeek()"
-          (click)="goToToday()">
-          Today
-        </button>
-
-          <button type="button" class="lists-btn" (click)="generateWeeklyList()">
-          <lucide-icon [img]="groceryListsIcon"></lucide-icon>
+      <div class="week-strip">
+        <button #dayBtn type="button" class="week-strip__day" *ngFor="let item of weekMeals; let i = index"
+          [class.week-strip__day--today]="isTodayIndex(i)" [class.week-strip__day--past]="isPastDayIndex(i)"
+          [class.week-strip__day--selected]="selectedDayIndex === i" (click)="scrollToDay(i)">
+          <span class="week-strip__label">{{ item.day }}</span>
+          <span class="week-strip__date">{{ item.date }}</span>
         </button>
       </div>
     </div>
-
-     <div class="week-strip">
-      <button type="button" class="week-strip__day" *ngFor="let item of weekMeals; let i = index"
-        [class.week-strip__day--today]="isTodayIndex(i)" [class.week-strip__day--past]="isPastDayIndex(i)"
-        (click)="scrollToDay(i)">
-        <span class="week-strip__label">{{ item.day }}</span>
-        <span class="week-strip__date">{{ item.date }}</span>
-      </button>
-    </div>
-   </div>
 
     <div class="meal-list">
       <div #mealCard class="meal-card" *ngFor="let item of weekMeals; let i = index"
@@ -59,11 +59,8 @@
             <span class="date">{{ item.date }}</span>
           </div>
 
-          <button
-            type="button"
-            class="meal-add-btn meal-add-btn--circle meal-add-btn--corner"
-            *ngIf="!isPastDayIndex(i)"
-            (click)="onAddMealClick($event, item.fullDate)">
+          <button type="button" class="meal-add-btn meal-add-btn--circle meal-add-btn--corner"
+            *ngIf="!isPastDayIndex(i)" (click)="onAddMealClick($event, item.fullDate)">
             +
           </button>
         </div>
@@ -72,8 +69,8 @@
           <ng-container *ngIf="hasMeals(item); else emptyDay">
             <div class="meal-info__main">
               <div class="meal-image">
-                <img [src]="getFirstMeal(item)?.meal?.image_url || 'assets/meals/default-meal.png'" class="meal-image-img"
-                  [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
+                <img [src]="getFirstMeal(item)?.meal?.image_url || 'assets/meals/default-meal.png'"
+                  class="meal-image-img" [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
               </div>
 
               <div class="meal-details">
@@ -125,17 +122,6 @@
       </div>
     </div>
   </ng-container>
-
-  <!-- <div
-  class="card card--pantry plan-sticky-generate"
-  *ngIf="hasMealsInSelectedWeek"
-  (click)="generateWeeklyList()"
->
-  <h3 class="card__title card__title--compact">
-    Generate weekly list
-  </h3>
-</div> -->
-
 </div>
 
 <div class="calendar-picker-sheet-overlay" *ngIf="isCalendarOpen" (click)="closeCalendar()">
@@ -148,3 +134,11 @@
       (confirm)="confirmCalendarDates($event)"></app-calendar-picker>
   </div>
 </div>
+
+<app-generate-sheet-list
+  [isOpen]="isGenerateSheetOpen"
+  [days]="generateSheetDays"
+  (closed)="closeGenerateSheet()"
+  (quickGenerate)="onQuickGenerateList()"
+  (generateSelected)="onGenerateSelectedList($event)"
+></app-generate-sheet-list>

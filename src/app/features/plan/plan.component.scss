@@ -116,9 +116,84 @@
   color: $color-text-muted;
 }
 
+.week-strip__day {
+  scroll-snap-align: start;
+  position: relative;
+  border: 1px solid rgba(207, 222, 215, 0.9);
+  background: rgba(255, 252, 247, 0.8);
+  color: $color-primary-dark;
+  border-radius: 14px;
+  padding: 10px 12px;
+  min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    background: rgba(231, 242, 236, 0.95);
+    border-color: rgba(92, 143, 134, 0.45);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.week-strip__day {
+  scroll-snap-align: start;
+  position: relative;
+  border: 1px solid rgba(207, 222, 215, 0.9);
+  background: rgba(255, 252, 247, 0.8);
+  color: $color-primary-dark;
+  border-radius: 14px;
+  padding: 10px 12px;
+  min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover {
+    background: rgba(231, 242, 236, 0.95);
+    border-color: rgba(92, 143, 134, 0.35);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
 .week-strip__day--today {
-  background: rgba(231, 242, 236, 0.95);
-  border-color: rgba(92, 143, 134, 0.55);
+  background: rgba(92, 143, 134, 0.08);
+  border-color: rgba(92, 143, 134, 0.25);
+}
+
+.week-strip__day--selected::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 999px;
+  background: $color-primary-dark;
+}
+
+.week-strip__day--today .week-strip__label,
+.week-strip__day--today .week-strip__date {
+  color: $color-primary-dark;
 }
 
 .week-strip__day--past {

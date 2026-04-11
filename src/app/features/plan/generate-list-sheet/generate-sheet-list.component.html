@@ -1,0 +1,122 @@
+<ng-container *ngIf="isOpen">
+  <div class="action-sheet-backdrop" (click)="onBackdropClick($event)">
+    <div class="action-sheet generate-sheet" (click)="$event.stopPropagation()">
+      <div class="action-sheet__handle" (click)="close()"></div>
+
+      <div class="action-sheet__header action-sheet__header--no-image">
+        <div class="action-sheet__text">
+          <p class="action-sheet__title">{{ title }}</p>
+
+          <p class="action-sheet__subtitle" *ngIf="subtitle">
+            {{ subtitle }}
+          </p>
+        </div>
+      </div>
+
+      <div class="generate-sheet__content">
+        <ng-container *ngIf="hasMeals; else emptyState">
+          <ng-container *ngIf="!isAdjusting; else adjustingState">
+            <button
+              type="button"
+              class="generate-sheet__primary-card"
+              (click)="onQuickGenerate()"
+            >
+              <span class="generate-sheet__primary-title">
+                Generate from upcoming meals
+              </span>
+
+              <span class="generate-sheet__primary-meta">
+                {{ selectedDaysCount }} days • {{ selectedMealsCount }} meals
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="generate-sheet__secondary-action"
+              (click)="openAdjust()"
+            >
+              Adjust selection
+            </button>
+          </ng-container>
+
+          <ng-template #adjustingState>
+            <div class="generate-sheet__section">
+              <p class="generate-sheet__section-title">Select days</p>
+
+              <div class="generate-sheet__days">
+                <div
+                  class="generate-sheet__day"
+                  *ngFor="let day of daysWithMeals"
+                >
+                  <div class="generate-sheet__day-row">
+                    <label class="generate-sheet__day-main">
+                      <input
+                        type="checkbox"
+                        [checked]="day.checked"
+                        (change)="toggleDay(day)"
+                      />
+
+                      <span class="generate-sheet__day-text">
+                        <span class="generate-sheet__day-label">
+                          {{ day.label }} {{ day.date }}
+                        </span>
+                        <span class="generate-sheet__day-meta">
+                          {{ day.meals.length }} meals
+                        </span>
+                      </span>
+                    </label>
+
+                    <button
+                      type="button"
+                      class="generate-sheet__expand-btn"
+                      (click)="toggleDayExpanded(day)"
+                    >
+                      {{ day.expanded ? 'Hide' : 'Show' }}
+                    </button>
+                  </div>
+
+                  <div
+                    class="generate-sheet__meals"
+                    *ngIf="day.expanded"
+                  >
+                    <label
+                      class="generate-sheet__meal"
+                      *ngFor="let meal of day.meals"
+                    >
+                      <input
+                        type="checkbox"
+                        [checked]="meal.checked"
+                        (change)="toggleMeal(day, meal.id)"
+                      />
+                      <span>{{ meal.name }}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="generate-sheet__footer">
+              <button
+                type="button"
+                class="generate-sheet__confirm-btn"
+                [disabled]="selectedMealsCount === 0"
+                (click)="onGenerateSelected()"
+              >
+                Create list ({{ selectedMealsCount }} meals)
+              </button>
+            </div>
+          </ng-template>
+        </ng-container>
+
+        <ng-template #emptyState>
+          <div class="generate-sheet__empty">
+            <p class="generate-sheet__empty-title">No meals planned this week</p>
+            <p class="generate-sheet__empty-text">
+              Add meals in order to generate a grocery list.
+            </p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</ng-container>
