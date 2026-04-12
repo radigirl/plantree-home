@@ -28,6 +28,11 @@ import { GenerateSheetListComponent } from './generate-list-sheet/generate-sheet
 import { GroceryService } from '../../services/grocery.service';
 import { MemberStateService } from '../../services/member.state.service';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
+import {
+  normalizeIngredientKey,
+  parseLeadingNumberIngredient,
+  parseCountedPlainIngredient,
+} from '../../shared/utils/ingredient.util';
 
 
 @Component({
@@ -53,6 +58,7 @@ export class PlanComponent implements OnInit, OnDestroy {
   snackbarMessage: string | null = null;
   snackbarActionLabel: string | null = null;
   isSnackbarVisible = false;
+  isGeneratingList = false;
 
   private lastGeneratedListId: string | null = null;
   private snackbarTimeout: any;
@@ -270,6 +276,9 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   generateWeeklyList(): void {
+    if (this.isGeneratingList) {
+      return;
+    }
     this.isGenerateSheetOpen = true;
   }
 
@@ -278,6 +287,9 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   async onQuickGenerateList(): Promise<void> {
+    if (this.isGeneratingList) {
+      return;
+    }
     const selectedDayKeys = this.generateSheetDays.map((day) => day.key);
     const selectedMealIds = this.generateSheetDays.flatMap((day) =>
       day.meals.map((meal: any) => meal.id)
@@ -290,8 +302,10 @@ export class PlanComponent implements OnInit, OnDestroy {
     selectedDayKeys: string[];
     selectedMealIds: string[];
   }): Promise<void> {
+    if (this.isGeneratingList) {
+      return;
+    }
     this.isGenerateSheetOpen = false;
-
     await this.createGeneratedListFromSelection(
       selection.selectedDayKeys,
       selection.selectedMealIds
@@ -483,7 +497,7 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
-    const ingredients: string[] = [];
+    const rawIngredients: string[] = [];
     for (const day of this.weekMeals) {
       for (const plannedMeal of day.meals) {
         const mealId = String(plannedMeal.meal?.id);
@@ -494,15 +508,93 @@ export class PlanComponent implements OnInit, OnDestroy {
           ? plannedMeal.meal.ingredients
           : [];
         for (const ingredient of mealIngredients) {
-          const cleaned = typeof ingredient === 'string' ? ingredient.trim() : '';
+          const cleaned =
+            typeof ingredient === 'string' ? ingredient.trim() : '';
           if (cleaned) {
-            ingredients.push(cleaned);
+            rawIngredients.push(cleaned);
           }
         }
       }
     }
+    const grouped = new Map<
+      string,
+      {
+        originalText: string;
+        count: number;
+        parsedAmount: number | null;
+        suffix: string | null;
+        isParsed: boolean;
+      }
+    >();
+    for (const ingredient of rawIngredients) {
+      const normalizedIngredient = normalizeIngredientKey(ingredient);
+      const parsed = parseLeadingNumberIngredient(normalizedIngredient);
+      const key = parsed
+        ? `parsed:${parsed.suffix.toLowerCase()}`
+        : `plain:${normalizedIngredient}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          originalText: normalizedIngredient,
+          count: 1,
+          parsedAmount: parsed ? parsed.amount : null,
+          suffix: parsed ? parsed.suffix : null,
+          isParsed: !!parsed,
+        });
+        continue;
+      }
+      const existing = grouped.get(key)!;
+      existing.count += 1;
+      if (
+        existing.isParsed &&
+        existing.parsedAmount !== null &&
+        parsed &&
+        existing.suffix &&
+        parsed.suffix.toLowerCase() === existing.suffix.toLowerCase()
+      ) {
+        existing.parsedAmount += parsed.amount;
+      }
+    }
+    const result: string[] = [];
+    for (const entry of grouped.values()) {
+      if (entry.isParsed && entry.parsedAmount !== null && entry.suffix) {
+        result.push(`${entry.parsedAmount} ${entry.suffix}`.trim());
+      } else if (entry.count > 1) {
+        result.push(`${entry.count} × ${entry.originalText}`);
+      } else {
+        result.push(entry.originalText);
+      }
+    }
+    return result.sort((a, b) =>
+      this.getIngredientSortKey(a).localeCompare(this.getIngredientSortKey(b))
+    );
+  }
 
-    return ingredients;
+  private getIngredientSortKey(input: string): string {
+    const normalized = normalizeIngredientKey(input);
+
+    const counted = parseCountedPlainIngredient(normalized);
+    if (counted) {
+      return this.simplifyIngredientSortText(counted.text);
+    }
+
+    const parsed = parseLeadingNumberIngredient(normalized);
+    if (parsed) {
+      return this.simplifyIngredientSortText(parsed.suffix);
+    }
+
+    return this.simplifyIngredientSortText(normalized);
+  }
+
+  private simplifyIngredientSortText(text: string): string {
+    let result = text.toLowerCase().trim();
+
+    const parts = result.split(' ').filter(Boolean);
+
+    if (parts.length > 1 && parts[0].length <= 2) {
+      result = parts.slice(1).join(' ');
+    }
+
+    return result;
   }
 
   private buildGeneratedListName(selectedDayKeys: string[]): string {
@@ -525,7 +617,6 @@ export class PlanComponent implements OnInit, OnDestroy {
     selectedMealIds: string[]
   ): Promise<void> {
     const currentMember = this.memberStateService.getCurrentMember();
-
     if (!currentMember) {
       console.error('No current member selected');
       return;
@@ -535,55 +626,65 @@ export class PlanComponent implements OnInit, OnDestroy {
       console.warn('No ingredients found for selected meals');
       return;
     }
-    const listName = this.buildGeneratedListName(selectedDayKeys);
-    const createdList = await this.groceryService.createGroceryList(
-      listName,
-      currentMember.id,
-      true
-    );
-    if (!createdList) {
-      console.error('Failed to create generated grocery list');
-      return;
-    }
-    for (const ingredient of ingredients) {
-      await this.groceryService.createGroceryItem(
-        createdList.id,
-        ingredient,
-        currentMember.id
+    this.isGeneratingList = true;
+    this.showSnackbar('Creating grocery list...');
+    try {
+      const listName = this.buildGeneratedListName(selectedDayKeys);
+      const createdList = await this.groceryService.createGroceryList(
+        listName,
+        currentMember.id,
+        true
       );
+      if (!createdList) {
+        console.error('Failed to create generated grocery list');
+        this.isGeneratingList = false;
+        this.showSnackbar('Could not create grocery list');
+        return;
+      }
+      for (const ingredient of ingredients) {
+        await this.groceryService.createGroceryItem(
+          createdList.id,
+          ingredient,
+          currentMember.id
+        );
+      }
+      this.lastGeneratedListId = createdList.id;
+      this.isGeneratingList = false;
+      this.showSnackbar('Grocery list created', 'Undo');
+    } catch (error) {
+      console.error('Error creating generated grocery list:', error);
+      this.isGeneratingList = false;
+      this.showSnackbar('Could not create grocery list');
     }
-    console.log('Generated list created:', createdList.name, ingredients);
-    this.lastGeneratedListId = createdList.id;
-    this.showSnackbar('Grocery list created', 'Undo');
   }
 
- private showSnackbar(message: string, actionLabel?: string): void {
-  this.snackbarMessage = message;
-  this.snackbarActionLabel = actionLabel || null;
-  this.isSnackbarVisible = true;
-  this.cdr.detectChanges();
-  if (this.snackbarTimeout) {
-    clearTimeout(this.snackbarTimeout);
+  private showSnackbar(message: string, actionLabel?: string): void {
+    this.snackbarMessage = message;
+    this.snackbarActionLabel = actionLabel || null;
+    this.isSnackbarVisible = true;
+    this.cdr.detectChanges();
+    if (this.snackbarTimeout) {
+      clearTimeout(this.snackbarTimeout);
+    }
+    this.snackbarTimeout = setTimeout(() => {
+      this.hideSnackbar();
+    }, 4000);
   }
-  this.snackbarTimeout = setTimeout(() => {
-    this.hideSnackbar();
-  }, 4000);
-}
 
- private hideSnackbar(): void {
-  this.isSnackbarVisible = false;
-  this.snackbarMessage = null;
-  this.snackbarActionLabel = null;
-  this.cdr.detectChanges();
-}
+  private hideSnackbar(): void {
+    this.isSnackbarVisible = false;
+    this.snackbarMessage = null;
+    this.snackbarActionLabel = null;
+    this.cdr.detectChanges();
+  }
 
   async onSnackbarAction(): Promise<void> {
-    if (!this.lastGeneratedListId) return;
-
+    if (!this.lastGeneratedListId) {
+      return;
+    }
     await this.groceryService.deleteGroceryList(this.lastGeneratedListId);
-
-    this.hideSnackbar();
     this.lastGeneratedListId = null;
+    this.hideSnackbar();
   }
 
   ngOnDestroy(): void {

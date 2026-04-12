@@ -14,25 +14,21 @@
             <span class="back-link__text">Lists</span>
           </button>
 
-          <button
-            *ngIf="!isReadOnly"
-            type="button"
-            class="action-pill action-pill--complete"
-            (click)="onCompleteList()"
-          >
+          <button *ngIf="!isReadOnly" type="button" class="action-pill action-pill--complete"
+            (click)="onCompleteList()">
             Complete
           </button>
 
-          <span
-            *ngIf="isReadOnly"
-            class="list-status-chip"
-            [ngClass]="'list-status--' + groceryList.status.toLowerCase()"
-          >
+          <span *ngIf="isReadOnly" class="list-status-chip"
+            [ngClass]="'list-status--' + groceryList.status.toLowerCase()">
             {{ groceryList.status }}
           </span>
         </div>
 
         <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
+        <p *ngIf="isGeneratedList" class="page-subtitle">
+          From planned meals
+        </p>
 
         <div *ngIf="isReadOnly" class="read-only-inline">
           <p class="read-only-inline__text">
@@ -40,87 +36,83 @@
           </p>
         </div>
 
-        <div *ngIf="!isReadOnly" class="add-item-row">
-          <input
-            type="text"
-            [(ngModel)]="newItemName"
-            class="input-field"
-            placeholder="Add item..."
-          />
+        <div *ngIf="!isReadOnly" class="add-item-block">
+          <div class="add-item-row">
+            <input type="text" [(ngModel)]="newItemName" class="input-field" placeholder="Add item..."
+              (keydown.enter)="onEnterAddItem()" />
 
-          <button class="action-pill action-pill--primary" (click)="addItem()">
-            Add
-          </button>
-        </div>
-
-        <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list">
-          <div class="grocery-item" *ngFor="let item of groceryItems">
-            <div class="grocery-item-main" (click)="!isReadOnly && toggleItem(item)">
-              <span
-                class="grocery-item-checkbox"
-                [class.grocery-item-checkbox--checked]="item.status === 'bought'"
-              >
-                {{ item.status === 'bought' ? '✓' : '' }}
-              </span>
-
-              <div class="grocery-item-content" *ngIf="getItemMetaParts(item) as meta">
-                <p
-                  class="grocery-item-name"
-                  [class.grocery-item-name--bought]="item.status === 'bought'"
-                >
-                  {{ item.name }}
-                </p>
-
-                <p class="grocery-item-status">
-                  <span>
-                    Added by
-                    <strong *ngIf="meta.isAddedByYou; else addedName">You</strong>
-                    <ng-template #addedName>{{ meta.addedByName }}</ng-template>
-                  </span>
-
-                  <span *ngIf="meta.isBought">
-                    &nbsp;·&nbsp;
-                    Bought by
-                    <strong *ngIf="meta.isBoughtByYou; else boughtName">You</strong>
-                    <ng-template #boughtName>{{ meta.boughtByName }}</ng-template>
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            <div class="grocery-item-actions-wrapper">
-              <button
-                type="button"
-                class="grocery-item-actions"
-                (click)="toggleItemMenu($event, item)"
-                aria-label="Open grocery item actions"
-              >
-                ⋯
-              </button>
-
-              <div
-                *ngIf="openItemMenuId === item.id && !isMobileViewport()"
-                class="grocery-item-menu"
-              >
-                <button
-                  *ngIf="!isReadOnly"
-                  class="grocery-item-menu-item"
-                  (click)="openEditDialog($event, item)"
-                >
-                  Edit
-                </button>
-
-                <button
-                  *ngIf="!isReadOnly"
-                  class="grocery-item-menu-item grocery-item-menu-item--danger"
-                  (click)="openDeleteDialog($event, item)"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
+            <button class="action-pill action-pill--primary" (click)="addItem()">
+              Add
+            </button>
           </div>
+
+          <p class="add-item-hint">
+            e.g. milk • 2 apples • 200 g flour
+          </p>
         </div>
+
+      <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list">
+  <div class="grocery-item" *ngFor="let item of groceryItems">
+    <div class="grocery-item-main" (click)="!isReadOnly && toggleItem(item)">
+      <span class="grocery-item-checkbox" [class.grocery-item-checkbox--checked]="item.status === 'bought'">
+        {{ item.status === 'bought' ? '✓' : '' }}
+      </span>
+
+      <div class="grocery-item-content" *ngIf="getItemMetaParts(item) as meta">
+        <p class="grocery-item-name" [class.grocery-item-name--bought]="item.status === 'bought'">
+          {{ item.name }}
+        </p>
+
+        <p class="grocery-item-status">
+          <span>
+            Added by
+            <strong *ngIf="meta.isAddedByYou; else addedName">You</strong>
+            <ng-template #addedName>{{ meta.addedByName }}</ng-template>
+          </span>
+
+          <span *ngIf="meta.isBought">
+            &nbsp;·&nbsp;
+            Bought by
+            <strong *ngIf="meta.isBoughtByYou; else boughtName">You</strong>
+            <ng-template #boughtName>{{ meta.boughtByName }}</ng-template>
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <div class="grocery-item-actions-wrapper">
+      <button
+        type="button"
+        class="grocery-item-actions"
+        (click)="toggleItemMenu($event, item)"
+        aria-label="Open grocery item actions"
+      >
+        ⋯
+      </button>
+
+      <div
+        *ngIf="openItemMenuId === item.id && !isMobileViewport()"
+        class="grocery-item-menu"
+      >
+        <button
+          *ngIf="!isReadOnly"
+          class="grocery-item-menu-item"
+          (click)="openEditDialog($event, item)"
+        >
+          Edit
+        </button>
+
+        <button
+          *ngIf="!isReadOnly"
+          class="grocery-item-menu-item grocery-item-menu-item--danger"
+          (click)="openDeleteDialog($event, item)"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
         <ng-template #noItems>
           <p class="grocery-empty">No items yet.</p>
@@ -130,62 +122,34 @@
   </ng-container>
 </section>
 
-<app-responsive-action-menu
-  *ngIf="selectedItemForActions"
-  [isOpen]="true"
-  [title]="selectedItemForActions.name"
-  [subtitle]="''"
-  [actions]="itemActions"
-  (closed)="selectedItemForActions = null"
-  (actionSelected)="onItemActionSelected($event)"
-></app-responsive-action-menu>
+<app-responsive-action-menu *ngIf="selectedItemForActions" [isOpen]="true" [title]="selectedItemForActions.name"
+  [subtitle]="''" [actions]="itemActions" (closed)="selectedItemForActions = null"
+  (actionSelected)="onItemActionSelected($event)"></app-responsive-action-menu>
 
 <div class="dialog-overlay dialog-overlay--form" *ngIf="isEditDialogOpen" (click)="closeEditDialog()">
   <div class="dialog-shell dialog-shell--form" (click)="$event.stopPropagation()">
-    <app-edit-text-dialog
-      [title]="'Edit item'"
-      [subtitle]="''"
-      [label]="'Item name'"
-      [value]="editItemName"
-      [placeholder]="'Enter item name'"
-      [confirmLabel]="'Save'"
-      [cancelLabel]="'Cancel'"
-      (valueChange)="editItemName = $event"
-      (cancel)="closeEditDialog()"
-      (confirm)="confirmEditItem()"
-    ></app-edit-text-dialog>
+    <app-edit-text-dialog [title]="'Edit item'" [subtitle]="''" [label]="'Item name'" [value]="editItemName"
+      [placeholder]="'Enter item name'" [confirmLabel]="'Save'" [cancelLabel]="'Cancel'"
+      (valueChange)="editItemName = $event" (cancel)="closeEditDialog()"
+      (confirm)="confirmEditItem()"></app-edit-text-dialog>
   </div>
 </div>
 
 <div class="dialog-overlay" *ngIf="isDeleteDialogOpen" (click)="closeDeleteDialog()">
   <div class="dialog-shell" (click)="$event.stopPropagation()">
-    <app-confirmation-dialog
-      [title]="'Delete item?'"
-      [message]="getDeleteMessage()"
-      [cancelLabel]="'Cancel'"
-      [confirmLabel]="'Delete'"
-      (cancel)="closeDeleteDialog()"
-      (confirm)="confirmDeleteItem()"
-    ></app-confirmation-dialog>
+    <app-confirmation-dialog [title]="'Delete item?'" [message]="getDeleteMessage()" [cancelLabel]="'Cancel'"
+      [confirmLabel]="'Delete'" (cancel)="closeDeleteDialog()"
+      (confirm)="confirmDeleteItem()"></app-confirmation-dialog>
   </div>
 </div>
 
 <div class="dialog-overlay" *ngIf="isPantryDialogOpen" (click)="closePantryDialog()">
   <div class="dialog-shell" (click)="$event.stopPropagation()">
-    <app-pantry-action-dialog
-      [title]="pantryDialogTitle"
-      [message]="pantryDialogMessage"
-      [showSkip]="pantryDialogShowSkip"
-      [showArchive]="false"
-      (action)="onPantryDialogAction($event)"
-    >
+    <app-pantry-action-dialog [title]="pantryDialogTitle" [message]="pantryDialogMessage"
+      [showSkip]="pantryDialogShowSkip" [showArchive]="false" (action)="onPantryDialogAction($event)">
     </app-pantry-action-dialog>
   </div>
 </div>
 
-<app-snackbar
-  [isVisible]="!!toastMessage"
-  [message]="toastMessage"
-  [actionLabel]="toastActionLabel"
-  (actionClicked)="onToastAction()"
-></app-snackbar>
+<app-snackbar [isVisible]="!!toastMessage" [message]="toastMessage" [actionLabel]="toastActionLabel"
+  (actionClicked)="onToastAction()"></app-snackbar>

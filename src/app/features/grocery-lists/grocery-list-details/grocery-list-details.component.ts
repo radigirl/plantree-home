@@ -25,7 +25,12 @@ import { ConfirmationDialogComponent } from '../../../shared/components/confirma
 import { SnackbarComponent } from '../../../shared/components/snackbar/snackbar.component';
 import { PantryActionDialogComponent } from '../../../shared/components/pantry-action-dialog/pantry-action-dialog.component';
 import { PantryService } from '../../../services/pantry.service';
-import { classifyPantryMoveItems } from '../../../shared/utils/pantry-review.util';
+import {
+  normalizeIngredientKey,
+  parseLeadingNumberIngredient,
+  parseCountedPlainIngredient
+} from '../../../shared/utils/ingredient.util';
+
 
 @Component({
   selector: 'app-grocery-list-details',
@@ -124,6 +129,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     await this.loadGroceryList(listId);
   }
 
+  get isGeneratedList(): boolean {
+    return !!this.groceryList?.generated;
+  }
+
   async loadGroceryList(listId: string): Promise<void> {
     this.isLoading = true;
     this.error = '';
@@ -172,36 +181,137 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
+  async onEnterAddItem(): Promise<void> {
+    const trimmed = this.newItemName.trim();
+    if (!trimmed || this.isReadOnly) {
+      return;
+    }
+    await this.addItem();
+  }
+
   async addItem(): Promise<void> {
     if (this.isReadOnly) return;
-
     const trimmedName = this.newItemName.trim();
-
     if (!trimmedName || !this.groceryList) {
       return;
     }
-
     const currentMember = this.memberStateService.getCurrentMember();
     const addedByMemberId = currentMember?.id ?? 1;
 
+    // try to merge into an existing compatible item first
+    for (const item of this.groceryItems) {
+      const mergedName = this.buildMergeResult(item.name, trimmedName);
+
+      if (!mergedName) {
+        continue;
+      }
+      const success = await this.groceryService.updateGroceryItemName(
+        item.id,
+        mergedName
+      );
+      if (!success) {
+        this.error = 'Could not update grocery item.';
+        this.cdr.detectChanges();
+        return;
+      }
+      this.newItemName = '';
+      this.groceryItems = await this.groceryService.getItemsByListId(
+        this.groceryList.id
+      );
+      this.cdr.detectChanges();
+      return;
+    }
+    // otherwise create a new item
     const created = await this.groceryService.createGroceryItem(
       this.groceryList.id,
       trimmedName,
       addedByMemberId
     );
-
     if (!created) {
       this.error = 'Could not add grocery item.';
       this.cdr.detectChanges();
       return;
     }
-
     this.newItemName = '';
     this.groceryItems = await this.groceryService.getItemsByListId(
       this.groceryList.id
     );
     this.cdr.detectChanges();
   }
+
+  private buildMergeResult(
+  existingName: string,
+  newName: string
+): string | null {
+  const normalizedExisting = normalizeIngredientKey(existingName);
+  const normalizedNew = normalizeIngredientKey(newName);
+
+  const parsedExisting = parseLeadingNumberIngredient(normalizedExisting);
+  const parsedNew = parseLeadingNumberIngredient(normalizedNew);
+
+  const countedExisting = parseCountedPlainIngredient(normalizedExisting);
+  const countedNew = parseCountedPlainIngredient(normalizedNew);
+
+  // numeric-leading + numeric-leading => sum quantity
+  if (
+    parsedExisting &&
+    parsedNew &&
+    parsedExisting.suffix.toLowerCase() === parsedNew.suffix.toLowerCase()
+  ) {
+    return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
+  }
+
+  // numeric-leading + counted plain => sum if same family
+  if (
+    parsedExisting &&
+    countedNew &&
+    parsedExisting.suffix.toLowerCase() === countedNew.text.toLowerCase()
+  ) {
+    return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
+  }
+
+  // counted plain + numeric-leading => sum if same family
+  if (
+    countedExisting &&
+    parsedNew &&
+    countedExisting.text.toLowerCase() === parsedNew.suffix.toLowerCase()
+  ) {
+    return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
+  }
+
+  // plain text + same plain text => turn into 2 × text
+  if (
+    !parsedExisting &&
+    !parsedNew &&
+    !countedExisting &&
+    !countedNew &&
+    normalizedExisting === normalizedNew
+  ) {
+    return `2 × ${normalizedExisting}`;
+  }
+
+  // counted plain + same plain text => increment count
+  if (
+    countedExisting &&
+    !parsedNew &&
+    !countedNew &&
+    countedExisting.text.toLowerCase() === normalizedNew.toLowerCase()
+  ) {
+    return `${countedExisting.count + 1} × ${countedExisting.text}`;
+  }
+
+  // plain text + counted plain => increment count
+  if (
+    !parsedExisting &&
+    !countedExisting &&
+    countedNew &&
+    normalizedExisting.toLowerCase() === countedNew.text.toLowerCase()
+  ) {
+    return `${countedNew.count + 1} × ${normalizedExisting}`;
+  }
+
+  return null;
+}
 
   async toggleItem(item: any): Promise<void> {
     if (this.isReadOnly || this.isEditDialogOpen || this.isDeleteDialogOpen) {
@@ -430,14 +540,14 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   openPantryDialogForComplete(list: GroceryList, pending: number): void {
-  this.pendingPantryList = list;
-  this.pantryDialogTitle = 'Move to pantry?';
-  this.pantryDialogMessage = `This list has ${pending} bought ${pending === 1 ? 'item' : 'items'} that can be moved to pantry.`;
-  this.pantryDialogShowSkip = true;
-  this.isPantryDialogOpen = true;
+    this.pendingPantryList = list;
+    this.pantryDialogTitle = 'Move to pantry?';
+    this.pantryDialogMessage = `This list has ${pending} bought ${pending === 1 ? 'item' : 'items'} that can be moved to pantry.`;
+    this.pantryDialogShowSkip = true;
+    this.isPantryDialogOpen = true;
 
-  this.cdr.detectChanges();
-}
+    this.cdr.detectChanges();
+  }
 
   showToast(message: string, actionLabel?: string): void {
     this.toastMessage = message;
@@ -519,85 +629,85 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     this.showToast('List marked as completed', 'Undo');
   }
 
- async onPantryDialogAction(
-  action: 'move' | 'skip' | 'archive' | 'cancel'
-): Promise<void> {
-  const list = this.pendingPantryList;
+  async onPantryDialogAction(
+    action: 'move' | 'skip' | 'archive' | 'cancel'
+  ): Promise<void> {
+    const list = this.pendingPantryList;
 
-  if (!list) {
+    if (!list) {
+      this.closePantryDialog();
+      return;
+    }
+
     this.closePantryDialog();
-    return;
-  }
 
-  this.closePantryDialog();
-
-  if (action === 'move') {
-    const movedCount = await this.moveItemsToPantry(list);
-    const success = await this.groceryService.completeGroceryList(list.id);
-    if (!success) {
-      this.error = 'Could not complete list.';
+    if (action === 'move') {
+      const movedCount = await this.moveItemsToPantry(list);
+      const success = await this.groceryService.completeGroceryList(list.id);
+      if (!success) {
+        this.error = 'Could not complete list.';
+        this.cdr.detectChanges();
+        return;
+      }
+      this.groceryList = {
+        ...this.groceryList!,
+        status: 'completed',
+        updated_at: new Date().toISOString(),
+      };
+      this.showToast(
+        movedCount === 1
+          ? '1 item moved to pantry and list completed'
+          : `${movedCount} items moved to pantry and list completed`
+      );
       this.cdr.detectChanges();
       return;
     }
-    this.groceryList = {
-      ...this.groceryList!,
-      status: 'completed',
-      updated_at: new Date().toISOString(),
-    };
-    this.showToast(
-      movedCount === 1
-        ? '1 item moved to pantry and list completed'
-        : `${movedCount} items moved to pantry and list completed`
-    );
-    this.cdr.detectChanges();
-    return;
-  }
-  if (action === 'skip') {
-    const success = await this.groceryService.completeGroceryList(list.id);
-    if (!success) {
-      this.error = 'Could not complete list.';
+    if (action === 'skip') {
+      const success = await this.groceryService.completeGroceryList(list.id);
+      if (!success) {
+        this.error = 'Could not complete list.';
+        this.cdr.detectChanges();
+        return;
+      }
+      this.groceryList = {
+        ...this.groceryList!,
+        status: 'completed',
+        updated_at: new Date().toISOString(),
+      };
+      this.showCompletedUndoToast(this.groceryList);
       this.cdr.detectChanges();
-      return;
     }
-    this.groceryList = {
-      ...this.groceryList!,
-      status: 'completed',
-      updated_at: new Date().toISOString(),
-    };
-    this.showCompletedUndoToast(this.groceryList);
-    this.cdr.detectChanges();
   }
-}
 
   closePantryDialog(): void {
-  this.isPantryDialogOpen = false;
-  this.pantryDialogTitle = '';
-  this.pantryDialogMessage = '';
-  this.pantryDialogShowSkip = false;
-  this.pendingPantryList = null;
-}
-
-async moveItemsToPantry(list: GroceryList): Promise<number> {
-  try {
-    const items = await this.groceryService.getItemsByListId(list.id);
-    const itemsToMove = items.filter(
-      (item: any) => item.status === 'bought' && !item.moved_to_pantry
-    );
-    for (const item of itemsToMove) {
-      await this.pantryService.addOrIncrementPantryItem(item.name);
-      await this.groceryService.updateGroceryItemMovedToPantry(
-        item.id,
-        true
-      );
-    }
-    return itemsToMove.length;
-  } catch (error) {
-    console.error('Move to pantry failed:', error);
-    this.error = 'Could not move items to pantry.';
-    this.cdr.detectChanges();
-    return 0;
+    this.isPantryDialogOpen = false;
+    this.pantryDialogTitle = '';
+    this.pantryDialogMessage = '';
+    this.pantryDialogShowSkip = false;
+    this.pendingPantryList = null;
   }
-}
+
+  async moveItemsToPantry(list: GroceryList): Promise<number> {
+    try {
+      const items = await this.groceryService.getItemsByListId(list.id);
+      const itemsToMove = items.filter(
+        (item: any) => item.status === 'bought' && !item.moved_to_pantry
+      );
+      for (const item of itemsToMove) {
+        await this.pantryService.addOrIncrementPantryItem(item.name);
+        await this.groceryService.updateGroceryItemMovedToPantry(
+          item.id,
+          true
+        );
+      }
+      return itemsToMove.length;
+    } catch (error) {
+      console.error('Move to pantry failed:', error);
+      this.error = 'Could not move items to pantry.';
+      this.cdr.detectChanges();
+      return 0;
+    }
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();

@@ -28,6 +28,7 @@ import { ConfirmationDialogComponent } from '../../shared/components/confirmatio
 import { EditTextDialogComponent } from '../../shared/components/edit-text-dialog/edit-text-dialog.component';
 import { classifyPantryMoveItems } from '../../shared/utils/pantry-review.util';
 
+
 @Component({
   selector: 'app-grocery-lists',
   standalone: true,
