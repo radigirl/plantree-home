@@ -27,6 +27,10 @@
                 {{ list.name }}
               </p>
 
+              <p *ngIf="hasGeneratedListCoverage(list)" class="list-coverage">
+                {{ getGeneratedListCoverageSummary(list) }}
+              </p>
+
               <div class="list-meta">
                 <span class="list-status-chip" [ngClass]="'list-status--' + list.status.toLowerCase()">
                   {{ list.status }}
@@ -71,6 +75,10 @@
             <div class="list-main">
               <p class="list-name">
                 {{ list.name }}
+              </p>
+
+              <p *ngIf="hasGeneratedListCoverage(list)" class="list-coverage">
+                {{ getGeneratedListCoverageSummary(list) }}
               </p>
 
               <div class="list-meta">

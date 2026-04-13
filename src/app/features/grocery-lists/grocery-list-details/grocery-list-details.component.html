@@ -26,13 +26,40 @@
         </div>
 
         <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
+        <div *ngIf="isGeneratedList && coverageDays.length > 0" class="coverage-block">
+          <!-- SUMMARY ROW -->
+          <div class="coverage-summary" (click)="isCoverageExpanded = !isCoverageExpanded">
+            <p class="coverage-summary-text">
+              {{ coverageSummary }}
+            </p>
+
+            <span class="coverage-chevron">
+              {{ isCoverageExpanded ? 'Hide' : 'Show' }}
+            </span>
+          </div>
+
+          <!-- EXPANDED CONTENT -->
+          <div *ngIf="isCoverageExpanded" class="coverage-days">
+            <div class="coverage-day" *ngFor="let day of coverageDays">
+              <p class="coverage-day-label">{{ day.label }}</p>
+
+              <ul class="coverage-meals">
+                <li *ngFor="let meal of day.meals">
+                  {{ meal }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <div *ngIf="isGeneratedList" class="list-subheader">
           <p class="page-subtitle">
             From planned meals
           </p>
 
           <button *ngIf="alwaysPresentItems.length > 0" type="button" class="always-present-pill"
-            [class.always-present-pill--active]="hideAlwaysPresent" [class.always-present-pill--disabled]="isReadOnly" (click)="hideAlwaysPresent = !hideAlwaysPresent" [disabled]="isReadOnly">
+            [class.always-present-pill--active]="hideAlwaysPresent" [class.always-present-pill--disabled]="isReadOnly"
+            (click)="hideAlwaysPresent = !hideAlwaysPresent" [disabled]="isReadOnly">
             {{ hideAlwaysPresent ? 'Show always-present' : 'Hide always-present' }}
           </button>
         </div>
@@ -58,7 +85,8 @@
           </p>
         </div>
 
-        <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list" [class.grocery-items-list--readonly]="isReadOnly">
+        <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list"
+          [class.grocery-items-list--readonly]="isReadOnly">
           <div class="grocery-item" *ngFor="let item of visibleGroceryItems">
             <div class="grocery-item-main" (click)="!isReadOnly && toggleItem(item)">
               <span class="grocery-item-checkbox" [class.grocery-item-checkbox--checked]="item.status === 'bought'">

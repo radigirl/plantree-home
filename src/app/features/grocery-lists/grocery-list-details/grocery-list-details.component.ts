@@ -84,6 +84,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   undoCompletedList: GroceryList | null = null;
 
   hideAlwaysPresent = false;
+  isCoverageExpanded = false;
 
   private toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -734,6 +735,54 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return 0;
     }
   }
+
+  get coverageDays(): Array<{ label: string; meals: string[] }> {
+  if (!this.groceryList?.generated || !this.groceryList.metadata?.days) {
+    return [];
+  }
+
+  return this.groceryList.metadata.days
+    .map((day: any) => {
+      const meals = (day.meals || [])
+        .map((m: any) => m?.name)
+        .filter((name: string | undefined): name is string => !!name);
+
+      if (!meals.length) {
+        return null;
+      }
+
+      return {
+        label: this.formatCoverageDay(day.key),
+        meals,
+      };
+    })
+    .filter(Boolean);
+}
+
+private formatCoverageDay(dateKey: string): string {
+  const date = new Date(`${dateKey}T12:00:00`);
+
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+get coverageSummary(): string {
+  if (!this.coverageDays.length) return '';
+
+  const daysCount = this.coverageDays.length;
+  const mealsCount = this.coverageDays.reduce(
+    (sum, d) => sum + d.meals.length,
+    0
+  );
+
+  const dayText = daysCount === 1 ? 'day' : 'days';
+  const mealText = mealsCount === 1 ? 'meal' : 'meals';
+
+  return `Covers planned meals · ${daysCount} ${dayText} · ${mealsCount} ${mealText}`;
+}
 
   ngOnDestroy(): void {
     this.destroy$.next();

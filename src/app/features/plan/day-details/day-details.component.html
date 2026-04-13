@@ -485,6 +485,10 @@
               </div>
             </div>
 
+            <div class="meal-coverage" *ngIf="!isPastDate() && isMealCovered(meal.meal.id)">
+              In: {{ getMealCoverageListName(meal.meal.id) }}
+            </div>
+
             <div class="meal-actions-row">
               <button type="button" class="meal-action-button" *ngIf="getPrimaryActionLabel(meal.status)"
                 (click)="$event.stopPropagation(); onPrimaryAction(meal)">

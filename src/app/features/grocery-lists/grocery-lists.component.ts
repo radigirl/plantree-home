@@ -165,22 +165,22 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   }
 
   private resetListsViewState(): void {
-  this.error = '';
+    this.error = '';
 
-  this.isCreateDialogOpen = false;
-  this.createListName = '';
+    this.isCreateDialogOpen = false;
+    this.createListName = '';
 
-  this.openMenuListId = null;
-  this.selectedListForEdit = null;
-  this.editListName = '';
+    this.openMenuListId = null;
+    this.selectedListForEdit = null;
+    this.editListName = '';
 
-  this.selectedListForActions = null;
-  this.listActions = [];
+    this.selectedListForActions = null;
+    this.listActions = [];
 
-  this.showArchived = false;
-  this.isDeleteDialogOpen = false;
-  this.listPendingDelete = null;
-}
+    this.showArchived = false;
+    this.isDeleteDialogOpen = false;
+    this.listPendingDelete = null;
+  }
 
   async loadGroceryLists(): Promise<void> {
     this.isLoading = true;
@@ -321,16 +321,16 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   }
 
   openEditDialog(event: Event, list: GroceryList): void {
-  event.stopPropagation();
+    event.stopPropagation();
 
-  this.isCreateDialogOpen = false;
-  this.createListName = '';
-  this.openMenuListId = null;
-  this.selectedListForActions = null;
-  this.selectedListForEdit = list;
-  this.editListName = list.name;
-  this.error = '';
-}
+    this.isCreateDialogOpen = false;
+    this.createListName = '';
+    this.openMenuListId = null;
+    this.selectedListForActions = null;
+    this.selectedListForEdit = list;
+    this.editListName = list.name;
+    this.error = '';
+  }
 
   closeEditDialog(): void {
     this.selectedListForEdit = null;
@@ -841,6 +841,37 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.undoCompletedList = list;
     this.toastActionType = 'undo-complete';
     this.showToast('List marked as completed', 'Undo');
+  }
+
+  getGeneratedListCoverageSummary(list: GroceryList): string | null {
+    if (!list.generated || !list.metadata?.days?.length) {
+      return null;
+    }
+
+    const mealNames = list.metadata.days
+      .flatMap((day: any) => Array.isArray(day.meals) ? day.meals : [])
+      .map((meal: any) => meal?.name?.trim())
+      .filter((name: string | undefined): name is string => !!name);
+
+    const uniqueNames = Array.from(new Set(mealNames));
+
+    if (!uniqueNames.length) {
+      return null;
+    }
+
+    if (uniqueNames.length === 1) {
+      return `Covers: ${uniqueNames[0]}`;
+    }
+
+    if (uniqueNames.length === 2) {
+      return `Covers: ${uniqueNames[0]}, ${uniqueNames[1]}`;
+    }
+
+    return `Covers: ${uniqueNames[0]}, ${uniqueNames[1]} +${uniqueNames.length - 2} more`;
+  }
+
+  hasGeneratedListCoverage(list: GroceryList): boolean {
+    return !!this.getGeneratedListCoverageSummary(list);
   }
 
   ngOnDestroy(): void {

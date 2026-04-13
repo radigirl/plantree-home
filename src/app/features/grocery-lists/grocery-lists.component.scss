@@ -393,6 +393,13 @@
   max-height: calc(100dvh - 40px);
 }
 
+.list-coverage {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  color: $color-text-muted;
+}
+
 @include mobile {
   .modal-overlay.modal-overlay--form {
     align-items: flex-start;

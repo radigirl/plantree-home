@@ -115,9 +115,13 @@ function tokenizeIngredient(value: string): string[] {
     .filter(Boolean);
 }
 
+function isMeaningfulToken(token: string): boolean {
+  return !/\d/.test(token) && token.length > 2;
+}
+
 export function isIngredientMatch(a: string, b: string): boolean {
-  const leftTokens = tokenizeIngredient(a);
-  const rightTokens = tokenizeIngredient(b);
+  const leftTokens = tokenizeIngredient(a).filter(isMeaningfulToken);
+  const rightTokens = tokenizeIngredient(b).filter(isMeaningfulToken);
 
   if (!leftTokens.length || !rightTokens.length) {
     return false;
@@ -130,9 +134,20 @@ export function isIngredientMatch(a: string, b: string): boolean {
     return true;
   }
 
-  if (leftJoined.includes(rightJoined) || rightJoined.includes(leftJoined)) {
-    return true;
+  const sharedTokens = leftTokens.filter((leftToken) =>
+    rightTokens.includes(leftToken)
+  );
+
+  // single vs single → exact match
+  if (leftTokens.length === 1 && rightTokens.length === 1) {
+    return sharedTokens.length === 1;
   }
 
-  return leftTokens.some((leftToken) => rightTokens.includes(leftToken));
+  // single vs multi → avoid false positives like "сода за хляб" vs "хляб"
+  if (leftTokens.length === 1 || rightTokens.length === 1) {
+    return false;
+  }
+
+  // multi vs multi → require full overlap of the smaller phrase
+  return sharedTokens.length === Math.min(leftTokens.length, rightTokens.length);
 }

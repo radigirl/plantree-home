@@ -404,6 +404,48 @@
   margin-top: 70px;
 }
 
+.coverage-block {
+  margin-top: 4px;
+}
+
+.coverage-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.coverage-summary-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: $color-text-muted;
+}
+
+.coverage-chevron {
+  font-size: 0.8rem;
+  color: $color-text-muted;
+}
+
+.coverage-days {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coverage-day-label {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: $color-text-muted;
+}
+
+.coverage-meals {
+  margin: 2px 0 0;
+  padding-left: 16px;
+  font-size: 0.83rem;
+  color: $color-text-muted;
+}
 
 /* RESPONSIVE */
 @include mobile {

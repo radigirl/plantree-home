@@ -16,7 +16,7 @@ import { Member } from '../../../models/member.model';
 
 import { MealPlanService } from '../../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../../shared/components/page-loading/page-loading.component';
-import { MemberStateService} from '../../../services/member.state.service';
+import { MemberStateService } from '../../../services/member.state.service';
 import { SupabaseService } from '../../../services/supabase.service';
 
 import { MEAL_STATUS_LABELS, getNextStatus } from '../../../shared/utils/meal.utils';
@@ -98,6 +98,9 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   isDeleteConfirmOpen = false;
   mealPendingDelete: PlannedMeal | null = null;
 
+  coveredMealIds = new Set<string>();
+  mealIdToListName: Record<string, string> = {};
+
   private destroy$ = new Subject<void>();
 
 
@@ -108,7 +111,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     private mealPlanService: MealPlanService,
     private memberStateService: MemberStateService,
     private supabaseService: SupabaseService,
-    private spaceStateService: SpaceStateService, 
+    private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef,
     private router: Router,
   ) { }
@@ -129,49 +132,49 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-  this.date = this.route.snapshot.paramMap.get('date');
+    this.date = this.route.snapshot.paramMap.get('date');
 
-  await this.loadMembers();
+    await this.loadMembers();
 
-  if (!this.date) {
-    this.isLoading = false;
-    this.meals = [];
-    this.cdr.detectChanges();
-    return;
+    if (!this.date) {
+      this.isLoading = false;
+      this.meals = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.spaceStateService.currentSpace$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((space): space is NonNullable<typeof space> => !!space),
+        map(space => space.id),
+        distinctUntilChanged()
+      )
+      .subscribe(async () => {
+        if (!this.date) {
+          return;
+        }
+
+        this.isFormOpen = false;
+        this.openMealMenuId = null;
+        this.selectedMealForActions = null;
+
+        await this.loadMealsForDate(this.date);
+      });
+
+    await this.loadMealsForDate(this.date);
+
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(async (params) => {
+        const shouldOpenAddForm = params.get('add') === 'true';
+
+        if (shouldOpenAddForm && !this.isPastDate() && !this.isFormOpen) {
+          await this.startAddMeal();
+          this.cdr.detectChanges();
+        }
+      });
   }
-
-  this.spaceStateService.currentSpace$
-    .pipe(
-      takeUntil(this.destroy$),
-      filter((space): space is NonNullable<typeof space> => !!space),
-      map(space => space.id),
-      distinctUntilChanged()
-    )
-    .subscribe(async () => {
-      if (!this.date) {
-        return;
-      }
-
-      this.isFormOpen = false;
-      this.openMealMenuId = null;
-      this.selectedMealForActions = null;
-
-      await this.loadMealsForDate(this.date);
-    });
-
-  await this.loadMealsForDate(this.date);
-
-  this.route.queryParamMap
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(async (params) => {
-      const shouldOpenAddForm = params.get('add') === 'true';
-
-      if (shouldOpenAddForm && !this.isPastDate() && !this.isFormOpen) {
-        await this.startAddMeal();
-        this.cdr.detectChanges();
-      }
-    });
-}
 
   async loadMembers(): Promise<void> {
     try {
@@ -189,6 +192,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
     try {
       this.meals = await this.mealPlanService.getMealsForDate(date);
+      await this.loadCoverageForMeals();
     } catch (error) {
       console.error('Error loading meals for selected day:', error);
       this.meals = [];
@@ -197,6 +201,25 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }
   }
+
+  private async loadCoverageForMeals(): Promise<void> {
+  try {
+    const coverage = await this.mealPlanService.getCoverageForMeals(
+      this.meals.map((meal) => String(meal.meal.id))
+    );
+
+    this.coveredMealIds = new Set(coverage.map((item) => String(item.mealId)));
+
+    this.mealIdToListName = {};
+    for (const item of coverage) {
+      this.mealIdToListName[String(item.mealId)] = item.listName;
+    }
+  } catch (error) {
+    console.error('Error loading meal coverage:', error);
+    this.coveredMealIds = new Set();
+    this.mealIdToListName = {};
+  }
+}
 
   async loadAvailableMeals(): Promise<void> {
     try {
@@ -952,9 +975,17 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-  this.destroy$.next();
-  this.destroy$.complete();
+  isMealCovered(mealId: string): boolean {
+  return this.coveredMealIds.has(String(mealId));
 }
+
+getMealCoverageListName(mealId: string): string | null {
+  return this.mealIdToListName[String(mealId)] ?? null;
+}
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
 }

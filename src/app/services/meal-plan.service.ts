@@ -473,4 +473,48 @@ export class MealPlanService {
       created_at: data.created_at,
     };
   }
+
+  async getCoverageForMeals(
+  mealIds: string[]
+): Promise<Array<{ mealId: string; listName: string }>> {
+  if (!mealIds.length) {
+    return [];
+  }
+
+  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+  const { data, error } = await this.supabaseService.supabase
+    .from('grocery_lists')
+    .select('name, generated, status, metadata')
+    .eq('space_id', spaceId)
+    .eq('generated', true)
+    .eq('status', 'active');
+
+  if (error) {
+    console.error('Error fetching grocery list coverage:', error);
+    return [];
+  }
+
+  const requestedIds = new Set(mealIds.map(String));
+  const result: Array<{ mealId: string; listName: string }> = [];
+
+  for (const list of data ?? []) {
+    const metadata = list.metadata as any;
+    const coveredMealIds: string[] = Array.isArray(metadata?.mealIds)
+      ? metadata.mealIds.map(String)
+      : [];
+
+    for (const mealId of coveredMealIds) {
+      if (requestedIds.has(mealId)) {
+        result.push({
+          mealId,
+          listName: list.name,
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
 }

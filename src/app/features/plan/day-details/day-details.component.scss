@@ -836,6 +836,11 @@
   max-width: 420px;
 }
 
+.meal-coverage {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: $color-text-muted;
+}
 @include mobile {
   .day-details-page {
     gap: 14px;
