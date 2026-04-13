@@ -141,14 +141,15 @@ export class PantryComponent implements OnInit, OnDestroy {
     );
   }
 
-  get recentItems(): PantryItem[] {
-    return [...this.pantryItems]
-      .sort((a, b) => {
-        const aTime = new Date(a.created_at).getTime();
-        const bTime = new Date(b.created_at).getTime();
-        return bTime - aTime;
-      });
-  }
+ get recentItems(): PantryItem[] {
+  return this.filterItems(
+    [...this.pantryItems].sort((a, b) => {
+      const aTime = new Date(a.created_at).getTime();
+      const bTime = new Date(b.created_at).getTime();
+      return bTime - aTime;
+    })
+  );
+}
 
   async loadAlwaysPresentItems(): Promise<void> {
     try {

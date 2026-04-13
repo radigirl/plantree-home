@@ -253,6 +253,16 @@
   white-space: nowrap;
 }
 
+.always-present-add-button {
+  @extend .pantry-sort-pill;
+  @extend .pantry-sort-pill--active;
+}
+
+.always-present-cancel-button {
+  @extend .pantry-sort-pill;
+  @extend .pantry-sort-pill;
+}
+
 .pantry-items-table {
   display: flex;
   flex-direction: column;

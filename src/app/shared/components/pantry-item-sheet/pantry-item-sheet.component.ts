@@ -96,12 +96,17 @@ export class PantryItemSheetComponent implements OnChanges {
     return;
   }
 
+  const previousType = this.type;
   this.type = value;
-  if (this.type === 'measured' && !this.sizeUnit) {
-      this.sizeUnit = '';
-    }
 
-    this.updateSizeUnitError();
+  // When switching from measured -> countable,
+  // clear measured-only values so they don't stay in the form.
+  if (previousType === 'measured' && this.type === 'countable') {
+    this.sizeUnit = '';
+    this.sizeAmount = null;
+  }
+
+  this.updateSizeUnitError();
 }
 
   ngOnChanges(changes: SimpleChanges): void {

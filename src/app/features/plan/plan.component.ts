@@ -569,6 +569,53 @@ export class PlanComponent implements OnInit, OnDestroy {
     );
   }
 
+  private buildGeneratedListMetadata(
+    selectedDayKeys: string[],
+    selectedMealIds: string[]
+  ): Record<string, any> {
+    const daysMap = new Map<
+      string,
+      {
+        key: string;
+        label: string;
+        date: string;
+        meals: Array<{ id: string; name: string }>;
+      }
+    >();
+
+    for (const day of this.generateSheetDays) {
+      if (!selectedDayKeys.includes(day.key)) {
+        continue;
+      }
+
+      const selectedMealsForDay = day.meals
+        .filter((meal: any) => selectedMealIds.includes(String(meal.id)))
+        .map((meal: any) => ({
+          id: String(meal.id),
+          name: meal.name,
+        }));
+
+      if (!selectedMealsForDay.length) {
+        continue;
+      }
+
+      daysMap.set(day.key, {
+        key: day.key,
+        label: day.label,
+        date: day.date,
+        meals: selectedMealsForDay,
+      });
+    }
+
+    return {
+      source: 'plan',
+      generated: true,
+      dayKeys: selectedDayKeys,
+      mealIds: selectedMealIds,
+      days: Array.from(daysMap.values()),
+    };
+  }
+
   private getIngredientSortKey(input: string): string {
     const normalized = normalizeIngredientKey(input);
 
@@ -622,6 +669,15 @@ export class PlanComponent implements OnInit, OnDestroy {
       return;
     }
     const ingredients = this.getIngredientsFromSelectedMealIds(selectedMealIds);
+    const metadata = this.buildGeneratedListMetadata(
+      selectedDayKeys,
+      selectedMealIds
+    );
+
+    if (!ingredients.length) {
+      console.warn('No ingredients found for selected meals');
+      return;
+    }
     if (!ingredients.length) {
       console.warn('No ingredients found for selected meals');
       return;
@@ -633,7 +689,8 @@ export class PlanComponent implements OnInit, OnDestroy {
       const createdList = await this.groceryService.createGroceryList(
         listName,
         currentMember.id,
-        true
+        true,
+        metadata
       );
       if (!createdList) {
         console.error('Failed to create generated grocery list');

@@ -49,13 +49,16 @@ export class GroceryService {
   async createGroceryList(
   name: string,
   createdByMemberId: number,
-  generated = false
+  generated = false,
+  metadata: Record<string, any> | null = null
 ): Promise<GroceryList | null> {
   const spaceId = this.spaceStateService.getCurrentSpace()?.id;
   const trimmedName = name.trim();
+
   if (!trimmedName) {
     return null;
   }
+
   const { data, error } = await this.supabaseService.supabase
     .from('grocery_lists')
     .insert([
@@ -65,6 +68,7 @@ export class GroceryService {
         created_by_member_id: createdByMemberId,
         space_id: spaceId,
         generated,
+        metadata,
       },
     ])
     .select()
@@ -74,6 +78,7 @@ export class GroceryService {
     console.error('Error creating grocery list:', error);
     return null;
   }
+
   return data as GroceryList;
 }
 
@@ -303,21 +308,21 @@ export class GroceryService {
 
   //reusable for Lists and List Details
   async getPendingPantryItems(listId: string): Promise<any[]> {
-  const items = await this.getItemsByListId(listId);
+    const items = await this.getItemsByListId(listId);
 
-  return items.filter(
-    (item: any) => item.status === 'bought' && !item.moved_to_pantry
-  );
-}
+    return items.filter(
+      (item: any) => item.status === 'bought' && !item.moved_to_pantry
+    );
+  }
 
-async getPendingPantryItemsCount(listId: string): Promise<number> {
-  const items = await this.getPendingPantryItems(listId);
-  return items.length;
-}
+  async getPendingPantryItemsCount(listId: string): Promise<number> {
+    const items = await this.getPendingPantryItems(listId);
+    return items.length;
+  }
 
-async completeGroceryList(listId: string): Promise<boolean> {
-  return this.updateGroceryListStatus(listId, 'completed');
-}
+  async completeGroceryList(listId: string): Promise<boolean> {
+    return this.updateGroceryListStatus(listId, 'completed');
+  }
 
 
 }
