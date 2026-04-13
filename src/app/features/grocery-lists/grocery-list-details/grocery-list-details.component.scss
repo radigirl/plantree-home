@@ -83,7 +83,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  padding: 13px 0;
+  padding: 2px 0;
   border-bottom: 1px solid rgba(92, 143, 134, 0.12);
   overflow: visible;
   z-index: 1;
@@ -151,10 +151,68 @@
 }
 
 .page-subtitle {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 0.82rem;
   color: $color-text-muted;
   opacity: 0.85;
+}
+
+.list-subheader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top:2px;
+}
+
+.always-present-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: none;
+
+  /* OFF state */
+  background: rgba(92, 143, 134, 0.12);
+  color: rgba(60, 95, 88, 0.95);
+
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.12s ease;
+}
+
+.always-present-pill:hover {
+  background: rgba(92, 143, 134, 0.18);
+}
+
+.always-present-pill:active {
+  transform: scale(0.98);
+}
+
+/* ACTIVE */
+.always-present-pill--active {
+  background: rgba(92, 143, 134, 0.32);
+  color: $color-primary-dark;
+  font-weight: 500;
+}
+
+.always-present-pill--active:hover {
+  background: rgba(92, 143, 134, 0.38);
+}
+
+.always-present-pill--disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
 }
 
 .grocery-item-name--bought {
@@ -265,24 +323,38 @@
 }
 
 .read-only-inline {
+  margin: 10px 0 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+
+  background: rgba(92, 143, 134, 0.08);
+
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0 4px;
 }
 
 .read-only-inline__text {
   margin: 0;
   font-size: 0.96rem;
-  line-height: 1.4;
-  color: $color-text-muted;
+  line-height: 1.35;
+  color: $color-primary-dark;
+  font-weight: 600;
 }
 
-.read-only-inline .action-pill {
-  width: fit-content;
-  min-width: 100px;
-  align-self: flex-end;
+.grocery-items-list--readonly .grocery-item-checkbox {
+  opacity: 0.38;
+}
+
+.grocery-items-list--readonly .grocery-item-actions {
+  opacity: 0.32;
+}
+
+.grocery-items-list--readonly .grocery-item-status {
+  color: rgba(102, 117, 110, 0.48);
+}
+
+.grocery-items-list--readonly .grocery-item-name {
+  color: rgba(60, 95, 88, 0.82);
 }
 
 .add-item-block {
@@ -297,6 +369,12 @@
   font-size: 0.78rem;
   line-height: 1.35;
   color: $color-text-muted;
+  opacity: 0.85;
+}
+
+.grocery-item-hint {
+  color: $color-text-muted;
+  font-style: italic;
   opacity: 0.85;
 }
 
@@ -325,6 +403,7 @@
   align-self: flex-start;
   margin-top: 70px;
 }
+
 
 /* RESPONSIVE */
 @include mobile {

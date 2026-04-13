@@ -26,9 +26,16 @@
         </div>
 
         <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
-        <p *ngIf="isGeneratedList" class="page-subtitle">
-          From planned meals
-        </p>
+        <div *ngIf="isGeneratedList" class="list-subheader">
+          <p class="page-subtitle">
+            From planned meals
+          </p>
+
+          <button *ngIf="alwaysPresentItems.length > 0" type="button" class="always-present-pill"
+            [class.always-present-pill--active]="hideAlwaysPresent" [class.always-present-pill--disabled]="isReadOnly" (click)="hideAlwaysPresent = !hideAlwaysPresent" [disabled]="isReadOnly">
+            {{ hideAlwaysPresent ? 'Show always-present' : 'Hide always-present' }}
+          </button>
+        </div>
 
         <div *ngIf="isReadOnly" class="read-only-inline">
           <p class="read-only-inline__text">
@@ -51,68 +58,54 @@
           </p>
         </div>
 
-      <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list">
-  <div class="grocery-item" *ngFor="let item of groceryItems">
-    <div class="grocery-item-main" (click)="!isReadOnly && toggleItem(item)">
-      <span class="grocery-item-checkbox" [class.grocery-item-checkbox--checked]="item.status === 'bought'">
-        {{ item.status === 'bought' ? '✓' : '' }}
-      </span>
+        <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list" [class.grocery-items-list--readonly]="isReadOnly">
+          <div class="grocery-item" *ngFor="let item of visibleGroceryItems">
+            <div class="grocery-item-main" (click)="!isReadOnly && toggleItem(item)">
+              <span class="grocery-item-checkbox" [class.grocery-item-checkbox--checked]="item.status === 'bought'">
+                {{ item.status === 'bought' ? '✓' : '' }}
+              </span>
 
-      <div class="grocery-item-content" *ngIf="getItemMetaParts(item) as meta">
-        <p class="grocery-item-name" [class.grocery-item-name--bought]="item.status === 'bought'">
-          {{ item.name }}
-        </p>
+              <div class="grocery-item-content" *ngIf="getItemMetaParts(item) as meta">
+                <p class="grocery-item-name" [class.grocery-item-name--bought]="item.status === 'bought'">
+                  {{ item.name }}
+                </p>
 
-        <p class="grocery-item-status">
-          <span>
-            Added by
-            <strong *ngIf="meta.isAddedByYou; else addedName">You</strong>
-            <ng-template #addedName>{{ meta.addedByName }}</ng-template>
-          </span>
+                <p class="grocery-item-status">
+                  <span>
+                    Added by
+                    <strong *ngIf="meta.isAddedByYou; else addedName">You</strong>
+                    <ng-template #addedName>{{ meta.addedByName }}</ng-template>
+                  </span>
 
-          <span *ngIf="meta.isBought">
-            &nbsp;·&nbsp;
-            Bought by
-            <strong *ngIf="meta.isBoughtByYou; else boughtName">You</strong>
-            <ng-template #boughtName>{{ meta.boughtByName }}</ng-template>
-          </span>
-        </p>
-      </div>
-    </div>
+                  <span *ngIf="meta.isBought">
+                    &nbsp;·&nbsp;
+                    Bought by
+                    <strong *ngIf="meta.isBoughtByYou; else boughtName">You</strong>
+                    <ng-template #boughtName>{{ meta.boughtByName }}</ng-template>
+                  </span>
+                </p>
+              </div>
+            </div>
 
-    <div class="grocery-item-actions-wrapper">
-      <button
-        type="button"
-        class="grocery-item-actions"
-        (click)="toggleItemMenu($event, item)"
-        aria-label="Open grocery item actions"
-      >
-        ⋯
-      </button>
+            <div class="grocery-item-actions-wrapper">
+              <button type="button" class="grocery-item-actions" (click)="toggleItemMenu($event, item)"
+                aria-label="Open grocery item actions">
+                ⋯
+              </button>
 
-      <div
-        *ngIf="openItemMenuId === item.id && !isMobileViewport()"
-        class="grocery-item-menu"
-      >
-        <button
-          *ngIf="!isReadOnly"
-          class="grocery-item-menu-item"
-          (click)="openEditDialog($event, item)"
-        >
-          Edit
-        </button>
+              <div *ngIf="openItemMenuId === item.id && !isMobileViewport()" class="grocery-item-menu">
+                <button *ngIf="!isReadOnly" class="grocery-item-menu-item" (click)="openEditDialog($event, item)">
+                  Edit
+                </button>
 
-        <button
-          *ngIf="!isReadOnly"
-          class="grocery-item-menu-item grocery-item-menu-item--danger"
-          (click)="openDeleteDialog($event, item)"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+                <button *ngIf="!isReadOnly" class="grocery-item-menu-item grocery-item-menu-item--danger"
+                  (click)="openDeleteDialog($event, item)">
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <ng-template #noItems>
           <p class="grocery-empty">No items yet.</p>

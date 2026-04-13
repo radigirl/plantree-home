@@ -30,6 +30,8 @@ import {
   parseLeadingNumberIngredient,
   parseCountedPlainIngredient
 } from '../../../shared/utils/ingredient.util';
+import { AlwaysPresentPantryItem } from '../../../models/always-present-pantry-item.model';
+import { isIngredientMatch } from '../../../shared/utils/ingredient-match.util';
 
 
 @Component({
@@ -54,6 +56,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   groceryItems: any[] = [];
   error = '';
   newItemName = '';
+  alwaysPresentItems: AlwaysPresentPantryItem[] = [];
 
   openItemMenuId: string | null = null;
 
@@ -79,6 +82,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   toastActionLabel: string | null = null;
   toastActionType: 'undo-complete' | null = null;
   undoCompletedList: GroceryList | null = null;
+
+  hideAlwaysPresent = false;
 
   private toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -146,6 +151,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       }
 
       this.groceryItems = await this.groceryService.getItemsByListId(listId);
+      const spaceId = this.groceryList.space_id;
+      this.alwaysPresentItems = await this.pantryService.getAlwaysPresentItems(spaceId);
       this.subscribeToGroceryItems(listId);
     } catch (error) {
       console.error('Error loading grocery list:', error);
@@ -155,6 +162,12 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }
   }
+
+  isAlwaysPresentHint(itemName: string): boolean {
+  return this.alwaysPresentItems.some((alwaysPresentItem) =>
+    isIngredientMatch(itemName, alwaysPresentItem.name)
+  );
+}
 
   subscribeToGroceryItems(listId: string): void {
     this.itemsChannel?.unsubscribe();
@@ -180,6 +193,19 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       )
       .subscribe();
   }
+
+  get visibleGroceryItems(): any[] {
+  if (!this.hideAlwaysPresent || !this.alwaysPresentItems.length) {
+    return this.groceryItems;
+  }
+
+  return this.groceryItems.filter(
+    (item) =>
+      !this.alwaysPresentItems.some((ap) =>
+        isIngredientMatch(item.name, ap.name)
+      )
+  );
+}
 
   async onEnterAddItem(): Promise<void> {
     const trimmed = this.newItemName.trim();
@@ -240,78 +266,78 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   private buildMergeResult(
-  existingName: string,
-  newName: string
-): string | null {
-  const normalizedExisting = normalizeIngredientKey(existingName);
-  const normalizedNew = normalizeIngredientKey(newName);
+    existingName: string,
+    newName: string
+  ): string | null {
+    const normalizedExisting = normalizeIngredientKey(existingName);
+    const normalizedNew = normalizeIngredientKey(newName);
 
-  const parsedExisting = parseLeadingNumberIngredient(normalizedExisting);
-  const parsedNew = parseLeadingNumberIngredient(normalizedNew);
+    const parsedExisting = parseLeadingNumberIngredient(normalizedExisting);
+    const parsedNew = parseLeadingNumberIngredient(normalizedNew);
 
-  const countedExisting = parseCountedPlainIngredient(normalizedExisting);
-  const countedNew = parseCountedPlainIngredient(normalizedNew);
+    const countedExisting = parseCountedPlainIngredient(normalizedExisting);
+    const countedNew = parseCountedPlainIngredient(normalizedNew);
 
-  // numeric-leading + numeric-leading => sum quantity
-  if (
-    parsedExisting &&
-    parsedNew &&
-    parsedExisting.suffix.toLowerCase() === parsedNew.suffix.toLowerCase()
-  ) {
-    return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
+    // numeric-leading + numeric-leading => sum quantity
+    if (
+      parsedExisting &&
+      parsedNew &&
+      parsedExisting.suffix.toLowerCase() === parsedNew.suffix.toLowerCase()
+    ) {
+      return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
+    }
+
+    // numeric-leading + counted plain => sum if same family
+    if (
+      parsedExisting &&
+      countedNew &&
+      parsedExisting.suffix.toLowerCase() === countedNew.text.toLowerCase()
+    ) {
+      return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
+    }
+
+    // counted plain + numeric-leading => sum if same family
+    if (
+      countedExisting &&
+      parsedNew &&
+      countedExisting.text.toLowerCase() === parsedNew.suffix.toLowerCase()
+    ) {
+      return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
+    }
+
+    // plain text + same plain text => turn into 2 × text
+    if (
+      !parsedExisting &&
+      !parsedNew &&
+      !countedExisting &&
+      !countedNew &&
+      normalizedExisting === normalizedNew
+    ) {
+      return `2 × ${normalizedExisting}`;
+    }
+
+    // counted plain + same plain text => increment count
+    if (
+      countedExisting &&
+      !parsedNew &&
+      !countedNew &&
+      countedExisting.text.toLowerCase() === normalizedNew.toLowerCase()
+    ) {
+      return `${countedExisting.count + 1} × ${countedExisting.text}`;
+    }
+
+    // plain text + counted plain => increment count
+    if (
+      !parsedExisting &&
+      !countedExisting &&
+      countedNew &&
+      normalizedExisting.toLowerCase() === countedNew.text.toLowerCase()
+    ) {
+      return `${countedNew.count + 1} × ${normalizedExisting}`;
+    }
+
+    return null;
   }
-
-  // numeric-leading + counted plain => sum if same family
-  if (
-    parsedExisting &&
-    countedNew &&
-    parsedExisting.suffix.toLowerCase() === countedNew.text.toLowerCase()
-  ) {
-    return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
-  }
-
-  // counted plain + numeric-leading => sum if same family
-  if (
-    countedExisting &&
-    parsedNew &&
-    countedExisting.text.toLowerCase() === parsedNew.suffix.toLowerCase()
-  ) {
-    return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
-  }
-
-  // plain text + same plain text => turn into 2 × text
-  if (
-    !parsedExisting &&
-    !parsedNew &&
-    !countedExisting &&
-    !countedNew &&
-    normalizedExisting === normalizedNew
-  ) {
-    return `2 × ${normalizedExisting}`;
-  }
-
-  // counted plain + same plain text => increment count
-  if (
-    countedExisting &&
-    !parsedNew &&
-    !countedNew &&
-    countedExisting.text.toLowerCase() === normalizedNew.toLowerCase()
-  ) {
-    return `${countedExisting.count + 1} × ${countedExisting.text}`;
-  }
-
-  // plain text + counted plain => increment count
-  if (
-    !parsedExisting &&
-    !countedExisting &&
-    countedNew &&
-    normalizedExisting.toLowerCase() === countedNew.text.toLowerCase()
-  ) {
-    return `${countedNew.count + 1} × ${normalizedExisting}`;
-  }
-
-  return null;
-}
 
   async toggleItem(item: any): Promise<void> {
     if (this.isReadOnly || this.isEditDialogOpen || this.isDeleteDialogOpen) {
