@@ -46,6 +46,40 @@ export class GroceryService {
     return data as GroceryList;
   }
 
+  async getCoveredMealsMap(): Promise<{
+  coveredMealIds: Set<string>;
+  coveredMealToListName: Map<string, string>;
+}> {
+  const lists = await this.getGroceryLists();
+
+  const coveredMealIds = new Set<string>();
+  const coveredMealToListName = new Map<string, string>();
+
+  const activeGeneratedLists = lists.filter(
+    (list: any) =>
+      list.generated &&
+      list.status === 'active' &&
+      list.metadata &&
+      Array.isArray(list.metadata.mealIds)
+  );
+
+  for (const list of activeGeneratedLists) {
+    for (const mealId of list.metadata.mealIds) {
+      const normalizedMealId = String(mealId);
+
+      if (!coveredMealIds.has(normalizedMealId)) {
+        coveredMealIds.add(normalizedMealId);
+        coveredMealToListName.set(normalizedMealId, list.name);
+      }
+    }
+  }
+
+  return {
+    coveredMealIds,
+    coveredMealToListName,
+  };
+}
+
   async createGroceryList(
   name: string,
   createdByMemberId: number,

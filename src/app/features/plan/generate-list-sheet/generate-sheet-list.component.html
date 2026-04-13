@@ -16,26 +16,28 @@
       <div class="generate-sheet__content">
         <ng-container *ngIf="hasMeals; else emptyState">
           <ng-container *ngIf="!isAdjusting; else adjustingState">
-            <button
-              type="button"
-              class="generate-sheet__primary-card"
-              (click)="onQuickGenerate()"
-            >
+            <button type="button" class="generate-sheet__primary-card"
+              [class.generate-sheet__primary-card--disabled]="allMealsCovered" [disabled]="allMealsCovered"
+              (click)="!allMealsCovered && onQuickGenerate()">
               <span class="generate-sheet__primary-title">
-                Generate from upcoming meals
+                {{ allMealsCovered ? 'All upcoming meals already covered' : 'Generate from upcoming meals' }}
               </span>
 
               <span class="generate-sheet__primary-meta">
-                {{ selectedDaysCount }} days • {{ selectedMealsCount }} meals
+                {{
+                allMealsCovered
+                ? 'Tap below to see which meals are in which lists'
+                : (selectedDaysCount + ' days • ' + selectedMealsCount + ' meals')
+                }}
               </span>
             </button>
 
-            <button
-              type="button"
-              class="generate-sheet__secondary-action"
-              (click)="openAdjust()"
-            >
-              Adjust selection
+            <p *ngIf="!allMealsCovered && coveredMealsCount > 0" class="generate-sheet__info">
+              {{ coveredMealsCount }} {{ coveredMealsCount === 1 ? 'meal' : 'meals' }} already covered will be skipped
+            </p>
+
+            <button type="button" class="generate-sheet__secondary-action" (click)="openAdjust()">
+              {{ allMealsCovered ? 'Review coverage' : 'Adjust selection' }}
             </button>
           </ng-container>
 
@@ -44,17 +46,11 @@
               <p class="generate-sheet__section-title">Select days</p>
 
               <div class="generate-sheet__days">
-                <div
-                  class="generate-sheet__day"
-                  *ngFor="let day of daysWithMeals"
-                >
+                <div class="generate-sheet__day" *ngFor="let day of daysWithMeals">
                   <div class="generate-sheet__day-row">
                     <label class="generate-sheet__day-main">
-                      <input
-                        type="checkbox"
-                        [checked]="day.checked"
-                        (change)="toggleDay(day)"
-                      />
+                      <input type="checkbox" [checked]="day.checked"
+                        [disabled]="!day.meals.some(meal => !meal.isCovered)" (change)="toggleDay(day)" />
 
                       <span class="generate-sheet__day-text">
                         <span class="generate-sheet__day-label">
@@ -66,29 +62,23 @@
                       </span>
                     </label>
 
-                    <button
-                      type="button"
-                      class="generate-sheet__expand-btn"
-                      (click)="toggleDayExpanded(day)"
-                    >
+                    <button type="button" class="generate-sheet__expand-btn" (click)="toggleDayExpanded(day)">
                       {{ day.expanded ? 'Hide' : 'Show' }}
                     </button>
                   </div>
 
-                  <div
-                    class="generate-sheet__meals"
-                    *ngIf="day.expanded"
-                  >
-                    <label
-                      class="generate-sheet__meal"
-                      *ngFor="let meal of day.meals"
-                    >
-                      <input
-                        type="checkbox"
-                        [checked]="meal.checked"
-                        (change)="toggleMeal(day, meal.id)"
-                      />
-                      <span>{{ meal.name }}</span>
+                  <div class="generate-sheet__meals" *ngIf="day.expanded">
+                    <label class="generate-sheet__meal" *ngFor="let meal of day.meals">
+                      <input type="checkbox" [checked]="meal.checked" [disabled]="meal.isCovered"
+                        (change)="toggleMeal(day, meal.id)" />
+
+                      <span class="generate-sheet__meal-text">
+                        {{ meal.name }}
+
+                        <span *ngIf="meal.isCovered" class="generate-sheet__meal-covered">
+                          In: {{ meal.coveredListName }}
+                        </span>
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -96,13 +86,17 @@
             </div>
 
             <div class="generate-sheet__footer">
-              <button
-                type="button"
-                class="generate-sheet__confirm-btn btn-primary"
-                [disabled]="selectedMealsCount === 0"
-                (click)="onGenerateSelected()"
-              >
-                Create list ({{ selectedMealsCount }} meals)
+              <p *ngIf="selectedMealsCount === 0" class="generate-sheet__info">
+                All meals already covered
+              </p>
+
+              <p *ngIf="selectedMealsCount > 0 && coveredMealsCount > 0" class="generate-sheet__info">
+                {{ coveredMealsCount }} meals already covered will be skipped
+              </p>
+
+              <button type="button" class="generate-sheet__confirm-btn btn-primary"
+                [disabled]="selectedMealsCount === 0" (click)="onGenerateSelected()">
+                Create list ({{ selectedMealsCount }} {{ selectedMealsCount === 1 ? 'meal' : 'meals' }})
               </button>
             </div>
           </ng-template>

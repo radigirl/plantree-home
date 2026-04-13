@@ -13,4 +13,5 @@ export interface GroceryList {
   updated_at: string;
   space_id: string;
   generated: boolean;
+  metadata: any;
 }

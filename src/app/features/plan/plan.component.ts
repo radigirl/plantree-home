@@ -68,6 +68,9 @@ export class PlanComponent implements OnInit, OnDestroy {
   readonly calendarIcon = CalendarDays;
   readonly groceryListsIcon = ShoppingCart;
 
+  coveredMealIds = new Set<string>();
+  coveredMealToListName = new Map<string, string>();
+
   private destroy$ = new Subject<void>();
 
 
@@ -133,6 +136,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     try {
       const data = await this.mealPlanService.getWeekPlan(this.currentWeekStart);
       this.weekMeals = data;
+      await this.loadCoveredMealsMap();
       this.buildGenerateSheetDays();
       const todayIndex = this.getTodayIndexInCurrentWeek();
       this.selectedDayIndex = todayIndex !== -1 ? todayIndex : null;
@@ -156,6 +160,20 @@ export class PlanComponent implements OnInit, OnDestroy {
         }
       }, 50);
     }
+  }
+
+  private async loadCoveredMealsMap(): Promise<void> {
+    const coverage = await this.groceryService.getCoveredMealsMap();
+    this.coveredMealIds = coverage.coveredMealIds;
+    this.coveredMealToListName = coverage.coveredMealToListName;
+  }
+
+  isMealCovered(mealId: string | number): boolean {
+    return this.coveredMealIds.has(String(mealId));
+  }
+
+  getMealCoverageListName(mealId: string | number): string | null {
+    return this.coveredMealToListName.get(String(mealId)) ?? null;
   }
 
   private getDayIndexFromDateString(dateString: string): number {
@@ -290,10 +308,23 @@ export class PlanComponent implements OnInit, OnDestroy {
     if (this.isGeneratingList) {
       return;
     }
-    const selectedDayKeys = this.generateSheetDays.map((day) => day.key);
-    const selectedMealIds = this.generateSheetDays.flatMap((day) =>
+
+    const eligibleDays = this.generateSheetDays
+      .map((day) => ({
+        ...day,
+        meals: day.meals.filter((meal: any) => !meal.isCovered),
+      }))
+      .filter((day) => day.meals.length > 0);
+
+    const selectedDayKeys = eligibleDays.map((day) => day.key);
+    const selectedMealIds = eligibleDays.flatMap((day) =>
       day.meals.map((meal: any) => meal.id)
     );
+
+    if (!selectedMealIds.length) {
+      return;
+    }
+
     this.isGenerateSheetOpen = false;
     await this.createGeneratedListFromSelection(selectedDayKeys, selectedMealIds);
   }
@@ -487,10 +518,19 @@ export class PlanComponent implements OnInit, OnDestroy {
           date: day.date,
           isToday: itemDate.getTime() === today.getTime(),
           isPast: itemDate.getTime() < today.getTime(),
-          meals: day.meals.map((meal, mealIndex) => ({
-            id: String(meal.meal?.id),
-            name: meal.meal?.name || 'Untitled meal',
-          })),
+          meals: day.meals.map((meal) => {
+            const mealId = String(meal.meal?.id);
+            const isCovered = this.isMealCovered(mealId);
+
+            return {
+              id: mealId,
+              name: meal.meal?.name || 'Untitled meal',
+              isCovered,
+              coveredListName: isCovered
+                ? this.getMealCoverageListName(mealId)
+                : null,
+            };
+          }),
         };
       })
       .filter((day) => !day.isPast && day.meals.length > 0);
@@ -648,15 +688,46 @@ export class PlanComponent implements OnInit, OnDestroy {
     if (!selectedDayKeys.length) {
       return 'Plan list';
     }
+
     const sortedKeys = [...selectedDayKeys].sort();
+
     const first = new Date(`${sortedKeys[0]}T12:00:00`);
     const last = new Date(`${sortedKeys[sortedKeys.length - 1]}T12:00:00`);
+
     const formatDay = (date: Date): string =>
       date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
       });
-    return `Plan list ${formatDay(first)}–${formatDay(last)}`;
+
+    // Handle single day vs range
+    const datePart =
+      sortedKeys.length === 1
+        ? formatDay(first)
+        : `${formatDay(first)}–${formatDay(last)}`;
+
+    return `Plan list ${datePart}`;
+  }
+
+  private async ensureUniqueGeneratedListName(baseName: string): Promise<string> {
+    const existingLists = await this.groceryService.getGroceryLists();
+
+    const matchingNames = existingLists
+      .map((list) => list.name?.trim())
+      .filter((name): name is string => !!name)
+      .filter((name) => name === baseName || name.startsWith(`${baseName} (`));
+
+    if (!matchingNames.includes(baseName)) {
+      return baseName;
+    }
+
+    let suffix = 2;
+
+    while (matchingNames.includes(`${baseName} (${suffix})`)) {
+      suffix++;
+    }
+
+    return `${baseName} (${suffix})`;
   }
 
   private async createGeneratedListFromSelection(
@@ -678,14 +749,11 @@ export class PlanComponent implements OnInit, OnDestroy {
       console.warn('No ingredients found for selected meals');
       return;
     }
-    if (!ingredients.length) {
-      console.warn('No ingredients found for selected meals');
-      return;
-    }
     this.isGeneratingList = true;
     this.showSnackbar('Creating grocery list...');
     try {
-      const listName = this.buildGeneratedListName(selectedDayKeys);
+      const baseName = this.buildGeneratedListName(selectedDayKeys);
+      const listName = await this.ensureUniqueGeneratedListName(baseName);
       const createdList = await this.groceryService.createGroceryList(
         listName,
         currentMember.id,
@@ -705,6 +773,10 @@ export class PlanComponent implements OnInit, OnDestroy {
           currentMember.id
         );
       }
+
+      await this.loadCoveredMealsMap();
+      this.buildGenerateSheetDays();
+
       this.lastGeneratedListId = createdList.id;
       this.isGeneratingList = false;
       this.showSnackbar('Grocery list created', 'Undo');
@@ -739,8 +811,13 @@ export class PlanComponent implements OnInit, OnDestroy {
     if (!this.lastGeneratedListId) {
       return;
     }
+
     await this.groceryService.deleteGroceryList(this.lastGeneratedListId);
     this.lastGeneratedListId = null;
+
+    await this.loadCoveredMealsMap();
+    this.buildGenerateSheetDays();
+
     this.hideSnackbar();
   }
 
