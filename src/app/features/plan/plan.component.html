@@ -145,7 +145,7 @@
 
 <app-merge-review-sheet
   *ngIf="isMergeSheetOpen"
-  [candidates]="mergeSheetData?.candidates"
+  [candidates]="mergeSheetData?.candidates || []"
   (apply)="onMergeApply($event)"
   (cancel)="onMergeCancel()"
 ></app-merge-review-sheet>

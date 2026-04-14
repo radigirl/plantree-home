@@ -346,9 +346,6 @@ export class PlanComponent implements OnInit, OnDestroy {
     const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
     const mergeCandidates = this.detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
 
-    console.log('RAW INGREDIENTS:', rawIngredients);
-    console.log('RAW MERGE CANDIDATES:', mergeCandidates);
-
     if (mergeCandidates.length > 0) {
       this.openMergeSheet({
         rawIngredients,
@@ -370,17 +367,10 @@ export class PlanComponent implements OnInit, OnDestroy {
     selectedMealIds: string[];
   }): Promise<void> {
     if (this.isGeneratingList) return;
-
-
     const rawIngredients = this.getRawIngredientsFromSelectedMealIds(
       selection.selectedMealIds
     );
-
     const mergeCandidates = this.detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
-    console.log('RAW INGREDIENTS:', rawIngredients);
-    console.log('RAW MERGE CANDIDATES:', mergeCandidates);
-
-
     if (mergeCandidates.length > 0) {
       this.openMergeSheet({
         rawIngredients,
@@ -389,9 +379,7 @@ export class PlanComponent implements OnInit, OnDestroy {
       });
       return;
     }
-
     this.isGenerateSheetOpen = false;
-
     await this.createGeneratedListFromSelection(
       selection.selectedDayKeys,
       selection.selectedMealIds
@@ -436,14 +424,7 @@ export class PlanComponent implements OnInit, OnDestroy {
 
         // ignore exact same visible text like "ябълки" + "5 ябълки"
         if (singularText === pluralText) return false;
-
         const closeEnough = this.areTextsCloseEnough(singularText, pluralText);
-
-        console.log('MERGE CHECK:', {
-          singularText,
-          pluralText,
-          closeEnough,
-        });
 
         return closeEnough;
       });
@@ -503,12 +484,6 @@ export class PlanComponent implements OnInit, OnDestroy {
 
     for (let i = 0; i < leftWords.length; i++) {
       const score = this.getWordCloseness(leftWords[i], rightWords[i]);
-
-      console.log('WORD SCORE:', {
-        left: leftWords[i],
-        right: rightWords[i],
-        score,
-      });
 
       totalScore += score;
 
@@ -636,7 +611,6 @@ export class PlanComponent implements OnInit, OnDestroy {
     };
     candidates: MergeCandidate[];
   }) {
-    console.log('open');
     this.mergeSheetData = data;
     this.isMergeSheetOpen = true;
   }
