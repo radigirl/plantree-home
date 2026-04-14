@@ -37,12 +37,13 @@ import {
   convertToBaseUnit,
   formatAmountForDisplay,
 } from '../../shared/utils/unit.util';
+import { MergeReviewSheetComponent } from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
 
 
 @Component({
   selector: 'app-plan',
   standalone: true,
-  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule, GenerateSheetListComponent, SnackbarComponent],
+  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule, GenerateSheetListComponent, SnackbarComponent, MergeReviewSheetComponent],
   templateUrl: './plan.component.html',
   styleUrl: './plan.component.scss',
 })
@@ -74,6 +75,9 @@ export class PlanComponent implements OnInit, OnDestroy {
 
   coveredMealIds = new Set<string>();
   coveredMealToListName = new Map<string, string>();
+
+  isMergeSheetOpen = false;
+  mergeSheetData: any = null;
 
   private destroy$ = new Subject<void>();
 
@@ -329,6 +333,24 @@ export class PlanComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
+    const mergeCandidates = this.detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+
+    console.log('RAW INGREDIENTS:', rawIngredients);
+    console.log('RAW MERGE CANDIDATES:', mergeCandidates);
+
+    if (mergeCandidates.length > 0) {
+      this.openMergeSheet({
+        rawIngredients,
+        selection: {
+          selectedDayKeys,
+          selectedMealIds,
+        },
+        candidates: mergeCandidates,
+      });
+      return;
+    }
+
     this.isGenerateSheetOpen = false;
     await this.createGeneratedListFromSelection(selectedDayKeys, selectedMealIds);
   }
@@ -337,15 +359,167 @@ export class PlanComponent implements OnInit, OnDestroy {
     selectedDayKeys: string[];
     selectedMealIds: string[];
   }): Promise<void> {
-    if (this.isGeneratingList) {
+    if (this.isGeneratingList) return;
+
+
+    const rawIngredients = this.getRawIngredientsFromSelectedMealIds(
+      selection.selectedMealIds
+    );
+
+    const mergeCandidates = this.detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+    console.log('RAW INGREDIENTS:', rawIngredients);
+    console.log('RAW MERGE CANDIDATES:', mergeCandidates);
+
+
+    if (mergeCandidates.length > 0) {
+      this.openMergeSheet({
+        rawIngredients,
+        selection,
+        candidates: mergeCandidates,
+      });
       return;
     }
+
     this.isGenerateSheetOpen = false;
+
     await this.createGeneratedListFromSelection(
       selection.selectedDayKeys,
       selection.selectedMealIds
     );
   }
+
+  private detectPossibleMergeCandidatesFromRawIngredients(rawIngredients: string[]) {
+    const candidates: Array<{
+      singularItems: string[];
+      pluralItem: string;
+      singularText: string;
+      pluralText: string;
+      similarity: number;
+    }> = [];
+
+    const normalizedRaw = rawIngredients
+      .map((item) => normalizeIngredientKey(item))
+      .filter(Boolean);
+
+    for (const itemB of normalizedRaw) {
+      const parsedB = parseLeadingNumberIngredient(itemB);
+
+      // plural-ish side = explicit count > 1, but NOT measured units
+      if (!parsedB || parsedB.amount <= 1 || parsedB.unit) {
+        continue;
+      }
+
+      const pluralText = parsedB.name.trim().toLowerCase();
+
+      const singularMatches = normalizedRaw.filter((itemA) => {
+        if (itemA === itemB) return false;
+
+        const parsedA = parseLeadingNumberIngredient(itemA);
+
+        // singular-ish side = plain OR explicit 1, but NOT measured units
+        const isSingularish =
+          !parsedA || (parsedA.amount === 1 && !parsedA.unit);
+
+        if (!isSingularish) return false;
+
+        const singularText = (parsedA ? parsedA.name : itemA).trim().toLowerCase();
+
+        // ignore exact same visible text like "ябълки" + "5 ябълки"
+        if (singularText === pluralText) return false;
+
+        const similarity = this.getTextSimilarityScore(singularText, pluralText);
+
+        return similarity >= 0.6;
+      });
+
+      if (singularMatches.length > 0) {
+        const singularText = (() => {
+          const first = singularMatches[0];
+          const parsed = parseLeadingNumberIngredient(first);
+          return (parsed ? parsed.name : first).trim().toLowerCase();
+        })();
+
+        const similarity = this.getTextSimilarityScore(singularText, pluralText);
+
+        const alreadyExists = candidates.some(
+          (c) => c.singularText === singularText && c.pluralText === pluralText
+        );
+
+        if (!alreadyExists) {
+          candidates.push({
+            singularItems: singularMatches,
+            pluralItem: itemB,
+            singularText,
+            pluralText,
+            similarity,
+          });
+        }
+      }
+    }
+
+    return candidates;
+  }
+
+  private getTextSimilarityScore(a: string, b: string): number {
+    const left = a.trim().toLowerCase();
+    const right = b.trim().toLowerCase();
+
+    if (!left || !right) return 0;
+    if (left === right) return 1;
+
+    const leftBigrams = this.getBigrams(left);
+    const rightBigrams = this.getBigrams(right);
+
+    if (!leftBigrams.length || !rightBigrams.length) return 0;
+
+    let overlap = 0;
+    const rightPool = [...rightBigrams];
+
+    for (const bigram of leftBigrams) {
+      const index = rightPool.indexOf(bigram);
+      if (index !== -1) {
+        overlap++;
+        rightPool.splice(index, 1);
+      }
+    }
+
+    return (2 * overlap) / (leftBigrams.length + rightBigrams.length);
+  }
+
+  private getBigrams(text: string): string[] {
+    const compact = text.replace(/\s+/g, ' ').trim();
+
+    if (compact.length < 2) {
+      return [];
+    }
+
+    const result: string[] = [];
+
+    for (let i = 0; i < compact.length - 1; i++) {
+      result.push(compact.slice(i, i + 2));
+    }
+
+    return result;
+  }
+
+  private openMergeSheet(data: any) {
+    this.mergeSheetData = data;
+    this.isMergeSheetOpen = true;
+    console.log('open')
+  }
+
+  onMergeCancel() {
+    this.isMergeSheetOpen = false;
+  }
+
+  onMergeApply(selected: any[]) {
+    console.log('USER MERGED:', selected);
+
+    this.isMergeSheetOpen = false;
+
+    // next step: apply merge + continue list creation
+  }
+
 
   scrollToDay(index: number): void {
     this.selectedDayIndex = index;
@@ -540,7 +714,7 @@ export class PlanComponent implements OnInit, OnDestroy {
       .filter((day) => !day.isPast && day.meals.length > 0);
   }
 
-  private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
+  private getRawIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
     const rawIngredients: string[] = [];
 
     for (const day of this.weekMeals) {
@@ -565,6 +739,12 @@ export class PlanComponent implements OnInit, OnDestroy {
         }
       }
     }
+
+    return rawIngredients;
+  }
+
+  private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
+    const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
 
     const grouped = new Map<
       string,
@@ -659,6 +839,7 @@ export class PlanComponent implements OnInit, OnDestroy {
 
         const formatted = formatAmountForDisplay(entry.parsedAmount, unit);
 
+
         result.push(`${formatted.amount} ${formatted.unit} ${name}`.trim());
       } else if (entry.count > 1) {
         result.push(`${entry.count} × ${entry.originalText}`);
@@ -671,6 +852,10 @@ export class PlanComponent implements OnInit, OnDestroy {
       this.getIngredientSortKey(a).localeCompare(this.getIngredientSortKey(b))
     );
   }
+
+
+
+
 
   private buildGeneratedListMetadata(
     selectedDayKeys: string[],

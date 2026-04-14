@@ -1,0 +1,48 @@
+<ng-container *ngIf="candidates.length">
+  <div class="merge-sheet-backdrop" (click)="onCancel()">
+    <div class="merge-sheet-panel" (click)="$event.stopPropagation()">
+
+      <div class="merge-sheet-handle"></div>
+
+      <div class="merge-sheet">
+        <div class="merge-sheet__header">
+          <h3>Merge similar ingredients?</h3>
+          <p>
+            We found items that look similar. You can merge them or skip and keep everything separate.
+          </p>
+        </div>
+
+        <div class="merge-sheet__list">
+          <div class="merge-item" *ngFor="let c of candidates; let i = index">
+            <label class="merge-item__row">
+              <input type="checkbox" [checked]="selectedMap[i]" (change)="toggle(i)" />
+
+              <div class="merge-item__content">
+                <div class="merge-item__pair">
+                  <span class="singular">{{ c.singularText }}</span>
+                  <span class="arrow">→</span>
+                  <span class="plural">{{ c.pluralText }}</span>
+                </div>
+
+                <div class="merge-item__hint">
+                  {{ c.singularItems.length }} entries will become {{ c.pluralText }}
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="merge-sheet__actions">
+          <button class="btn-secondary" (click)="onCancel()">
+            Skip merging
+          </button>
+
+          <button class="btn-primary" [disabled]="!hasSelected" (click)="onApply()">
+            Merge selected
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</ng-container>

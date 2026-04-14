@@ -136,12 +136,19 @@
 </div>
 
 <app-generate-sheet-list
-  [isOpen]="isGenerateSheetOpen"
+  [isOpen]="isGenerateSheetOpen && !isMergeSheetOpen"
   [days]="generateSheetDays"
   (closed)="closeGenerateSheet()"
   (quickGenerate)="onQuickGenerateList()"
   (generateSelected)="onGenerateSelectedList($event)"
 ></app-generate-sheet-list>
+
+<app-merge-review-sheet
+  *ngIf="isMergeSheetOpen"
+  [candidates]="mergeSheetData?.candidates"
+  (apply)="onMergeApply($event)"
+  (cancel)="onMergeCancel()"
+></app-merge-review-sheet>
 
 <app-snackbar
   [message]="snackbarMessage"

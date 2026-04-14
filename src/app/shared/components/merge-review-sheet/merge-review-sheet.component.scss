@@ -1,0 +1,127 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
+@use '../../../../styles/components/buttons' as *;
+
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+}
+
+.merge-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.merge-sheet-panel {
+  width: 100%;
+  max-width: 480px;
+  background: #f8f6ef;
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.16);
+  padding: 10px 16px 20px;
+}
+
+.merge-sheet-handle {
+  width: 72px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.16);
+  margin: 4px auto 14px;
+}
+
+.merge-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.merge-sheet__header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: $color-primary-dark;
+}
+
+.merge-sheet__header p {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+  opacity: 0.75;
+}
+
+.merge-sheet__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.merge-item input[type="checkbox"] {
+  accent-color: $color-primary-dark;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.plural {
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.singular {
+  color: $color-text-muted;
+}
+
+
+.merge-item {
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.merge-item__row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.merge-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0.85;
+}
+
+.merge-item input[type="checkbox"]:checked + .merge-item__content {
+  opacity: 1;
+}
+
+.merge-item__pair {
+  font-weight: 600;
+}
+
+.arrow {
+  margin: 0 6px;
+  opacity: 0.55;
+}
+
+.merge-item__hint {
+  font-size: 0.84rem;
+  opacity: 0.68;
+}
+
+.merge-sheet__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.merge-sheet__actions button {
+  flex: 1;
+  min-height: 46px;
+  border-radius: 999px;
+  font-weight: 600;
+}
