@@ -4,9 +4,6 @@ import { PantryItem } from '../models/pantry-item.model';
 import { SpaceStateService } from './space.state.service';
 import { AlwaysPresentPantryItem } from '../models/always-present-pantry-item.model';
 
-
-
-
 @Injectable({
   providedIn: 'root',
 })
@@ -18,8 +15,11 @@ export class PantryService {
   }
 
   async getPantryItems(): Promise<PantryItem[]> {
-
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return [];
+    }
 
     const { data, error } = await this.supabase
       .from('pantry_items')
@@ -229,6 +229,10 @@ export class PantryService {
   ): Promise<boolean> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
+    if (!spaceId) {
+      return false;
+    }
+
     const { error } = await this.supabase
       .from('pantry_items')
       .update({ amount })
@@ -245,6 +249,11 @@ export class PantryService {
 
   async deletePantryItem(itemId: string): Promise<boolean> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return false;
+    }
+
     const { error } = await this.supabase
       .from('pantry_items')
       .delete()
@@ -263,7 +272,7 @@ export class PantryService {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = name.trim();
 
-    if (!trimmedName) {
+    if (!trimmedName || !spaceId) {
       return null;
     }
 
@@ -324,8 +333,6 @@ export class PantryService {
 
     return data as PantryItem;
   }
-
-
 
   private normalizeName(name: string): string {
     return name.trim().toLowerCase();
@@ -389,6 +396,10 @@ export class PantryService {
   async deleteAlwaysPresentItem(itemId: string): Promise<boolean> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
+    if (!spaceId) {
+      return false;
+    }
+
     const { error } = await this.supabase
       .from('always_present_items')
       .delete()
@@ -402,6 +413,4 @@ export class PantryService {
 
     return true;
   }
-
-
 }

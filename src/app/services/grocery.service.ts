@@ -15,6 +15,11 @@ export class GroceryService {
 
   async getGroceryLists(): Promise<GroceryList[]> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return [];
+    }
+
     const { data, error } = await this.supabaseService.supabase
       .from('grocery_lists')
       .select('*')
@@ -31,6 +36,11 @@ export class GroceryService {
 
   async getGroceryListById(id: string): Promise<GroceryList | null> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return null;
+    }
+
     const { data, error } = await this.supabaseService.supabase
       .from('grocery_lists')
       .select('*')
@@ -47,74 +57,74 @@ export class GroceryService {
   }
 
   async getCoveredMealsMap(): Promise<{
-  coveredMealIds: Set<string>;
-  coveredMealToListName: Map<string, string>;
-}> {
-  const lists = await this.getGroceryLists();
+    coveredMealIds: Set<string>;
+    coveredMealToListName: Map<string, string>;
+  }> {
+    const lists = await this.getGroceryLists();
 
-  const coveredMealIds = new Set<string>();
-  const coveredMealToListName = new Map<string, string>();
+    const coveredMealIds = new Set<string>();
+    const coveredMealToListName = new Map<string, string>();
 
-  const activeGeneratedLists = lists.filter(
-    (list: any) =>
-      list.generated &&
-      list.status === 'active' &&
-      list.metadata &&
-      Array.isArray(list.metadata.mealIds)
-  );
+    const activeGeneratedLists = lists.filter(
+      (list: any) =>
+        list.generated &&
+        list.status === 'active' &&
+        list.metadata &&
+        Array.isArray(list.metadata.mealIds)
+    );
 
-  for (const list of activeGeneratedLists) {
-    for (const mealId of list.metadata.mealIds) {
-      const normalizedMealId = String(mealId);
+    for (const list of activeGeneratedLists) {
+      for (const mealId of list.metadata.mealIds) {
+        const normalizedMealId = String(mealId);
 
-      if (!coveredMealIds.has(normalizedMealId)) {
-        coveredMealIds.add(normalizedMealId);
-        coveredMealToListName.set(normalizedMealId, list.name);
+        if (!coveredMealIds.has(normalizedMealId)) {
+          coveredMealIds.add(normalizedMealId);
+          coveredMealToListName.set(normalizedMealId, list.name);
+        }
       }
     }
-  }
 
-  return {
-    coveredMealIds,
-    coveredMealToListName,
-  };
-}
+    return {
+      coveredMealIds,
+      coveredMealToListName,
+    };
+  }
 
   async createGroceryList(
-  name: string,
-  createdByMemberId: number,
-  generated = false,
-  metadata: Record<string, any> | null = null
-): Promise<GroceryList | null> {
-  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
-  const trimmedName = name.trim();
+    name: string,
+    createdByMemberId: number,
+    generated = false,
+    metadata: Record<string, any> | null = null
+  ): Promise<GroceryList | null> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+    const trimmedName = name.trim();
 
-  if (!trimmedName) {
-    return null;
+    if (!trimmedName || !spaceId) {
+      return null;
+    }
+
+    const { data, error } = await this.supabaseService.supabase
+      .from('grocery_lists')
+      .insert([
+        {
+          name: trimmedName,
+          status: 'active',
+          created_by_member_id: createdByMemberId,
+          space_id: spaceId,
+          generated,
+          metadata,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating grocery list:', error);
+      return null;
+    }
+
+    return data as GroceryList;
   }
-
-  const { data, error } = await this.supabaseService.supabase
-    .from('grocery_lists')
-    .insert([
-      {
-        name: trimmedName,
-        status: 'active',
-        created_by_member_id: createdByMemberId,
-        space_id: spaceId,
-        generated,
-        metadata,
-      },
-    ])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating grocery list:', error);
-    return null;
-  }
-
-  return data as GroceryList;
-}
 
   async updateGroceryListName(
     listId: string,
@@ -123,7 +133,7 @@ export class GroceryService {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = newName.trim();
 
-    if (!trimmedName) {
+    if (!trimmedName || !spaceId) {
       return false;
     }
 
@@ -146,6 +156,11 @@ export class GroceryService {
     status: 'active' | 'completed' | 'archived'
   ): Promise<boolean> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return false;
+    }
+
     const { error } = await this.supabase
       .from('grocery_lists')
       .update({ status })
@@ -165,6 +180,11 @@ export class GroceryService {
     isPinned: boolean
   ): Promise<boolean> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return false;
+    }
+
     const { error } = await this.supabase
       .from('grocery_lists')
       .update({ is_pinned: isPinned })
@@ -181,6 +201,11 @@ export class GroceryService {
 
   async deleteGroceryList(listId: string): Promise<boolean> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return false;
+    }
+
     const { error } = await this.supabase
       .from('grocery_lists')
       .delete()
@@ -357,6 +382,4 @@ export class GroceryService {
   async completeGroceryList(listId: string): Promise<boolean> {
     return this.updateGroceryListStatus(listId, 'completed');
   }
-
-
 }

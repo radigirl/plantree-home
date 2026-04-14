@@ -13,6 +13,10 @@ export class MealPlanService {
   async getWeekPlan(weekStart: Date): Promise<DayPlan[]> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
+    if (!spaceId) {
+      return [];
+    }
+
     const monday = new Date(weekStart);
 
     const sunday = new Date(monday);
@@ -116,6 +120,10 @@ export class MealPlanService {
   async getMealsForDate(date: string): Promise<PlannedMeal[]> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
+    if (!spaceId) {
+      return [];
+    }
+
     const { data, error } = await this.supabaseService.supabase
       .from('planned_meals')
       .select(`
@@ -198,6 +206,11 @@ export class MealPlanService {
   ): Promise<void> {
 
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      throw new Error('No current space selected.');
+    }
+
     const mealId = crypto.randomUUID();
 
     const { error: mealError } = await this.supabaseService.supabase
@@ -245,6 +258,11 @@ export class MealPlanService {
     ingredients?: string[]
   ): Promise<void> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      throw new Error('No current space selected.');
+    }
+
     const mealId = crypto.randomUUID();
 
     const { error: mealError } = await this.supabaseService.supabase
@@ -349,6 +367,8 @@ export class MealPlanService {
       console.error('Error updating planned meal meal_id:', error);
       throw error;
     }
+
+    return;
   }
 
   async updatePlannedMealStatus(
@@ -397,34 +417,34 @@ export class MealPlanService {
   }
 
   async createPlannedMealFromExistingMeal(
-  mealId: string,
-  cookMemberId: number | null,
-  date: string
-): Promise<void> {
-  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+    mealId: string,
+    cookMemberId: number | null,
+    date: string
+  ): Promise<void> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
-  if (!spaceId) {
-    throw new Error('No current space selected.');
+    if (!spaceId) {
+      throw new Error('No current space selected.');
+    }
+
+    const plannedId = crypto.randomUUID();
+
+    const { error } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .insert({
+        id: plannedId,
+        meal_id: mealId,
+        cook_member_id: cookMemberId,
+        planned_date: date,
+        status: 'to-prepare',
+        space_id: spaceId,
+      });
+
+    if (error) {
+      console.error('Error creating planned meal from existing meal:', error);
+      throw error;
+    }
   }
-
-  const plannedId = crypto.randomUUID();
-
-  const { error } = await this.supabaseService.supabase
-    .from('planned_meals')
-    .insert({
-      id: plannedId,
-      meal_id: mealId,
-      cook_member_id: cookMemberId,
-      planned_date: date,
-      status: 'to-prepare',
-      space_id: spaceId,
-    });
-
-  if (error) {
-    console.error('Error creating planned meal from existing meal:', error);
-    throw error;
-  }
-}
 
   private formatDateLocal(date: Date): string {
     const year = date.getFullYear();
@@ -475,46 +495,49 @@ export class MealPlanService {
   }
 
   async getCoverageForMeals(
-  mealIds: string[]
-): Promise<Array<{ mealId: string; listName: string }>> {
-  if (!mealIds.length) {
-    return [];
-  }
+    mealIds: string[]
+  ): Promise<Array<{ mealId: string; listName: string }>> {
+    if (!mealIds.length) {
+      return [];
+    }
 
-  const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
-  const { data, error } = await this.supabaseService.supabase
-    .from('grocery_lists')
-    .select('name, generated, status, metadata')
-    .eq('space_id', spaceId)
-    .eq('generated', true)
-    .eq('status', 'active');
+    if (!spaceId) {
+      return [];
+    }
 
-  if (error) {
-    console.error('Error fetching grocery list coverage:', error);
-    return [];
-  }
+    const { data, error } = await this.supabaseService.supabase
+      .from('grocery_lists')
+      .select('name, generated, status, metadata')
+      .eq('space_id', spaceId)
+      .eq('generated', true)
+      .eq('status', 'active');
 
-  const requestedIds = new Set(mealIds.map(String));
-  const result: Array<{ mealId: string; listName: string }> = [];
+    if (error) {
+      console.error('Error fetching grocery list coverage:', error);
+      return [];
+    }
 
-  for (const list of data ?? []) {
-    const metadata = list.metadata as any;
-    const coveredMealIds: string[] = Array.isArray(metadata?.mealIds)
-      ? metadata.mealIds.map(String)
-      : [];
+    const requestedIds = new Set(mealIds.map(String));
+    const result: Array<{ mealId: string; listName: string }> = [];
 
-    for (const mealId of coveredMealIds) {
-      if (requestedIds.has(mealId)) {
-        result.push({
-          mealId,
-          listName: list.name,
-        });
+    for (const list of data ?? []) {
+      const metadata = list.metadata as any;
+      const coveredMealIds: string[] = Array.isArray(metadata?.mealIds)
+        ? metadata.mealIds.map(String)
+        : [];
+
+      for (const mealId of coveredMealIds) {
+        if (requestedIds.has(mealId)) {
+          result.push({
+            mealId,
+            listName: list.name,
+          });
+        }
       }
     }
+
+    return result;
   }
-
-  return result;
-}
-
 }

@@ -196,6 +196,8 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Error loading meals for selected day:', error);
       this.meals = [];
+      this.coveredMealIds = new Set();
+      this.mealIdToListName = {};
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -203,23 +205,23 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   private async loadCoverageForMeals(): Promise<void> {
-  try {
-    const coverage = await this.mealPlanService.getCoverageForMeals(
-      this.meals.map((meal) => String(meal.meal.id))
-    );
+    try {
+      const coverage = await this.mealPlanService.getCoverageForMeals(
+        this.meals.map((meal) => String(meal.id))
+      );
 
-    this.coveredMealIds = new Set(coverage.map((item) => String(item.mealId)));
+      this.coveredMealIds = new Set(coverage.map((item) => String(item.mealId)));
 
-    this.mealIdToListName = {};
-    for (const item of coverage) {
-      this.mealIdToListName[String(item.mealId)] = item.listName;
+      this.mealIdToListName = {};
+      for (const item of coverage) {
+        this.mealIdToListName[String(item.mealId)] = item.listName;
+      }
+    } catch (error) {
+      console.error('Error loading meal coverage:', error);
+      this.coveredMealIds = new Set();
+      this.mealIdToListName = {};
     }
-  } catch (error) {
-    console.error('Error loading meal coverage:', error);
-    this.coveredMealIds = new Set();
-    this.mealIdToListName = {};
   }
-}
 
   async loadAvailableMeals(): Promise<void> {
     try {
@@ -976,12 +978,12 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   isMealCovered(mealId: string): boolean {
-  return this.coveredMealIds.has(String(mealId));
-}
+    return this.coveredMealIds.has(String(mealId));
+  }
 
-getMealCoverageListName(mealId: string): string | null {
-  return this.mealIdToListName[String(mealId)] ?? null;
-}
+  getMealCoverageListName(mealId: string): string | null {
+    return this.mealIdToListName[String(mealId)] ?? null;
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();

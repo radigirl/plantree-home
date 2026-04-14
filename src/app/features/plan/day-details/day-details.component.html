@@ -485,8 +485,8 @@
               </div>
             </div>
 
-            <div class="meal-coverage" *ngIf="!isPastDate() && isMealCovered(meal.meal.id)">
-              In: {{ getMealCoverageListName(meal.meal.id) }}
+            <div class="meal-coverage" *ngIf="!isPastDate() && isMealCovered(meal.id)">
+              In: {{ getMealCoverageListName(meal.id) }}
             </div>
 
             <div class="meal-actions-row">
