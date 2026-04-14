@@ -37,7 +37,10 @@ import {
   convertToBaseUnit,
   formatAmountForDisplay,
 } from '../../shared/utils/unit.util';
-import { MergeReviewSheetComponent } from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
+import {
+  MergeReviewSheetComponent,
+  MergeCandidate,
+} from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
 
 
 @Component({
@@ -77,7 +80,14 @@ export class PlanComponent implements OnInit, OnDestroy {
   coveredMealToListName = new Map<string, string>();
 
   isMergeSheetOpen = false;
-  mergeSheetData: any = null;
+  mergeSheetData: {
+    rawIngredients: string[];
+    selection: {
+      selectedDayKeys: string[];
+      selectedMealIds: string[];
+    };
+    candidates: MergeCandidate[];
+  } | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -427,9 +437,15 @@ export class PlanComponent implements OnInit, OnDestroy {
         // ignore exact same visible text like "ябълки" + "5 ябълки"
         if (singularText === pluralText) return false;
 
-        const similarity = this.getTextSimilarityScore(singularText, pluralText);
+        const closeEnough = this.areTextsCloseEnough(singularText, pluralText);
 
-        return similarity >= 0.6;
+        console.log('MERGE CHECK:', {
+          singularText,
+          pluralText,
+          closeEnough,
+        });
+
+        return closeEnough;
       });
 
       if (singularMatches.length > 0) {
@@ -439,7 +455,7 @@ export class PlanComponent implements OnInit, OnDestroy {
           return (parsed ? parsed.name : first).trim().toLowerCase();
         })();
 
-        const similarity = this.getTextSimilarityScore(singularText, pluralText);
+        const similarity = 1;
 
         const alreadyExists = candidates.some(
           (c) => c.singularText === singularText && c.pluralText === pluralText
@@ -451,75 +467,217 @@ export class PlanComponent implements OnInit, OnDestroy {
             pluralItem: itemB,
             singularText,
             pluralText,
-            similarity,
+            similarity: 1,
           });
         }
       }
     }
-
     return candidates;
   }
 
-  private getTextSimilarityScore(a: string, b: string): number {
+
+  private areTextsCloseEnough(a: string, b: string): boolean {
+    const left = a.trim().toLowerCase();
+    const right = b.trim().toLowerCase();
+
+    if (!left || !right || left === right) {
+      return false;
+    }
+
+    const leftWords = left.split(/\s+/).filter(Boolean);
+    const rightWords = right.split(/\s+/).filter(Boolean);
+
+    // single-word case
+    if (leftWords.length === 1 && rightWords.length === 1) {
+      return this.getWordCloseness(leftWords[0], rightWords[0]) >= 0.55;
+    }
+
+    // multi-word case: same number of words only
+    if (leftWords.length !== rightWords.length) {
+      return false;
+    }
+
+    let strongMatches = 0;
+    let weakMatches = 0;
+    let totalScore = 0;
+
+    for (let i = 0; i < leftWords.length; i++) {
+      const score = this.getWordCloseness(leftWords[i], rightWords[i]);
+
+      console.log('WORD SCORE:', {
+        left: leftWords[i],
+        right: rightWords[i],
+        score,
+      });
+
+      totalScore += score;
+
+      if (score >= 0.55) {
+        strongMatches++;
+      } else if (score >= 0.35) {
+        weakMatches++;
+      } else {
+        return false;
+      }
+    }
+
+    const wordCount = leftWords.length;
+    const averageScore = totalScore / wordCount;
+
+    // Accept if:
+    // 1) most words are strong, OR
+    // 2) all words are at least weak and average closeness is solid
+    return (
+      strongMatches >= wordCount - 1 ||
+      (strongMatches + weakMatches === wordCount && averageScore >= 0.4)
+    );
+  }
+
+  private getWordCloseness(a: string, b: string): number {
+    return Math.max(
+      this.getWordSimilarityScore(a, b),
+      this.getCommonPrefixRatio(a, b)
+    );
+  }
+
+  private getCommonPrefixRatio(a: string, b: string): number {
     const left = a.trim().toLowerCase();
     const right = b.trim().toLowerCase();
 
     if (!left || !right) return 0;
     if (left === right) return 1;
 
-    const leftBigrams = this.getBigrams(left);
-    const rightBigrams = this.getBigrams(right);
+    const minLength = Math.min(left.length, right.length);
+    let samePrefix = 0;
+
+    for (let i = 0; i < minLength; i++) {
+      if (left[i] !== right[i]) break;
+      samePrefix++;
+    }
+
+    return samePrefix / Math.max(left.length, right.length);
+  }
+
+  private getWordSimilarityScore(a: string, b: string): number {
+    const left = a.trim().toLowerCase();
+    const right = b.trim().toLowerCase();
+
+    if (!left || !right) return 0;
+    if (left === right) return 1;
+
+    const leftBigrams = this.getWordBigrams(left);
+    const rightBigrams = this.getWordBigrams(right);
 
     if (!leftBigrams.length || !rightBigrams.length) return 0;
 
     let overlap = 0;
-    const rightPool = [...rightBigrams];
+    const pool = [...rightBigrams];
 
     for (const bigram of leftBigrams) {
-      const index = rightPool.indexOf(bigram);
+      const index = pool.indexOf(bigram);
       if (index !== -1) {
         overlap++;
-        rightPool.splice(index, 1);
+        pool.splice(index, 1);
       }
     }
 
     return (2 * overlap) / (leftBigrams.length + rightBigrams.length);
   }
 
-  private getBigrams(text: string): string[] {
-    const compact = text.replace(/\s+/g, ' ').trim();
+  private areWordsCloseEnough(a: string, b: string): boolean {
+    const left = a.trim().toLowerCase();
+    const right = b.trim().toLowerCase();
 
-    if (compact.length < 2) {
+    if (!left || !right || left === right) {
+      return false;
+    }
+
+    const leftBigrams = this.getWordBigrams(left);
+    const rightBigrams = this.getWordBigrams(right);
+
+    if (!leftBigrams.length || !rightBigrams.length) {
+      return false;
+    }
+
+    let overlap = 0;
+    const pool = [...rightBigrams];
+
+    for (const bigram of leftBigrams) {
+      const index = pool.indexOf(bigram);
+      if (index !== -1) {
+        overlap++;
+        pool.splice(index, 1);
+      }
+    }
+
+    const score = (2 * overlap) / (leftBigrams.length + rightBigrams.length);
+    return score >= 0.6;
+  }
+
+  private getWordBigrams(word: string): string[] {
+    if (word.length < 2) {
       return [];
     }
 
     const result: string[] = [];
 
-    for (let i = 0; i < compact.length - 1; i++) {
-      result.push(compact.slice(i, i + 2));
+    for (let i = 0; i < word.length - 1; i++) {
+      result.push(word.slice(i, i + 2));
     }
 
     return result;
   }
 
-  private openMergeSheet(data: any) {
+  private openMergeSheet(data: {
+    rawIngredients: string[];
+    selection: {
+      selectedDayKeys: string[];
+      selectedMealIds: string[];
+    };
+    candidates: MergeCandidate[];
+  }) {
+    console.log('open');
     this.mergeSheetData = data;
     this.isMergeSheetOpen = true;
-    console.log('open')
   }
 
-  onMergeCancel() {
+  async onMergeCancel(): Promise<void> {
+    if (!this.mergeSheetData) {
+      return;
+    }
+
+    const { selection } = this.mergeSheetData;
+
     this.isMergeSheetOpen = false;
+    this.mergeSheetData = null;
+    this.isGenerateSheetOpen = false;
+
+    await this.createGeneratedListFromSelection(
+      selection.selectedDayKeys,
+      selection.selectedMealIds
+    );
   }
 
-  onMergeApply(selected: any[]) {
-    console.log('USER MERGED:', selected);
-
+  async onMergeApply(selectedCandidates: MergeCandidate[]): Promise<void> {
+    if (!this.mergeSheetData) {
+      return;
+    }
+    const { rawIngredients, selection } = this.mergeSheetData;
+    const mergedRawIngredients = this.applySelectedMergesToRawIngredients(
+      rawIngredients,
+      selectedCandidates
+    );
+    const finalIngredients =
+      this.buildIngredientsFromRawIngredients(mergedRawIngredients);
     this.isMergeSheetOpen = false;
-
-    // next step: apply merge + continue list creation
+    this.mergeSheetData = null;
+    this.isGenerateSheetOpen = false;
+    await this.createGeneratedListFromPreparedIngredients(
+      selection.selectedDayKeys,
+      selection.selectedMealIds,
+      finalIngredients
+    );
   }
-
 
   scrollToDay(index: number): void {
     this.selectedDayIndex = index;
@@ -743,9 +901,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     return rawIngredients;
   }
 
-  private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
-    const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
-
+  private buildIngredientsFromRawIngredients(rawIngredients: string[]): string[] {
     const grouped = new Map<
       string,
       {
@@ -839,7 +995,6 @@ export class PlanComponent implements OnInit, OnDestroy {
 
         const formatted = formatAmountForDisplay(entry.parsedAmount, unit);
 
-
         result.push(`${formatted.amount} ${formatted.unit} ${name}`.trim());
       } else if (entry.count > 1) {
         result.push(`${entry.count} × ${entry.originalText}`);
@@ -853,9 +1008,90 @@ export class PlanComponent implements OnInit, OnDestroy {
     );
   }
 
+  private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
+    const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
+    return this.buildIngredientsFromRawIngredients(rawIngredients);
+  }
 
+  private applySelectedMergesToRawIngredients(
+    rawIngredients: string[],
+    selectedCandidates: MergeCandidate[]
+  ): string[] {
+    let working = [...rawIngredients];
 
+    for (const candidate of selectedCandidates) {
+      working = this.applySingleMergeCandidate(working, candidate);
+    }
 
+    return working;
+  }
+
+  private applySingleMergeCandidate(
+    rawIngredients: string[],
+    candidate: MergeCandidate
+  ): string[] {
+    const kept: string[] = [];
+    let totalCount = 0;
+
+    for (const raw of rawIngredients) {
+      const info = this.getMergeableRawIngredientInfo(raw);
+
+      if (!info) {
+        kept.push(raw);
+        continue;
+      }
+
+      const matchesSingular =
+        info.kind === 'singularish' &&
+        info.text === candidate.singularText;
+
+      const matchesPlural =
+        info.kind === 'pluralish' &&
+        info.text === candidate.pluralText;
+
+      if (matchesSingular || matchesPlural) {
+        totalCount += info.count;
+      } else {
+        kept.push(raw);
+      }
+    }
+
+    if (totalCount > 0) {
+      kept.push(`${totalCount} ${candidate.pluralText}`);
+    }
+
+    return kept;
+  }
+
+  private getMergeableRawIngredientInfo(raw: string): {
+    kind: 'singularish' | 'pluralish';
+    text: string;
+    count: number;
+  } | null {
+    const normalized = normalizeIngredientKey(raw);
+    const parsed = parseLeadingNumberIngredient(normalized);
+
+    // measured units are NOT part of this merge-review flow
+    if (parsed && parsed.unit) {
+      return null;
+    }
+
+    // counted text like "2 яйца" / "1 яйце"
+    if (parsed && !parsed.unit) {
+      return {
+        kind: parsed.amount > 1 ? 'pluralish' : 'singularish',
+        text: parsed.name.trim().toLowerCase(),
+        count: parsed.amount,
+      };
+    }
+
+    // plain text like "яйце"
+    return {
+      kind: 'singularish',
+      text: normalized.trim().toLowerCase(),
+      count: 1,
+    };
+  }
 
   private buildGeneratedListMetadata(
     selectedDayKeys: string[],
@@ -978,16 +1214,17 @@ export class PlanComponent implements OnInit, OnDestroy {
     return `${baseName} (${suffix})`;
   }
 
-  private async createGeneratedListFromSelection(
+  private async createGeneratedListFromPreparedIngredients(
     selectedDayKeys: string[],
-    selectedMealIds: string[]
+    selectedMealIds: string[],
+    ingredients: string[]
   ): Promise<void> {
     const currentMember = this.memberStateService.getCurrentMember();
     if (!currentMember) {
       console.error('No current member selected');
       return;
     }
-    const ingredients = this.getIngredientsFromSelectedMealIds(selectedMealIds);
+
     const metadata = this.buildGeneratedListMetadata(
       selectedDayKeys,
       selectedMealIds
@@ -997,23 +1234,28 @@ export class PlanComponent implements OnInit, OnDestroy {
       console.warn('No ingredients found for selected meals');
       return;
     }
+
     this.isGeneratingList = true;
     this.showSnackbar('Creating grocery list...');
+
     try {
       const baseName = this.buildGeneratedListName(selectedDayKeys);
       const listName = await this.ensureUniqueGeneratedListName(baseName);
+
       const createdList = await this.groceryService.createGroceryList(
         listName,
         currentMember.id,
         true,
         metadata
       );
+
       if (!createdList) {
         console.error('Failed to create generated grocery list');
         this.isGeneratingList = false;
         this.showSnackbar('Could not create grocery list');
         return;
       }
+
       for (const ingredient of ingredients) {
         await this.groceryService.createGroceryItem(
           createdList.id,
@@ -1033,6 +1275,19 @@ export class PlanComponent implements OnInit, OnDestroy {
       this.isGeneratingList = false;
       this.showSnackbar('Could not create grocery list');
     }
+  }
+
+    private async createGeneratedListFromSelection(
+    selectedDayKeys: string[],
+    selectedMealIds: string[]
+  ): Promise<void> {
+    const ingredients = this.getIngredientsFromSelectedMealIds(selectedMealIds);
+
+    await this.createGeneratedListFromPreparedIngredients(
+      selectedDayKeys,
+      selectedMealIds,
+      ingredients
+    );
   }
 
   private showSnackbar(message: string, actionLabel?: string): void {
