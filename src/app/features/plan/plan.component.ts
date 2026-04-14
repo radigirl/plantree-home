@@ -33,6 +33,10 @@ import {
   parseLeadingNumberIngredient,
   parseCountedPlainIngredient,
 } from '../../shared/utils/ingredient.util';
+import {
+  convertToBaseUnit,
+  formatAmountForDisplay,
+} from '../../shared/utils/unit.util';
 
 
 @Component({
@@ -519,15 +523,15 @@ export class PlanComponent implements OnInit, OnDestroy {
           isToday: itemDate.getTime() === today.getTime(),
           isPast: itemDate.getTime() < today.getTime(),
           meals: day.meals.map((meal) => {
-            const mealId = String(meal.meal?.id);
-            const isCovered = this.isMealCovered(mealId);
+            const plannedMealId = String(meal.id);
+            const isCovered = this.isMealCovered(plannedMealId);
 
             return {
-              id: mealId,
+              id: plannedMealId,
               name: meal.meal?.name || 'Untitled meal',
               isCovered,
               coveredListName: isCovered
-                ? this.getMealCoverageListName(mealId)
+                ? this.getMealCoverageListName(plannedMealId)
                 : null,
             };
           }),
@@ -538,24 +542,30 @@ export class PlanComponent implements OnInit, OnDestroy {
 
   private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
     const rawIngredients: string[] = [];
+
     for (const day of this.weekMeals) {
       for (const plannedMeal of day.meals) {
-        const mealId = String(plannedMeal.meal?.id);
-        if (!selectedMealIds.includes(mealId)) {
+        const plannedMealId = String(plannedMeal.id);
+
+        if (!selectedMealIds.includes(plannedMealId)) {
           continue;
         }
+
         const mealIngredients = Array.isArray(plannedMeal.meal?.ingredients)
           ? plannedMeal.meal.ingredients
           : [];
+
         for (const ingredient of mealIngredients) {
           const cleaned =
             typeof ingredient === 'string' ? ingredient.trim() : '';
+
           if (cleaned) {
             rawIngredients.push(cleaned);
           }
         }
       }
     }
+
     const grouped = new Map<
       string,
       {
@@ -566,13 +576,43 @@ export class PlanComponent implements OnInit, OnDestroy {
         isParsed: boolean;
       }
     >();
+
     for (const ingredient of rawIngredients) {
       const normalizedIngredient = normalizeIngredientKey(ingredient);
       const parsed = parseLeadingNumberIngredient(normalizedIngredient);
-      const key = parsed
-        ? `parsed:${parsed.suffix.toLowerCase()}`
-        : `plain:${normalizedIngredient}`;
+
+      let key: string;
+
+      if (parsed && parsed.unit) {
+        const converted = convertToBaseUnit(parsed.amount, parsed.unit);
+
+        if (converted) {
+          key = `parsed:${converted.unit}:${parsed.name.toLowerCase()}`;
+        } else {
+          key = `parsed:${parsed.suffix.toLowerCase()}`;
+        }
+      } else if (parsed) {
+        key = `parsed:${parsed.suffix.toLowerCase()}`;
+      } else {
+        key = `plain:${normalizedIngredient}`;
+      }
+
       if (!grouped.has(key)) {
+        if (parsed && parsed.unit) {
+          const converted = convertToBaseUnit(parsed.amount, parsed.unit);
+
+          if (converted) {
+            grouped.set(key, {
+              originalText: normalizedIngredient,
+              count: 1,
+              parsedAmount: converted.amount,
+              suffix: [converted.unit, parsed.name].filter(Boolean).join(' ').trim(),
+              isParsed: true,
+            });
+            continue;
+          }
+        }
+
         grouped.set(key, {
           originalText: normalizedIngredient,
           count: 1,
@@ -582,28 +622,51 @@ export class PlanComponent implements OnInit, OnDestroy {
         });
         continue;
       }
+
       const existing = grouped.get(key)!;
       existing.count += 1;
-      if (
-        existing.isParsed &&
-        existing.parsedAmount !== null &&
-        parsed &&
-        existing.suffix &&
-        parsed.suffix.toLowerCase() === existing.suffix.toLowerCase()
-      ) {
-        existing.parsedAmount += parsed.amount;
+
+      if (existing.isParsed && existing.parsedAmount !== null && parsed) {
+        if (parsed.unit) {
+          const converted = convertToBaseUnit(parsed.amount, parsed.unit);
+
+          if (converted) {
+            const convertedSuffix = [converted.unit, parsed.name]
+              .filter(Boolean)
+              .join(' ')
+              .trim()
+              .toLowerCase();
+
+            if (existing.suffix && existing.suffix.toLowerCase() === convertedSuffix) {
+              existing.parsedAmount += converted.amount;
+            }
+          }
+        } else if (
+          existing.suffix &&
+          parsed.suffix.toLowerCase() === existing.suffix.toLowerCase()
+        ) {
+          existing.parsedAmount += parsed.amount;
+        }
       }
     }
+
     const result: string[] = [];
+
     for (const entry of grouped.values()) {
       if (entry.isParsed && entry.parsedAmount !== null && entry.suffix) {
-        result.push(`${entry.parsedAmount} ${entry.suffix}`.trim());
+        const [unit, ...nameParts] = entry.suffix.split(' ');
+        const name = nameParts.join(' ');
+
+        const formatted = formatAmountForDisplay(entry.parsedAmount, unit);
+
+        result.push(`${formatted.amount} ${formatted.unit} ${name}`.trim());
       } else if (entry.count > 1) {
         result.push(`${entry.count} × ${entry.originalText}`);
       } else {
         result.push(entry.originalText);
       }
     }
+
     return result.sort((a, b) =>
       this.getIngredientSortKey(a).localeCompare(this.getIngredientSortKey(b))
     );
