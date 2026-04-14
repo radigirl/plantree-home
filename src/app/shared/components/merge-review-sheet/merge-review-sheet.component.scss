@@ -20,10 +20,13 @@
 .merge-sheet-panel {
   width: 100%;
   max-width: 480px;
+  max-height: 85vh;
   background: #f8f6ef;
   border-radius: 28px 28px 0 0;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.16);
   padding: 10px 16px 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .merge-sheet-handle {
@@ -32,12 +35,19 @@
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.16);
   margin: 4px auto 14px;
+  flex-shrink: 0;
 }
 
 .merge-sheet {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
+  flex: 1;
+}
+
+.merge-sheet__header {
+  flex-shrink: 0;
 }
 
 .merge-sheet__header h3 {
@@ -53,9 +63,28 @@
 }
 
 .merge-sheet__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-right: 4px;
+
+  /* Hide scrollbar */
+  scrollbar-width: none;        // Firefox
+  -ms-overflow-style: none;     // IE/Edge
+}
+
+.merge-sheet__list::-webkit-scrollbar {
+  display: none;                // Chrome/Safari
+}
+
+.merge-sheet__actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  padding-top: 4px;
 }
 
 .merge-item input[type="checkbox"] {
@@ -73,7 +102,6 @@
 .singular {
   color: $color-text-muted;
 }
-
 
 .merge-item {
   border-radius: 16px;
