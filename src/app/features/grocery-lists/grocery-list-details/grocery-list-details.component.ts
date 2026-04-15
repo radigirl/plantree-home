@@ -107,6 +107,9 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     candidates: MergeCandidate[];
   } | null = null;
 
+  pendingEditItemId: string | null = null;
+  pendingEditItemName = '';
+
   private toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
   private destroy$ = new Subject<void>();
@@ -237,13 +240,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     await this.addItem();
   }
 
- async addItem(): Promise<void> {
-  if (this.isReadOnly) return;
+  async addItem(): Promise<void> {
+    if (this.isReadOnly) return;
 
-  const trimmedName = this.newItemName.trim();
-  if (!trimmedName || !this.groceryList) {
-    return;
-  }
+    const trimmedName = this.newItemName.trim();
+    if (!trimmedName || !this.groceryList) {
+      return;
+    }
     // build raw set (existing + new)
     const rawIngredients = [
       ...this.groceryItems.map(i => i.name),
@@ -256,10 +259,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     // only keep candidates that involve the NEW item
     const normalizedNewItem = normalizeIngredientKey(trimmedName).toLowerCase();
 
-const relevantCandidates = candidates.filter((c: MergeCandidate) =>
-  c.singularItems.includes(normalizedNewItem) ||
-  c.pluralItem === normalizedNewItem
-);
+    const relevantCandidates = candidates.filter((c: MergeCandidate) =>
+      c.singularItems.includes(normalizedNewItem) ||
+      c.pluralItem === normalizedNewItem
+    );
     if (relevantCandidates.length > 0) {
       this.mergeSheetData = {
         rawIngredients,
@@ -319,205 +322,251 @@ const relevantCandidates = candidates.filter((c: MergeCandidate) =>
   }
 
   private buildMergeResult(
-  existingName: string,
-  newName: string
-): string | null {
-  const normalizedExisting = normalizeIngredientKey(existingName);
-  const normalizedNew = normalizeIngredientKey(newName);
+    existingName: string,
+    newName: string
+  ): string | null {
+    const normalizedExisting = normalizeIngredientKey(existingName);
+    const normalizedNew = normalizeIngredientKey(newName);
 
-  const parsedExisting = parseLeadingNumberIngredient(normalizedExisting);
-  const parsedNew = parseLeadingNumberIngredient(normalizedNew);
+    const parsedExisting = parseLeadingNumberIngredient(normalizedExisting);
+    const parsedNew = parseLeadingNumberIngredient(normalizedNew);
 
-  const countedExisting = parseCountedPlainIngredient(normalizedExisting);
-  const countedNew = parseCountedPlainIngredient(normalizedNew);
+    const countedExisting = parseCountedPlainIngredient(normalizedExisting);
+    const countedNew = parseCountedPlainIngredient(normalizedNew);
 
-  // measured + measured => sum using base units if same ingredient name
-  if (parsedExisting && parsedNew && parsedExisting.unit && parsedNew.unit) {
-    const convertedExisting = convertToBaseUnit(parsedExisting.amount, parsedExisting.unit);
-    const convertedNew = convertToBaseUnit(parsedNew.amount, parsedNew.unit);
+    // measured + measured => sum using base units if same ingredient name
+    if (parsedExisting && parsedNew && parsedExisting.unit && parsedNew.unit) {
+      const convertedExisting = convertToBaseUnit(parsedExisting.amount, parsedExisting.unit);
+      const convertedNew = convertToBaseUnit(parsedNew.amount, parsedNew.unit);
 
-    if (
-      convertedExisting &&
-      convertedNew &&
-      convertedExisting.unit === convertedNew.unit &&
-      parsedExisting.name.toLowerCase() === parsedNew.name.toLowerCase()
-    ) {
-      const totalAmount = convertedExisting.amount + convertedNew.amount;
-      const formatted = formatAmountForDisplay(totalAmount, convertedExisting.unit);
+      if (
+        convertedExisting &&
+        convertedNew &&
+        convertedExisting.unit === convertedNew.unit &&
+        parsedExisting.name.toLowerCase() === parsedNew.name.toLowerCase()
+      ) {
+        const totalAmount = convertedExisting.amount + convertedNew.amount;
+        const formatted = formatAmountForDisplay(totalAmount, convertedExisting.unit);
 
-      return `${formatted.amount} ${formatted.unit} ${parsedExisting.name}`.trim();
+        return `${formatted.amount} ${formatted.unit} ${parsedExisting.name}`.trim();
+      }
     }
+
+    // numeric-leading + numeric-leading without convertible units => sum if exact same suffix
+    if (
+      parsedExisting &&
+      parsedNew &&
+      !parsedExisting.unit &&
+      !parsedNew.unit &&
+      parsedExisting.suffix.toLowerCase() === parsedNew.suffix.toLowerCase()
+    ) {
+      return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
+    }
+
+    // numeric-leading + counted plain => sum if same family
+    if (
+      parsedExisting &&
+      countedNew &&
+      parsedExisting.suffix.toLowerCase() === countedNew.text.toLowerCase()
+    ) {
+      return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
+    }
+
+    // counted plain + numeric-leading => sum if same family
+    if (
+      countedExisting &&
+      parsedNew &&
+      countedExisting.text.toLowerCase() === parsedNew.suffix.toLowerCase()
+    ) {
+      return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
+    }
+
+    // plain text + same plain text => turn into 2 × text
+    if (
+      !parsedExisting &&
+      !parsedNew &&
+      !countedExisting &&
+      !countedNew &&
+      normalizedExisting === normalizedNew
+    ) {
+      return `2 × ${normalizedExisting}`;
+    }
+
+    // counted plain + same plain text => increment count
+    if (
+      countedExisting &&
+      !parsedNew &&
+      !countedNew &&
+      countedExisting.text.toLowerCase() === normalizedNew.toLowerCase()
+    ) {
+      return `${countedExisting.count + 1} × ${countedExisting.text}`;
+    }
+
+    // plain text + counted plain => increment count
+    if (
+      !parsedExisting &&
+      !countedExisting &&
+      countedNew &&
+      normalizedExisting.toLowerCase() === countedNew.text.toLowerCase()
+    ) {
+      return `${countedNew.count + 1} × ${normalizedExisting}`;
+    }
+
+    return null;
   }
 
-  // numeric-leading + numeric-leading without convertible units => sum if exact same suffix
-  if (
-    parsedExisting &&
-    parsedNew &&
-    !parsedExisting.unit &&
-    !parsedNew.unit &&
-    parsedExisting.suffix.toLowerCase() === parsedNew.suffix.toLowerCase()
-  ) {
-    return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
-  }
+  async onMergeCancel(): Promise<void> {
+    this.isMergeSheetOpen = false;
 
-  // numeric-leading + counted plain => sum if same family
-  if (
-    parsedExisting &&
-    countedNew &&
-    parsedExisting.suffix.toLowerCase() === countedNew.text.toLowerCase()
-  ) {
-    return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
-  }
+    if (this.pendingEditItemId && this.pendingEditItemName) {
+      const success = await this.groceryService.updateGroceryItemName(
+        this.pendingEditItemId,
+        this.pendingEditItemName
+      );
 
-  // counted plain + numeric-leading => sum if same family
-  if (
-    countedExisting &&
-    parsedNew &&
-    countedExisting.text.toLowerCase() === parsedNew.suffix.toLowerCase()
-  ) {
-    return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
-  }
+      if (!success) {
+        this.error = 'Could not update grocery item.';
+        this.cdr.detectChanges();
+        return;
+      }
 
-  // plain text + same plain text => turn into 2 × text
-  if (
-    !parsedExisting &&
-    !parsedNew &&
-    !countedExisting &&
-    !countedNew &&
-    normalizedExisting === normalizedNew
-  ) {
-    return `2 × ${normalizedExisting}`;
-  }
+      this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList!.id);
+      this.pendingEditItemId = null;
+      this.pendingEditItemName = '';
+      this.mergeSheetData = null;
+      this.cdr.detectChanges();
+      return;
+    }
 
-  // counted plain + same plain text => increment count
-  if (
-    countedExisting &&
-    !parsedNew &&
-    !countedNew &&
-    countedExisting.text.toLowerCase() === normalizedNew.toLowerCase()
-  ) {
-    return `${countedExisting.count + 1} × ${countedExisting.text}`;
-  }
-
-  // plain text + counted plain => increment count
-  if (
-    !parsedExisting &&
-    !countedExisting &&
-    countedNew &&
-    normalizedExisting.toLowerCase() === countedNew.text.toLowerCase()
-  ) {
-    return `${countedNew.count + 1} × ${normalizedExisting}`;
-  }
-
-  return null;
-}
-
- async onMergeCancel(): Promise<void> {
-  this.isMergeSheetOpen = false;
-  this.mergeSheetData = null;
-
-  await this.addItemWithoutMerge();
-}
-
-  async onMergeApply(selectedCandidates: MergeCandidate[]): Promise<void> {
-  if (!this.mergeSheetData || !this.groceryList) {
-    return;
-  }
-
-  this.isMergeSheetOpen = false;
-
-  if (!selectedCandidates.length) {
     this.mergeSheetData = null;
     await this.addItemWithoutMerge();
-    return;
   }
 
-  for (const candidate of selectedCandidates) {
-    await this.applySingleMergeCandidateToList(
-      candidate,
-      this.mergeSheetData.newItem
+  async onMergeApply(selectedCandidates: MergeCandidate[]): Promise<void> {
+    if (!this.mergeSheetData || !this.groceryList) {
+      return;
+    }
+
+    this.isMergeSheetOpen = false;
+
+    if (!selectedCandidates.length) {
+      if (this.pendingEditItemId && this.pendingEditItemName) {
+        const success = await this.groceryService.updateGroceryItemName(
+          this.pendingEditItemId,
+          this.pendingEditItemName
+        );
+
+        if (!success) {
+          this.error = 'Could not update grocery item.';
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.pendingEditItemId = null;
+        this.pendingEditItemName = '';
+        this.mergeSheetData = null;
+        this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+        this.cdr.detectChanges();
+        return;
+      }
+
+      this.mergeSheetData = null;
+      await this.addItemWithoutMerge();
+      return;
+    }
+
+    for (const candidate of selectedCandidates) {
+      await this.applySingleMergeCandidateToList(
+        candidate,
+        this.mergeSheetData.newItem
+      );
+    }
+
+    if (this.pendingEditItemId) {
+      await this.groceryService.deleteGroceryItem(this.pendingEditItemId);
+      this.pendingEditItemId = null;
+      this.pendingEditItemName = '';
+    }
+
+    this.mergeSheetData = null;
+    this.newItemName = '';
+    this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+    this.cdr.detectChanges();
+  }
+
+  private async applySingleMergeCandidateToList(
+    candidate: MergeCandidate,
+    pendingNewItem: string
+  ): Promise<void> {
+    if (!this.groceryList) {
+      return;
+    }
+
+    const currentMember = this.memberStateService.getCurrentMember();
+    const memberId = currentMember?.id ?? 1;
+
+    const matchedItems = this.groceryItems.filter((item) => {
+      if (this.pendingEditItemId && item.id === this.pendingEditItemId) {
+        return false;
+      }
+
+      const info = getMergeableRawIngredientInfo(item.name);
+
+      if (!info) {
+        return false;
+      }
+
+      const matchesSingular =
+        info.kind === 'singularish' &&
+        info.text === candidate.singularText;
+
+      const matchesPlural =
+        info.kind === 'pluralish' &&
+        info.text === candidate.pluralText;
+
+      return matchesSingular || matchesPlural;
+    });
+
+    let totalCount = 0;
+
+    for (const item of matchedItems) {
+      const info = getMergeableRawIngredientInfo(item.name);
+      if (info) {
+        totalCount += info.count;
+      }
+    }
+
+    const pendingInfo = getMergeableRawIngredientInfo(pendingNewItem);
+    if (pendingInfo) {
+      const matchesPendingSingular =
+        pendingInfo.kind === 'singularish' &&
+        pendingInfo.text === candidate.singularText;
+
+      const matchesPendingPlural =
+        pendingInfo.kind === 'pluralish' &&
+        pendingInfo.text === candidate.pluralText;
+
+      if (matchesPendingSingular || matchesPendingPlural) {
+        totalCount += pendingInfo.count;
+      }
+    }
+
+    if (totalCount === 0) {
+      return;
+    }
+
+    const finalName = `${totalCount} ${candidate.pluralText}`.trim();
+
+    for (const item of matchedItems) {
+      await this.groceryService.deleteGroceryItem(item.id);
+    }
+
+    await this.groceryService.createGroceryItem(
+      this.groceryList.id,
+      finalName,
+      memberId
     );
   }
-
-  this.mergeSheetData = null;
-  this.newItemName = '';
-  this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
-  this.cdr.detectChanges();
-}
-
-private async applySingleMergeCandidateToList(
-  candidate: MergeCandidate,
-  pendingNewItem: string
-): Promise<void> {
-  if (!this.groceryList) {
-    return;
-  }
-
-  const currentMember = this.memberStateService.getCurrentMember();
-  const memberId = currentMember?.id ?? 1;
-
-  const matchedItems = this.groceryItems.filter((item) => {
-    const info = getMergeableRawIngredientInfo(item.name);
-
-    if (!info) {
-      return false;
-    }
-
-    const matchesSingular =
-      info.kind === 'singularish' &&
-      info.text === candidate.singularText;
-
-    const matchesPlural =
-      info.kind === 'pluralish' &&
-      info.text === candidate.pluralText;
-
-    return matchesSingular || matchesPlural;
-  });
-
-  let totalCount = 0;
-
-  // count existing matched rows
-  for (const item of matchedItems) {
-    const info = getMergeableRawIngredientInfo(item.name);
-    if (info) {
-      totalCount += info.count;
-    }
-  }
-
-  // count the NEW pending item too
-  const pendingInfo = getMergeableRawIngredientInfo(pendingNewItem);
-  if (pendingInfo) {
-    const matchesPendingSingular =
-      pendingInfo.kind === 'singularish' &&
-      pendingInfo.text === candidate.singularText;
-
-    const matchesPendingPlural =
-      pendingInfo.kind === 'pluralish' &&
-      pendingInfo.text === candidate.pluralText;
-
-    if (matchesPendingSingular || matchesPendingPlural) {
-      totalCount += pendingInfo.count;
-    }
-  }
-
-  if (totalCount === 0) {
-    return;
-  }
-
-  const finalName = `${totalCount} ${candidate.pluralText}`.trim();
-
-  // delete only affected existing items
-  for (const item of matchedItems) {
-    await this.groceryService.deleteGroceryItem(item.id);
-  }
-
-  // create merged row including the new pending item
-  await this.groceryService.createGroceryItem(
-    this.groceryList.id,
-    finalName,
-    memberId
-  );
-}
 
   private async addItemWithoutMerge(): Promise<void> {
     const trimmedName = this.newItemName.trim();
@@ -611,7 +660,37 @@ private async applySingleMergeCandidateToList(
     const trimmedName = this.editItemName.trim();
     const itemId = this.selectedItemForEdit?.id;
 
-    if (!itemId || !trimmedName) {
+    if (!itemId || !trimmedName || !this.groceryList) {
+      return;
+    }
+
+    const rawIngredients = [
+      ...this.groceryItems
+        .filter((item) => item.id !== itemId)
+        .map((item) => item.name),
+      trimmedName,
+    ];
+
+    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+    const normalizedEditedItem = normalizeIngredientKey(trimmedName).toLowerCase();
+
+    const relevantCandidates = candidates.filter((c: MergeCandidate) =>
+      c.singularItems.includes(normalizedEditedItem) ||
+      c.pluralItem === normalizedEditedItem
+    );
+
+    if (relevantCandidates.length > 0) {
+      this.pendingEditItemId = itemId;
+      this.pendingEditItemName = trimmedName;
+
+      this.mergeSheetData = {
+        rawIngredients,
+        newItem: trimmedName,
+        candidates: relevantCandidates,
+      };
+
+      this.closeEditDialog();
+      this.isMergeSheetOpen = true;
       return;
     }
 
