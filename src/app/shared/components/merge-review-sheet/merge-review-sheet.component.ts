@@ -19,8 +19,8 @@ export interface MergeCandidate {
 export class MergeReviewSheetComponent {
   @Input() candidates: MergeCandidate[] = [];
 
-  @Output() apply = new EventEmitter<MergeCandidate[]>();
-  @Output() cancel = new EventEmitter<void>();
+  @Output() mergeApplied = new EventEmitter<MergeCandidate[]>();
+  @Output() dismissed = new EventEmitter<void>();
 
   // checkbox state (default all checked)
   selectedMap: Record<number, boolean> = {};
@@ -36,18 +36,18 @@ export class MergeReviewSheetComponent {
   }
 
   get hasSelected(): boolean {
-  return Object.values(this.selectedMap).some(Boolean);
-}
+    return Object.values(this.selectedMap).some(Boolean);
+  }
 
   onApply(): void {
-    const selected = this.candidates.filter(
-      (_, index) => this.selectedMap[index]
-    );
-    this.apply.emit(selected);
-  }
+  const selected = this.candidates.filter(
+    (_, index) => this.selectedMap[index]
+  );
+  this.mergeApplied.emit(selected);
+}
 
-  onCancel(): void {
-    this.cancel.emit();
-  }
-  
+onCancel(): void {
+  this.dismissed.emit();
+}
+
 }

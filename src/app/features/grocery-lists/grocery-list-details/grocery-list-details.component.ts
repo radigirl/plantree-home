@@ -28,10 +28,19 @@ import { PantryService } from '../../../services/pantry.service';
 import {
   normalizeIngredientKey,
   parseLeadingNumberIngredient,
-  parseCountedPlainIngredient
+  parseCountedPlainIngredient,
 } from '../../../shared/utils/ingredient.util';
 import { AlwaysPresentPantryItem } from '../../../models/always-present-pantry-item.model';
 import { isIngredientMatch } from '../../../shared/utils/ingredient-match.util';
+import {
+  convertToBaseUnit,
+  formatAmountForDisplay,
+} from '../../../shared/utils/unit.util';
+
+import {
+  MergeReviewSheetComponent,
+  MergeCandidate,
+} from '../../../shared/components/merge-review-sheet/merge-review-sheet.component';
 
 
 @Component({
@@ -45,7 +54,8 @@ import { isIngredientMatch } from '../../../shared/utils/ingredient-match.util';
     EditTextDialogComponent,
     ConfirmationDialogComponent,
     SnackbarComponent,
-    PantryActionDialogComponent
+    PantryActionDialogComponent,
+    MergeReviewSheetComponent
   ],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
@@ -85,6 +95,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   hideAlwaysPresent = false;
   isCoverageExpanded = false;
+
+  isMergeSheetOpen = false;
+  mergeSheetData: {
+    rawIngredients: string[];
+    newItem: string;
+    candidates: any[];
+  } | null = null;
 
   private toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -165,10 +182,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   isAlwaysPresentHint(itemName: string): boolean {
-  return this.alwaysPresentItems.some((alwaysPresentItem) =>
-    isIngredientMatch(itemName, alwaysPresentItem.name)
-  );
-}
+    return this.alwaysPresentItems.some((alwaysPresentItem) =>
+      isIngredientMatch(itemName, alwaysPresentItem.name)
+    );
+  }
 
   subscribeToGroceryItems(listId: string): void {
     this.itemsChannel?.unsubscribe();
@@ -196,17 +213,17 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   get visibleGroceryItems(): any[] {
-  if (!this.hideAlwaysPresent || !this.alwaysPresentItems.length) {
-    return this.groceryItems;
-  }
+    if (!this.hideAlwaysPresent || !this.alwaysPresentItems.length) {
+      return this.groceryItems;
+    }
 
-  return this.groceryItems.filter(
-    (item) =>
-      !this.alwaysPresentItems.some((ap) =>
-        isIngredientMatch(item.name, ap.name)
-      )
-  );
-}
+    return this.groceryItems.filter(
+      (item) =>
+        !this.alwaysPresentItems.some((ap) =>
+          isIngredientMatch(item.name, ap.name)
+        )
+    );
+  }
 
   async onEnterAddItem(): Promise<void> {
     const trimmed = this.newItemName.trim();
@@ -216,9 +233,40 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     await this.addItem();
   }
 
-  async addItem(): Promise<void> {
-    if (this.isReadOnly) return;
-    const trimmedName = this.newItemName.trim();
+ async addItem(): Promise<void> {
+  if (this.isReadOnly) return;
+
+  const trimmedName = this.newItemName.trim();
+  if (!trimmedName || !this.groceryList) {
+    return;
+  }
+    // build raw set (existing + new)
+    const rawIngredients = [
+      ...this.groceryItems.map(i => i.name),
+      trimmedName
+    ];
+
+    // detect merge candidates
+    const candidates = this.detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+
+    // only keep candidates that involve the NEW item
+    const normalizedNewItem = normalizeIngredientKey(trimmedName).toLowerCase();
+
+const relevantCandidates = candidates.filter((c: MergeCandidate) =>
+  c.singularItems.includes(normalizedNewItem) ||
+  c.pluralItem === normalizedNewItem
+);
+    if (relevantCandidates.length > 0) {
+      this.mergeSheetData = {
+        rawIngredients,
+        newItem: trimmedName,
+        candidates: relevantCandidates,
+      };
+
+      this.isMergeSheetOpen = true;
+      return;
+    }
+
     if (!trimmedName || !this.groceryList) {
       return;
     }
@@ -267,78 +315,254 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   private buildMergeResult(
-    existingName: string,
-    newName: string
-  ): string | null {
-    const normalizedExisting = normalizeIngredientKey(existingName);
-    const normalizedNew = normalizeIngredientKey(newName);
+  existingName: string,
+  newName: string
+): string | null {
+  const normalizedExisting = normalizeIngredientKey(existingName);
+  const normalizedNew = normalizeIngredientKey(newName);
 
-    const parsedExisting = parseLeadingNumberIngredient(normalizedExisting);
-    const parsedNew = parseLeadingNumberIngredient(normalizedNew);
+  const parsedExisting = parseLeadingNumberIngredient(normalizedExisting);
+  const parsedNew = parseLeadingNumberIngredient(normalizedNew);
 
-    const countedExisting = parseCountedPlainIngredient(normalizedExisting);
-    const countedNew = parseCountedPlainIngredient(normalizedNew);
+  const countedExisting = parseCountedPlainIngredient(normalizedExisting);
+  const countedNew = parseCountedPlainIngredient(normalizedNew);
 
-    // numeric-leading + numeric-leading => sum quantity
+  // measured + measured => sum using base units if same ingredient name
+  if (parsedExisting && parsedNew && parsedExisting.unit && parsedNew.unit) {
+    const convertedExisting = convertToBaseUnit(parsedExisting.amount, parsedExisting.unit);
+    const convertedNew = convertToBaseUnit(parsedNew.amount, parsedNew.unit);
+
     if (
-      parsedExisting &&
-      parsedNew &&
-      parsedExisting.suffix.toLowerCase() === parsedNew.suffix.toLowerCase()
+      convertedExisting &&
+      convertedNew &&
+      convertedExisting.unit === convertedNew.unit &&
+      parsedExisting.name.toLowerCase() === parsedNew.name.toLowerCase()
     ) {
-      return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
-    }
+      const totalAmount = convertedExisting.amount + convertedNew.amount;
+      const formatted = formatAmountForDisplay(totalAmount, convertedExisting.unit);
 
-    // numeric-leading + counted plain => sum if same family
-    if (
-      parsedExisting &&
-      countedNew &&
-      parsedExisting.suffix.toLowerCase() === countedNew.text.toLowerCase()
-    ) {
-      return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
+      return `${formatted.amount} ${formatted.unit} ${parsedExisting.name}`.trim();
     }
-
-    // counted plain + numeric-leading => sum if same family
-    if (
-      countedExisting &&
-      parsedNew &&
-      countedExisting.text.toLowerCase() === parsedNew.suffix.toLowerCase()
-    ) {
-      return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
-    }
-
-    // plain text + same plain text => turn into 2 × text
-    if (
-      !parsedExisting &&
-      !parsedNew &&
-      !countedExisting &&
-      !countedNew &&
-      normalizedExisting === normalizedNew
-    ) {
-      return `2 × ${normalizedExisting}`;
-    }
-
-    // counted plain + same plain text => increment count
-    if (
-      countedExisting &&
-      !parsedNew &&
-      !countedNew &&
-      countedExisting.text.toLowerCase() === normalizedNew.toLowerCase()
-    ) {
-      return `${countedExisting.count + 1} × ${countedExisting.text}`;
-    }
-
-    // plain text + counted plain => increment count
-    if (
-      !parsedExisting &&
-      !countedExisting &&
-      countedNew &&
-      normalizedExisting.toLowerCase() === countedNew.text.toLowerCase()
-    ) {
-      return `${countedNew.count + 1} × ${normalizedExisting}`;
-    }
-
-    return null;
   }
+
+  // numeric-leading + numeric-leading without convertible units => sum if exact same suffix
+  if (
+    parsedExisting &&
+    parsedNew &&
+    !parsedExisting.unit &&
+    !parsedNew.unit &&
+    parsedExisting.suffix.toLowerCase() === parsedNew.suffix.toLowerCase()
+  ) {
+    return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
+  }
+
+  // numeric-leading + counted plain => sum if same family
+  if (
+    parsedExisting &&
+    countedNew &&
+    parsedExisting.suffix.toLowerCase() === countedNew.text.toLowerCase()
+  ) {
+    return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
+  }
+
+  // counted plain + numeric-leading => sum if same family
+  if (
+    countedExisting &&
+    parsedNew &&
+    countedExisting.text.toLowerCase() === parsedNew.suffix.toLowerCase()
+  ) {
+    return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
+  }
+
+  // plain text + same plain text => turn into 2 × text
+  if (
+    !parsedExisting &&
+    !parsedNew &&
+    !countedExisting &&
+    !countedNew &&
+    normalizedExisting === normalizedNew
+  ) {
+    return `2 × ${normalizedExisting}`;
+  }
+
+  // counted plain + same plain text => increment count
+  if (
+    countedExisting &&
+    !parsedNew &&
+    !countedNew &&
+    countedExisting.text.toLowerCase() === normalizedNew.toLowerCase()
+  ) {
+    return `${countedExisting.count + 1} × ${countedExisting.text}`;
+  }
+
+  // plain text + counted plain => increment count
+  if (
+    !parsedExisting &&
+    !countedExisting &&
+    countedNew &&
+    normalizedExisting.toLowerCase() === countedNew.text.toLowerCase()
+  ) {
+    return `${countedNew.count + 1} × ${normalizedExisting}`;
+  }
+
+  return null;
+}
+
+  private getMergeableRawIngredientInfo(raw: string): {
+    kind: 'singularish' | 'pluralish';
+    text: string;
+    count: number;
+  } | null {
+    const normalized = normalizeIngredientKey(raw);
+    const parsed = parseLeadingNumberIngredient(normalized);
+
+    if (parsed && parsed.unit) {
+      return null;
+    }
+
+    if (parsed && !parsed.unit) {
+      return {
+        kind: parsed.amount > 1 ? 'pluralish' : 'singularish',
+        text: parsed.name.trim().toLowerCase(),
+        count: parsed.amount,
+      };
+    }
+
+    return {
+      kind: 'singularish',
+      text: normalized.trim().toLowerCase(),
+      count: 1,
+    };
+  }
+
+
+ async onMergeCancel(): Promise<void> {
+  this.isMergeSheetOpen = false;
+  this.mergeSheetData = null;
+
+  await this.addItemWithoutMerge();
+}
+
+  async onMergeApply(selectedCandidates: MergeCandidate[]): Promise<void> {
+  if (!this.mergeSheetData || !this.groceryList) {
+    return;
+  }
+
+  this.isMergeSheetOpen = false;
+
+  if (!selectedCandidates.length) {
+    this.mergeSheetData = null;
+    await this.addItemWithoutMerge();
+    return;
+  }
+
+  for (const candidate of selectedCandidates) {
+    await this.applySingleMergeCandidateToList(
+      candidate,
+      this.mergeSheetData.newItem
+    );
+  }
+
+  this.mergeSheetData = null;
+  this.newItemName = '';
+  this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+  this.cdr.detectChanges();
+}
+
+private async applySingleMergeCandidateToList(
+  candidate: MergeCandidate,
+  pendingNewItem: string
+): Promise<void> {
+  if (!this.groceryList) {
+    return;
+  }
+
+  const currentMember = this.memberStateService.getCurrentMember();
+  const memberId = currentMember?.id ?? 1;
+
+  const matchedItems = this.groceryItems.filter((item) => {
+    const info = this.getMergeableRawIngredientInfo(item.name);
+
+    if (!info) {
+      return false;
+    }
+
+    const matchesSingular =
+      info.kind === 'singularish' &&
+      info.text === candidate.singularText;
+
+    const matchesPlural =
+      info.kind === 'pluralish' &&
+      info.text === candidate.pluralText;
+
+    return matchesSingular || matchesPlural;
+  });
+
+  let totalCount = 0;
+
+  // count existing matched rows
+  for (const item of matchedItems) {
+    const info = this.getMergeableRawIngredientInfo(item.name);
+    if (info) {
+      totalCount += info.count;
+    }
+  }
+
+  // count the NEW pending item too
+  const pendingInfo = this.getMergeableRawIngredientInfo(pendingNewItem);
+  if (pendingInfo) {
+    const matchesPendingSingular =
+      pendingInfo.kind === 'singularish' &&
+      pendingInfo.text === candidate.singularText;
+
+    const matchesPendingPlural =
+      pendingInfo.kind === 'pluralish' &&
+      pendingInfo.text === candidate.pluralText;
+
+    if (matchesPendingSingular || matchesPendingPlural) {
+      totalCount += pendingInfo.count;
+    }
+  }
+
+  if (totalCount === 0) {
+    return;
+  }
+
+  const finalName = `${totalCount} ${candidate.pluralText}`.trim();
+
+  // delete only affected existing items
+  for (const item of matchedItems) {
+    await this.groceryService.deleteGroceryItem(item.id);
+  }
+
+  // create merged row including the new pending item
+  await this.groceryService.createGroceryItem(
+    this.groceryList.id,
+    finalName,
+    memberId
+  );
+}
+
+  private async addItemWithoutMerge(): Promise<void> {
+    const trimmedName = this.newItemName.trim();
+    if (!trimmedName || !this.groceryList) return;
+
+    const currentMember = this.memberStateService.getCurrentMember();
+    const addedByMemberId = currentMember?.id ?? 1;
+
+    const created = await this.groceryService.createGroceryItem(
+      this.groceryList.id,
+      trimmedName,
+      addedByMemberId
+    );
+
+    if (!created) return;
+
+    this.newItemName = '';
+    this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+    this.cdr.detectChanges();
+  }
+
 
   async toggleItem(item: any): Promise<void> {
     if (this.isReadOnly || this.isEditDialogOpen || this.isDeleteDialogOpen) {
@@ -737,52 +961,218 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   get coverageDays(): Array<{ label: string; meals: string[] }> {
-  if (!this.groceryList?.generated || !this.groceryList.metadata?.days) {
-    return [];
+    if (!this.groceryList?.generated || !this.groceryList.metadata?.days) {
+      return [];
+    }
+
+    return this.groceryList.metadata.days
+      .map((day: any) => {
+        const meals = (day.meals || [])
+          .map((m: any) => m?.name)
+          .filter((name: string | undefined): name is string => !!name);
+
+        if (!meals.length) {
+          return null;
+        }
+
+        return {
+          label: this.formatCoverageDay(day.key),
+          meals,
+        };
+      })
+      .filter(Boolean);
   }
 
-  return this.groceryList.metadata.days
-    .map((day: any) => {
-      const meals = (day.meals || [])
-        .map((m: any) => m?.name)
-        .filter((name: string | undefined): name is string => !!name);
+  private formatCoverageDay(dateKey: string): string {
+    const date = new Date(`${dateKey}T12:00:00`);
 
-      if (!meals.length) {
-        return null;
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  get coverageSummary(): string {
+    if (!this.coverageDays.length) return '';
+
+    const daysCount = this.coverageDays.length;
+    const mealsCount = this.coverageDays.reduce(
+      (sum, d) => sum + d.meals.length,
+      0
+    );
+
+    const dayText = daysCount === 1 ? 'day' : 'days';
+    const mealText = mealsCount === 1 ? 'meal' : 'meals';
+
+    return `Covers planned meals · ${daysCount} ${dayText} · ${mealsCount} ${mealText}`;
+  }
+
+  private detectPossibleMergeCandidatesFromRawIngredients(rawIngredients: string[]): MergeCandidate[] {
+    const candidates: MergeCandidate[] = [];
+
+    const normalizedRaw = rawIngredients
+      .map((item) => normalizeIngredientKey(item))
+      .filter(Boolean);
+
+    for (const itemB of normalizedRaw) {
+      const parsedB = parseLeadingNumberIngredient(itemB);
+
+      if (!parsedB || parsedB.amount <= 1 || parsedB.unit) {
+        continue;
       }
 
-      return {
-        label: this.formatCoverageDay(day.key),
-        meals,
-      };
-    })
-    .filter(Boolean);
-}
+      const pluralText = parsedB.name.trim().toLowerCase();
 
-private formatCoverageDay(dateKey: string): string {
-  const date = new Date(`${dateKey}T12:00:00`);
+      const singularMatches = normalizedRaw.filter((itemA) => {
+        if (itemA === itemB) return false;
 
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-}
+        const parsedA = parseLeadingNumberIngredient(itemA);
+        const isSingularish = !parsedA || (parsedA.amount === 1 && !parsedA.unit);
 
-get coverageSummary(): string {
-  if (!this.coverageDays.length) return '';
+        if (!isSingularish) return false;
 
-  const daysCount = this.coverageDays.length;
-  const mealsCount = this.coverageDays.reduce(
-    (sum, d) => sum + d.meals.length,
-    0
-  );
+        const singularText = (parsedA ? parsedA.name : itemA).trim().toLowerCase();
 
-  const dayText = daysCount === 1 ? 'day' : 'days';
-  const mealText = mealsCount === 1 ? 'meal' : 'meals';
+        if (singularText === pluralText) return false;
 
-  return `Covers planned meals · ${daysCount} ${dayText} · ${mealsCount} ${mealText}`;
-}
+        return this.areTextsCloseEnough(singularText, pluralText);
+      });
+
+      if (singularMatches.length > 0) {
+        const singularText = (() => {
+          const first = singularMatches[0];
+          const parsed = parseLeadingNumberIngredient(first);
+          return (parsed ? parsed.name : first).trim().toLowerCase();
+        })();
+
+        const alreadyExists = candidates.some(
+          (c) => c.singularText === singularText && c.pluralText === pluralText
+        );
+
+        if (!alreadyExists) {
+          candidates.push({
+            singularItems: singularMatches,
+            pluralItem: itemB,
+            singularText,
+            pluralText,
+            similarity: 1,
+          });
+        }
+      }
+    }
+
+    return candidates;
+  }
+
+  private areTextsCloseEnough(a: string, b: string): boolean {
+    const left = a.trim().toLowerCase();
+    const right = b.trim().toLowerCase();
+
+    if (!left || !right || left === right) {
+      return false;
+    }
+
+    const leftWords = left.split(/\s+/).filter(Boolean);
+    const rightWords = right.split(/\s+/).filter(Boolean);
+
+    if (leftWords.length === 1 && rightWords.length === 1) {
+      return this.getWordCloseness(leftWords[0], rightWords[0]) >= 0.55;
+    }
+
+    if (leftWords.length !== rightWords.length) {
+      return false;
+    }
+
+    let strongMatches = 0;
+    let weakMatches = 0;
+    let totalScore = 0;
+
+    for (let i = 0; i < leftWords.length; i++) {
+      const score = this.getWordCloseness(leftWords[i], rightWords[i]);
+      totalScore += score;
+
+      if (score >= 0.55) {
+        strongMatches++;
+      } else if (score >= 0.35) {
+        weakMatches++;
+      } else {
+        return false;
+      }
+    }
+
+    const wordCount = leftWords.length;
+    const averageScore = totalScore / wordCount;
+
+    return (
+      strongMatches >= wordCount - 1 ||
+      (strongMatches + weakMatches === wordCount && averageScore >= 0.4)
+    );
+  }
+
+  private getWordCloseness(a: string, b: string): number {
+    return Math.max(
+      this.getWordSimilarityScore(a, b),
+      this.getCommonPrefixRatio(a, b)
+    );
+  }
+
+  private getWordSimilarityScore(a: string, b: string): number {
+    const left = a.trim().toLowerCase();
+    const right = b.trim().toLowerCase();
+
+    if (!left || !right) return 0;
+    if (left === right) return 1;
+
+    const leftBigrams = this.getWordBigrams(left);
+    const rightBigrams = this.getWordBigrams(right);
+
+    if (!leftBigrams.length || !rightBigrams.length) return 0;
+
+    let overlap = 0;
+    const pool = [...rightBigrams];
+
+    for (const bigram of leftBigrams) {
+      const index = pool.indexOf(bigram);
+      if (index !== -1) {
+        overlap++;
+        pool.splice(index, 1);
+      }
+    }
+
+    return (2 * overlap) / (leftBigrams.length + rightBigrams.length);
+  }
+
+  private getCommonPrefixRatio(a: string, b: string): number {
+    const left = a.trim().toLowerCase();
+    const right = b.trim().toLowerCase();
+
+    if (!left || !right) return 0;
+    if (left === right) return 1;
+
+    const minLength = Math.min(left.length, right.length);
+    let samePrefix = 0;
+
+    for (let i = 0; i < minLength; i++) {
+      if (left[i] !== right[i]) break;
+      samePrefix++;
+    }
+
+    return samePrefix / Math.max(left.length, right.length);
+  }
+
+  private getWordBigrams(word: string): string[] {
+    if (word.length < 2) {
+      return [];
+    }
+
+    const result: string[] = [];
+    for (let i = 0; i < word.length - 1; i++) {
+      result.push(word.slice(i, i + 2));
+    }
+
+    return result;
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
