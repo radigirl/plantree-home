@@ -5,6 +5,7 @@ import {
 } from './ingredient.util';
 import { convertToBaseUnit, formatAmountForDisplay } from './unit.util';
 import type { MergeCandidate } from '../components/merge-review-sheet/merge-review-sheet.component';
+import { parseMeasurementStyleIngredient } from './measurement-style.util';
 
 // -----------------------------
 // Merge candidate detection
@@ -303,10 +304,19 @@ export function getIngredientSortKey(input: string): string {
   const normalized = normalizeIngredientKey(input);
 
   const counted = parseCountedPlainIngredient(normalized);
-  if (counted) return simplifyIngredientSortText(counted.text);
+  if (counted) {
+    return simplifyIngredientSortText(counted.text);
+  }
+
+  const measurementStyle = parseMeasurementStyleIngredient(normalized);
+  if (measurementStyle) {
+    return simplifyIngredientSortText(measurementStyle.ingredient);
+  }
 
   const parsed = parseLeadingNumberIngredient(normalized);
-  if (parsed) return simplifyIngredientSortText(parsed.suffix);
+  if (parsed) {
+    return simplifyIngredientSortText(parsed.suffix);
+  }
 
   return simplifyIngredientSortText(normalized);
 }
