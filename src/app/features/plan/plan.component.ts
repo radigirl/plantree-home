@@ -29,18 +29,15 @@ import { GroceryService } from '../../services/grocery.service';
 import { MemberStateService } from '../../services/member.state.service';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 import {
-  normalizeIngredientKey,
-  parseLeadingNumberIngredient,
-  parseCountedPlainIngredient,
-} from '../../shared/utils/ingredient.util';
-import {
-  convertToBaseUnit,
-  formatAmountForDisplay,
-} from '../../shared/utils/unit.util';
-import {
   MergeReviewSheetComponent,
   MergeCandidate,
 } from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
+import {
+  detectPossibleMergeCandidatesFromRawIngredients,
+  buildIngredientsFromRawIngredients,
+  applySelectedMergesToRawIngredients
+} from '../../shared/utils/ingredient-merge.util';
+
 
 
 @Component({
@@ -344,7 +341,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     }
 
     const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
-    const mergeCandidates = this.detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+    const mergeCandidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
 
     if (mergeCandidates.length > 0) {
       this.openMergeSheet({
@@ -370,7 +367,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     const rawIngredients = this.getRawIngredientsFromSelectedMealIds(
       selection.selectedMealIds
     );
-    const mergeCandidates = this.detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+    const mergeCandidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
     if (mergeCandidates.length > 0) {
       this.openMergeSheet({
         rawIngredients,
@@ -384,223 +381,6 @@ export class PlanComponent implements OnInit, OnDestroy {
       selection.selectedDayKeys,
       selection.selectedMealIds
     );
-  }
-
-  private detectPossibleMergeCandidatesFromRawIngredients(rawIngredients: string[]) {
-    const candidates: Array<{
-      singularItems: string[];
-      pluralItem: string;
-      singularText: string;
-      pluralText: string;
-      similarity: number;
-    }> = [];
-
-    const normalizedRaw = rawIngredients
-      .map((item) => normalizeIngredientKey(item))
-      .filter(Boolean);
-
-    for (const itemB of normalizedRaw) {
-      const parsedB = parseLeadingNumberIngredient(itemB);
-
-      // plural-ish side = explicit count > 1, but NOT measured units
-      if (!parsedB || parsedB.amount <= 1 || parsedB.unit) {
-        continue;
-      }
-
-      const pluralText = parsedB.name.trim().toLowerCase();
-
-      const singularMatches = normalizedRaw.filter((itemA) => {
-        if (itemA === itemB) return false;
-
-        const parsedA = parseLeadingNumberIngredient(itemA);
-
-        // singular-ish side = plain OR explicit 1, but NOT measured units
-        const isSingularish =
-          !parsedA || (parsedA.amount === 1 && !parsedA.unit);
-
-        if (!isSingularish) return false;
-
-        const singularText = (parsedA ? parsedA.name : itemA).trim().toLowerCase();
-
-        // ignore exact same visible text like "ябълки" + "5 ябълки"
-        if (singularText === pluralText) return false;
-        const closeEnough = this.areTextsCloseEnough(singularText, pluralText);
-
-        return closeEnough;
-      });
-
-      if (singularMatches.length > 0) {
-        const singularText = (() => {
-          const first = singularMatches[0];
-          const parsed = parseLeadingNumberIngredient(first);
-          return (parsed ? parsed.name : first).trim().toLowerCase();
-        })();
-
-        const similarity = 1;
-
-        const alreadyExists = candidates.some(
-          (c) => c.singularText === singularText && c.pluralText === pluralText
-        );
-
-        if (!alreadyExists) {
-          candidates.push({
-            singularItems: singularMatches,
-            pluralItem: itemB,
-            singularText,
-            pluralText,
-            similarity: 1,
-          });
-        }
-      }
-    }
-    return candidates;
-  }
-
-
-  private areTextsCloseEnough(a: string, b: string): boolean {
-    const left = a.trim().toLowerCase();
-    const right = b.trim().toLowerCase();
-
-    if (!left || !right || left === right) {
-      return false;
-    }
-
-    const leftWords = left.split(/\s+/).filter(Boolean);
-    const rightWords = right.split(/\s+/).filter(Boolean);
-
-    // single-word case
-    if (leftWords.length === 1 && rightWords.length === 1) {
-      return this.getWordCloseness(leftWords[0], rightWords[0]) >= 0.55;
-    }
-
-    // multi-word case: same number of words only
-    if (leftWords.length !== rightWords.length) {
-      return false;
-    }
-
-    let strongMatches = 0;
-    let weakMatches = 0;
-    let totalScore = 0;
-
-    for (let i = 0; i < leftWords.length; i++) {
-      const score = this.getWordCloseness(leftWords[i], rightWords[i]);
-
-      totalScore += score;
-
-      if (score >= 0.55) {
-        strongMatches++;
-      } else if (score >= 0.35) {
-        weakMatches++;
-      } else {
-        return false;
-      }
-    }
-
-    const wordCount = leftWords.length;
-    const averageScore = totalScore / wordCount;
-
-    // Accept if:
-    // 1) most words are strong, OR
-    // 2) all words are at least weak and average closeness is solid
-    return (
-      strongMatches >= wordCount - 1 ||
-      (strongMatches + weakMatches === wordCount && averageScore >= 0.4)
-    );
-  }
-
-  private getWordCloseness(a: string, b: string): number {
-    return Math.max(
-      this.getWordSimilarityScore(a, b),
-      this.getCommonPrefixRatio(a, b)
-    );
-  }
-
-  private getCommonPrefixRatio(a: string, b: string): number {
-    const left = a.trim().toLowerCase();
-    const right = b.trim().toLowerCase();
-
-    if (!left || !right) return 0;
-    if (left === right) return 1;
-
-    const minLength = Math.min(left.length, right.length);
-    let samePrefix = 0;
-
-    for (let i = 0; i < minLength; i++) {
-      if (left[i] !== right[i]) break;
-      samePrefix++;
-    }
-
-    return samePrefix / Math.max(left.length, right.length);
-  }
-
-  private getWordSimilarityScore(a: string, b: string): number {
-    const left = a.trim().toLowerCase();
-    const right = b.trim().toLowerCase();
-
-    if (!left || !right) return 0;
-    if (left === right) return 1;
-
-    const leftBigrams = this.getWordBigrams(left);
-    const rightBigrams = this.getWordBigrams(right);
-
-    if (!leftBigrams.length || !rightBigrams.length) return 0;
-
-    let overlap = 0;
-    const pool = [...rightBigrams];
-
-    for (const bigram of leftBigrams) {
-      const index = pool.indexOf(bigram);
-      if (index !== -1) {
-        overlap++;
-        pool.splice(index, 1);
-      }
-    }
-
-    return (2 * overlap) / (leftBigrams.length + rightBigrams.length);
-  }
-
-  private areWordsCloseEnough(a: string, b: string): boolean {
-    const left = a.trim().toLowerCase();
-    const right = b.trim().toLowerCase();
-
-    if (!left || !right || left === right) {
-      return false;
-    }
-
-    const leftBigrams = this.getWordBigrams(left);
-    const rightBigrams = this.getWordBigrams(right);
-
-    if (!leftBigrams.length || !rightBigrams.length) {
-      return false;
-    }
-
-    let overlap = 0;
-    const pool = [...rightBigrams];
-
-    for (const bigram of leftBigrams) {
-      const index = pool.indexOf(bigram);
-      if (index !== -1) {
-        overlap++;
-        pool.splice(index, 1);
-      }
-    }
-
-    const score = (2 * overlap) / (leftBigrams.length + rightBigrams.length);
-    return score >= 0.6;
-  }
-
-  private getWordBigrams(word: string): string[] {
-    if (word.length < 2) {
-      return [];
-    }
-
-    const result: string[] = [];
-
-    for (let i = 0; i < word.length - 1; i++) {
-      result.push(word.slice(i, i + 2));
-    }
-
-    return result;
   }
 
   private openMergeSheet(data: {
@@ -637,12 +417,12 @@ export class PlanComponent implements OnInit, OnDestroy {
       return;
     }
     const { rawIngredients, selection } = this.mergeSheetData;
-    const mergedRawIngredients = this.applySelectedMergesToRawIngredients(
+    const mergedRawIngredients = applySelectedMergesToRawIngredients(
       rawIngredients,
       selectedCandidates
     );
     const finalIngredients =
-      this.buildIngredientsFromRawIngredients(mergedRawIngredients);
+      buildIngredientsFromRawIngredients(mergedRawIngredients);
     this.isMergeSheetOpen = false;
     this.mergeSheetData = null;
     this.isGenerateSheetOpen = false;
@@ -875,197 +655,11 @@ export class PlanComponent implements OnInit, OnDestroy {
     return rawIngredients;
   }
 
-  private buildIngredientsFromRawIngredients(rawIngredients: string[]): string[] {
-    const grouped = new Map<
-      string,
-      {
-        originalText: string;
-        count: number;
-        parsedAmount: number | null;
-        suffix: string | null;
-        isParsed: boolean;
-      }
-    >();
-
-    for (const ingredient of rawIngredients) {
-      const normalizedIngredient = normalizeIngredientKey(ingredient);
-      const parsed = parseLeadingNumberIngredient(normalizedIngredient);
-
-      let key: string;
-
-      if (parsed && parsed.unit) {
-        const converted = convertToBaseUnit(parsed.amount, parsed.unit);
-
-        if (converted) {
-          key = `parsed:${converted.unit}:${parsed.name.toLowerCase()}`;
-        } else {
-          key = `parsed:${parsed.suffix.toLowerCase()}`;
-        }
-      } else if (parsed) {
-        key = `parsed:${parsed.suffix.toLowerCase()}`;
-      } else {
-        key = `plain:${normalizedIngredient}`;
-      }
-
-      if (!grouped.has(key)) {
-        if (parsed && parsed.unit) {
-          const converted = convertToBaseUnit(parsed.amount, parsed.unit);
-
-          if (converted) {
-            grouped.set(key, {
-              originalText: normalizedIngredient,
-              count: 1,
-              parsedAmount: converted.amount,
-              suffix: [converted.unit, parsed.name].filter(Boolean).join(' ').trim(),
-              isParsed: true,
-            });
-            continue;
-          }
-        }
-
-        grouped.set(key, {
-          originalText: normalizedIngredient,
-          count: 1,
-          parsedAmount: parsed ? parsed.amount : null,
-          suffix: parsed ? parsed.suffix : null,
-          isParsed: !!parsed,
-        });
-        continue;
-      }
-
-      const existing = grouped.get(key)!;
-      existing.count += 1;
-
-      if (existing.isParsed && existing.parsedAmount !== null && parsed) {
-        if (parsed.unit) {
-          const converted = convertToBaseUnit(parsed.amount, parsed.unit);
-
-          if (converted) {
-            const convertedSuffix = [converted.unit, parsed.name]
-              .filter(Boolean)
-              .join(' ')
-              .trim()
-              .toLowerCase();
-
-            if (existing.suffix && existing.suffix.toLowerCase() === convertedSuffix) {
-              existing.parsedAmount += converted.amount;
-            }
-          }
-        } else if (
-          existing.suffix &&
-          parsed.suffix.toLowerCase() === existing.suffix.toLowerCase()
-        ) {
-          existing.parsedAmount += parsed.amount;
-        }
-      }
-    }
-
-    const result: string[] = [];
-
-    for (const entry of grouped.values()) {
-      if (entry.isParsed && entry.parsedAmount !== null && entry.suffix) {
-        const [unit, ...nameParts] = entry.suffix.split(' ');
-        const name = nameParts.join(' ');
-
-        const formatted = formatAmountForDisplay(entry.parsedAmount, unit);
-
-        result.push(`${formatted.amount} ${formatted.unit} ${name}`.trim());
-      } else if (entry.count > 1) {
-        result.push(`${entry.count} × ${entry.originalText}`);
-      } else {
-        result.push(entry.originalText);
-      }
-    }
-
-    return result.sort((a, b) =>
-      this.getIngredientSortKey(a).localeCompare(this.getIngredientSortKey(b))
-    );
-  }
-
   private getIngredientsFromSelectedMealIds(selectedMealIds: string[]): string[] {
     const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
-    return this.buildIngredientsFromRawIngredients(rawIngredients);
+    return buildIngredientsFromRawIngredients(rawIngredients);
   }
 
-  private applySelectedMergesToRawIngredients(
-    rawIngredients: string[],
-    selectedCandidates: MergeCandidate[]
-  ): string[] {
-    let working = [...rawIngredients];
-
-    for (const candidate of selectedCandidates) {
-      working = this.applySingleMergeCandidate(working, candidate);
-    }
-
-    return working;
-  }
-
-  private applySingleMergeCandidate(
-    rawIngredients: string[],
-    candidate: MergeCandidate
-  ): string[] {
-    const kept: string[] = [];
-    let totalCount = 0;
-
-    for (const raw of rawIngredients) {
-      const info = this.getMergeableRawIngredientInfo(raw);
-
-      if (!info) {
-        kept.push(raw);
-        continue;
-      }
-
-      const matchesSingular =
-        info.kind === 'singularish' &&
-        info.text === candidate.singularText;
-
-      const matchesPlural =
-        info.kind === 'pluralish' &&
-        info.text === candidate.pluralText;
-
-      if (matchesSingular || matchesPlural) {
-        totalCount += info.count;
-      } else {
-        kept.push(raw);
-      }
-    }
-
-    if (totalCount > 0) {
-      kept.push(`${totalCount} ${candidate.pluralText}`);
-    }
-
-    return kept;
-  }
-
-  private getMergeableRawIngredientInfo(raw: string): {
-    kind: 'singularish' | 'pluralish';
-    text: string;
-    count: number;
-  } | null {
-    const normalized = normalizeIngredientKey(raw);
-    const parsed = parseLeadingNumberIngredient(normalized);
-
-    // measured units are NOT part of this merge-review flow
-    if (parsed && parsed.unit) {
-      return null;
-    }
-
-    // counted text like "2 яйца" / "1 яйце"
-    if (parsed && !parsed.unit) {
-      return {
-        kind: parsed.amount > 1 ? 'pluralish' : 'singularish',
-        text: parsed.name.trim().toLowerCase(),
-        count: parsed.amount,
-      };
-    }
-
-    // plain text like "яйце"
-    return {
-      kind: 'singularish',
-      text: normalized.trim().toLowerCase(),
-      count: 1,
-    };
-  }
 
   private buildGeneratedListMetadata(
     selectedDayKeys: string[],
@@ -1114,33 +708,6 @@ export class PlanComponent implements OnInit, OnDestroy {
     };
   }
 
-  private getIngredientSortKey(input: string): string {
-    const normalized = normalizeIngredientKey(input);
-
-    const counted = parseCountedPlainIngredient(normalized);
-    if (counted) {
-      return this.simplifyIngredientSortText(counted.text);
-    }
-
-    const parsed = parseLeadingNumberIngredient(normalized);
-    if (parsed) {
-      return this.simplifyIngredientSortText(parsed.suffix);
-    }
-
-    return this.simplifyIngredientSortText(normalized);
-  }
-
-  private simplifyIngredientSortText(text: string): string {
-    let result = text.toLowerCase().trim();
-
-    const parts = result.split(' ').filter(Boolean);
-
-    if (parts.length > 1 && parts[0].length <= 2) {
-      result = parts.slice(1).join(' ');
-    }
-
-    return result;
-  }
 
   private buildGeneratedListName(selectedDayKeys: string[]): string {
     if (!selectedDayKeys.length) {
