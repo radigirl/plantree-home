@@ -302,23 +302,20 @@ export function buildIngredientsFromRawIngredients(rawIngredients: string[]): st
 
 export function getIngredientSortKey(input: string): string {
   const normalized = normalizeIngredientKey(input);
-
-  const counted = parseCountedPlainIngredient(normalized);
+  const withoutCount = normalized.replace(/^(\d+)\s*[x×]\s*/, '').trim();
+  const counted = parseCountedPlainIngredient(withoutCount);
   if (counted) {
     return simplifyIngredientSortText(counted.text);
   }
-
-  const measurementStyle = parseMeasurementStyleIngredient(normalized);
+  const measurementStyle = parseMeasurementStyleIngredient(withoutCount);
   if (measurementStyle) {
     return simplifyIngredientSortText(measurementStyle.ingredient);
   }
-
-  const parsed = parseLeadingNumberIngredient(normalized);
+  const parsed = parseLeadingNumberIngredient(withoutCount);
   if (parsed) {
     return simplifyIngredientSortText(parsed.suffix);
   }
-
-  return simplifyIngredientSortText(normalized);
+  return simplifyIngredientSortText(withoutCount);
 }
 
 export function simplifyIngredientSortText(text: string): string {
