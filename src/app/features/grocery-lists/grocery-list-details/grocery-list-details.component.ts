@@ -286,79 +286,113 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
 
-  async addItem(): Promise<void> {
-    if (this.isReadOnly) return;
+async addItem(): Promise<void> {
+  if (this.isReadOnly) return;
 
-    const trimmedName = this.newItemName.trim();
-    if (!trimmedName || !this.groceryList) {
-      return;
-    }
+  const trimmedName = this.newItemName.trim();
+  if (!trimmedName || !this.groceryList) {
+    return;
+  }
 
-    // build raw set (existing + new)
-    const rawIngredients = [
-      ...this.groceryItems.map(i => i.name),
-      trimmedName
-    ];
+  const rawIngredients = [
+    ...this.groceryItems.map(i => i.name),
+    trimmedName
+  ];
 
-    // detect merge candidates
-    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
-    const normalizedNewItem = normalizeIngredientKey(trimmedName).toLowerCase();
-    const relevantCandidates = candidates.filter((c: MergeCandidate) =>
-      c.singularItems.includes(normalizedNewItem) ||
-      c.pluralItem === normalizedNewItem
+  const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+  const normalizedNewItem = normalizeIngredientKey(trimmedName).toLowerCase();
+
+  const relevantCandidates = candidates.filter((c: MergeCandidate) =>
+    c.singularItems.includes(normalizedNewItem) ||
+    c.pluralItem === normalizedNewItem
+  );
+
+  if (relevantCandidates.length > 0) {
+    this.mergeSheetData = {
+      rawIngredients,
+      newItem: trimmedName,
+      candidates: relevantCandidates,
+    };
+
+    this.isMergeSheetOpen = true;
+    return;
+  }
+
+  const currentMember = this.memberStateService.getCurrentMember();
+  const addedByMemberId = currentMember?.id ?? 1;
+
+  const measuredMatch = this.groceryItems.find((item) => {
+    const parsed = parseLeadingNumberIngredient(
+      normalizeIngredientKey(item.name)
     );
 
-    if (relevantCandidates.length > 0) {
-      this.mergeSheetData = {
-        rawIngredients,
-        newItem: trimmedName,
-        candidates: relevantCandidates,
-      };
+    return (
+      parsed &&
+      parsed.unit &&
+      normalizeIngredientKey(parsed.name) ===
+        normalizeIngredientKey(trimmedName)
+    );
+  });
 
-      this.isMergeSheetOpen = true;
-      return;
-    }
+  if (measuredMatch) {
+    const mergedName = this.buildMergeResult(
+      measuredMatch.name,
+      trimmedName
+    );
 
-    const currentMember = this.memberStateService.getCurrentMember();
-    const addedByMemberId = currentMember?.id ?? 1;
-
-    for (const item of this.groceryItems) {
-      const mergedName = this.buildMergeResult(item.name, trimmedName);
-      if (!mergedName) {
-        continue;
-      }
+    if (mergedName) {
       const success = await this.groceryService.updateGroceryItemName(
-        item.id,
+        measuredMatch.id,
         mergedName
       );
+
       if (!success) {
         this.error = 'Could not update grocery item.';
         this.cdr.detectChanges();
         return;
       }
+
       this.newItemName = '';
-      this.pendingRevealItemId = item.id;
+      this.pendingRevealItemId = measuredMatch.id;
       return;
     }
+  }
 
-    // normal create
-    const created = await this.groceryService.createGroceryItem(
-      this.groceryList.id,
-      trimmedName,
-      addedByMemberId
+  for (const item of this.groceryItems) {
+    const mergedName = this.buildMergeResult(item.name, trimmedName);
+    if (!mergedName) continue;
+
+    const success = await this.groceryService.updateGroceryItemName(
+      item.id,
+      mergedName
     );
 
-    if (!created) {
-      this.error = 'Could not add grocery item.';
+    if (!success) {
+      this.error = 'Could not update grocery item.';
       this.cdr.detectChanges();
       return;
     }
 
     this.newItemName = '';
-
-    // same logic as before
-    this.pendingRevealItemId = created.id;
+    this.pendingRevealItemId = item.id;
+    return;
   }
+
+  const created = await this.groceryService.createGroceryItem(
+    this.groceryList.id,
+    trimmedName,
+    addedByMemberId
+  );
+
+  if (!created) {
+    this.error = 'Could not add grocery item.';
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.newItemName = '';
+  this.pendingRevealItemId = created.id;
+}
 
   private setGroceryItems(items: any[]): void {
     if (this.isGeneratedList) {
@@ -381,6 +415,54 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const countedExisting = parseCountedPlainIngredient(normalizedExisting);
     const countedNew = parseCountedPlainIngredient(normalizedNew);
 
+ 
+    const multiMeasuredMatch = normalizedNew.match(/^(\d+)\s*[x×]\s*(.+)$/i);
+
+    if (multiMeasuredMatch) {
+      const count = Number(multiMeasuredMatch[1]);
+      const rest = multiMeasuredMatch[2];
+
+      const parsed = parseLeadingNumberIngredient(rest);
+
+      if (parsed && parsed.unit) {
+        const converted = convertToBaseUnit(parsed.amount, parsed.unit);
+
+        if (converted) {
+          const totalAmount = converted.amount * count;
+
+          if (
+            parsedExisting &&
+            parsedExisting.unit &&
+            parsedExisting.name.toLowerCase() === parsed.name.toLowerCase()
+          ) {
+            const existingConverted = convertToBaseUnit(
+              parsedExisting.amount,
+              parsedExisting.unit
+            );
+
+            if (
+              existingConverted &&
+              existingConverted.unit === converted.unit
+            ) {
+              const finalAmount = existingConverted.amount + totalAmount;
+
+              const finalFormatted = formatAmountForDisplay(
+                finalAmount,
+                converted.unit
+              );
+
+              return `${finalFormatted.amount} ${finalFormatted.unit} ${parsed.name}`.trim();
+            }
+          }
+
+          // fallback (only if no merge possible)
+          const formatted = formatAmountForDisplay(totalAmount, converted.unit);
+
+          return `${formatted.amount} ${formatted.unit} ${parsed.name}`.trim();
+        }
+      }
+    }
+
     // measured + measured => sum using base units if same ingredient name
     if (parsedExisting && parsedNew && parsedExisting.unit && parsedNew.unit) {
       const convertedExisting = convertToBaseUnit(parsedExisting.amount, parsedExisting.unit);
@@ -399,7 +481,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       }
     }
 
-    // numeric-leading + numeric-leading without convertible units => sum if exact same suffix
+    // numeric-leading + numeric-leading without convertible units
     if (
       parsedExisting &&
       parsedNew &&
@@ -410,7 +492,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
     }
 
-    // numeric-leading + counted plain => sum if same family
+    // numeric-leading + counted plain
     if (
       parsedExisting &&
       countedNew &&
@@ -419,7 +501,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
     }
 
-    // counted plain + numeric-leading => sum if same family
+    // counted plain + numeric-leading
     if (
       countedExisting &&
       parsedNew &&
@@ -428,7 +510,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
     }
 
-    // plain text + same plain text => turn into 2 × text
+    // plain text + same plain text
     if (
       !parsedExisting &&
       !parsedNew &&
@@ -439,7 +521,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `2 × ${normalizedExisting}`;
     }
 
-    // counted plain + same plain text => increment count
+    // counted plain + same plain text
     if (
       countedExisting &&
       !parsedNew &&
@@ -449,7 +531,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `${countedExisting.count + 1} × ${countedExisting.text}`;
     }
 
-    // plain text + counted plain => increment count
+    // plain text + counted plain
     if (
       !parsedExisting &&
       !countedExisting &&
@@ -751,50 +833,68 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     this.editItemName = '';
   }
 
-  async confirmEditItem(): Promise<void> {
-    const trimmedName = this.editItemName.trim();
-    const itemId = this.selectedItemForEdit?.id;
+ async confirmEditItem(): Promise<void> {
+  const trimmedName = this.editItemName.trim();
+  const itemId = this.selectedItemForEdit?.id;
 
-    if (!itemId || !trimmedName || !this.groceryList) {
-      return;
-    }
+  if (!itemId || !trimmedName || !this.groceryList) {
+    return;
+  }
 
-    const rawIngredients = [
-      ...this.groceryItems
-        .filter((item) => item.id !== itemId)
-        .map((item) => item.name),
-      trimmedName,
-    ];
+  const rawIngredients = [
+    ...this.groceryItems
+      .filter((item) => item.id !== itemId)
+      .map((item) => item.name),
+    trimmedName,
+  ];
 
-    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
-    const normalizedEditedItem = normalizeIngredientKey(trimmedName).toLowerCase();
+  const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+  const normalizedEditedItem = normalizeIngredientKey(trimmedName).toLowerCase();
 
-    const relevantCandidates = candidates.filter((c: MergeCandidate) =>
-      c.singularItems.includes(normalizedEditedItem) ||
-      c.pluralItem === normalizedEditedItem
+  const relevantCandidates = candidates.filter((c: MergeCandidate) =>
+    c.singularItems.includes(normalizedEditedItem) ||
+    c.pluralItem === normalizedEditedItem
+  );
+
+  if (relevantCandidates.length > 0) {
+    this.pendingEditItemId = itemId;
+    this.pendingEditItemName = trimmedName;
+
+    this.mergeSheetData = {
+      rawIngredients,
+      newItem: trimmedName,
+      candidates: relevantCandidates,
+    };
+
+    this.closeEditDialog();
+    this.isMergeSheetOpen = true;
+    return;
+  }
+
+  const measuredMatch = this.groceryItems.find((item) => {
+    if (item.id === itemId) return false;
+
+    const parsed = parseLeadingNumberIngredient(
+      normalizeIngredientKey(item.name)
     );
 
-    if (relevantCandidates.length > 0) {
-      this.pendingEditItemId = itemId;
-      this.pendingEditItemName = trimmedName;
+    return (
+      parsed &&
+      parsed.unit &&
+      normalizeIngredientKey(parsed.name) ===
+        normalizeIngredientKey(trimmedName)
+    );
+  });
 
-      this.mergeSheetData = {
-        rawIngredients,
-        newItem: trimmedName,
-        candidates: relevantCandidates,
-      };
+  if (measuredMatch) {
+    const mergedName = this.buildMergeResult(
+      measuredMatch.name,
+      trimmedName
+    );
 
-      this.closeEditDialog();
-      this.isMergeSheetOpen = true;
-      return;
-    }
-
-    for (const item of this.groceryItems) {
-      if (item.id === itemId) continue;
-      const mergedName = this.buildMergeResult(item.name, trimmedName);
-      if (!mergedName) continue;
+    if (mergedName) {
       const success = await this.groceryService.updateGroceryItemName(
-        item.id,
+        measuredMatch.id,
         mergedName
       );
 
@@ -805,26 +905,51 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       }
 
       await this.groceryService.deleteGroceryItem(itemId);
-      this.pendingRevealItemId = item.id;
+
+      this.pendingRevealItemId = measuredMatch.id;
       this.closeEditDialog();
       return;
     }
+  }
 
-    // no merge → normal rename
-    if (this.isGeneratedList) {
-      const items = await this.groceryService.getItemsByListId(this.groceryList.id);
-      this.setGroceryItems(items);
-    } else {
-      this.groceryItems = this.groceryItems.map((item) =>
-        item.id === itemId ? { ...item, name: trimmedName } : item
-      );
+  for (const item of this.groceryItems) {
+    if (item.id === itemId) continue;
+
+    const mergedName = this.buildMergeResult(item.name, trimmedName);
+    if (!mergedName) continue;
+
+    const success = await this.groceryService.updateGroceryItemName(
+      item.id,
+      mergedName
+    );
+
+    if (!success) {
+      this.error = 'Could not update grocery item.';
+      this.cdr.detectChanges();
+      return;
     }
 
-    // reveal edited item
-    this.pendingRevealItemId = itemId;
+    await this.groceryService.deleteGroceryItem(itemId);
+
+    this.pendingRevealItemId = item.id;
     this.closeEditDialog();
-    this.cdr.detectChanges();
+    return;
   }
+
+  const success = await this.groceryService.updateGroceryItemName(
+    itemId,
+    trimmedName
+  );
+
+  if (!success) {
+    this.error = 'Could not update grocery item.';
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.pendingRevealItemId = itemId;
+  this.closeEditDialog();
+}
 
 
   private hasRelatedGeneratedBlock(name: string, excludeItemId?: string): boolean {
@@ -1218,43 +1343,43 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     // open conversion dialog
   }
 
-private revealItem(itemId: string): void {
-  let attempts = 0;
-  const maxAttempts = 12;
-  const tryReveal = () => {
-    const row = document.querySelector(
-      `[data-item-id="${itemId}"]`
-    ) as HTMLElement | null;
-    if (!row) {
-      attempts += 1;
+  private revealItem(itemId: string): void {
+    let attempts = 0;
+    const maxAttempts = 12;
+    const tryReveal = () => {
+      const row = document.querySelector(
+        `[data-item-id="${itemId}"]`
+      ) as HTMLElement | null;
+      if (!row) {
+        attempts += 1;
 
-      if (attempts < maxAttempts) {
-        setTimeout(tryReveal, 80);
+        if (attempts < maxAttempts) {
+          setTimeout(tryReveal, 80);
+        }
+
+        return;
       }
-
-      return;
-    }
-    const rect = row.getBoundingClientRect();
-    const absoluteTop = rect.top + window.scrollY;
-    const targetTop = Math.max(
-      0,
-      absoluteTop - window.innerHeight / 2 + rect.height / 2
-    );
-    window.scrollTo({
-      top: targetTop,
-      behavior: 'smooth',
-    });
-    row.classList.remove('grocery-item--reveal');
-    void row.offsetWidth; // restart animation
-    row.classList.add('grocery-item--reveal');
-
-    setTimeout(() => {
+      const rect = row.getBoundingClientRect();
+      const absoluteTop = rect.top + window.scrollY;
+      const targetTop = Math.max(
+        0,
+        absoluteTop - window.innerHeight / 2 + rect.height / 2
+      );
+      window.scrollTo({
+        top: targetTop,
+        behavior: 'smooth',
+      });
       row.classList.remove('grocery-item--reveal');
-    }, 1200);
-  };
+      void row.offsetWidth; // restart animation
+      row.classList.add('grocery-item--reveal');
 
-  setTimeout(tryReveal, 80);
-}
+      setTimeout(() => {
+        row.classList.remove('grocery-item--reveal');
+      }, 1200);
+    };
+
+    setTimeout(tryReveal, 80);
+  }
 
 
   ngOnDestroy(): void {
