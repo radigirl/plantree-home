@@ -43,8 +43,11 @@ import {
 } from '../../../shared/components/merge-review-sheet/merge-review-sheet.component';
 import {
   detectPossibleMergeCandidatesFromRawIngredients,
-  getMergeableRawIngredientInfo
+  getMergeableRawIngredientInfo,
+  getIngredientSortKey,
 } from '../../../shared/utils/ingredient-merge.util';
+import { parseMeasurementStyleIngredient } from '../../../shared/utils/measurement-style.util';
+import { ArrowLeftRight, LucideAngularModule } from 'lucide-angular';
 
 
 @Component({
@@ -59,12 +62,16 @@ import {
     ConfirmationDialogComponent,
     SnackbarComponent,
     PantryActionDialogComponent,
-    MergeReviewSheetComponent
+    MergeReviewSheetComponent,
+    LucideAngularModule
   ],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
 })
 export class GroceryListDetailsComponent implements OnInit, OnDestroy {
+
+  readonly measurementHintIcon = ArrowLeftRight;
+
   isLoading = true;
   groceryList: GroceryList | null = null;
   groceryItems: any[] = [];
@@ -111,6 +118,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   pendingEditItemName = '';
 
   private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+  private pendingRevealItemId: string | null = null;
+  private itemsRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
 
   private destroy$ = new Subject<void>();
   private itemsChannel: RealtimeChannel | null = null;
@@ -175,7 +184,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.groceryItems = await this.groceryService.getItemsByListId(listId);
+      const items = await this.groceryService.getItemsByListId(listId);
+      this.setGroceryItems(items);
       const spaceId = this.groceryList.space_id;
       this.alwaysPresentItems = await this.pantryService.getAlwaysPresentItems(spaceId);
       this.subscribeToGroceryItems(listId);
@@ -186,6 +196,24 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  private regroupGeneratedItems(items: any[]): any[] {
+    const groups = new Map<string, any[]>();
+    const order: string[] = [];
+
+    for (const item of items) {
+      const key = getIngredientSortKey(item.name);
+
+      if (!groups.has(key)) {
+        groups.set(key, []);
+        order.push(key);
+      }
+
+      groups.get(key)!.push(item);
+    }
+
+    return order.flatMap((key) => groups.get(key)!);
   }
 
   isAlwaysPresentHint(itemName: string): boolean {
@@ -212,8 +240,25 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
             return;
           }
 
-          this.groceryItems = await this.groceryService.getItemsByListId(listId);
-          this.cdr.detectChanges();
+          if (this.itemsRefreshTimeout) {
+            clearTimeout(this.itemsRefreshTimeout);
+          }
+
+          this.itemsRefreshTimeout = setTimeout(async () => {
+            const items = await this.groceryService.getItemsByListId(listId);
+            this.setGroceryItems(items);
+            this.cdr.detectChanges();
+
+            if (this.pendingRevealItemId) {
+              const itemId = this.pendingRevealItemId;
+
+              setTimeout(() => {
+                this.revealItem(itemId);
+              }, 120);
+
+              this.pendingRevealItemId = null;
+            }
+          }, 80);
         }
       )
       .subscribe();
@@ -240,6 +285,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     await this.addItem();
   }
 
+
   async addItem(): Promise<void> {
     if (this.isReadOnly) return;
 
@@ -247,6 +293,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     if (!trimmedName || !this.groceryList) {
       return;
     }
+
     // build raw set (existing + new)
     const rawIngredients = [
       ...this.groceryItems.map(i => i.name),
@@ -255,14 +302,12 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
     // detect merge candidates
     const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
-
-    // only keep candidates that involve the NEW item
     const normalizedNewItem = normalizeIngredientKey(trimmedName).toLowerCase();
-
     const relevantCandidates = candidates.filter((c: MergeCandidate) =>
       c.singularItems.includes(normalizedNewItem) ||
       c.pluralItem === normalizedNewItem
     );
+
     if (relevantCandidates.length > 0) {
       this.mergeSheetData = {
         rawIngredients,
@@ -274,16 +319,11 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!trimmedName || !this.groceryList) {
-      return;
-    }
     const currentMember = this.memberStateService.getCurrentMember();
     const addedByMemberId = currentMember?.id ?? 1;
 
-    // try to merge into an existing compatible item first
     for (const item of this.groceryItems) {
       const mergedName = this.buildMergeResult(item.name, trimmedName);
-
       if (!mergedName) {
         continue;
       }
@@ -297,28 +337,35 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         return;
       }
       this.newItemName = '';
-      this.groceryItems = await this.groceryService.getItemsByListId(
-        this.groceryList.id
-      );
-      this.cdr.detectChanges();
+      this.pendingRevealItemId = item.id;
       return;
     }
-    // otherwise create a new item
+
+    // normal create
     const created = await this.groceryService.createGroceryItem(
       this.groceryList.id,
       trimmedName,
       addedByMemberId
     );
+
     if (!created) {
       this.error = 'Could not add grocery item.';
       this.cdr.detectChanges();
       return;
     }
+
     this.newItemName = '';
-    this.groceryItems = await this.groceryService.getItemsByListId(
-      this.groceryList.id
-    );
-    this.cdr.detectChanges();
+
+    // same logic as before
+    this.pendingRevealItemId = created.id;
+  }
+
+  private setGroceryItems(items: any[]): void {
+    if (this.isGeneratedList) {
+      this.groceryItems = this.regroupGeneratedItems(items);
+    } else {
+      this.groceryItems = items;
+    }
   }
 
   private buildMergeResult(
@@ -430,7 +477,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList!.id);
+      const items = await this.groceryService.getItemsByListId(this.groceryList!.id);
+      this.setGroceryItems(items);
       this.pendingEditItemId = null;
       this.pendingEditItemName = '';
       this.mergeSheetData = null;
@@ -462,10 +510,14 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
           return;
         }
 
+        this.pendingRevealItemId = this.pendingEditItemId;
+
         this.pendingEditItemId = null;
         this.pendingEditItemName = '';
         this.mergeSheetData = null;
-        this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+
+        const items = await this.groceryService.getItemsByListId(this.groceryList.id);
+        this.setGroceryItems(items);
         this.cdr.detectChanges();
         return;
       }
@@ -475,35 +527,40 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    let revealTargetId: string | null = null;
+
     for (const candidate of selectedCandidates) {
-      await this.applySingleMergeCandidateToList(
+      const targetId = await this.applySingleMergeCandidateToList(
         candidate,
         this.mergeSheetData.newItem
       );
+
+      if (!revealTargetId && targetId) {
+        revealTargetId = targetId;
+      }
     }
 
-    if (this.pendingEditItemId) {
-      await this.groceryService.deleteGroceryItem(this.pendingEditItemId);
-      this.pendingEditItemId = null;
-      this.pendingEditItemName = '';
-    }
-
+    this.pendingEditItemId = null;
+    this.pendingEditItemName = '';
     this.mergeSheetData = null;
     this.newItemName = '';
-    this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+
+    const items = await this.groceryService.getItemsByListId(this.groceryList.id);
+    this.setGroceryItems(items);
     this.cdr.detectChanges();
+
+    if (revealTargetId) {
+      this.pendingRevealItemId = revealTargetId;
+    }
   }
 
   private async applySingleMergeCandidateToList(
     candidate: MergeCandidate,
     pendingNewItem: string
-  ): Promise<void> {
+  ): Promise<string | null> {
     if (!this.groceryList) {
-      return;
+      return null;
     }
-
-    const currentMember = this.memberStateService.getCurrentMember();
-    const memberId = currentMember?.id ?? 1;
 
     const matchedItems = this.groceryItems.filter((item) => {
       if (this.pendingEditItemId && item.id === this.pendingEditItemId) {
@@ -526,6 +583,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
       return matchesSingular || matchesPlural;
     });
+
+    if (!matchedItems.length) {
+      return null;
+    }
 
     let totalCount = 0;
 
@@ -552,20 +613,33 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     }
 
     if (totalCount === 0) {
-      return;
+      return null;
     }
 
     const finalName = `${totalCount} ${candidate.pluralText}`.trim();
 
-    for (const item of matchedItems) {
+    const targetItem = matchedItems[0];
+
+    const updateSuccess = await this.groceryService.updateGroceryItemName(
+      targetItem.id,
+      finalName
+    );
+
+    if (!updateSuccess) {
+      this.error = 'Could not update grocery item.';
+      this.cdr.detectChanges();
+      return null;
+    }
+
+    for (const item of matchedItems.slice(1)) {
       await this.groceryService.deleteGroceryItem(item.id);
     }
 
-    await this.groceryService.createGroceryItem(
-      this.groceryList.id,
-      finalName,
-      memberId
-    );
+    if (this.pendingEditItemId) {
+      await this.groceryService.deleteGroceryItem(this.pendingEditItemId);
+    }
+
+    return targetItem.id;
   }
 
   private async addItemWithoutMerge(): Promise<void> {
@@ -582,12 +656,11 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     );
 
     if (!created) return;
-
     this.newItemName = '';
-    this.groceryItems = await this.groceryService.getItemsByListId(this.groceryList.id);
+    this.insertNewItemLocally(created);
     this.cdr.detectChanges();
+    this.revealItem(created.id);
   }
-
 
   async toggleItem(item: any): Promise<void> {
     if (this.isReadOnly || this.isEditDialogOpen || this.isDeleteDialogOpen) {
@@ -598,6 +671,23 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const currentMember = this.memberStateService.getCurrentMember();
     const boughtByMemberId = currentMember?.id ?? 1;
 
+    // optimistic UI update
+    const previousStatus = item.status;
+    const previousBoughtBy = item.boughtBy;
+
+    item.status = nextStatus;
+
+    if (nextStatus === 'bought') {
+      item.boughtBy = {
+        id: boughtByMemberId,
+        name: currentMember?.name || 'You',
+      };
+    } else {
+      item.boughtBy = null;
+    }
+
+    this.cdr.detectChanges();
+
     const updated = await this.groceryService.updateGroceryItemStatus(
       item.id,
       nextStatus,
@@ -605,6 +695,9 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     );
 
     if (!updated || !this.groceryList) {
+      item.status = previousStatus;
+      item.boughtBy = previousBoughtBy;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -615,17 +708,19 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       );
 
       if (!resetSuccess) {
+        item.status = previousStatus;
+        item.boughtBy = previousBoughtBy;
         this.error = 'Could not reset pantry state.';
         this.cdr.detectChanges();
         return;
       }
     }
 
-    this.groceryItems = await this.groceryService.getItemsByListId(
-      this.groceryList.id
-    );
+    const items = await this.groceryService.getItemsByListId(this.groceryList.id);
+    this.setGroceryItems(items);
     this.cdr.detectChanges();
   }
+
 
   toggleItemMenu(event: Event, item: any): void {
     event.stopPropagation();
@@ -694,23 +789,69 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const success = await this.groceryService.updateGroceryItemName(
-      itemId,
-      trimmedName
-    );
+    for (const item of this.groceryItems) {
+      if (item.id === itemId) continue;
+      const mergedName = this.buildMergeResult(item.name, trimmedName);
+      if (!mergedName) continue;
+      const success = await this.groceryService.updateGroceryItemName(
+        item.id,
+        mergedName
+      );
 
-    if (!success) {
-      this.error = 'Could not update grocery item.';
-      this.cdr.detectChanges();
+      if (!success) {
+        this.error = 'Could not update grocery item.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      await this.groceryService.deleteGroceryItem(itemId);
+      this.pendingRevealItemId = item.id;
+      this.closeEditDialog();
       return;
     }
 
-    this.groceryItems = this.groceryItems.map((item) =>
-      item.id === itemId ? { ...item, name: trimmedName } : item
-    );
+    // no merge → normal rename
+    if (this.isGeneratedList) {
+      const items = await this.groceryService.getItemsByListId(this.groceryList.id);
+      this.setGroceryItems(items);
+    } else {
+      this.groceryItems = this.groceryItems.map((item) =>
+        item.id === itemId ? { ...item, name: trimmedName } : item
+      );
+    }
 
+    // reveal edited item
+    this.pendingRevealItemId = itemId;
     this.closeEditDialog();
     this.cdr.detectChanges();
+  }
+
+
+  private hasRelatedGeneratedBlock(name: string, excludeItemId?: string): boolean {
+    const targetKey = getIngredientSortKey(name);
+
+    return this.groceryItems.some(
+      (item) =>
+        item.id !== excludeItemId &&
+        getIngredientSortKey(item.name) === targetKey
+    );
+  }
+
+  private insertNewItemLocally(createdItem: any): void {
+    if (!this.isGeneratedList) {
+      this.groceryItems = [...this.groceryItems, createdItem];
+      return;
+    }
+
+    const hasBlock = this.hasRelatedGeneratedBlock(createdItem.name, createdItem.id);
+
+    if (!hasBlock) {
+      this.groceryItems = [...this.groceryItems, createdItem];
+      return;
+    }
+
+    const items = [...this.groceryItems, createdItem];
+    this.groceryItems = this.regroupGeneratedItems(items);
   }
 
   openDeleteDialog(event: Event, item: any): void {
@@ -1062,6 +1203,58 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
     return `Covers planned meals · ${daysCount} ${dayText} · ${mealsCount} ${mealText}`;
   }
+
+  isMeasurementStyleItem(name: string): boolean {
+    const parsed = parseMeasurementStyleIngredient(name);
+    return !!parsed;
+  }
+
+  onMeasurementHintClick(item: any, event: Event): void {
+    event.stopPropagation();
+
+    console.log('MEASURE REVIEW CLICK:', item);
+
+    // later:
+    // open conversion dialog
+  }
+
+private revealItem(itemId: string): void {
+  let attempts = 0;
+  const maxAttempts = 12;
+  const tryReveal = () => {
+    const row = document.querySelector(
+      `[data-item-id="${itemId}"]`
+    ) as HTMLElement | null;
+    if (!row) {
+      attempts += 1;
+
+      if (attempts < maxAttempts) {
+        setTimeout(tryReveal, 80);
+      }
+
+      return;
+    }
+    const rect = row.getBoundingClientRect();
+    const absoluteTop = rect.top + window.scrollY;
+    const targetTop = Math.max(
+      0,
+      absoluteTop - window.innerHeight / 2 + rect.height / 2
+    );
+    window.scrollTo({
+      top: targetTop,
+      behavior: 'smooth',
+    });
+    row.classList.remove('grocery-item--reveal');
+    void row.offsetWidth; // restart animation
+    row.classList.add('grocery-item--reveal');
+
+    setTimeout(() => {
+      row.classList.remove('grocery-item--reveal');
+    }, 1200);
+  };
+
+  setTimeout(tryReveal, 80);
+}
 
 
   ngOnDestroy(): void {

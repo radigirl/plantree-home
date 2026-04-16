@@ -26,42 +26,42 @@
         </div>
 
         <h1 class="grocery-list-title">{{ groceryList.name }}</h1>
-        <div *ngIf="isGeneratedList && coverageDays.length > 0" class="coverage-block">
-          <!-- SUMMARY ROW -->
-          <div class="coverage-summary" (click)="isCoverageExpanded = !isCoverageExpanded">
-            <p class="coverage-summary-text">
-              {{ coverageSummary }}
-            </p>
 
-            <span class="coverage-chevron">
-              {{ isCoverageExpanded ? 'Hide' : 'Show' }}
-            </span>
-          </div>
+        <div *ngIf="isGeneratedList" class="generated-list-meta">
+          <div *ngIf="coverageDays.length > 0" class="coverage-block">
+            <button type="button" class="coverage-summary" (click)="isCoverageExpanded = !isCoverageExpanded"
+              [attr.aria-expanded]="isCoverageExpanded">
+              <span class="coverage-summary-text">{{ coverageSummary }}</span>
+              <span class="coverage-chevron" aria-hidden="true">
+                {{ isCoverageExpanded ? '▾' : '▸' }}
+              </span>
+            </button>
 
-          <!-- EXPANDED CONTENT -->
-          <div *ngIf="isCoverageExpanded" class="coverage-days">
-            <div class="coverage-day" *ngFor="let day of coverageDays">
-              <p class="coverage-day-label">{{ day.label }}</p>
+            <div *ngIf="isCoverageExpanded" class="coverage-days">
+              <div class="coverage-day" *ngFor="let day of coverageDays">
+                <p class="coverage-day-label">{{ day.label }}</p>
 
-              <ul class="coverage-meals">
-                <li *ngFor="let meal of day.meals">
-                  {{ meal }}
-                </li>
-              </ul>
+                <ul class="coverage-meals">
+                  <li *ngFor="let meal of day.meals">
+                    {{ meal }}
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div *ngIf="isGeneratedList" class="list-subheader">
-          <p class="page-subtitle">
-            From planned meals
-          </p>
+          <div *ngIf="alwaysPresentItems.length > 0" class="always-present-toggle-row">
+            <span class="always-present-toggle-row__label">Always-present</span>
 
-          <button *ngIf="alwaysPresentItems.length > 0" type="button" class="always-present-pill"
-            [class.always-present-pill--active]="hideAlwaysPresent" [class.always-present-pill--disabled]="isReadOnly"
-            (click)="hideAlwaysPresent = !hideAlwaysPresent" [disabled]="isReadOnly">
-            {{ hideAlwaysPresent ? 'Show always-present' : 'Hide always-present' }}
-          </button>
+            <button type="button" class="always-present-toggle" [class.always-present-toggle--on]="!hideAlwaysPresent"
+              [class.always-present-toggle--disabled]="isReadOnly" [attr.aria-pressed]="!hideAlwaysPresent"
+              [attr.aria-label]="hideAlwaysPresent ? 'Show always-present items' : 'Hide always-present items'"
+              (click)="hideAlwaysPresent = !hideAlwaysPresent" [disabled]="isReadOnly">
+              <span class="always-present-toggle__track">
+                <span class="always-present-toggle__thumb"></span>
+              </span>
+            </button>
+          </div>
         </div>
 
         <div *ngIf="isReadOnly" class="read-only-inline">
@@ -87,35 +87,47 @@
 
         <div *ngIf="groceryItems.length > 0; else noItems" class="grocery-items-list"
           [class.grocery-items-list--readonly]="isReadOnly">
-          <div class="grocery-item" *ngFor="let item of visibleGroceryItems">
+          <div class="grocery-item" *ngFor="let item of visibleGroceryItems" [attr.data-item-id]="item.id">
             <div class="grocery-item-main" (click)="!isReadOnly && toggleItem(item)">
               <span class="grocery-item-checkbox" [class.grocery-item-checkbox--checked]="item.status === 'bought'">
                 {{ item.status === 'bought' ? '✓' : '' }}
               </span>
 
               <div class="grocery-item-content" *ngIf="getItemMetaParts(item) as meta">
-                <p class="grocery-item-name" [class.grocery-item-name--bought]="item.status === 'bought'">
-                  {{ item.name }}
-                </p>
+                <div class="grocery-item-name-row">
+                  <p class="grocery-item-name" [class.grocery-item-name--bought]="item.status === 'bought'">
+                    {{ item.name }}
+                  </p>
+                </div>
 
-                <p class="grocery-item-status">
-                  <span>
+                <p class="grocery-item-status" [class.grocery-item-status--bought]="meta.isBought">
+                  <span *ngIf="!meta.isBought; else boughtMeta">
                     Added by
                     <strong *ngIf="meta.isAddedByYou; else addedName">You</strong>
-                    <ng-template #addedName>{{ meta.addedByName }}</ng-template>
+                    <ng-template #addedName>
+                      <strong>{{ meta.addedByName }}</strong>
+                    </ng-template>
                   </span>
 
-                  <span *ngIf="meta.isBought">
-                    &nbsp;·&nbsp;
-                    Bought by
-                    <strong *ngIf="meta.isBoughtByYou; else boughtName">You</strong>
-                    <ng-template #boughtName>{{ meta.boughtByName }}</ng-template>
-                  </span>
+                  <ng-template #boughtMeta>
+                    <span>
+                      Bought by
+                      <strong *ngIf="meta.isBoughtByYou; else boughtName">You</strong>
+                      <ng-template #boughtName>
+                        <strong>{{ meta.boughtByName }}</strong>
+                      </ng-template>
+                    </span>
+                  </ng-template>
                 </p>
               </div>
             </div>
 
             <div class="grocery-item-actions-wrapper">
+              <button *ngIf="isMeasurementStyleItem(item.name)" type="button" class="grocery-item-measure-hint"
+                (click)="onMeasurementHintClick(item, $event)" aria-label="Adjust measurement">
+                <lucide-icon [img]="measurementHintIcon" size="13"></lucide-icon>
+              </button>
+
               <button type="button" class="grocery-item-actions" (click)="toggleItemMenu($event, item)"
                 aria-label="Open grocery item actions">
                 ⋯
@@ -172,12 +184,8 @@
   </div>
 </div>
 
-<app-merge-review-sheet
-  *ngIf="isMergeSheetOpen"
-  [candidates]="mergeSheetData?.candidates || []"
-  (mergeApplied)="onMergeApply($event)"
-  (dismissed)="onMergeCancel()"
-></app-merge-review-sheet>
+<app-merge-review-sheet *ngIf="isMergeSheetOpen" [candidates]="mergeSheetData?.candidates || []"
+  (mergeApplied)="onMergeApply($event)" (dismissed)="onMergeCancel()"></app-merge-review-sheet>
 
 <app-snackbar [isVisible]="!!toastMessage" [message]="toastMessage" [actionLabel]="toastActionLabel"
   (actionClicked)="onToastAction()"></app-snackbar>
