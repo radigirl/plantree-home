@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 export interface MergeCandidate {
   singularItems: string[];
@@ -9,21 +10,27 @@ export interface MergeCandidate {
   similarity: number;
 }
 
+export interface MergeApplyValue {
+  selectedCandidates: MergeCandidate[];
+  remember: boolean;
+}
+
 @Component({
   selector: 'app-merge-review-sheet',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './merge-review-sheet.component.html',
   styleUrls: ['./merge-review-sheet.component.scss'],
 })
 export class MergeReviewSheetComponent {
   @Input() candidates: MergeCandidate[] = [];
 
-  @Output() mergeApplied = new EventEmitter<MergeCandidate[]>();
+  @Output() mergeApplied = new EventEmitter<MergeApplyValue>();
   @Output() dismissed = new EventEmitter<void>();
+  @Output() skipped = new EventEmitter<void>();
 
-  // checkbox state (default all checked)
   selectedMap: Record<number, boolean> = {};
+  remember = true;
 
   ngOnInit(): void {
     this.candidates.forEach((_, index) => {
@@ -40,14 +47,21 @@ export class MergeReviewSheetComponent {
   }
 
   onApply(): void {
-  const selected = this.candidates.filter(
-    (_, index) => this.selectedMap[index]
-  );
-  this.mergeApplied.emit(selected);
-}
+    const selectedCandidates = this.candidates.filter(
+      (_, index) => this.selectedMap[index]
+    );
 
-onCancel(): void {
-  this.dismissed.emit();
-}
+    this.mergeApplied.emit({
+      selectedCandidates,
+      remember: this.remember,
+    });
+  }
 
+  onDismiss(): void {
+    this.dismissed.emit();
+  }
+
+  onSkip(): void {
+    this.skipped.emit();
+  }
 }

@@ -1,0 +1,148 @@
+@use '../../../../../styles/variables' as *;
+@use '../../../../../styles/breakpoints' as *;
+@use '../../../../../styles/components/buttons' as *;
+@use '../../../../../styles/components/inputs' as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.measurement-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.measurement-sheet__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.measurement-sheet__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.measurement-sheet__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: $color-primary-dark;
+}
+
+.measurement-sheet__item {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: rgba(70, 90, 88, 0.9);
+}
+
+.measurement-sheet__item strong {
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.measurement-sheet__hint {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  color: $color-text-muted;
+  opacity: 0.92;
+}
+
+.measurement-sheet__info {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.measurement-sheet__info strong {
+  font-weight: 700;
+}
+
+.measurement-sheet__info {
+  color: #486e66;
+}
+
+.measurement-sheet__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.measurement-sheet__field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.measurement-sheet__label {
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: $color-primary-dark;
+}
+
+.measurement-sheet .input-field {
+  width: 100%;
+  min-height: 44px;
+}
+
+.measurement-sheet .select-wrapper {
+  width: 100%;
+}
+
+.measurement-sheet__remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+  font-size: 0.92rem;
+  line-height: 1.3;
+  color: $color-primary-dark;
+  cursor: pointer;
+}
+
+.measurement-sheet__checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: $color-primary-dark;
+}
+
+.measurement-sheet__footer {
+  display: flex;
+  gap: 12px;
+}
+
+.measurement-sheet__button {
+  flex: 1 1 0;
+}
+
+
+@include mobile {
+  .measurement-sheet {
+    gap: 16px;
+  }
+
+  .measurement-sheet__footer {
+    gap: 10px;
+  }
+
+  .measurement-sheet__title {
+    font-size: 1.02rem;
+  }
+
+  .measurement-sheet__item {
+    font-size: 0.93rem;
+  }
+
+  .measurement-sheet__hint {
+    font-size: 0.82rem;
+  }
+}

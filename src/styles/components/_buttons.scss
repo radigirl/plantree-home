@@ -86,7 +86,7 @@
   background: $color-button-primary-hover;
 }
 
-.btn-primary:disabled {
+.btn-primary:disabled, .btn-secondary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

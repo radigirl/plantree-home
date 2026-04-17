@@ -148,6 +148,7 @@
   [candidates]="mergeSheetData?.candidates || []"
   (mergeApplied)="onMergeApply($event)"
   (dismissed)="onMergeCancel()"
+  (skipped)="onMergeSkip()"
 ></app-merge-review-sheet>
 
 <app-snackbar

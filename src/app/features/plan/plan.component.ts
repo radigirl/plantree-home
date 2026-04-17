@@ -29,14 +29,15 @@ import { GroceryService } from '../../services/grocery.service';
 import { MemberStateService } from '../../services/member.state.service';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 import {
-  MergeReviewSheetComponent,
-  MergeCandidate,
-} from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
-import {
   detectPossibleMergeCandidatesFromRawIngredients,
   buildIngredientsFromRawIngredients,
   applySelectedMergesToRawIngredients
 } from '../../shared/utils/ingredient-merge.util';
+import {
+  MergeReviewSheetComponent,
+  MergeCandidate,
+  MergeApplyValue,
+} from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
 
 
 
@@ -395,42 +396,83 @@ export class PlanComponent implements OnInit, OnDestroy {
     this.isMergeSheetOpen = true;
   }
 
-  async onMergeCancel(): Promise<void> {
-    if (!this.mergeSheetData) {
-      return;
-    }
-
-    const { selection } = this.mergeSheetData;
-
+  onMergeCancel(): void {
     this.isMergeSheetOpen = false;
     this.mergeSheetData = null;
-    this.isGenerateSheetOpen = false;
-
-    await this.createGeneratedListFromSelection(
-      selection.selectedDayKeys,
-      selection.selectedMealIds
-    );
   }
 
-  async onMergeApply(selectedCandidates: MergeCandidate[]): Promise<void> {
+  async onMergeSkip(): Promise<void> {
     if (!this.mergeSheetData) {
       return;
     }
+
     const { rawIngredients, selection } = this.mergeSheetData;
-    const mergedRawIngredients = applySelectedMergesToRawIngredients(
-      rawIngredients,
-      selectedCandidates
-    );
-    const finalIngredients =
-      buildIngredientsFromRawIngredients(mergedRawIngredients);
+    const finalIngredients = buildIngredientsFromRawIngredients(rawIngredients);
+
     this.isMergeSheetOpen = false;
     this.mergeSheetData = null;
     this.isGenerateSheetOpen = false;
+
     await this.createGeneratedListFromPreparedIngredients(
       selection.selectedDayKeys,
       selection.selectedMealIds,
       finalIngredients
     );
+  }
+
+  async onMergeApply(value: MergeApplyValue): Promise<void> {
+    if (!this.mergeSheetData) {
+      return;
+    }
+
+    const { rawIngredients, selection } = this.mergeSheetData;
+    const { selectedCandidates, remember } = value;
+
+    if (remember && selectedCandidates.length) {
+      await this.saveIngredientWordRules(selectedCandidates);
+    }
+
+    const mergedRawIngredients = applySelectedMergesToRawIngredients(
+      rawIngredients,
+      selectedCandidates
+    );
+
+    const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
+
+    this.isMergeSheetOpen = false;
+    this.mergeSheetData = null;
+    this.isGenerateSheetOpen = false;
+
+    await this.createGeneratedListFromPreparedIngredients(
+      selection.selectedDayKeys,
+      selection.selectedMealIds,
+      finalIngredients
+    );
+  }
+
+  private async saveIngredientWordRules(candidates: MergeCandidate[]): Promise<void> {
+    const space = this.spaceStateService.getCurrentSpace?.();
+    const spaceId = space?.id;
+
+    if (!spaceId) {
+      return;
+    }
+
+    const payload = candidates.map((candidate) => ({
+      space_id: spaceId,
+      singular_text: candidate.singularText,
+      plural_text: candidate.pluralText,
+    }));
+
+    const { error } = await this.groceryService.supabase
+      .from('ingredient_word_rules')
+      .upsert(payload, {
+        onConflict: 'space_id,singular_text,plural_text',
+      });
+
+    if (error) {
+      console.error('Failed to save ingredient word rules:', error);
+    }
   }
 
   scrollToDay(index: number): void {
@@ -818,7 +860,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     }
   }
 
-    private async createGeneratedListFromSelection(
+  private async createGeneratedListFromSelection(
     selectedDayKeys: string[],
     selectedMealIds: string[]
   ): Promise<void> {

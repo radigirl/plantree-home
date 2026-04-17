@@ -36,10 +36,10 @@ import {
   convertToBaseUnit,
   formatAmountForDisplay,
 } from '../../../shared/utils/unit.util';
-
 import {
   MergeReviewSheetComponent,
   MergeCandidate,
+  MergeApplyValue,
 } from '../../../shared/components/merge-review-sheet/merge-review-sheet.component';
 import {
   detectPossibleMergeCandidatesFromRawIngredients,
@@ -48,6 +48,7 @@ import {
 } from '../../../shared/utils/ingredient-merge.util';
 import { parseMeasurementStyleIngredient } from '../../../shared/utils/measurement-style.util';
 import { ArrowLeftRight, LucideAngularModule } from 'lucide-angular';
+import { MeasurementConversionSheetComponent } from './measurement-conversion-sheet/measurement-conversion-sheet.component';
 
 
 @Component({
@@ -63,7 +64,8 @@ import { ArrowLeftRight, LucideAngularModule } from 'lucide-angular';
     SnackbarComponent,
     PantryActionDialogComponent,
     MergeReviewSheetComponent,
-    LucideAngularModule
+    LucideAngularModule,
+    MeasurementConversionSheetComponent
   ],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
@@ -120,6 +122,11 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   private toastTimeout: ReturnType<typeof setTimeout> | null = null;
   private pendingRevealItemId: string | null = null;
   private itemsRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  isMeasurementSheetOpen = false;
+  selectedMeasurementItem: any | null = null;
+
+  selectedMeasurementItemMatchLabel: string | null = null;
 
   private destroy$ = new Subject<void>();
   private itemsChannel: RealtimeChannel | null = null;
@@ -286,63 +293,84 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
 
-async addItem(): Promise<void> {
-  if (this.isReadOnly) return;
+  async addItem(): Promise<void> {
+    if (this.isReadOnly) return;
 
-  const trimmedName = this.newItemName.trim();
-  if (!trimmedName || !this.groceryList) {
-    return;
-  }
+    const trimmedName = this.newItemName.trim();
+    if (!trimmedName || !this.groceryList) {
+      return;
+    }
 
-  const rawIngredients = [
-    ...this.groceryItems.map(i => i.name),
-    trimmedName
-  ];
-
-  const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
-  const normalizedNewItem = normalizeIngredientKey(trimmedName).toLowerCase();
-
-  const relevantCandidates = candidates.filter((c: MergeCandidate) =>
-    c.singularItems.includes(normalizedNewItem) ||
-    c.pluralItem === normalizedNewItem
-  );
-
-  if (relevantCandidates.length > 0) {
-    this.mergeSheetData = {
-      rawIngredients,
-      newItem: trimmedName,
-      candidates: relevantCandidates,
-    };
-
-    this.isMergeSheetOpen = true;
-    return;
-  }
-
-  const currentMember = this.memberStateService.getCurrentMember();
-  const addedByMemberId = currentMember?.id ?? 1;
-
-  const measuredMatch = this.groceryItems.find((item) => {
-    const parsed = parseLeadingNumberIngredient(
-      normalizeIngredientKey(item.name)
-    );
-
-    return (
-      parsed &&
-      parsed.unit &&
-      normalizeIngredientKey(parsed.name) ===
-        normalizeIngredientKey(trimmedName)
-    );
-  });
-
-  if (measuredMatch) {
-    const mergedName = this.buildMergeResult(
-      measuredMatch.name,
+    const rawIngredients = [
+      ...this.groceryItems.map(i => i.name),
       trimmedName
+    ];
+
+    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+    const normalizedNewItem = normalizeIngredientKey(trimmedName).toLowerCase();
+
+    const relevantCandidates = candidates.filter((c: MergeCandidate) =>
+      c.singularItems.includes(normalizedNewItem) ||
+      c.pluralItem === normalizedNewItem
     );
 
-    if (mergedName) {
+    if (relevantCandidates.length > 0) {
+      this.mergeSheetData = {
+        rawIngredients,
+        newItem: trimmedName,
+        candidates: relevantCandidates,
+      };
+
+      this.isMergeSheetOpen = true;
+      return;
+    }
+
+    const currentMember = this.memberStateService.getCurrentMember();
+    const addedByMemberId = currentMember?.id ?? 1;
+
+    const measuredMatch = this.groceryItems.find((item) => {
+      const parsed = parseLeadingNumberIngredient(
+        normalizeIngredientKey(item.name)
+      );
+
+      return (
+        parsed &&
+        parsed.unit &&
+        normalizeIngredientKey(parsed.name) ===
+        normalizeIngredientKey(trimmedName)
+      );
+    });
+
+    if (measuredMatch) {
+      const mergedName = this.buildMergeResult(
+        measuredMatch.name,
+        trimmedName
+      );
+
+      if (mergedName) {
+        const success = await this.groceryService.updateGroceryItemName(
+          measuredMatch.id,
+          mergedName
+        );
+
+        if (!success) {
+          this.error = 'Could not update grocery item.';
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.newItemName = '';
+        this.pendingRevealItemId = measuredMatch.id;
+        return;
+      }
+    }
+
+    for (const item of this.groceryItems) {
+      const mergedName = this.buildMergeResult(item.name, trimmedName);
+      if (!mergedName) continue;
+
       const success = await this.groceryService.updateGroceryItemName(
-        measuredMatch.id,
+        item.id,
         mergedName
       );
 
@@ -353,46 +381,25 @@ async addItem(): Promise<void> {
       }
 
       this.newItemName = '';
-      this.pendingRevealItemId = measuredMatch.id;
+      this.pendingRevealItemId = item.id;
       return;
     }
-  }
 
-  for (const item of this.groceryItems) {
-    const mergedName = this.buildMergeResult(item.name, trimmedName);
-    if (!mergedName) continue;
-
-    const success = await this.groceryService.updateGroceryItemName(
-      item.id,
-      mergedName
+    const created = await this.groceryService.createGroceryItem(
+      this.groceryList.id,
+      trimmedName,
+      addedByMemberId
     );
 
-    if (!success) {
-      this.error = 'Could not update grocery item.';
+    if (!created) {
+      this.error = 'Could not add grocery item.';
       this.cdr.detectChanges();
       return;
     }
 
     this.newItemName = '';
-    this.pendingRevealItemId = item.id;
-    return;
+    this.pendingRevealItemId = created.id;
   }
-
-  const created = await this.groceryService.createGroceryItem(
-    this.groceryList.id,
-    trimmedName,
-    addedByMemberId
-  );
-
-  if (!created) {
-    this.error = 'Could not add grocery item.';
-    this.cdr.detectChanges();
-    return;
-  }
-
-  this.newItemName = '';
-  this.pendingRevealItemId = created.id;
-}
 
   private setGroceryItems(items: any[]): void {
     if (this.isGeneratedList) {
@@ -415,7 +422,7 @@ async addItem(): Promise<void> {
     const countedExisting = parseCountedPlainIngredient(normalizedExisting);
     const countedNew = parseCountedPlainIngredient(normalizedNew);
 
- 
+
     const multiMeasuredMatch = normalizedNew.match(/^(\d+)\s*[x×]\s*(.+)$/i);
 
     if (multiMeasuredMatch) {
@@ -546,6 +553,14 @@ async addItem(): Promise<void> {
 
   async onMergeCancel(): Promise<void> {
     this.isMergeSheetOpen = false;
+    this.mergeSheetData = null;
+    this.pendingEditItemId = null;
+    this.pendingEditItemName = '';
+    this.cdr.detectChanges();
+  }
+
+  async onMergeSkip(): Promise<void> {
+    this.isMergeSheetOpen = false;
 
     if (this.pendingEditItemId && this.pendingEditItemName) {
       const success = await this.groceryService.updateGroceryItemName(
@@ -559,12 +574,10 @@ async addItem(): Promise<void> {
         return;
       }
 
-      const items = await this.groceryService.getItemsByListId(this.groceryList!.id);
-      this.setGroceryItems(items);
+      this.pendingRevealItemId = this.pendingEditItemId;
       this.pendingEditItemId = null;
       this.pendingEditItemName = '';
       this.mergeSheetData = null;
-      this.cdr.detectChanges();
       return;
     }
 
@@ -572,10 +585,11 @@ async addItem(): Promise<void> {
     await this.addItemWithoutMerge();
   }
 
-  async onMergeApply(selectedCandidates: MergeCandidate[]): Promise<void> {
+  async onMergeApply(value: MergeApplyValue): Promise<void> {
     if (!this.mergeSheetData || !this.groceryList) {
       return;
     }
+    const { selectedCandidates, remember } = value;
 
     this.isMergeSheetOpen = false;
 
@@ -585,19 +599,15 @@ async addItem(): Promise<void> {
           this.pendingEditItemId,
           this.pendingEditItemName
         );
-
         if (!success) {
           this.error = 'Could not update grocery item.';
           this.cdr.detectChanges();
           return;
         }
-
         this.pendingRevealItemId = this.pendingEditItemId;
-
         this.pendingEditItemId = null;
         this.pendingEditItemName = '';
         this.mergeSheetData = null;
-
         const items = await this.groceryService.getItemsByListId(this.groceryList.id);
         this.setGroceryItems(items);
         this.cdr.detectChanges();
@@ -621,16 +631,13 @@ async addItem(): Promise<void> {
         revealTargetId = targetId;
       }
     }
-
     this.pendingEditItemId = null;
     this.pendingEditItemName = '';
     this.mergeSheetData = null;
     this.newItemName = '';
-
     const items = await this.groceryService.getItemsByListId(this.groceryList.id);
     this.setGroceryItems(items);
     this.cdr.detectChanges();
-
     if (revealTargetId) {
       this.pendingRevealItemId = revealTargetId;
     }
@@ -650,7 +657,6 @@ async addItem(): Promise<void> {
       }
 
       const info = getMergeableRawIngredientInfo(item.name);
-
       if (!info) {
         return false;
       }
@@ -671,14 +677,12 @@ async addItem(): Promise<void> {
     }
 
     let totalCount = 0;
-
     for (const item of matchedItems) {
       const info = getMergeableRawIngredientInfo(item.name);
       if (info) {
         totalCount += info.count;
       }
     }
-
     const pendingInfo = getMergeableRawIngredientInfo(pendingNewItem);
     if (pendingInfo) {
       const matchesPendingSingular =
@@ -693,15 +697,12 @@ async addItem(): Promise<void> {
         totalCount += pendingInfo.count;
       }
     }
-
     if (totalCount === 0) {
       return null;
     }
 
     const finalName = `${totalCount} ${candidate.pluralText}`.trim();
-
     const targetItem = matchedItems[0];
-
     const updateSuccess = await this.groceryService.updateGroceryItemName(
       targetItem.id,
       finalName
@@ -833,68 +834,93 @@ async addItem(): Promise<void> {
     this.editItemName = '';
   }
 
- async confirmEditItem(): Promise<void> {
-  const trimmedName = this.editItemName.trim();
-  const itemId = this.selectedItemForEdit?.id;
+  async confirmEditItem(): Promise<void> {
+    const trimmedName = this.editItemName.trim();
+    const itemId = this.selectedItemForEdit?.id;
 
-  if (!itemId || !trimmedName || !this.groceryList) {
-    return;
-  }
+    if (!itemId || !trimmedName || !this.groceryList) {
+      return;
+    }
 
-  const rawIngredients = [
-    ...this.groceryItems
-      .filter((item) => item.id !== itemId)
-      .map((item) => item.name),
-    trimmedName,
-  ];
+    const rawIngredients = [
+      ...this.groceryItems
+        .filter((item) => item.id !== itemId)
+        .map((item) => item.name),
+      trimmedName,
+    ];
 
-  const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
-  const normalizedEditedItem = normalizeIngredientKey(trimmedName).toLowerCase();
+    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+    const normalizedEditedItem = normalizeIngredientKey(trimmedName).toLowerCase();
 
-  const relevantCandidates = candidates.filter((c: MergeCandidate) =>
-    c.singularItems.includes(normalizedEditedItem) ||
-    c.pluralItem === normalizedEditedItem
-  );
-
-  if (relevantCandidates.length > 0) {
-    this.pendingEditItemId = itemId;
-    this.pendingEditItemName = trimmedName;
-
-    this.mergeSheetData = {
-      rawIngredients,
-      newItem: trimmedName,
-      candidates: relevantCandidates,
-    };
-
-    this.closeEditDialog();
-    this.isMergeSheetOpen = true;
-    return;
-  }
-
-  const measuredMatch = this.groceryItems.find((item) => {
-    if (item.id === itemId) return false;
-
-    const parsed = parseLeadingNumberIngredient(
-      normalizeIngredientKey(item.name)
+    const relevantCandidates = candidates.filter((c: MergeCandidate) =>
+      c.singularItems.includes(normalizedEditedItem) ||
+      c.pluralItem === normalizedEditedItem
     );
 
-    return (
-      parsed &&
-      parsed.unit &&
-      normalizeIngredientKey(parsed.name) ===
+    if (relevantCandidates.length > 0) {
+      this.pendingEditItemId = itemId;
+      this.pendingEditItemName = trimmedName;
+
+      this.mergeSheetData = {
+        rawIngredients,
+        newItem: trimmedName,
+        candidates: relevantCandidates,
+      };
+
+      this.closeEditDialog();
+      this.isMergeSheetOpen = true;
+      return;
+    }
+
+    const measuredMatch = this.groceryItems.find((item) => {
+      if (item.id === itemId) return false;
+
+      const parsed = parseLeadingNumberIngredient(
+        normalizeIngredientKey(item.name)
+      );
+
+      return (
+        parsed &&
+        parsed.unit &&
+        normalizeIngredientKey(parsed.name) ===
         normalizeIngredientKey(trimmedName)
-    );
-  });
+      );
+    });
 
-  if (measuredMatch) {
-    const mergedName = this.buildMergeResult(
-      measuredMatch.name,
-      trimmedName
-    );
+    if (measuredMatch) {
+      const mergedName = this.buildMergeResult(
+        measuredMatch.name,
+        trimmedName
+      );
 
-    if (mergedName) {
+      if (mergedName) {
+        const success = await this.groceryService.updateGroceryItemName(
+          measuredMatch.id,
+          mergedName
+        );
+
+        if (!success) {
+          this.error = 'Could not update grocery item.';
+          this.cdr.detectChanges();
+          return;
+        }
+
+        await this.groceryService.deleteGroceryItem(itemId);
+
+        this.pendingRevealItemId = measuredMatch.id;
+        this.closeEditDialog();
+        return;
+      }
+    }
+
+    for (const item of this.groceryItems) {
+      if (item.id === itemId) continue;
+
+      const mergedName = this.buildMergeResult(item.name, trimmedName);
+      if (!mergedName) continue;
+
       const success = await this.groceryService.updateGroceryItemName(
-        measuredMatch.id,
+        item.id,
         mergedName
       );
 
@@ -906,21 +932,14 @@ async addItem(): Promise<void> {
 
       await this.groceryService.deleteGroceryItem(itemId);
 
-      this.pendingRevealItemId = measuredMatch.id;
+      this.pendingRevealItemId = item.id;
       this.closeEditDialog();
       return;
     }
-  }
-
-  for (const item of this.groceryItems) {
-    if (item.id === itemId) continue;
-
-    const mergedName = this.buildMergeResult(item.name, trimmedName);
-    if (!mergedName) continue;
 
     const success = await this.groceryService.updateGroceryItemName(
-      item.id,
-      mergedName
+      itemId,
+      trimmedName
     );
 
     if (!success) {
@@ -929,27 +948,9 @@ async addItem(): Promise<void> {
       return;
     }
 
-    await this.groceryService.deleteGroceryItem(itemId);
-
-    this.pendingRevealItemId = item.id;
+    this.pendingRevealItemId = itemId;
     this.closeEditDialog();
-    return;
   }
-
-  const success = await this.groceryService.updateGroceryItemName(
-    itemId,
-    trimmedName
-  );
-
-  if (!success) {
-    this.error = 'Could not update grocery item.';
-    this.cdr.detectChanges();
-    return;
-  }
-
-  this.pendingRevealItemId = itemId;
-  this.closeEditDialog();
-}
 
 
   private hasRelatedGeneratedBlock(name: string, excludeItemId?: string): boolean {
@@ -1337,10 +1338,112 @@ async addItem(): Promise<void> {
   onMeasurementHintClick(item: any, event: Event): void {
     event.stopPropagation();
 
-    console.log('MEASURE REVIEW CLICK:', item);
+    this.selectedMeasurementItem = item;
 
-    // later:
-    // open conversion dialog
+    const match = this.groceryItems.find(i =>
+      getIngredientSortKey(i.name) === getIngredientSortKey(item.name) &&
+      i.id !== item.id
+    );
+
+    this.selectedMeasurementItemMatchLabel = match ? match.name : null;
+
+    this.isMeasurementSheetOpen = true;
+  }
+
+  async onMeasurementApply(event: { amount: number; unit: string; remember: boolean }) {
+    if (!this.selectedMeasurementItem || !this.groceryList) {
+      return;
+    }
+
+    const parsedMeasurement = parseMeasurementStyleIngredient(this.selectedMeasurementItem.name);
+    const ingredientName = parsedMeasurement?.ingredient
+      ? normalizeIngredientKey(parsedMeasurement.ingredient)
+      : normalizeIngredientKey(this.selectedMeasurementItem.name);
+
+    const newName = `${event.amount} ${event.unit} ${ingredientName}`.trim();
+
+    const target = this.groceryItems.find((item) =>
+      item.id !== this.selectedMeasurementItem.id &&
+      getIngredientSortKey(item.name) === getIngredientSortKey(ingredientName)
+    );
+
+    let affectedId: string | null = null;
+
+    if (target) {
+      const merged = this.buildMergeResult(target.name, newName);
+
+      if (merged) {
+        const updateSuccess = await this.groceryService.updateGroceryItemName(
+          target.id,
+          merged
+        );
+
+        if (!updateSuccess) {
+          this.error = 'Could not update grocery item.';
+          this.cdr.detectChanges();
+          return;
+        }
+
+        const deleteSuccess = await this.groceryService.deleteGroceryItem(
+          this.selectedMeasurementItem.id
+        );
+
+        if (!deleteSuccess) {
+          this.error = 'Could not delete grocery item.';
+          this.cdr.detectChanges();
+          return;
+        }
+
+        affectedId = target.id;
+      } else {
+        const updateSuccess = await this.groceryService.updateGroceryItemName(
+          this.selectedMeasurementItem.id,
+          newName
+        );
+
+        if (!updateSuccess) {
+          this.error = 'Could not update grocery item.';
+          this.cdr.detectChanges();
+          return;
+        }
+
+        affectedId = this.selectedMeasurementItem.id;
+      }
+    } else {
+      const updateSuccess = await this.groceryService.updateGroceryItemName(
+        this.selectedMeasurementItem.id,
+        newName
+      );
+
+      if (!updateSuccess) {
+        this.error = 'Could not update grocery item.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      affectedId = this.selectedMeasurementItem.id;
+    }
+
+    if (event.remember && parsedMeasurement) {
+      console.log('SAVE MEASUREMENT RULE:', {
+        measure: parsedMeasurement.style,
+        ingredient: ingredientName,
+        amount: event.amount,
+        unit: event.unit,
+      });
+    }
+
+    this.isMeasurementSheetOpen = false;
+    this.selectedMeasurementItem = null;
+    this.selectedMeasurementItemMatchLabel = null;
+
+    if (affectedId) {
+      this.pendingRevealItemId = affectedId;
+    }
+  }
+
+  onMeasurementSkip(): void {
+    this.isMeasurementSheetOpen = false;
   }
 
   private revealItem(itemId: string): void {

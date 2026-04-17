@@ -87,6 +87,27 @@
   padding-top: 4px;
 }
 
+.merge-sheet__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.merge-sheet__remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.96rem;
+  color: $color-text-muted;
+}
+
+.merge-sheet__checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: $color-primary-dark;
+  cursor: pointer;
+}
+
 .merge-item input[type="checkbox"] {
   accent-color: $color-primary-dark;
   width: 14px;

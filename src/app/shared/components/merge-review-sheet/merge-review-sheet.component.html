@@ -1,5 +1,5 @@
 <ng-container *ngIf="candidates.length">
-  <div class="merge-sheet-backdrop" (click)="onCancel()">
+  <div class="merge-sheet-backdrop" (click)="onDismiss()">
     <div class="merge-sheet-panel" (click)="$event.stopPropagation()">
 
       <div class="merge-sheet-handle"></div>
@@ -33,15 +33,23 @@
           </div>
         </div>
 
-        <div class="merge-sheet__actions">
-          <button class="btn-secondary" (click)="onCancel()">
-            Skip merging
-          </button>
+        <div class="merge-sheet__footer">
+          <label class="merge-sheet__remember">
+            <input type="checkbox" [(ngModel)]="remember" class="merge-sheet__checkbox" />
+            <span>Remember for future</span>
+          </label>
 
-          <button class="btn-primary" [disabled]="!hasSelected" (click)="onApply()">
-            Merge selected
-          </button>
+          <div class="merge-sheet__actions">
+            <button class="btn-secondary" (click)="onSkip()">
+              Skip merging
+            </button>
+
+            <button class="btn-primary" [disabled]="!hasSelected" (click)="onApply()">
+              Merge selected
+            </button>
+          </div>
         </div>
+
       </div>
 
     </div>

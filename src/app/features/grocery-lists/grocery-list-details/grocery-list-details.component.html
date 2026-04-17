@@ -124,7 +124,7 @@
 
             <div class="grocery-item-actions-wrapper">
               <button *ngIf="isMeasurementStyleItem(item.name)" type="button" class="grocery-item-measure-hint"
-                (click)="onMeasurementHintClick(item, $event)" aria-label="Adjust measurement">
+                (click)="onMeasurementHintClick(item, $event)" aria-label="Adjust measurement" [disabled]="isReadOnly">
                 <lucide-icon [img]="measurementHintIcon" size="13"></lucide-icon>
               </button>
 
@@ -185,7 +185,19 @@
 </div>
 
 <app-merge-review-sheet *ngIf="isMergeSheetOpen" [candidates]="mergeSheetData?.candidates || []"
-  (mergeApplied)="onMergeApply($event)" (dismissed)="onMergeCancel()"></app-merge-review-sheet>
+  (mergeApplied)="onMergeApply($event)" (dismissed)="onMergeCancel()"
+  (skipped)="onMergeSkip()"></app-merge-review-sheet>
+
+<div class="sheet-overlay" *ngIf="isMeasurementSheetOpen" (click)="isMeasurementSheetOpen = false">
+  <div class="sheet-shell" (click)="$event.stopPropagation()">
+    <div class="sheet-handle"></div>
+
+    <app-measurement-conversion-sheet [existingMatchLabel]="selectedMeasurementItemMatchLabel"
+      [itemName]="selectedMeasurementItem?.name || ''" (apply)="onMeasurementApply($event)" (skip)="onMeasurementSkip()"
+      (closed)="isMeasurementSheetOpen = false">
+    </app-measurement-conversion-sheet>
+  </div>
+</div>
 
 <app-snackbar [isVisible]="!!toastMessage" [message]="toastMessage" [actionLabel]="toastActionLabel"
   (actionClicked)="onToastAction()"></app-snackbar>

@@ -1,0 +1,67 @@
+<div class="measurement-sheet">
+  <div class="measurement-sheet__header">
+    <div class="measurement-sheet__heading">
+      <h2 class="measurement-sheet__title">Add quantity</h2>
+
+      <p class="measurement-sheet__item" *ngIf="itemName">
+        For <strong>{{ itemName }}</strong>
+      </p>
+
+      <p class="measurement-sheet__info">
+        <ng-container *ngIf="mergeResultHint; else existingBlock">
+          {{ mergeResultHint }}
+        </ng-container>
+
+        <ng-template #existingBlock>
+          <ng-container *ngIf="existingMatchLabel">
+            Already in list: <strong>{{ existingMatchLabel }}</strong>
+          </ng-container>
+        </ng-template>
+      </p>
+
+      <p class="measurement-sheet__hint">
+        {{ currentExampleHint }}
+      </p>
+    </div>
+  </div>
+
+  <div class="measurement-sheet__body">
+    <div class="measurement-sheet__field-group">
+      <label class="measurement-sheet__label" for="measurement-amount">
+        Amount
+      </label>
+
+      <input id="measurement-amount" type="number" min="0" step="any" inputmode="decimal" [(ngModel)]="amount"
+        class="input-field" [placeholder]="amountPlaceholder" />
+    </div>
+
+    <div class="measurement-sheet__field-group">
+      <label class="measurement-sheet__label" for="measurement-unit">
+        Unit
+      </label>
+
+      <div class="select-wrapper">
+        <select id="measurement-unit" [(ngModel)]="unit" class="input-field">
+          <option value="">Select unit</option>
+          <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="measurement-sheet__remember">
+      <input type="checkbox" [(ngModel)]="remember" class="measurement-sheet__checkbox" />
+      <span>Remember for future</span>
+    </label>
+  </div>
+
+  <div class="measurement-sheet__footer">
+    <button type="button" class="measurement-sheet__button btn-secondary" (click)="onSkip()">
+      Skip
+    </button>
+
+    <button type="button" class="measurement-sheet__button btn-primary" (click)="onApply()"
+      [disabled]="amount === null || !unit">
+      Apply
+    </button>
+  </div>
+</div>
