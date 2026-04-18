@@ -49,7 +49,7 @@ import {
 import { parseMeasurementStyleIngredient } from '../../../shared/utils/measurement-style.util';
 import { ArrowLeftRight, LucideAngularModule } from 'lucide-angular';
 import { MeasurementConversionSheetComponent } from './measurement-conversion-sheet/measurement-conversion-sheet.component';
-import { IngredientRulesService } from '../../../services/ingredient-rules.service';
+import { IngredientRulesService, MeasurementRuleRow } from '../../../services/ingredient-rules.service';
 
 
 @Component({
@@ -132,6 +132,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     singular_text: string;
     plural_text: string;
   }> = [];
+  rememberedMeasurementRules: MeasurementRuleRow[] = [];
 
   private destroy$ = new Subject<void>();
   private itemsChannel: RealtimeChannel | null = null;
@@ -202,6 +203,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       const spaceId = this.groceryList.space_id;
       this.alwaysPresentItems = await this.pantryService.getAlwaysPresentItems(spaceId);
       this.rememberedWordRules = await this.ingredientRulesService.getWordRules(spaceId);
+      this.rememberedMeasurementRules =
+        await this.ingredientRulesService.getMeasurementRules(spaceId);
       this.subscribeToGroceryItems(listId);
     } catch (error) {
       console.error('Error loading grocery list:', error);
@@ -1447,16 +1450,17 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
         return;
       }
-
       affectedId = this.selectedMeasurementItem.id;
     }
 
     if (event.remember && parsedMeasurement) {
-      console.log('SAVE MEASUREMENT RULE:', {
-        measure: parsedMeasurement.style,
-        ingredient: ingredientName,
-        amount: event.amount,
-        unit: event.unit,
+      const spaceId = this.groceryList.space_id;
+      await this.ingredientRulesService.saveMeasurementRule({
+        spaceId,
+        ingredientName,
+        measurementStyle: parsedMeasurement.style,
+        convertedAmount: event.amount,
+        convertedUnit: event.unit,
       });
     }
 
@@ -1710,6 +1714,39 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
     return { handled: false };
   }
+
+  private async hasRememberedMeasurementRule(name: string): Promise<boolean> {
+    if (!this.groceryList) return false;
+
+    const parsed = parseMeasurementStyleIngredient(name);
+    if (!parsed) return false;
+
+    const ingredientName = normalizeIngredientKey(parsed.ingredient);
+    const measurementStyle = parsed.style;
+
+    const rule = await this.ingredientRulesService.getMeasurementRule(
+      this.groceryList.space_id,
+      ingredientName,
+      measurementStyle
+    );
+
+    return !!rule;
+  }
+
+  hasRememberedMeasurementRuleSync(name: string): boolean {
+  const parsed = parseMeasurementStyleIngredient(name);
+  if (!parsed) return false;
+
+  const ingredientName = normalizeIngredientKey(parsed.ingredient);
+  const measurementStyle = parsed.style;
+
+  return this.rememberedMeasurementRules.some((rule) => {
+    return (
+      normalizeIngredientKey(rule.ingredient_name) === ingredientName &&
+      rule.measurement_style === measurementStyle
+    );
+  });
+}
 
   ngOnDestroy(): void {
     this.destroy$.next();

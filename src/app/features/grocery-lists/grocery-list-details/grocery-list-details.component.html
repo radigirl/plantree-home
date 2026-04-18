@@ -123,8 +123,8 @@
             </div>
 
             <div class="grocery-item-actions-wrapper">
-              <button *ngIf="isMeasurementStyleItem(item.name)" type="button" class="grocery-item-measure-hint"
-                (click)="onMeasurementHintClick(item, $event)" aria-label="Adjust measurement" [disabled]="isReadOnly">
+              <button *ngIf="isMeasurementStyleItem(item.name) && !hasRememberedMeasurementRuleSync(item.name)" type="button" class="grocery-item-measure-hint" (click)="onMeasurementHintClick(item, $event)"
+                aria-label="Adjust measurement" [disabled]="isReadOnly">
                 <lucide-icon [img]="measurementHintIcon" size="13"></lucide-icon>
               </button>
 

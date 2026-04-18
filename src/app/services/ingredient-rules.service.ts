@@ -7,6 +7,25 @@ export interface IngredientWordRule {
   plural_text: string;
 }
 
+export interface MeasurementRulePayload {
+  spaceId: string;
+  ingredientName: string;
+  measurementStyle: string;
+  convertedAmount: number;
+  convertedUnit: string;
+}
+
+export interface MeasurementRuleRow {
+  id: string;
+  space_id: string;
+  ingredient_name: string;
+  measurement_style: string;
+  converted_amount: number;
+  converted_unit: string;
+  created_at: string;
+  updated_at: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -63,4 +82,63 @@ export class IngredientRulesService {
 
     return data ?? [];
   }
+
+  async saveMeasurementRule(rule: MeasurementRulePayload): Promise<void> {
+  const { error } = await this.supabase
+    .from('ingredient_measurement_rules')
+    .upsert(
+      {
+        space_id: rule.spaceId,
+        ingredient_name: rule.ingredientName,
+        measurement_style: rule.measurementStyle,
+        converted_amount: rule.convertedAmount,
+        converted_unit: rule.convertedUnit,
+      },
+      {
+        onConflict: 'space_id,ingredient_name,measurement_style',
+      }
+    );
+
+  if (error) {
+    console.error('Error saving measurement rule:', error);
+    throw error;
+  }
+}
+
+async getMeasurementRules(spaceId: string): Promise<MeasurementRuleRow[]> {
+  const { data, error } = await this.supabase
+    .from('ingredient_measurement_rules')
+    .select('*')
+    .eq('space_id', spaceId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error loading measurement rules:', error);
+    return [];
+  }
+
+  return (data ?? []) as MeasurementRuleRow[];
+}
+
+async getMeasurementRule(
+  spaceId: string,
+  ingredientName: string,
+  measurementStyle: string
+): Promise<MeasurementRuleRow | null> {
+  const { data, error } = await this.supabase
+    .from('ingredient_measurement_rules')
+    .select('*')
+    .eq('space_id', spaceId)
+    .eq('ingredient_name', ingredientName)
+    .eq('measurement_style', measurementStyle)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error loading measurement rule:', error);
+    return null;
+  }
+
+  return (data as MeasurementRuleRow | null) ?? null;
+}
+
 }
