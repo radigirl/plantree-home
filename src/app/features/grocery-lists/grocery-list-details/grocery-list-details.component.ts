@@ -1532,47 +1532,17 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   private async applyRememberedWordRuleForAdd(trimmedName: string): Promise<boolean> {
-    if (!this.groceryList) return false;
+    const result = await this.applyRememberedCanonicalMergeForAddOrEdit(trimmedName);
 
-    const rememberedRule = await this.getRememberedWordRuleForText(trimmedName);
-    if (!rememberedRule) return false;
-
-    const counted = this.groceryItems.find((item) => {
-      const info = getMergeableRawIngredientInfo(item.name);
-
-      return (
-        info &&
-        info.kind === 'pluralish' &&
-        info.count > 1 &&
-        normalizeIngredientKey(info.text) ===
-        normalizeIngredientKey(rememberedRule.plural_text)
-      );
-    });
-
-    if (!counted) {
+    if (!result.handled) {
       return false;
     }
 
-    const countedInfo = getMergeableRawIngredientInfo(counted.name);
-    if (!countedInfo) {
-      return false;
+    if (result.revealItemId) {
+      this.newItemName = '';
+      this.pendingRevealItemId = result.revealItemId;
     }
 
-    const mergedName = `${countedInfo.count + 1} ${rememberedRule.plural_text}`.trim();
-
-    const success = await this.groceryService.updateGroceryItemName(
-      counted.id,
-      mergedName
-    );
-
-    if (!success) {
-      this.error = 'Could not update grocery item.';
-      this.cdr.detectChanges();
-      return true;
-    }
-
-    this.newItemName = '';
-    this.pendingRevealItemId = counted.id;
     return true;
   }
 
@@ -1580,50 +1550,19 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     itemId: string,
     trimmedName: string
   ): Promise<boolean> {
-    if (!this.groceryList) return false;
-
-    const rememberedRule = await this.getRememberedWordRuleForText(trimmedName);
-    if (!rememberedRule) return false;
-
-    const counted = this.groceryItems.find((item) => {
-      if (item.id === itemId) return false;
-
-      const info = getMergeableRawIngredientInfo(item.name);
-
-      return (
-        info &&
-        info.kind === 'pluralish' &&
-        info.count > 1 &&
-        normalizeIngredientKey(info.text) ===
-        normalizeIngredientKey(rememberedRule.plural_text)
-      );
+    const result = await this.applyRememberedCanonicalMergeForAddOrEdit(trimmedName, {
+      excludeItemId: itemId,
+      deleteSourceItemId: itemId,
     });
 
-    if (!counted) {
+    if (!result.handled) {
       return false;
     }
 
-    const countedInfo = getMergeableRawIngredientInfo(counted.name);
-    if (!countedInfo) {
-      return false;
+    if (result.revealItemId) {
+      this.pendingRevealItemId = result.revealItemId;
     }
 
-    const mergedName = `${countedInfo.count + 1} ${rememberedRule.plural_text}`.trim();
-
-    const success = await this.groceryService.updateGroceryItemName(
-      counted.id,
-      mergedName
-    );
-
-    if (!success) {
-      this.error = 'Could not update grocery item.';
-      this.cdr.detectChanges();
-      return true;
-    }
-
-    await this.groceryService.deleteGroceryItem(itemId);
-
-    this.pendingRevealItemId = counted.id;
     return true;
   }
 
@@ -1686,6 +1625,90 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     this.mergeSheetData = data;
     this.isMergeSheetOpen = true;
     this.cdr.detectChanges();
+  }
+
+  private async applyRememberedCanonicalMergeForAddOrEdit(
+    trimmedName: string,
+    options?: { excludeItemId?: string; deleteSourceItemId?: string }
+  ): Promise<{ handled: boolean; revealItemId?: string }> {
+    if (!this.groceryList) {
+      return { handled: false };
+    }
+
+    const rememberedRule = await this.getRememberedWordRuleForText(trimmedName);
+    if (!rememberedRule) {
+      return { handled: false };
+    }
+
+    const normalizedSingular = normalizeIngredientKey(rememberedRule.singular_text);
+    const normalizedPlural = normalizeIngredientKey(rememberedRule.plural_text);
+
+    const pluralCountedItem = this.groceryItems.find((item) => {
+      if (item.id === options?.excludeItemId) return false;
+
+      const info = getMergeableRawIngredientInfo(item.name);
+      return (
+        !!info &&
+        info.kind === 'pluralish' &&
+        normalizeIngredientKey(info.text) === normalizedPlural
+      );
+    });
+
+    if (pluralCountedItem) {
+      const info = getMergeableRawIngredientInfo(pluralCountedItem.name);
+      if (!info) {
+        return { handled: false };
+      }
+
+      const mergedName = `${info.count + 1} ${rememberedRule.plural_text}`.trim();
+
+      const updateSuccess = await this.groceryService.updateGroceryItemName(
+        pluralCountedItem.id,
+        mergedName
+      );
+
+      if (!updateSuccess) {
+        this.error = 'Could not update grocery item.';
+        this.cdr.detectChanges();
+        return { handled: true };
+      }
+
+      if (options?.deleteSourceItemId) {
+        await this.groceryService.deleteGroceryItem(options.deleteSourceItemId);
+      }
+
+      return { handled: true, revealItemId: pluralCountedItem.id };
+    }
+
+    const singularPlainItem = this.groceryItems.find((item) => {
+      if (item.id === options?.excludeItemId) return false;
+
+      const normalizedItemName = normalizeIngredientKey(item.name);
+      return normalizedItemName === normalizedSingular;
+    });
+
+    if (singularPlainItem) {
+      const mergedName = `2 ${rememberedRule.plural_text}`.trim();
+
+      const updateSuccess = await this.groceryService.updateGroceryItemName(
+        singularPlainItem.id,
+        mergedName
+      );
+
+      if (!updateSuccess) {
+        this.error = 'Could not update grocery item.';
+        this.cdr.detectChanges();
+        return { handled: true };
+      }
+
+      if (options?.deleteSourceItemId) {
+        await this.groceryService.deleteGroceryItem(options.deleteSourceItemId);
+      }
+
+      return { handled: true, revealItemId: singularPlainItem.id };
+    }
+
+    return { handled: false };
   }
 
   ngOnDestroy(): void {
