@@ -38,6 +38,7 @@ import {
   MergeCandidate,
   MergeApplyValue,
 } from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
+import { IngredientRulesService } from '../../services/ingredient-rules.service';
 
 
 
@@ -95,6 +96,7 @@ export class PlanComponent implements OnInit, OnDestroy {
 
   constructor(
     private mealPlanService: MealPlanService,
+    private ingredientRulesService: IngredientRulesService,
     private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef,
     private router: Router,
@@ -343,21 +345,29 @@ export class PlanComponent implements OnInit, OnDestroy {
 
     const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
     const mergeCandidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+    const unresolvedCandidates = await this.filterRememberedMergeCandidates(mergeCandidates);
 
-    if (mergeCandidates.length > 0) {
+    if (unresolvedCandidates.length > 0) {
       this.openMergeSheet({
         rawIngredients,
         selection: {
           selectedDayKeys,
           selectedMealIds,
         },
-        candidates: mergeCandidates,
+        candidates: unresolvedCandidates,
       });
       return;
     }
 
+    const mergedRawIngredients = await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
+    const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
+
     this.isGenerateSheetOpen = false;
-    await this.createGeneratedListFromSelection(selectedDayKeys, selectedMealIds);
+    await this.createGeneratedListFromPreparedIngredients(
+      selectedDayKeys,
+      selectedMealIds,
+      finalIngredients
+    );
   }
 
   async onGenerateSelectedList(selection: {
@@ -369,18 +379,25 @@ export class PlanComponent implements OnInit, OnDestroy {
       selection.selectedMealIds
     );
     const mergeCandidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
-    if (mergeCandidates.length > 0) {
+    const unresolvedCandidates = await this.filterRememberedMergeCandidates(mergeCandidates);
+
+    if (unresolvedCandidates.length > 0) {
       this.openMergeSheet({
         rawIngredients,
         selection,
-        candidates: mergeCandidates,
+        candidates: unresolvedCandidates,
       });
       return;
     }
+
+    const mergedRawIngredients = await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
+    const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
+
     this.isGenerateSheetOpen = false;
-    await this.createGeneratedListFromSelection(
+    await this.createGeneratedListFromPreparedIngredients(
       selection.selectedDayKeys,
-      selection.selectedMealIds
+      selection.selectedMealIds,
+      finalIngredients
     );
   }
 
@@ -421,34 +438,44 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   async onMergeApply(value: MergeApplyValue): Promise<void> {
-    if (!this.mergeSheetData) {
-      return;
-    }
-
-    const { rawIngredients, selection } = this.mergeSheetData;
-    const { selectedCandidates, remember } = value;
-
-    if (remember && selectedCandidates.length) {
-      await this.saveIngredientWordRules(selectedCandidates);
-    }
-
-    const mergedRawIngredients = applySelectedMergesToRawIngredients(
-      rawIngredients,
-      selectedCandidates
-    );
-
-    const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
-
-    this.isMergeSheetOpen = false;
-    this.mergeSheetData = null;
-    this.isGenerateSheetOpen = false;
-
-    await this.createGeneratedListFromPreparedIngredients(
-      selection.selectedDayKeys,
-      selection.selectedMealIds,
-      finalIngredients
-    );
+  if (!this.mergeSheetData) {
+    return;
   }
+
+  const { selectedCandidates, remember } = value;
+  const { rawIngredients, selection } = this.mergeSheetData;
+
+  if (remember && selectedCandidates.length) {
+    const currentSpace = this.spaceStateService.getCurrentSpace?.();
+
+    if (currentSpace?.id) {
+      await this.ingredientRulesService.saveWordRules(
+        selectedCandidates.map((candidate) => ({
+          spaceId: currentSpace.id,
+          singularText: candidate.singularText,
+          pluralText: candidate.pluralText,
+        }))
+      );
+    }
+  }
+
+  const mergedRawIngredients = applySelectedMergesToRawIngredients(
+    rawIngredients,
+    selectedCandidates
+  );
+
+  const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
+
+  this.isMergeSheetOpen = false;
+  this.mergeSheetData = null;
+  this.isGenerateSheetOpen = false;
+
+  await this.createGeneratedListFromPreparedIngredients(
+    selection.selectedDayKeys,
+    selection.selectedMealIds,
+    finalIngredients
+  );
+}
 
   private async saveIngredientWordRules(candidates: MergeCandidate[]): Promise<void> {
     const space = this.spaceStateService.getCurrentSpace?.();
@@ -897,14 +924,82 @@ export class PlanComponent implements OnInit, OnDestroy {
     if (!this.lastGeneratedListId) {
       return;
     }
-
     await this.groceryService.deleteGroceryList(this.lastGeneratedListId);
     this.lastGeneratedListId = null;
-
     await this.loadCoveredMealsMap();
     this.buildGenerateSheetDays();
-
     this.hideSnackbar();
+  }
+
+  private async saveRememberedWordRules(
+    candidates: MergeCandidate[]
+  ): Promise<void> {
+    const space = this.spaceStateService.getCurrentSpace?.();
+
+    if (!space?.id || !candidates.length) {
+      return;
+    }
+
+    await this.ingredientRulesService.saveWordRules(
+      candidates.map((c) => ({
+        spaceId: space.id,
+        singularText: c.singularText,
+        pluralText: c.pluralText,
+      }))
+    );
+  }
+
+  private async filterRememberedMergeCandidates(
+    candidates: MergeCandidate[]
+  ): Promise<MergeCandidate[]> {
+    const currentSpace = this.spaceStateService.getCurrentSpace?.();
+
+    if (!currentSpace?.id || !candidates.length) {
+      return candidates;
+    }
+
+    const rememberedRules = await this.ingredientRulesService.getWordRules(currentSpace.id);
+
+    if (!rememberedRules.length) {
+      return candidates;
+    }
+
+    return candidates.filter((candidate) => {
+      const singular = candidate.singularText.trim().toLowerCase();
+      const plural = candidate.pluralText.trim().toLowerCase();
+
+      return !rememberedRules.some(
+        (rule) =>
+          rule.singular_text.trim().toLowerCase() === singular &&
+          rule.plural_text.trim().toLowerCase() === plural
+      );
+    });
+  }
+
+  private async applyRememberedWordRulesToRawIngredients(
+    rawIngredients: string[]
+  ): Promise<string[]> {
+    const currentSpace = this.spaceStateService.getCurrentSpace?.();
+
+    if (!currentSpace?.id || !rawIngredients.length) {
+      return rawIngredients;
+    }
+
+    const rememberedRules = await this.ingredientRulesService.getWordRules(currentSpace.id);
+
+    if (!rememberedRules.length) {
+      return rawIngredients;
+    }
+
+    const rememberedCandidates: MergeCandidate[] = rememberedRules.map((rule) => ({
+      singularItems: [rule.singular_text],
+      pluralItem: rule.plural_text,
+      singularText: rule.singular_text,
+      pluralText: rule.plural_text,
+      similarity: 1,
+    }));
+
+    return applySelectedMergesToRawIngredients(rawIngredients, rememberedCandidates);
   }
 
   ngOnDestroy(): void {

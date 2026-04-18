@@ -26,22 +26,33 @@ export function detectPossibleMergeCandidatesFromRawIngredients(
     if (!parsedB || parsedB.amount <= 1 || parsedB.unit) continue;
 
     const pluralText = parsedB.name.trim().toLowerCase();
-
     const singularMatches = normalizedRaw.filter((itemA) => {
-      if (itemA === itemB) return false;
+  if (itemA === itemB) return false;
 
-      const parsedA = parseLeadingNumberIngredient(itemA);
-      const isSingularish = !parsedA || (parsedA.amount === 1 && !parsedA.unit);
+  const parsedA = parseLeadingNumberIngredient(itemA);
 
-      if (!isSingularish) return false;
+  // measured items never participate in word-pair merge
+  if (parsedA && parsedA.unit) {
+    return false;
+  }
 
-      const singularText = (parsedA ? parsedA.name : itemA).trim().toLowerCase();
+  // allowed "1-side" cases:
+  // 1) plain text with no number, like "ябълка"
+  // 2) explicit 1 item, like "1 ябълка"
+  const isPlainNoNumber = !parsedA;
+  const isExplicitOne = !!parsedA && parsedA.amount === 1 && !parsedA.unit;
 
-      if (singularText === pluralText) return false;
+  if (!isPlainNoNumber && !isExplicitOne) {
+    return false;
+  }
 
-      return areTextsCloseEnough(singularText, pluralText);
-    });
+  const singularText = (parsedA ? parsedA.name : itemA).trim().toLowerCase();
 
+  if (singularText === pluralText) return false;
+
+  return areTextsCloseEnough(singularText, pluralText);
+});
+   
     if (singularMatches.length > 0) {
       const singularText = (() => {
         const first = singularMatches[0];

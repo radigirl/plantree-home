@@ -49,6 +49,7 @@ import {
 import { parseMeasurementStyleIngredient } from '../../../shared/utils/measurement-style.util';
 import { ArrowLeftRight, LucideAngularModule } from 'lucide-angular';
 import { MeasurementConversionSheetComponent } from './measurement-conversion-sheet/measurement-conversion-sheet.component';
+import { IngredientRulesService } from '../../../services/ingredient-rules.service';
 
 
 @Component({
@@ -127,6 +128,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   selectedMeasurementItem: any | null = null;
 
   selectedMeasurementItemMatchLabel: string | null = null;
+  rememberedWordRules: Array<{
+    singular_text: string;
+    plural_text: string;
+  }> = [];
 
   private destroy$ = new Subject<void>();
   private itemsChannel: RealtimeChannel | null = null;
@@ -138,6 +143,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     private memberStateService: MemberStateService,
     private spaceStateService: SpaceStateService,
     private pantryService: PantryService,
+    private ingredientRulesService: IngredientRulesService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -195,6 +201,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       this.setGroceryItems(items);
       const spaceId = this.groceryList.space_id;
       this.alwaysPresentItems = await this.pantryService.getAlwaysPresentItems(spaceId);
+      this.rememberedWordRules = await this.ingredientRulesService.getWordRules(spaceId);
       this.subscribeToGroceryItems(listId);
     } catch (error) {
       console.error('Error loading grocery list:', error);
@@ -301,6 +308,11 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const handledByRememberedWordRule = await this.applyRememberedWordRuleForAdd(trimmedName);
+    if (handledByRememberedWordRule) {
+      return;
+    }
+
     const rawIngredients = [
       ...this.groceryItems.map(i => i.name),
       trimmedName
@@ -314,11 +326,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       c.pluralItem === normalizedNewItem
     );
 
-    if (relevantCandidates.length > 0) {
+    const unresolvedCandidates = this.filterRememberedCandidates(relevantCandidates);
+
+    if (unresolvedCandidates.length > 0) {
       this.mergeSheetData = {
         rawIngredients,
         newItem: trimmedName,
-        candidates: relevantCandidates,
+        candidates: unresolvedCandidates,
       };
 
       this.isMergeSheetOpen = true;
@@ -591,6 +605,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     }
     const { selectedCandidates, remember } = value;
 
+    if (remember && selectedCandidates.length) {
+      await this.saveRememberedWordRules(selectedCandidates);
+    }
+
     this.isMergeSheetOpen = false;
 
     if (!selectedCandidates.length) {
@@ -839,6 +857,16 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const itemId = this.selectedItemForEdit?.id;
 
     if (!itemId || !trimmedName || !this.groceryList) {
+      return;
+    }
+
+    const handledByRememberedWordRule = await this.applyRememberedWordRuleForEdit(
+      itemId,
+      trimmedName
+    );
+
+    if (handledByRememberedWordRule) {
+      this.closeEditDialog();
       return;
     }
 
@@ -1484,6 +1512,150 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     setTimeout(tryReveal, 80);
   }
 
+  private async getRememberedWordRuleForText(text: string): Promise<{
+    singular_text: string;
+    plural_text: string;
+  } | null> {
+    if (!this.groceryList?.space_id) {
+      return null;
+    }
+
+    const rules = await this.ingredientRulesService.getWordRules(this.groceryList.space_id);
+
+    const normalizedText = normalizeIngredientKey(text).trim().toLowerCase();
+
+    return (
+      rules.find(
+        (rule) =>
+          rule.singular_text.trim().toLowerCase() === normalizedText
+      ) ?? null
+    );
+  }
+
+  private async applyRememberedWordRuleForAdd(trimmedName: string): Promise<boolean> {
+    if (!this.groceryList) return false;
+
+    const rememberedRule = await this.getRememberedWordRuleForText(trimmedName);
+    if (!rememberedRule) return false;
+
+    const counted = this.groceryItems.find((item) => {
+      const info = getMergeableRawIngredientInfo(item.name);
+
+      return (
+        info &&
+        info.kind === 'pluralish' &&
+        info.count > 1 &&
+        normalizeIngredientKey(info.text) ===
+        normalizeIngredientKey(rememberedRule.plural_text)
+      );
+    });
+
+    if (!counted) {
+      return false;
+    }
+
+    const mergedName = this.buildMergeResult(counted.name, trimmedName);
+
+    if (!mergedName) {
+      return false;
+    }
+
+    const success = await this.groceryService.updateGroceryItemName(
+      counted.id,
+      mergedName
+    );
+
+    if (!success) {
+      this.error = 'Could not update grocery item.';
+      this.cdr.detectChanges();
+      return true;
+    }
+
+    this.newItemName = '';
+    this.pendingRevealItemId = counted.id;
+    return true;
+  }
+
+  private async applyRememberedWordRuleForEdit(
+    itemId: string,
+    trimmedName: string
+  ): Promise<boolean> {
+    if (!this.groceryList) return false;
+
+    const rememberedRule = await this.getRememberedWordRuleForText(trimmedName);
+    if (!rememberedRule) return false;
+
+    const counted = this.groceryItems.find((item) => {
+      if (item.id === itemId) return false;
+
+      const info = getMergeableRawIngredientInfo(item.name);
+
+      return (
+        info &&
+        info.kind === 'pluralish' &&
+        info.count > 1 &&
+        normalizeIngredientKey(info.text) ===
+        normalizeIngredientKey(rememberedRule.plural_text)
+      );
+    });
+
+    if (!counted) {
+      return false;
+    }
+
+    const mergedName = this.buildMergeResult(counted.name, trimmedName);
+
+    if (!mergedName) {
+      return false;
+    }
+
+    const success = await this.groceryService.updateGroceryItemName(
+      counted.id,
+      mergedName
+    );
+
+    if (!success) {
+      this.error = 'Could not update grocery item.';
+      this.cdr.detectChanges();
+      return true;
+    }
+
+    await this.groceryService.deleteGroceryItem(itemId);
+
+    this.pendingRevealItemId = counted.id;
+    return true;
+  }
+
+  private async saveRememberedWordRules(
+    candidates: MergeCandidate[]
+  ): Promise<void> {
+    if (!this.groceryList?.space_id || !candidates.length) {
+      return;
+    }
+
+    await this.ingredientRulesService.saveWordRules(
+      candidates.map((candidate) => ({
+        spaceId: this.groceryList!.space_id,
+        singularText: candidate.singularText,
+        pluralText: candidate.pluralText,
+      }))
+    );
+  }
+
+
+  private filterRememberedCandidates(candidates: MergeCandidate[]): MergeCandidate[] {
+    return candidates.filter((candidate) => {
+      const singular = normalizeIngredientKey(candidate.singularText);
+      const plural = normalizeIngredientKey(candidate.pluralText);
+
+      return !this.rememberedWordRules.some((rule) => {
+        return (
+          normalizeIngredientKey(rule.singular_text) === singular &&
+          normalizeIngredientKey(rule.plural_text) === plural
+        );
+      });
+    });
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
