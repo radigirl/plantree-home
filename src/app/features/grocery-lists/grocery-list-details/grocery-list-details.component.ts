@@ -326,16 +326,14 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       c.pluralItem === normalizedNewItem
     );
 
-    const unresolvedCandidates = this.filterRememberedCandidates(relevantCandidates);
+    const unresolvedCandidates = await this.filterRememberedCandidates(relevantCandidates);
 
     if (unresolvedCandidates.length > 0) {
-      this.mergeSheetData = {
+      await this.openMergeSheet({
         rawIngredients,
         newItem: trimmedName,
         candidates: unresolvedCandidates,
-      };
-
-      this.isMergeSheetOpen = true;
+      });
       return;
     }
 
@@ -885,18 +883,19 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       c.pluralItem === normalizedEditedItem
     );
 
-    if (relevantCandidates.length > 0) {
+    const unresolvedCandidates = await this.filterRememberedCandidates(relevantCandidates);
+
+    if (unresolvedCandidates.length > 0) {
       this.pendingEditItemId = itemId;
       this.pendingEditItemName = trimmedName;
 
-      this.mergeSheetData = {
+      this.closeEditDialog();
+
+      await this.openMergeSheet({
         rawIngredients,
         newItem: trimmedName,
-        candidates: relevantCandidates,
-      };
-
-      this.closeEditDialog();
-      this.isMergeSheetOpen = true;
+        candidates: unresolvedCandidates,
+      });
       return;
     }
 
@@ -1554,11 +1553,12 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    const mergedName = this.buildMergeResult(counted.name, trimmedName);
-
-    if (!mergedName) {
+    const countedInfo = getMergeableRawIngredientInfo(counted.name);
+    if (!countedInfo) {
       return false;
     }
+
+    const mergedName = `${countedInfo.count + 1} ${rememberedRule.plural_text}`.trim();
 
     const success = await this.groceryService.updateGroceryItemName(
       counted.id,
@@ -1603,11 +1603,12 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return false;
     }
 
-    const mergedName = this.buildMergeResult(counted.name, trimmedName);
-
-    if (!mergedName) {
+    const countedInfo = getMergeableRawIngredientInfo(counted.name);
+    if (!countedInfo) {
       return false;
     }
+
+    const mergedName = `${countedInfo.count + 1} ${rememberedRule.plural_text}`.trim();
 
     const success = await this.groceryService.updateGroceryItemName(
       counted.id,
@@ -1640,21 +1641,51 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         pluralText: candidate.pluralText,
       }))
     );
+
+    this.rememberedWordRules = await this.ingredientRulesService.getWordRules(
+      this.groceryList.space_id
+    );
   }
 
 
-  private filterRememberedCandidates(candidates: MergeCandidate[]): MergeCandidate[] {
+  private async filterRememberedCandidates(
+    candidates: MergeCandidate[]
+  ): Promise<MergeCandidate[]> {
+    if (!this.groceryList?.space_id) {
+      return candidates;
+    }
+
+    const rules = await this.ingredientRulesService.getWordRules(
+      this.groceryList.space_id
+    );
+
+    this.rememberedWordRules = rules;
+
     return candidates.filter((candidate) => {
       const singular = normalizeIngredientKey(candidate.singularText);
       const plural = normalizeIngredientKey(candidate.pluralText);
 
-      return !this.rememberedWordRules.some((rule) => {
+      return !rules.some((rule) => {
         return (
           normalizeIngredientKey(rule.singular_text) === singular &&
           normalizeIngredientKey(rule.plural_text) === plural
         );
       });
     });
+  }
+
+  private async openMergeSheet(data: {
+    rawIngredients: string[];
+    newItem: string;
+    candidates: MergeCandidate[];
+  }): Promise<void> {
+    this.cdr.detectChanges();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    this.mergeSheetData = data;
+    this.isMergeSheetOpen = true;
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {

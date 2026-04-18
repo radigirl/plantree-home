@@ -39,6 +39,7 @@ import {
   MergeApplyValue,
 } from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
 import { IngredientRulesService } from '../../services/ingredient-rules.service';
+import { normalizeIngredientKey } from '../../shared/utils/ingredient.util';
 
 
 
@@ -348,7 +349,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     const unresolvedCandidates = await this.filterRememberedMergeCandidates(mergeCandidates);
 
     if (unresolvedCandidates.length > 0) {
-      this.openMergeSheet({
+      await this.openMergeSheet({
         rawIngredients,
         selection: {
           selectedDayKeys,
@@ -382,7 +383,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     const unresolvedCandidates = await this.filterRememberedMergeCandidates(mergeCandidates);
 
     if (unresolvedCandidates.length > 0) {
-      this.openMergeSheet({
+      await this.openMergeSheet({
         rawIngredients,
         selection,
         candidates: unresolvedCandidates,
@@ -401,16 +402,22 @@ export class PlanComponent implements OnInit, OnDestroy {
     );
   }
 
-  private openMergeSheet(data: {
+  private async openMergeSheet(data: {
     rawIngredients: string[];
     selection: {
       selectedDayKeys: string[];
       selectedMealIds: string[];
     };
     candidates: MergeCandidate[];
-  }) {
+  }): Promise<void> {
+    this.isGenerateSheetOpen = false;
+    this.cdr.detectChanges();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     this.mergeSheetData = data;
     this.isMergeSheetOpen = true;
+    this.cdr.detectChanges();
   }
 
   onMergeCancel(): void {
@@ -438,44 +445,44 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   async onMergeApply(value: MergeApplyValue): Promise<void> {
-  if (!this.mergeSheetData) {
-    return;
-  }
-
-  const { selectedCandidates, remember } = value;
-  const { rawIngredients, selection } = this.mergeSheetData;
-
-  if (remember && selectedCandidates.length) {
-    const currentSpace = this.spaceStateService.getCurrentSpace?.();
-
-    if (currentSpace?.id) {
-      await this.ingredientRulesService.saveWordRules(
-        selectedCandidates.map((candidate) => ({
-          spaceId: currentSpace.id,
-          singularText: candidate.singularText,
-          pluralText: candidate.pluralText,
-        }))
-      );
+    if (!this.mergeSheetData) {
+      return;
     }
+
+    const { selectedCandidates, remember } = value;
+    const { rawIngredients, selection } = this.mergeSheetData;
+
+    if (remember && selectedCandidates.length) {
+      const currentSpace = this.spaceStateService.getCurrentSpace?.();
+
+      if (currentSpace?.id) {
+        await this.ingredientRulesService.saveWordRules(
+          selectedCandidates.map((candidate) => ({
+            spaceId: currentSpace.id,
+            singularText: candidate.singularText,
+            pluralText: candidate.pluralText,
+          }))
+        );
+      }
+    }
+
+    const mergedRawIngredients = applySelectedMergesToRawIngredients(
+      rawIngredients,
+      selectedCandidates
+    );
+
+    const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
+
+    this.isMergeSheetOpen = false;
+    this.mergeSheetData = null;
+    this.isGenerateSheetOpen = false;
+
+    await this.createGeneratedListFromPreparedIngredients(
+      selection.selectedDayKeys,
+      selection.selectedMealIds,
+      finalIngredients
+    );
   }
-
-  const mergedRawIngredients = applySelectedMergesToRawIngredients(
-    rawIngredients,
-    selectedCandidates
-  );
-
-  const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
-
-  this.isMergeSheetOpen = false;
-  this.mergeSheetData = null;
-  this.isGenerateSheetOpen = false;
-
-  await this.createGeneratedListFromPreparedIngredients(
-    selection.selectedDayKeys,
-    selection.selectedMealIds,
-    finalIngredients
-  );
-}
 
   private async saveIngredientWordRules(candidates: MergeCandidate[]): Promise<void> {
     const space = this.spaceStateService.getCurrentSpace?.();
@@ -965,14 +972,15 @@ export class PlanComponent implements OnInit, OnDestroy {
     }
 
     return candidates.filter((candidate) => {
-      const singular = candidate.singularText.trim().toLowerCase();
-      const plural = candidate.pluralText.trim().toLowerCase();
+      const singular = normalizeIngredientKey(candidate.singularText);
+      const plural = normalizeIngredientKey(candidate.pluralText);
 
-      return !rememberedRules.some(
-        (rule) =>
-          rule.singular_text.trim().toLowerCase() === singular &&
-          rule.plural_text.trim().toLowerCase() === plural
-      );
+      return !rememberedRules.some((rule) => {
+        return (
+          normalizeIngredientKey(rule.singular_text) === singular &&
+          normalizeIngredientKey(rule.plural_text) === plural
+        );
+      });
     });
   }
 
@@ -992,10 +1000,10 @@ export class PlanComponent implements OnInit, OnDestroy {
     }
 
     const rememberedCandidates: MergeCandidate[] = rememberedRules.map((rule) => ({
-      singularItems: [rule.singular_text],
-      pluralItem: rule.plural_text,
-      singularText: rule.singular_text,
-      pluralText: rule.plural_text,
+      singularItems: [normalizeIngredientKey(rule.singular_text)],
+      pluralItem: normalizeIngredientKey(rule.plural_text),
+      singularText: normalizeIngredientKey(rule.singular_text),
+      pluralText: normalizeIngredientKey(rule.plural_text),
       similarity: 1,
     }));
 
