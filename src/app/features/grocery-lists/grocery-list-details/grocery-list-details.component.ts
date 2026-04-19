@@ -306,10 +306,15 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   async addItem(): Promise<void> {
     if (this.isReadOnly) return;
 
-    const trimmedName = this.newItemName.trim();
-    if (!trimmedName || !this.groceryList) {
+    const originalTrimmedName = this.newItemName.trim();
+    if (!originalTrimmedName || !this.groceryList) {
       return;
     }
+
+    const measurementConvertedName =
+      this.applyRememberedMeasurementRuleToInput(originalTrimmedName);
+
+    const trimmedName = measurementConvertedName ?? originalTrimmedName;
 
     const handledByRememberedWordRule = await this.applyRememberedWordRuleForAdd(trimmedName);
     if (handledByRememberedWordRule) {
@@ -854,12 +859,17 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async confirmEditItem(): Promise<void> {
-    const trimmedName = this.editItemName.trim();
+    const originalTrimmedName = this.editItemName.trim();
     const itemId = this.selectedItemForEdit?.id;
 
-    if (!itemId || !trimmedName || !this.groceryList) {
+    if (!itemId || !originalTrimmedName || !this.groceryList) {
       return;
     }
+
+    const measurementConvertedName =
+      this.applyRememberedMeasurementRuleToInput(originalTrimmedName);
+
+    const trimmedName = measurementConvertedName ?? originalTrimmedName;
 
     const handledByRememberedWordRule = await this.applyRememberedWordRuleForEdit(
       itemId,
@@ -1455,6 +1465,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
     if (event.remember && parsedMeasurement) {
       const spaceId = this.groceryList.space_id;
+
       await this.ingredientRulesService.saveMeasurementRule({
         spaceId,
         ingredientName,
@@ -1462,6 +1473,9 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         convertedAmount: event.amount,
         convertedUnit: event.unit,
       });
+
+      this.rememberedMeasurementRules =
+        await this.ingredientRulesService.getMeasurementRules(spaceId);
     }
 
     this.isMeasurementSheetOpen = false;
@@ -1715,38 +1729,55 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     return { handled: false };
   }
 
-  private async hasRememberedMeasurementRule(name: string): Promise<boolean> {
-    if (!this.groceryList) return false;
 
+  hasRememberedMeasurementRuleSync(name: string): boolean {
     const parsed = parseMeasurementStyleIngredient(name);
     if (!parsed) return false;
 
     const ingredientName = normalizeIngredientKey(parsed.ingredient);
     const measurementStyle = parsed.style;
 
-    const rule = await this.ingredientRulesService.getMeasurementRule(
-      this.groceryList.space_id,
-      ingredientName,
-      measurementStyle
-    );
-
-    return !!rule;
+    return this.rememberedMeasurementRules.some((rule) => {
+      return (
+        normalizeIngredientKey(rule.ingredient_name) === ingredientName &&
+        rule.measurement_style === measurementStyle
+      );
+    });
   }
 
-  hasRememberedMeasurementRuleSync(name: string): boolean {
-  const parsed = parseMeasurementStyleIngredient(name);
-  if (!parsed) return false;
+  private applyRememberedMeasurementRuleToInput(
+    inputName: string
+  ): string | null {
+    const parsed = parseMeasurementStyleIngredient(inputName);
+    if (!parsed) {
+      return null;
+    }
 
-  const ingredientName = normalizeIngredientKey(parsed.ingredient);
-  const measurementStyle = parsed.style;
+    const ingredientName = normalizeIngredientKey(parsed.ingredient);
+    const measurementStyle = parsed.style;
 
-  return this.rememberedMeasurementRules.some((rule) => {
-    return (
-      normalizeIngredientKey(rule.ingredient_name) === ingredientName &&
-      rule.measurement_style === measurementStyle
-    );
-  });
-}
+    const rememberedRule = this.rememberedMeasurementRules.find((rule) => {
+      return (
+        normalizeIngredientKey(rule.ingredient_name) === ingredientName &&
+        rule.measurement_style === measurementStyle
+      );
+    });
+
+    if (!rememberedRule) {
+      return null;
+    }
+
+    const parsedAmount = Number(parsed.count);
+    const convertedBaseAmount = Number(rememberedRule.converted_amount);
+
+    if (!Number.isFinite(parsedAmount) || !Number.isFinite(convertedBaseAmount)) {
+      return null;
+    }
+
+    const finalAmount = parsedAmount * convertedBaseAmount;
+
+    return `${finalAmount} ${rememberedRule.converted_unit} ${ingredientName}`.trim();
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
