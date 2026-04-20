@@ -38,8 +38,12 @@ import {
   MergeCandidate,
   MergeApplyValue,
 } from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
-import { IngredientRulesService } from '../../services/ingredient-rules.service';
 import { normalizeIngredientKey } from '../../shared/utils/ingredient.util';
+import { parseMeasurementStyleIngredient } from '../../shared/utils/measurement-style.util';
+import {
+  IngredientRulesService,
+  MeasurementRuleRow
+} from '../../services/ingredient-rules.service';
 
 
 
@@ -360,8 +364,11 @@ export class PlanComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const mergedRawIngredients = await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
-    const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
+    const mergedRawIngredients =
+      await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
+
+    const finalIngredients =
+      await this.applyMeasurementGroupingToRawIngredients(mergedRawIngredients);
 
     this.isGenerateSheetOpen = false;
     await this.createGeneratedListFromPreparedIngredients(
@@ -391,8 +398,11 @@ export class PlanComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const mergedRawIngredients = await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
-    const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
+    const mergedRawIngredients =
+      await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
+
+    const finalIngredients =
+      await this.applyMeasurementGroupingToRawIngredients(mergedRawIngredients);
 
     this.isGenerateSheetOpen = false;
     await this.createGeneratedListFromPreparedIngredients(
@@ -431,7 +441,12 @@ export class PlanComponent implements OnInit, OnDestroy {
     }
 
     const { rawIngredients, selection } = this.mergeSheetData;
-    const finalIngredients = buildIngredientsFromRawIngredients(rawIngredients);
+
+    const mergedRawIngredients =
+      await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
+
+    const finalIngredients =
+      await this.applyMeasurementGroupingToRawIngredients(mergedRawIngredients);
 
     this.isMergeSheetOpen = false;
     this.mergeSheetData = null;
@@ -471,7 +486,8 @@ export class PlanComponent implements OnInit, OnDestroy {
       selectedCandidates
     );
 
-    const finalIngredients = buildIngredientsFromRawIngredients(mergedRawIngredients);
+    const finalIngredients =
+      await this.applyMeasurementGroupingToRawIngredients(mergedRawIngredients);
 
     this.isMergeSheetOpen = false;
     this.mergeSheetData = null;
@@ -1008,6 +1024,119 @@ export class PlanComponent implements OnInit, OnDestroy {
     }));
 
     return applySelectedMergesToRawIngredients(rawIngredients, rememberedCandidates);
+  }
+
+  private formatSummedMeasurementIngredient(
+    count: number,
+    style: 'cup' | 'tbsp' | 'tsp',
+    ingredient: string
+  ): string {
+    const styleLabel =
+      style === 'cup'
+        ? count === 1
+          ? 'cup'
+          : 'cups'
+        : style;
+
+    return `${count} ${styleLabel} ${ingredient}`.trim();
+  }
+
+  private convertGroupedMeasurementIngredient(
+    group: {
+      ingredientKey: string;
+      ingredientDisplay: string;
+      style: 'cup' | 'tbsp' | 'tsp';
+      count: number;
+    },
+    rememberedMeasurementRules: MeasurementRuleRow[]
+  ): string {
+    const rememberedRule = rememberedMeasurementRules.find((rule) => {
+      return (
+        normalizeIngredientKey(rule.ingredient_name) === group.ingredientKey &&
+        rule.measurement_style === group.style
+      );
+    });
+
+    if (!rememberedRule) {
+      return this.formatSummedMeasurementIngredient(
+        group.count,
+        group.style,
+        group.ingredientDisplay
+      );
+    }
+
+    const convertedBaseAmount =
+      Number(rememberedRule.converted_amount) * group.count;
+
+    if (!Number.isFinite(convertedBaseAmount)) {
+      return this.formatSummedMeasurementIngredient(
+        group.count,
+        group.style,
+        group.ingredientDisplay
+      );
+    }
+
+    return `${convertedBaseAmount} ${rememberedRule.converted_unit} ${group.ingredientDisplay}`.trim();
+  }
+
+  private async applyMeasurementGroupingToRawIngredients(
+    rawIngredients: string[]
+  ): Promise<string[]> {
+    if (!rawIngredients.length) {
+      return rawIngredients;
+    }
+
+    const currentSpace = this.spaceStateService.getCurrentSpace?.();
+    const rememberedMeasurementRules = currentSpace?.id
+      ? await this.ingredientRulesService.getMeasurementRules(currentSpace.id)
+      : [];
+
+    const normalRawIngredients: string[] = [];
+    const grouped = new Map<
+      string,
+      {
+        ingredientKey: string;
+        ingredientDisplay: string;
+        style: 'cup' | 'tbsp' | 'tsp';
+        count: number;
+      }
+    >();
+
+    for (const raw of rawIngredients) {
+      const parsed = parseMeasurementStyleIngredient(raw);
+
+      if (!parsed) {
+        normalRawIngredients.push(raw);
+        continue;
+      }
+
+      const ingredientKey = normalizeIngredientKey(parsed.ingredient);
+      const ingredientDisplay = parsed.ingredient.trim();
+      const style = parsed.style;
+      const key = `${style}__${ingredientKey}`;
+
+      const existing = grouped.get(key);
+
+      if (existing) {
+        existing.count += parsed.count;
+      } else {
+        grouped.set(key, {
+          ingredientKey,
+          ingredientDisplay,
+          style,
+          count: parsed.count,
+        });
+      }
+    }
+
+    const groupedMeasurementItems = Array.from(grouped.values()).map((group) =>
+      this.convertGroupedMeasurementIngredient(group, rememberedMeasurementRules)
+    );
+
+    const builtNormalIngredients =
+      buildIngredientsFromRawIngredients(normalRawIngredients);
+
+    return [...builtNormalIngredients, ...groupedMeasurementItems];
   }
 
   ngOnDestroy(): void {

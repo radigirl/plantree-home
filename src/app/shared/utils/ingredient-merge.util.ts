@@ -256,7 +256,17 @@ export function applySingleMergeCandidate(
 // -----------------------------
 
 export function buildIngredientsFromRawIngredients(rawIngredients: string[]): string[] {
-  const grouped = new Map<string, any>();
+  const grouped = new Map<
+    string,
+    {
+      items: string[];
+      originalText: string;
+      count: number;
+      isParsed: boolean;
+      hasUnit: boolean;
+      suffix: string | null;
+    }
+  >();
 
   for (const ingredient of rawIngredients) {
     const normalized = normalizeIngredientKey(ingredient);
@@ -267,7 +277,7 @@ export function buildIngredientsFromRawIngredients(rawIngredients: string[]): st
     if (parsed && parsed.unit) {
       const converted = convertToBaseUnit(parsed.amount, parsed.unit);
       key = converted
-        ? `parsed:${converted.unit}:${parsed.name}`
+        ? `parsed-unit:${converted.unit}:${parsed.name}`
         : `parsed:${parsed.suffix}`;
     } else if (parsed) {
       key = `parsed:${parsed.suffix}`;
@@ -277,25 +287,88 @@ export function buildIngredientsFromRawIngredients(rawIngredients: string[]): st
 
     if (!grouped.has(key)) {
       grouped.set(key, {
+        items: [normalized],
         originalText: normalized,
         count: 1,
-        parsedAmount: parsed?.amount ?? null,
-        suffix: parsed?.suffix ?? null,
         isParsed: !!parsed,
+        hasUnit: !!parsed?.unit,
+        suffix: parsed?.suffix ?? null,
       });
       continue;
     }
 
-    const existing = grouped.get(key);
+    const existing = grouped.get(key)!;
+    existing.items.push(normalized);
     existing.count += 1;
   }
 
   const result: string[] = [];
 
   for (const entry of grouped.values()) {
-    if (entry.isParsed && entry.parsedAmount && entry.suffix) {
-      result.push(`${entry.parsedAmount} ${entry.suffix}`);
-    } else if (entry.count > 1) {
+    if (entry.isParsed && entry.hasUnit) {
+      const parsedMeasuredItems = entry.items
+        .map((item) => parseLeadingNumberIngredient(normalizeIngredientKey(item)))
+        .filter(
+          (
+            parsed
+          ): parsed is NonNullable<ReturnType<typeof parseLeadingNumberIngredient>> =>
+            !!parsed && !!parsed.unit
+        );
+
+      if (parsedMeasuredItems.length) {
+        const first = parsedMeasuredItems[0];
+        const firstConverted = convertToBaseUnit(first.amount, first.unit);
+
+        if (firstConverted) {
+          let totalBaseAmount = 0;
+
+          for (const parsed of parsedMeasuredItems) {
+            const converted = convertToBaseUnit(parsed.amount, parsed.unit);
+
+            if (
+              converted &&
+              converted.unit === firstConverted.unit &&
+              parsed.name.toLowerCase() === first.name.toLowerCase()
+            ) {
+              totalBaseAmount += converted.amount;
+            }
+          }
+
+          const formatted = formatAmountForDisplay(
+            totalBaseAmount,
+            firstConverted.unit
+          );
+
+          result.push(
+            `${formatted.amount} ${formatted.unit} ${first.name}`.trim()
+          );
+          continue;
+        }
+      }
+    }
+
+    if (entry.isParsed && entry.suffix) {
+      const parsedItems = entry.items
+        .map((item) => parseLeadingNumberIngredient(normalizeIngredientKey(item)))
+        .filter(
+          (
+            parsed
+          ): parsed is NonNullable<ReturnType<typeof parseLeadingNumberIngredient>> =>
+            !!parsed && !parsed.unit
+        );
+
+      if (parsedItems.length) {
+        const totalAmount = parsedItems.reduce(
+          (sum, parsed) => sum + parsed.amount,
+          0
+        );
+
+        result.push(`${totalAmount} ${entry.suffix}`.trim());
+        continue;
+      }
+    }
+
+    if (entry.count > 1) {
       result.push(`${entry.count} × ${entry.originalText}`);
     } else {
       result.push(entry.originalText);

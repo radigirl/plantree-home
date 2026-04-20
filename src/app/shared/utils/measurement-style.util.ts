@@ -83,6 +83,23 @@ function splitMeasurementPhrase(input: string): string[] {
     .filter(Boolean);
 }
 
+function parseMeasurementCount(raw: string): number | null {
+  const normalized = raw.trim().replace(',', '.');
+
+  const simpleFractions: Record<string, number> = {
+    '1/2': 0.5,
+    '1/4': 0.25,
+    '3/4': 0.75,
+  };
+
+  if (normalized in simpleFractions) {
+    return simpleFractions[normalized];
+  }
+
+  const numeric = Number(normalized);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
 export function parseMeasurementStyleIngredient(
   input: string
 ): ParsedMeasurementStyleIngredient | null {
@@ -96,8 +113,8 @@ export function parseMeasurementStyleIngredient(
   let style: NormalizedMeasurementStyle = null;
   let ingredientStartIndex = 0;
 
-  const firstAsNumber = Number(parts[0].replace(',', '.'));
-  const hasLeadingNumber = Number.isFinite(firstAsNumber);
+  const firstAsNumber = parseMeasurementCount(parts[0]);
+  const hasLeadingNumber = firstAsNumber !== null;
 
   if (hasLeadingNumber) {
     count = firstAsNumber;
@@ -142,7 +159,6 @@ export function parseMeasurementStyleIngredient(
   }
 
   const ingredient = parts.slice(ingredientStartIndex).join(' ').trim();
-
   if (!style || !ingredient) {
     return null;
   }
