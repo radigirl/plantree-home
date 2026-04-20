@@ -367,8 +367,11 @@ export class PlanComponent implements OnInit, OnDestroy {
     const mergedRawIngredients =
       await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
 
-    const finalIngredients =
+    const measurementPreparedIngredients =
       await this.applyMeasurementGroupingToRawIngredients(mergedRawIngredients);
+
+    const finalIngredients =
+      buildIngredientsFromRawIngredients(measurementPreparedIngredients);
 
     this.isGenerateSheetOpen = false;
     await this.createGeneratedListFromPreparedIngredients(
@@ -401,8 +404,11 @@ export class PlanComponent implements OnInit, OnDestroy {
     const mergedRawIngredients =
       await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
 
-    const finalIngredients =
+    const measurementPreparedIngredients =
       await this.applyMeasurementGroupingToRawIngredients(mergedRawIngredients);
+
+    const finalIngredients =
+      buildIngredientsFromRawIngredients(measurementPreparedIngredients);
 
     this.isGenerateSheetOpen = false;
     await this.createGeneratedListFromPreparedIngredients(
@@ -445,8 +451,11 @@ export class PlanComponent implements OnInit, OnDestroy {
     const mergedRawIngredients =
       await this.applyRememberedWordRulesToRawIngredients(rawIngredients);
 
-    const finalIngredients =
+    const measurementPreparedIngredients =
       await this.applyMeasurementGroupingToRawIngredients(mergedRawIngredients);
+
+    const finalIngredients =
+      buildIngredientsFromRawIngredients(measurementPreparedIngredients);
 
     this.isMergeSheetOpen = false;
     this.mergeSheetData = null;
@@ -486,8 +495,11 @@ export class PlanComponent implements OnInit, OnDestroy {
       selectedCandidates
     );
 
-    const finalIngredients =
+    const measurementPreparedIngredients =
       await this.applyMeasurementGroupingToRawIngredients(mergedRawIngredients);
+
+    const finalIngredients =
+      buildIngredientsFromRawIngredients(measurementPreparedIngredients);
 
     this.isMergeSheetOpen = false;
     this.mergeSheetData = null;
@@ -1133,10 +1145,7 @@ export class PlanComponent implements OnInit, OnDestroy {
       this.convertGroupedMeasurementIngredient(group, rememberedMeasurementRules)
     );
 
-    const builtNormalIngredients =
-      buildIngredientsFromRawIngredients(normalRawIngredients);
-
-    return [...builtNormalIngredients, ...groupedMeasurementItems];
+    return [...normalRawIngredients, ...groupedMeasurementItems];
   }
 
   ngOnDestroy(): void {
