@@ -4,7 +4,7 @@
 }
 
 .layout {
-  height: calc(100dvh - 80px); /* adjust if header height differs */
+  height: calc(100dvh - 80px);
   display: flex;
   overflow: hidden;
 }
@@ -20,6 +20,7 @@ app-navigation {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+   padding-bottom: calc(90px + env(safe-area-inset-bottom));
 }
 
 .update-banner {
