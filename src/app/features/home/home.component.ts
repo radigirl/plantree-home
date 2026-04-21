@@ -25,7 +25,7 @@ import { AfterViewInit } from '@angular/core';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
+export class HomeComponent implements OnInit, OnDestroy {
   weekMeals: DayPlan[] = [];
   isLoading = true;
 
@@ -176,9 +176,9 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/meals']);
   }
 
-  ngAfterViewInit(): void {
-  window.scrollTo(0, 0);
-}
+//   ngAfterViewInit(): void {
+//   window.scrollTo(0, 0);
+// }
 
    ngOnDestroy(): void {
   this.destroy$.next();

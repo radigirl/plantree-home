@@ -419,15 +419,13 @@
 
 .meals-search-sticky {
   position: sticky;
-  top: 80px;
+  top: -25px;
   z-index: 20;
   background: $color-surface;
   padding: 0;
   transition: padding 0.18s ease;
-  padding-top:12px;
-  padding-bottom: 12px;
-  margin-top: -12px;
-  margin-bottom: -12px;
+  padding: 12px;
+  margin: -12px;
 }
 
 .delete-dialog-overlay {
