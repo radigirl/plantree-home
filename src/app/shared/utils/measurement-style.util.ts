@@ -1,3 +1,5 @@
+import { parseMixedNumber } from './number.util';
+
 export type NormalizedMeasurementStyle =
   | 'cup'
   | 'tbsp'
@@ -84,20 +86,7 @@ function splitMeasurementPhrase(input: string): string[] {
 }
 
 function parseMeasurementCount(raw: string): number | null {
-  const normalized = raw.trim().replace(',', '.');
-
-  const simpleFractions: Record<string, number> = {
-    '1/2': 0.5,
-    '1/4': 0.25,
-    '3/4': 0.75,
-  };
-
-  if (normalized in simpleFractions) {
-    return simpleFractions[normalized];
-  }
-
-  const numeric = Number(normalized);
-  return Number.isFinite(numeric) ? numeric : null;
+  return parseMixedNumber(raw);
 }
 
 export function parseMeasurementStyleIngredient(
@@ -113,13 +102,35 @@ export function parseMeasurementStyleIngredient(
   let style: NormalizedMeasurementStyle = null;
   let ingredientStartIndex = 0;
 
-  const firstAsNumber = parseMeasurementCount(parts[0]);
-  const hasLeadingNumber = firstAsNumber !== null;
+  const mixedCandidate =
+    parts.length >= 2 ? `${parts[0]} ${parts[1]}` : null;
 
-  if (hasLeadingNumber) {
+  const mixedAsNumber =
+    mixedCandidate ? parseMeasurementCount(mixedCandidate) : null;
+
+  const firstAsNumber = parseMeasurementCount(parts[0]);
+
+  if (mixedAsNumber !== null) {
+    count = mixedAsNumber;
+
+    if (parts.length >= 5) {
+      const twoWordStyle = normalizeMeasurementStyle(`${parts[2]} ${parts[3]}`);
+      if (twoWordStyle) {
+        style = twoWordStyle;
+        ingredientStartIndex = 4;
+      }
+    }
+
+    if (!style && parts.length >= 4) {
+      const oneWordStyle = normalizeMeasurementStyle(parts[2]);
+      if (oneWordStyle) {
+        style = oneWordStyle;
+        ingredientStartIndex = 3;
+      }
+    }
+  } else if (firstAsNumber !== null) {
     count = firstAsNumber;
 
-    // Try 2-word style first, e.g. "ч ч", "ч л", "с л"
     if (parts.length >= 4) {
       const twoWordStyle = normalizeMeasurementStyle(`${parts[1]} ${parts[2]}`);
       if (twoWordStyle) {
@@ -128,7 +139,6 @@ export function parseMeasurementStyleIngredient(
       }
     }
 
-    // Fallback: 1-word style, e.g. "чаша", "cups"
     if (!style && parts.length >= 3) {
       const oneWordStyle = normalizeMeasurementStyle(parts[1]);
       if (oneWordStyle) {
@@ -137,9 +147,6 @@ export function parseMeasurementStyleIngredient(
       }
     }
   } else {
-    // No leading number
-
-    // Try 2-word style first
     if (parts.length >= 3) {
       const twoWordStyle = normalizeMeasurementStyle(`${parts[0]} ${parts[1]}`);
       if (twoWordStyle) {
@@ -148,7 +155,6 @@ export function parseMeasurementStyleIngredient(
       }
     }
 
-    // Fallback: 1-word style
     if (!style && parts.length >= 2) {
       const oneWordStyle = normalizeMeasurementStyle(parts[0]);
       if (oneWordStyle) {
@@ -159,6 +165,7 @@ export function parseMeasurementStyleIngredient(
   }
 
   const ingredient = parts.slice(ingredientStartIndex).join(' ').trim();
+
   if (!style || !ingredient) {
     return null;
   }

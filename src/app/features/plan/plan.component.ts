@@ -1039,57 +1039,57 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   private formatSummedMeasurementIngredient(
-    count: number,
-    style: 'cup' | 'tbsp' | 'tsp',
-    ingredient: string
-  ): string {
-    const styleLabel =
-      style === 'cup'
-        ? count === 1
-          ? 'cup'
-          : 'cups'
-        : style;
+  count: number,
+  style: 'cup' | 'tbsp' | 'tsp',
+  ingredient: string
+): string {
+  let styleLabel: string = style;
 
-    return `${count} ${styleLabel} ${ingredient}`.trim();
+  if (style === 'cup') {
+    styleLabel = count === 1 ? 'cup' : 'cups';
   }
+
+  return `${count} ${styleLabel} ${ingredient}`.trim();
+}
 
   private convertGroupedMeasurementIngredient(
-    group: {
-      ingredientKey: string;
-      ingredientDisplay: string;
-      style: 'cup' | 'tbsp' | 'tsp';
-      count: number;
-    },
-    rememberedMeasurementRules: MeasurementRuleRow[]
-  ): string {
-    const rememberedRule = rememberedMeasurementRules.find((rule) => {
-      return (
-        normalizeIngredientKey(rule.ingredient_name) === group.ingredientKey &&
-        rule.measurement_style === group.style
-      );
-    });
+  group: {
+    ingredientKey: string;
+    ingredientDisplay: string;
+    style: 'cup' | 'tbsp' | 'tsp';
+    count: number;
+  },
+  rememberedMeasurementRules: MeasurementRuleRow[]
+): string {
+  const rememberedRule = rememberedMeasurementRules.find((rule) => {
+    return (
+      normalizeIngredientKey(rule.ingredient_name) ===
+        normalizeIngredientKey(group.ingredientDisplay) &&
+      rule.measurement_style === group.style
+    );
+  });
 
-    if (!rememberedRule) {
-      return this.formatSummedMeasurementIngredient(
-        group.count,
-        group.style,
-        group.ingredientDisplay
-      );
-    }
-
-    const convertedBaseAmount =
-      Number(rememberedRule.converted_amount) * group.count;
-
-    if (!Number.isFinite(convertedBaseAmount)) {
-      return this.formatSummedMeasurementIngredient(
-        group.count,
-        group.style,
-        group.ingredientDisplay
-      );
-    }
-
-    return `${convertedBaseAmount} ${rememberedRule.converted_unit} ${group.ingredientDisplay}`.trim();
+  if (!rememberedRule) {
+    return this.formatSummedMeasurementIngredient(
+      group.count,
+      group.style,
+      group.ingredientDisplay
+    );
   }
+
+  const convertedBaseAmount =
+    Number(rememberedRule.converted_amount) * group.count;
+
+  if (!Number.isFinite(convertedBaseAmount)) {
+    return this.formatSummedMeasurementIngredient(
+      group.count,
+      group.style,
+      group.ingredientDisplay
+    );
+  }
+
+  return `${convertedBaseAmount} ${rememberedRule.converted_unit} ${group.ingredientDisplay}`.trim();
+}
 
   private async applyMeasurementGroupingToRawIngredients(
     rawIngredients: string[]

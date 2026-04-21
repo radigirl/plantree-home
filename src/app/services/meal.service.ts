@@ -282,7 +282,6 @@ async getAllMeals(): Promise<Meal[]> {
   }
 
   async hideMealForMember(mealId: string, memberId: number): Promise<void> {
-    console.log(`Hiding meal ${mealId} for member ${memberId}`);
     const { error } = await this.supabaseService.supabase
       .from('member_meals')
       .upsert({

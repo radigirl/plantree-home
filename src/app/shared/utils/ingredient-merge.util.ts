@@ -27,32 +27,32 @@ export function detectPossibleMergeCandidatesFromRawIngredients(
 
     const pluralText = parsedB.name.trim().toLowerCase();
     const singularMatches = normalizedRaw.filter((itemA) => {
-  if (itemA === itemB) return false;
+      if (itemA === itemB) return false;
 
-  const parsedA = parseLeadingNumberIngredient(itemA);
+      const parsedA = parseLeadingNumberIngredient(itemA);
 
-  // measured items never participate in word-pair merge
-  if (parsedA && parsedA.unit) {
-    return false;
-  }
+      // measured items never participate in word-pair merge
+      if (parsedA && parsedA.unit) {
+        return false;
+      }
 
-  // allowed "1-side" cases:
-  // 1) plain text with no number, like "ябълка"
-  // 2) explicit 1 item, like "1 ябълка"
-  const isPlainNoNumber = !parsedA;
-  const isExplicitOne = !!parsedA && parsedA.amount === 1 && !parsedA.unit;
+      // allowed "1-side" cases:
+      // 1) plain text with no number, like "ябълка"
+      // 2) explicit 1 item, like "1 ябълка"
+      const isPlainNoNumber = !parsedA;
+      const isExplicitOne = !!parsedA && parsedA.amount === 1 && !parsedA.unit;
 
-  if (!isPlainNoNumber && !isExplicitOne) {
-    return false;
-  }
+      if (!isPlainNoNumber && !isExplicitOne) {
+        return false;
+      }
 
-  const singularText = (parsedA ? parsedA.name : itemA).trim().toLowerCase();
+      const singularText = (parsedA ? parsedA.name : itemA).trim().toLowerCase();
 
-  if (singularText === pluralText) return false;
+      if (singularText === pluralText) return false;
 
-  return areTextsCloseEnough(singularText, pluralText);
-});
-   
+      return areTextsCloseEnough(singularText, pluralText);
+    });
+
     if (singularMatches.length > 0) {
       const singularText = (() => {
         const first = singularMatches[0];
@@ -245,7 +245,9 @@ export function applySingleMergeCandidate(
   }
 
   if (total > 0) {
-    kept.push(`${total} ${candidate.pluralText}`);
+    kept.push(
+      `${total} ${total === 1 ? candidate.singularText : candidate.pluralText}`
+    );
   }
 
   return kept;
@@ -318,13 +320,10 @@ export function buildIngredientsFromRawIngredients(rawIngredients: string[]): st
       if (parsedMeasuredItems.length) {
         const first = parsedMeasuredItems[0];
         const firstConverted = convertToBaseUnit(first.amount, first.unit);
-
         if (firstConverted) {
           let totalBaseAmount = 0;
-
           for (const parsed of parsedMeasuredItems) {
             const converted = convertToBaseUnit(parsed.amount, parsed.unit);
-
             if (
               converted &&
               converted.unit === firstConverted.unit &&
@@ -333,12 +332,10 @@ export function buildIngredientsFromRawIngredients(rawIngredients: string[]): st
               totalBaseAmount += converted.amount;
             }
           }
-
           const formatted = formatAmountForDisplay(
             totalBaseAmount,
             firstConverted.unit
           );
-
           result.push(
             `${formatted.amount} ${formatted.unit} ${first.name}`.trim()
           );

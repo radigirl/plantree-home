@@ -385,8 +385,6 @@ export class MealPlanService {
       console.error('Error updating planned meal status:', error);
       throw error;
     }
-
-    console.log('Updated rows:', data);
   }
 
   async deletePlannedMeal(plannedMealId: string): Promise<void> {

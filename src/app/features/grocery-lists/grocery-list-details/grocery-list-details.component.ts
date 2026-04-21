@@ -1678,7 +1678,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         return { handled: false };
       }
 
-      const mergedName = `${info.count + 1} ${rememberedRule.plural_text}`.trim();
+      const nextCount = info.count + 1;
+      const mergedName = `${nextCount} ${nextCount === 1 ? rememberedRule.singular_text : rememberedRule.plural_text}`.trim();
 
       const updateSuccess = await this.groceryService.updateGroceryItemName(
         pluralCountedItem.id,
@@ -1696,6 +1697,45 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       }
 
       return { handled: true, revealItemId: pluralCountedItem.id };
+    }
+
+    const singularCountedItem = this.groceryItems.find((item) => {
+      if (item.id === options?.excludeItemId) return false;
+
+      const info = getMergeableRawIngredientInfo(item.name);
+      return (
+        !!info &&
+        info.kind === 'singularish' &&
+        info.count === 1 &&
+        normalizeIngredientKey(info.text) === normalizedSingular
+      );
+    });
+
+    if (singularCountedItem) {
+      const info = getMergeableRawIngredientInfo(singularCountedItem.name);
+      if (!info) {
+        return { handled: false };
+      }
+
+      const nextCount = info.count + 1;
+      const mergedName = `${nextCount} ${nextCount === 1 ? rememberedRule.singular_text : rememberedRule.plural_text}`.trim();
+
+      const updateSuccess = await this.groceryService.updateGroceryItemName(
+        singularCountedItem.id,
+        mergedName
+      );
+
+      if (!updateSuccess) {
+        this.error = 'Could not update grocery item.';
+        this.cdr.detectChanges();
+        return { handled: true };
+      }
+
+      if (options?.deleteSourceItemId) {
+        await this.groceryService.deleteGroceryItem(options.deleteSourceItemId);
+      }
+
+      return { handled: true, revealItemId: singularCountedItem.id };
     }
 
     const singularPlainItem = this.groceryItems.find((item) => {
