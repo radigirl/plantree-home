@@ -436,12 +436,36 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const normalizedExisting = normalizeIngredientKey(existingName);
     const normalizedNew = normalizeIngredientKey(newName);
 
-    const parsedExisting = parseLeadingNumberIngredient(normalizedExisting);
-    const parsedNew = parseLeadingNumberIngredient(normalizedNew);
+    const measurementExisting = parseMeasurementStyleIngredient(normalizedExisting);
+    const measurementNew = parseMeasurementStyleIngredient(normalizedNew);
+
+    if (
+      measurementExisting &&
+      measurementNew &&
+      normalizeIngredientKey(measurementExisting.ingredient) ===
+      normalizeIngredientKey(measurementNew.ingredient) &&
+      measurementExisting.style === measurementNew.style
+    ) {
+      const totalCount = measurementExisting.count + measurementNew.count;
+
+      return this.formatMeasurementStyleDisplay(
+        totalCount,
+        measurementExisting.style,
+        measurementExisting.ingredient
+      );
+    }
+
+    const rememberedConvertedExisting =
+      this.applyRememberedMeasurementRuleToInput(normalizedExisting) ?? normalizedExisting;
+
+    const rememberedConvertedNew =
+      this.applyRememberedMeasurementRuleToInput(normalizedNew) ?? normalizedNew;
+
+    const parsedExisting = parseLeadingNumberIngredient(rememberedConvertedExisting);
+    const parsedNew = parseLeadingNumberIngredient(rememberedConvertedNew);
 
     const countedExisting = parseCountedPlainIngredient(normalizedExisting);
     const countedNew = parseCountedPlainIngredient(normalizedNew);
-
 
     const multiMeasuredMatch = normalizedNew.match(/^(\d+)\s*[x×]\s*(.+)$/i);
 
@@ -482,7 +506,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
             }
           }
 
-          // fallback (only if no merge possible)
           const formatted = formatAmountForDisplay(totalAmount, converted.unit);
 
           return `${formatted.amount} ${formatted.unit} ${parsed.name}`.trim();
@@ -490,7 +513,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       }
     }
 
-    // measured + measured => sum using base units if same ingredient name
     if (parsedExisting && parsedNew && parsedExisting.unit && parsedNew.unit) {
       const convertedExisting = convertToBaseUnit(parsedExisting.amount, parsedExisting.unit);
       const convertedNew = convertToBaseUnit(parsedNew.amount, parsedNew.unit);
@@ -508,7 +530,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       }
     }
 
-    // numeric-leading + numeric-leading without convertible units
     if (
       parsedExisting &&
       parsedNew &&
@@ -519,7 +540,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `${parsedExisting.amount + parsedNew.amount} ${parsedExisting.suffix}`.trim();
     }
 
-    // numeric-leading + counted plain
     if (
       parsedExisting &&
       countedNew &&
@@ -528,7 +548,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `${parsedExisting.amount + countedNew.count} ${parsedExisting.suffix}`.trim();
     }
 
-    // counted plain + numeric-leading
     if (
       countedExisting &&
       parsedNew &&
@@ -537,7 +556,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `${countedExisting.count + parsedNew.amount} ${parsedNew.suffix}`.trim();
     }
 
-    // plain text + same plain text
     if (
       !parsedExisting &&
       !parsedNew &&
@@ -548,7 +566,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `2 × ${normalizedExisting}`;
     }
 
-    // counted plain + same plain text
     if (
       countedExisting &&
       !parsedNew &&
@@ -558,7 +575,6 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return `${countedExisting.count + 1} × ${countedExisting.text}`;
     }
 
-    // plain text + counted plain
     if (
       !parsedExisting &&
       !countedExisting &&
@@ -1817,6 +1833,20 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const finalAmount = parsedAmount * convertedBaseAmount;
 
     return `${finalAmount} ${rememberedRule.converted_unit} ${ingredientName}`.trim();
+  }
+
+  private formatMeasurementStyleDisplay(
+    count: number,
+    style: 'cup' | 'tbsp' | 'tsp',
+    ingredient: string
+  ): string {
+    let styleLabel: string = style;
+
+    if (style === 'cup') {
+      styleLabel = count === 1 ? 'cup' : 'cups';
+    }
+
+    return `${count} ${styleLabel} ${ingredient}`.trim();
   }
 
   ngOnDestroy(): void {
