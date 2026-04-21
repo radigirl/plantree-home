@@ -6,7 +6,6 @@
 
 html,
 body {
-  height: 100%;
   margin: 0;
   padding: 0;
 }
@@ -14,12 +13,12 @@ body {
 body {
   color: $color-text;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto;
-  background: $color-background;
+  background: $color-surface;
 }
 
 app-root {
   display: block;
-  background: $color-background;
+  background: $color-surface;
 }
 
 .layout {
@@ -33,15 +32,12 @@ app-root {
   padding: $layout-padding-mobile;
   padding-bottom: calc(#{$layout-bottom-nav-height} + env(safe-area-inset-bottom));
   box-sizing: border-box;
+  // border: 1px solid red;
 }
 
 @include desktop {
-  app-root {
+  body, app-root {
     background: $color-background;
-  }
-
-  .layout {
-    display: block;
   }
 
   .content {
