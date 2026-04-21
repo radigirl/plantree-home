@@ -1,53 +1,28 @@
 :host {
   display: block;
-  height: 100%;
-}
-
-.layout {
-  height: calc(100dvh - 80px);
-  display: flex;
-  overflow: hidden;
-}
-
-app-navigation {
-  flex-shrink: 0;
-}
-
-.content {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto; 
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-   padding-bottom: calc(90px + env(safe-area-inset-bottom));
 }
 
 .update-banner {
-  flex-shrink: 0;
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(243, 232, 196, 0.9);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #1f3b33;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
 
-  span {
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
-
-  button {
-    border: none;
-    background: rgba(92, 143, 134, 0.15);
-    color: #2e3a32;
-    padding: 6px 10px;
-    border-radius: 999px;
-    cursor: pointer;
-    font-weight: 600;
-
-    &:hover {
-      background: rgba(92, 143, 134, 0.25);
-    }
-  }
+.update-banner button {
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
 }

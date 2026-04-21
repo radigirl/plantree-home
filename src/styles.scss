@@ -4,13 +4,10 @@
 @use './styles/breakpoints' as *;
 @use './styles/components/dropdowns-lists' as *;
 
-
 html,
 body {
   height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+  background: $color-background;
 }
 
 body {
@@ -21,7 +18,6 @@ body {
 
 app-root {
   display: block;
-  min-height: 100dvh;
   background: $color-surface;
 }
 
@@ -42,8 +38,8 @@ app-root {
 
 @include desktop {
   app-root {
-  background: $color-background;
-}
+    background: $color-background;
+  }
 
   .content {
     background: $color-surface;
