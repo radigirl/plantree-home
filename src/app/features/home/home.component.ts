@@ -16,6 +16,7 @@ import {
 import { SpaceStateService } from '../../services/space.state.service';
 import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-home',
@@ -24,7 +25,7 @@ import { Subject } from 'rxjs';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   weekMeals: DayPlan[] = [];
   isLoading = true;
 
@@ -174,6 +175,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   openMeals(): void {
     this.router.navigate(['/meals']);
   }
+
+  ngAfterViewInit(): void {
+  window.scrollTo(0, 0);
+}
 
    ngOnDestroy(): void {
   this.destroy$.next();

@@ -1,4 +1,5 @@
 import { normalizeUnit, type NormalizedUnit } from './unit.util';
+import { parseMixedNumber } from './number.util';
 
 export function normalizeIngredientKey(input: string): string {
   let value = input.toLowerCase().trim();
@@ -15,15 +16,17 @@ export function parseLeadingNumberIngredient(
   ingredient: string
 ): { amount: number; unit: NormalizedUnit | null; name: string; suffix: string } | null {
   const trimmed = ingredient.trim();
-  const match = trimmed.match(/^(\d+(?:[.,]\d+)?)\s+(.+)$/);
+  const match = trimmed.match(
+    /^(\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:[.,]\d+)?)\s+(.+)$/
+  );
 
   if (!match) return null;
 
-  const rawAmount = match[1].replace(',', '.');
-  const amount = Number(rawAmount);
+  const rawAmount = match[1];
+  const amount = parseMixedNumber(rawAmount);
   const rawSuffix = match[2].trim();
 
-  if (!Number.isFinite(amount) || !rawSuffix) return null;
+  if (amount === null || !rawSuffix) return null;
 
   const suffixParts = rawSuffix.split(' ').filter(Boolean);
   const firstPart = suffixParts[0];
