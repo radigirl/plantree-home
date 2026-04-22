@@ -66,10 +66,11 @@
 
 .card--pantry,
 .card_pantry {
-.card--pantry:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(46, 58, 50, 0.08);
-}
+  .card--pantry:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(46, 58, 50, 0.08);
+  }
+
   border: $card-primary-border;
   box-shadow: $card-primary-shadow;
   display: flex;
@@ -266,10 +267,21 @@
   flex: 1;
 }
 
-.card--week  { background: $card-summary-week; }
-.card--meals { background: $card-summary-meals; }
-.card--lists { background: $card-summary-lists; }
-.card--stats { background: $card-summary-stats; }
+.card--week {
+  background: $card-summary-week;
+}
+
+.card--meals {
+  background: $card-summary-meals;
+}
+
+.card--lists {
+  background: $card-summary-lists;
+}
+
+.card--stats {
+  background: $card-summary-stats;
+}
 
 .card--week,
 .card--meals,
@@ -366,6 +378,17 @@
   display: block;
   margin: 0;
   padding-right: 0;
+}
+
+.pantry-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.card__subtitle--pantry {
+  display: none;
+  margin: 4px 0 0;
+  color: $color-text-muted;
 }
 
 @include mobile {
@@ -526,8 +549,8 @@
   }
 
   .home-grid {
-    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    gap: 12px;
     align-items: start;
   }
 
@@ -547,7 +570,7 @@
     grid-row: 1 / span 2;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
     align-content: start;
   }
 
@@ -589,7 +612,7 @@
   .card--pantry {
     display: flex;
     align-items: center;
-    padding: 10px 14px;
+    padding: 8px 14px;
     border-radius: 22px;
     min-height: 0;
   }
@@ -609,20 +632,21 @@
   }
 
   .today-card--empty .today-meal-image {
-    aspect-ratio: 16 / 13.2;
+    aspect-ratio: 16 / 12.6;
   }
 }
 
 @include desktop {
   .home-page {
-    max-width: 1280px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: none;
+    margin: 0;
     margin-top: -10px;
   }
 
   .home-grid {
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-    gap: 18px;
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr);
+    gap: 14px;
     align-items: start;
   }
 
@@ -642,7 +666,7 @@
     grid-row: 1 / span 2;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
     align-content: start;
   }
 
@@ -681,29 +705,47 @@
     max-height: calc(1.18em * 4 + 2px);
   }
 
-  .card--pantry {
-    display: flex;
-    align-items: center;
-    padding: 20px 15px;
-    border-radius: 24px;
-    min-height: 0;
-  }
-
-  .card--pantry .card__title {
-    font-size: 0.92rem;
-    line-height: 1.12;
-    margin: 0;
-  }
-
   .today-card-image-wrap {
     margin-top: 4px;
   }
 
   .today-meal-image {
-    aspect-ratio: 16 / 9.3;
+    aspect-ratio: 16 / 8.2;
   }
 
   .today-card--empty .today-meal-image {
-    aspect-ratio: 16 / 13;
+    aspect-ratio: 16 / 10;
   }
+
+.card--pantry {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 13px 15px;
+  min-height: 106px;
+}
+
+.pantry-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+}
+
+.card--pantry .card__title {
+  font-size: 1rem;
+  line-height: 1.15;
+  margin: 0;
+  padding-left: 6px;
+}
+
+.card--pantry .card__subtitle--pantry {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.88rem;
+  line-height: 1.2;
+  color: $color-text-muted;
+  padding-left: 15px;
+}
 }

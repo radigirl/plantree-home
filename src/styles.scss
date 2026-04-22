@@ -32,7 +32,6 @@ app-root {
   padding: $layout-padding-mobile;
   padding-bottom: calc(#{$layout-bottom-nav-height} + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  // border: 1px solid red;
 }
 
 @include desktop {
@@ -44,9 +43,9 @@ app-root {
     background: $color-surface;
     border-radius: $radius-large;
     margin-top: $layout-gap-top-desktop;
-    margin-right: 40px;
+    margin-right: 16px;
     margin-bottom: $layout-gap-bottom-desktop;
-    margin-left: $layout-sidebar-width;
+    margin-left: calc(#{$layout-sidebar-width} + 32px);
     padding: $layout-padding-desktop;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
     min-height: calc(100vh - #{$layout-header-height-desktop} - #{$layout-gap-top-desktop} - #{$layout-gap-bottom-desktop});

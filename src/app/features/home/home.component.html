@@ -5,7 +5,10 @@
     <div class="home-grid">
 
       <article class="card card--pantry home-grid__pantry" (click)="openCookFromPantry()">
+        <div class="pantry-copy">
           <h3 class="card__title card__title--compact">Cook from your pantry →</h3>
+          <p class="card__subtitle card__subtitle--pantry">Find your next meal</p>
+        </div>
       </article>
 
       <!-- TODAY CARD -->
@@ -71,8 +74,8 @@
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image">
-                  <img [src]="firstTodayMeal?.meal?.image_url || 'assets/meals/default-meal.png'" class="today-meal-image"
-                    [alt]="firstTodayMeal?.meal?.name || 'Meal image'" />
+                  <img [src]="firstTodayMeal?.meal?.image_url || 'assets/meals/default-meal.png'"
+                    class="today-meal-image" [alt]="firstTodayMeal?.meal?.name || 'Meal image'" />
                 </div>
               </div>
             </div>
