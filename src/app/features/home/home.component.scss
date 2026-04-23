@@ -497,6 +497,7 @@
 .home-side-grid .card {
   padding: 8px 12px;
   border-radius: 20px;
+  min-height: auto;
 }
 
   .home-side-grid .card__header {
@@ -541,14 +542,13 @@
     line-height: 1.16;
   }
 }
-
-@media (max-width: 767px) and (min-height: 700px) {
+@media (max-width: 767px) and (min-height: 780px) {
   .home-side-grid .card {
-    min-height: 100px;
+    min-height: 96px;
   }
 }
 
-@media (max-width: 767px) and (min-height: 780px) {
+@media (max-width: 767px) and (min-height: 860px) {
   .home-side-grid .card {
     min-height: 108px;
   }
