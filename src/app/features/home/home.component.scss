@@ -542,15 +542,15 @@
   }
 }
 
-@media (max-width: 767px) and (min-height: 820px) {
+@media (max-width: 767px) and (min-height: 700px) {
   .home-side-grid .card {
-    min-height: 104px;
+    min-height: 100px;
   }
 }
 
-@media (max-width: 767px) and (min-height: 900px) {
+@media (max-width: 767px) and (min-height: 780px) {
   .home-side-grid .card {
-    min-height: 114px;
+    min-height: 108px;
   }
 }
 
