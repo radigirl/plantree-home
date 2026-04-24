@@ -2,7 +2,7 @@
   "name": "Plantree",
   "short_name": "Plantree",
   "theme_color": "#DAD4C8",
-  "background_color": "#5f8f78",
+  "background_color": "#527E68",
   "display": "standalone",
   "scope": "/plantree-home/",
   "start_url": "/plantree-home/",
