@@ -104,7 +104,6 @@
         </article>
 
         <!-- MY MEALS -->
-        <!-- MY MEALS -->
         <article class="card card--meals" (click)="openMeals()">
           <div class="card__header">
             <lucide-icon [img]="myMealsIcon" [size]="18" class="card-icon long-icon"></lucide-icon>
@@ -157,8 +156,16 @@
 
           <div class="card__content">
             <div class="summary-card-content">
-              <p class="summary-card-main">• Chef of the week:</p>
-              <p class="summary-card-main second-line">Mom</p>
+              <ng-container *ngIf="weekStatsCount > 0; else noWeekStats">
+                <p class="summary-card-main">• {{ weekStatsLabel }}</p>
+                <p class="summary-card-main second-line summary-card-value--ellipsis">
+                  {{ weekStatsDisplayName }}
+                </p>
+              </ng-container>
+
+              <ng-template #noWeekStats>
+                <p class="summary-card-main">• No meals cooked yet</p>
+              </ng-template>
             </div>
           </div>
         </article>

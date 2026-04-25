@@ -633,4 +633,20 @@ export class MealPlanService {
     return meals;
   }
 
+  async getMembersForStats(): Promise<
+    { id: number; name: string; avatar_url?: string; created_at?: string }[]
+  > {
+    const { data, error } = await this.supabaseService.supabase
+      .from('members')
+      .select('id, name, avatar_url, created_at')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching members for stats:', error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
 }

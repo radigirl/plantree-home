@@ -34,6 +34,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   latestActiveListName = '';
   mealsCount = 0;
   lastAddedMealName = '';
+  weekStatsLabel = 'Chef of the week';
+  weekStatsDisplayName = '';
+  weekStatsCount = 0;
 
   currentWeekStart: Date = this.getStartOfWeek(new Date());
 
@@ -63,8 +66,15 @@ export class HomeComponent implements OnInit, OnDestroy {
         distinctUntilChanged()
       )
       .subscribe(async () => {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+
         await this.loadWeekPlan();
         await this.loadGrocerySummary();
+        await this.loadWeekStatsSummary();
+
+        this.isLoading = false;
+        this.cdr.detectChanges();
       });
 
     this.memberStateService.currentMember$
@@ -80,17 +90,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async loadWeekPlan(): Promise<void> {
-    this.isLoading = true;
-
     try {
       this.weekMeals = await this.mealPlanService.getWeekPlan(this.currentWeekStart);
     } catch (error) {
       console.error('Error loading home week plan:', error);
       this.weekMeals = [];
     }
-
-    this.isLoading = false;
-    this.cdr.detectChanges();
   }
 
   get todayPlan(): DayPlan | undefined {
@@ -167,8 +172,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   openWeekStats(): void {
-  this.router.navigate(['/week-stats']);
-}
+    this.router.navigate(['/week-stats']);
+  }
 
   openCookFromPantry() {
     this.router.navigate(['/cook-from-pantry']);
@@ -228,6 +233,72 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.lastAddedMealName = '';
       this.cdr.detectChanges();
     }
+  }
+
+  async loadWeekStatsSummary(): Promise<void> {
+    try {
+      const cookedMeals = await this.mealPlanService.getCookedMealsForWeek(
+        this.currentWeekStart
+      );
+
+      const cookedMealsWithCook = cookedMeals.filter((meal) => !!meal.cook);
+
+      this.calculateWeekStatsSummary(cookedMealsWithCook);
+    } catch (error) {
+      console.error('Error loading home week stats summary:', error);
+      this.weekStatsLabel = 'Chef of the week';
+      this.weekStatsDisplayName = '';
+      this.weekStatsCount = 0;
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private calculateWeekStatsSummary(cookedMeals: any[]): void {
+    const cookCounts = new Map<number, { name: string; count: number }>();
+
+    for (const meal of cookedMeals) {
+      const cook = meal.cook;
+      if (!cook) continue;
+
+      const existing = cookCounts.get(cook.id);
+
+      cookCounts.set(cook.id, {
+        name: cook.name,
+        count: (existing?.count ?? 0) + 1,
+      });
+    }
+
+    const ranked = Array.from(cookCounts.values()).sort(
+      (a, b) => b.count - a.count
+    );
+
+    if (ranked.length === 0) {
+      this.weekStatsLabel = '';
+      this.weekStatsDisplayName = 'No meals cooked yet';
+      this.weekStatsCount = 0;
+      return;
+    }
+
+    const topCount = ranked[0].count;
+    const topCooks = ranked.filter((cook) => cook.count === topCount);
+
+    this.weekStatsCount = topCount;
+
+    if (topCooks.length === 1) {
+      this.weekStatsLabel = 'Chef of the week:';
+      this.weekStatsDisplayName = `${topCooks[0].name} (${topCount})`;
+      return;
+    }
+
+    this.weekStatsLabel = 'Top cooks:';
+
+    if (topCooks.length === 2) {
+      this.weekStatsDisplayName = `${topCooks[0].name} & ${topCooks[1].name} (${topCount})`;
+      return;
+    }
+
+    this.weekStatsDisplayName = `${topCooks[0].name}, ${topCooks[1].name} +${topCooks.length - 2} (${topCount})`;
   }
 
   ngOnDestroy(): void {

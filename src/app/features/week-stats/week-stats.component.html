@@ -19,12 +19,15 @@
 
       <ng-container *ngIf="winnerCount > 0; else emptyChef">
 
-        <p class="section-label">
-          {{ chefLabel }}
-        </p>
+        <h3 class="section-title hero-title">
+          <lucide-icon [img]="trophyIcon" [size]="16" class="hero-title-icon"></lucide-icon>
 
-        <div class="hero-avatar">
-          🏆
+          {{ chefLabel }}
+        </h3>
+
+        <div class="hero-avatar-stack" *ngIf="winnerAvatars.length > 0">
+          <img *ngFor="let avatar of winnerAvatars; let i = index" class="hero-winner-avatar"
+            [class.hero-winner-avatar--second]="i === 1" [src]="avatar" [alt]="chefDisplayName" />
         </div>
 
         <h2 class="hero-name">
@@ -32,17 +35,24 @@
         </h2>
 
         <p class="hero-meta">
-          {{ winnerCount }} {{ winnerCount === 1 ? 'meal' : 'meals' }} cooked this week
+          <ng-container *ngIf="isTie; else singleWinnerMeta">
+            {{ winnerCount }}
+            {{ winnerCount === 1 ? 'meal each' : 'meals each' }}
+          </ng-container>
+          <ng-template #singleWinnerMeta>
+            {{ winnerCount }}
+            {{ winnerCount === 1 ? 'meal by ' : 'meals by ' }}
+            {{ winnerName }}
+          </ng-template>
         </p>
-
       </ng-container>
 
       <ng-template #emptyChef>
-        <p class="section-label">Chef of the week</p>
+        <h3 class="section-title hero-title">
+          <lucide-icon [img]="emptyChefIcon" [size]="16" class="hero-title-icon"></lucide-icon>
 
-        <div class="hero-avatar">
-          🍳
-        </div>
+          Chef of the week
+        </h3>
 
         <h2 class="hero-name">
           No meals cooked yet
@@ -70,6 +80,23 @@
       </div>
     </section>
 
+    <!-- FAMILY LEADERBOARD -->
+    <section class="stats-card" *ngIf="leaderboard.length > 0">
+      <h3 class="section-title">Family Leaderboard</h3>
+
+      <div class="leaderboard-row" *ngFor="let cook of leaderboard; let i = index">
+        <div class="leaderboard-person">
+          <span class="leaderboard-rank">{{ i + 1 }}</span>
+
+          <img class="cook-avatar" [src]="cook.avatar || 'assets/avatars/unassigned.png'" [alt]="cook.name" />
+
+          <span>{{ cook.name }}</span>
+        </div>
+
+        <strong>{{ cook.count }}</strong>
+      </div>
+    </section>
+
     <!-- COOKED MEALS -->
     <section class="stats-card">
       <h3 class="section-title">Cooked Meals</h3>
@@ -78,9 +105,18 @@
         No cooked meals yet this week.
       </p>
 
-      <div class="meal-row" *ngFor="let meal of cookedMeals">
-        <span>{{ meal.name }}</span>
-        <small>{{ meal.cook }}</small>
+      <div class="meal-row meal-row--rich" *ngFor="let meal of cookedMeals">
+        <img class="meal-thumb" [src]="meal.imageUrl || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+
+        <div class="meal-row-main">
+          <span class="meal-name">{{ meal.name }}</span>
+
+          <span class="meal-cook">
+            <img class="cook-avatar-small" [src]="meal.cookAvatar || 'assets/avatars/unassigned.png'"
+              [alt]="meal.cook" />
+            {{ meal.cook ? ('Cooked by ' + meal.cook) : 'Cook not assigned' }}
+          </span>
+        </div>
       </div>
     </section>
 
