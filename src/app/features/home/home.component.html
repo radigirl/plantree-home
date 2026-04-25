@@ -97,7 +97,9 @@
               <p class="summary-card-main">• {{ plannedMealsCount }} planned</p>
 
               <p class="summary-card-main" *ngIf="plannedMealsCount > 0" style="margin-bottom:0; line-height:1.28;">
-                • {{ emptyDaysCount }} days remaining
+                • {{ emptyDaysCount }}
+                {{ emptyDaysCount === 1 ? 'day' : 'days' }}
+                remaining
               </p>
             </div>
           </div>
@@ -136,14 +138,16 @@
             <h3 class="card__title">Lists</h3>
           </div>
 
-          <div class="summary-card-content">
-            <p class="summary-card-main">• {{ activeListsCount }} active lists</p>
+          <div class="card__content">
+            <div class="summary-card-content">
+              <p class="summary-card-main">• {{ activeListsCount }} active lists</p>
 
-            <ng-container *ngIf="activeListsCount > 0">
-              <p class="summary-card-main summary-card-main--latest" *ngIf="activeListsCount > 0">
-                • Latest: {{ latestActiveListName }}
-              </p>
-            </ng-container>
+              <ng-container *ngIf="activeListsCount > 0">
+                <p class="summary-card-main summary-card-main--latest">
+                  • Latest: {{ latestActiveListName }}
+                </p>
+              </ng-container>
+            </div>
           </div>
         </article>
 

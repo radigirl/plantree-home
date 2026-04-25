@@ -6,12 +6,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
-import {
-  distinctUntilChanged,
-  filter,
-  takeUntil,
-} from 'rxjs/operators';
-
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
 import { MealsService } from '../../services/meal.service';
 import { PantryService } from '../../services/pantry.service';
@@ -28,6 +22,12 @@ import {
 import { isIngredientMatch } from '../../shared/utils/ingredient-match.util';
 import { MealPlanService } from '../../services/meal-plan.service';
 import { CalendarPickerComponent } from '../../shared/components/calendar-picker/calendar-picker.component';
+import {
+  distinctUntilChanged,
+  filter,
+  map,
+  takeUntil,
+} from 'rxjs/operators';
 
 type EmptyState =
   | 'none'
@@ -99,10 +99,11 @@ export class CookFromPantryComponent
       .pipe(
         takeUntil(this.destroy$),
         filter((space): space is NonNullable<typeof space> => !!space),
-        distinctUntilChanged((prev, curr) => prev.id === curr.id)
+        map((space) => space.id),
+        distinctUntilChanged()
       )
-      .subscribe(async (space) => {
-        await this.loadSuggestions(space.id);
+      .subscribe(async (spaceId) => {
+        await this.loadSuggestions(spaceId);
       });
   }
 

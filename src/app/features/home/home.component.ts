@@ -136,8 +136,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get emptyDaysCount(): number {
-    return this.weekMeals.filter((day) => day.meals.length === 0).length;
-  }
+  const today = this.formatDateLocal(new Date());
+
+  return this.weekMeals.filter(
+    (day) => day.fullDate >= today && day.meals.length === 0
+  ).length;
+}
 
   openToday(): void {
     const today = this.formatDateLocal(new Date());

@@ -26,11 +26,17 @@
 
 .cook-from-pantry-empty h2 {
   margin: 0 0 8px 0;
+  color: $color-primary-dark;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  font-weight: 600;
 }
 
 .cook-from-pantry-empty p {
   margin: 0;
   color: #6f6f6f;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 /* LIST */
@@ -261,8 +267,8 @@
 }
 
 .cook-from-pantry-sheet__icon--available {
-  background: rgba(92, 143, 134, 0.15); // soft primary
-  color: #5c8f86; // your primary
+  background: rgba(92, 143, 134, 0.15);
+  color: #5c8f86;
 }
 
 .cook-from-pantry-sheet__icon--missing {
