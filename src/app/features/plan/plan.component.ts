@@ -44,6 +44,7 @@ import {
   IngredientRulesService,
   MeasurementRuleRow
 } from '../../services/ingredient-rules.service';
+import { Clock3, UserRound } from 'lucide-angular';
 
 
 
@@ -79,6 +80,8 @@ export class PlanComponent implements OnInit, OnDestroy {
   readonly chevronRightIcon = ChevronRight;
   readonly calendarIcon = CalendarDays;
   readonly groceryListsIcon = ShoppingCart;
+  readonly clock3Icon = Clock3;
+  readonly userRoundIcon = UserRound;
 
   coveredMealIds = new Set<string>();
   coveredMealToListName = new Map<string, string>();
@@ -1039,57 +1042,57 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   private formatSummedMeasurementIngredient(
-  count: number,
-  style: 'cup' | 'tbsp' | 'tsp',
-  ingredient: string
-): string {
-  let styleLabel: string = style;
+    count: number,
+    style: 'cup' | 'tbsp' | 'tsp',
+    ingredient: string
+  ): string {
+    let styleLabel: string = style;
 
-  if (style === 'cup') {
-    styleLabel = count === 1 ? 'cup' : 'cups';
+    if (style === 'cup') {
+      styleLabel = count === 1 ? 'cup' : 'cups';
+    }
+
+    return `${count} ${styleLabel} ${ingredient}`.trim();
   }
-
-  return `${count} ${styleLabel} ${ingredient}`.trim();
-}
 
   private convertGroupedMeasurementIngredient(
-  group: {
-    ingredientKey: string;
-    ingredientDisplay: string;
-    style: 'cup' | 'tbsp' | 'tsp';
-    count: number;
-  },
-  rememberedMeasurementRules: MeasurementRuleRow[]
-): string {
-  const rememberedRule = rememberedMeasurementRules.find((rule) => {
-    return (
-      normalizeIngredientKey(rule.ingredient_name) ===
+    group: {
+      ingredientKey: string;
+      ingredientDisplay: string;
+      style: 'cup' | 'tbsp' | 'tsp';
+      count: number;
+    },
+    rememberedMeasurementRules: MeasurementRuleRow[]
+  ): string {
+    const rememberedRule = rememberedMeasurementRules.find((rule) => {
+      return (
+        normalizeIngredientKey(rule.ingredient_name) ===
         normalizeIngredientKey(group.ingredientDisplay) &&
-      rule.measurement_style === group.style
-    );
-  });
+        rule.measurement_style === group.style
+      );
+    });
 
-  if (!rememberedRule) {
-    return this.formatSummedMeasurementIngredient(
-      group.count,
-      group.style,
-      group.ingredientDisplay
-    );
+    if (!rememberedRule) {
+      return this.formatSummedMeasurementIngredient(
+        group.count,
+        group.style,
+        group.ingredientDisplay
+      );
+    }
+
+    const convertedBaseAmount =
+      Number(rememberedRule.converted_amount) * group.count;
+
+    if (!Number.isFinite(convertedBaseAmount)) {
+      return this.formatSummedMeasurementIngredient(
+        group.count,
+        group.style,
+        group.ingredientDisplay
+      );
+    }
+
+    return `${convertedBaseAmount} ${rememberedRule.converted_unit} ${group.ingredientDisplay}`.trim();
   }
-
-  const convertedBaseAmount =
-    Number(rememberedRule.converted_amount) * group.count;
-
-  if (!Number.isFinite(convertedBaseAmount)) {
-    return this.formatSummedMeasurementIngredient(
-      group.count,
-      group.style,
-      group.ingredientDisplay
-    );
-  }
-
-  return `${convertedBaseAmount} ${rememberedRule.converted_unit} ${group.ingredientDisplay}`.trim();
-}
 
   private async applyMeasurementGroupingToRawIngredients(
     rawIngredients: string[]

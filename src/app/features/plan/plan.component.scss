@@ -1,5 +1,6 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/breakpoints' as *;
+@use '../../../styles/components/chips' as *;
 
 .plan-page {
   display: flex;
@@ -265,7 +266,8 @@
 }
 
 .meal-card--past .meal-image-img,
-.meal-card--past .meal-cook-avatar {
+.meal-card--past .meal-cook-avatar,
+.meal-card--past .meal-cook-avatar-icon {
   opacity: 0.6;
   filter: grayscale(0.3) brightness(0.96);
 }
@@ -393,8 +395,8 @@
 .meal-cook-row {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -413,10 +415,27 @@
   flex-shrink: 0;
 }
 
+.meal-cook-avatar-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.78);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meal-cook-avatar-symbol {
+  color: rgba($color-primary-dark, 0.55);
+}
+
 .meal-cook {
   margin: 0;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   color: $color-text-muted;
+  white-space: nowrap;
 }
 
 .meal-meta {
@@ -425,34 +444,18 @@
   gap: 6px;
 }
 
-.meal-status,
-.meal-time {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 24px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
 .meal-status {
-  background: rgba(231, 242, 236, 0.92);
-  color: $color-primary-dark;
+  @extend .meal-status-chip;
 }
 
 .meal-time {
-  gap: 6px;
-  background: rgba(237, 242, 239, 0.95);
-  color: $color-text-muted;
+  @extend .meal-time-chip;
 }
 
 .meal-time-icon {
-  font-size: 0.8rem;
-  line-height: 1;
-  opacity: 0.8;
+  color: rgba($color-primary-dark, 0.38);
+  flex-shrink: 0;
+  transform: translateY(1px);
 }
 
 .meal-more {
@@ -725,13 +728,6 @@
   .meal-cook-label,
   .meal-cook {
     font-size: 0.88rem;
-  }
-
-  .meal-status,
-  .meal-time {
-    min-height: 24px;
-    padding: 1px 6px;
-    font-size: 0.78rem;
   }
 
   .meal-more {

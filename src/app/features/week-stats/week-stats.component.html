@@ -112,9 +112,18 @@
           <span class="meal-name">{{ meal.name }}</span>
 
           <span class="meal-cook">
-            <img class="cook-avatar-small" [src]="meal.cookAvatar || 'assets/avatars/unassigned.png'"
-              [alt]="meal.cook" />
-            {{ meal.cook ? ('Cooked by ' + meal.cook) : 'Cook not assigned' }}
+            <ng-container *ngIf="meal.cookAvatar; else unassignedCookIcon">
+              <img class="cook-avatar-small" [src]="meal.cookAvatar" [alt]="meal.cook" />
+            </ng-container>
+
+            <ng-template #unassignedCookIcon>
+              <span class="cook-avatar-icon-small">
+                <lucide-icon [img]="userRoundIcon" [size]="12" [strokeWidth]="2" class="cook-avatar-symbol-small">
+                </lucide-icon>
+              </span>
+            </ng-template>
+
+            {{ meal.cook ? ('Cooked by ' + meal.cook) : 'No cook assigned' }}
           </span>
         </div>
       </div>

@@ -32,7 +32,8 @@
             Today
           </button>
 
-          <button type="button" class="lists-btn" (click)="generateWeeklyList()" [disabled]="isPastWeek() || isGeneratingList">
+          <button type="button" class="lists-btn" (click)="generateWeeklyList()"
+            [disabled]="isPastWeek() || isGeneratingList">
             <lucide-icon [img]="groceryListsIcon"></lucide-icon>
           </button>
         </div>
@@ -81,8 +82,17 @@
                 <div class="meal-cook-row">
                   <span class="meal-cook-label">Cook:</span>
 
-                  <img [src]="getFirstMeal(item)?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-                    class="meal-cook-avatar" [alt]="getFirstMeal(item)?.cook?.name || 'Cook avatar'" />
+                  <ng-container *ngIf="getFirstMeal(item)?.cook as cook; else notAssignedCook">
+                    <img [src]="cook.avatar_url || 'assets/avatars/unassigned.png'" class="meal-cook-avatar"
+                      [alt]="cook.name || 'Cook avatar'" />
+                  </ng-container>
+
+                  <ng-template #notAssignedCook>
+                    <span class="meal-cook-avatar-icon">
+                      <lucide-icon [img]="userRoundIcon" [size]="12" [strokeWidth]="2" class="meal-cook-avatar-symbol">
+                      </lucide-icon>
+                    </span>
+                  </ng-template>
 
                   <p class="meal-cook">
                     {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
@@ -90,12 +100,13 @@
                 </div>
 
                 <div class="meal-meta" *ngIf="getFirstMeal(item) as firstMeal">
-                  <span class="meal-status">
+                  <span class="meal-status" [ngClass]="'meal-status--' + firstMeal.status">
                     {{ getStatusLabel(firstMeal.status) }}
                   </span>
 
                   <span class="meal-time" *ngIf="firstMeal.meal.prepTime != null">
-                    <span class="meal-time-icon">◷</span>
+                    <lucide-icon [img]="clock3Icon" [size]="12" [strokeWidth]="1.5" class="meal-time-icon">
+                    </lucide-icon>
                     {{ firstMeal.meal.prepTime }} min
                   </span>
                 </div>
@@ -135,25 +146,13 @@
   </div>
 </div>
 
-<app-generate-sheet-list
-  [isOpen]="isGenerateSheetOpen && !isMergeSheetOpen"
-  [days]="generateSheetDays"
-  (closed)="closeGenerateSheet()"
-  (quickGenerate)="onQuickGenerateList()"
-  (generateSelected)="onGenerateSelectedList($event)"
-></app-generate-sheet-list>
+<app-generate-sheet-list [isOpen]="isGenerateSheetOpen && !isMergeSheetOpen" [days]="generateSheetDays"
+  (closed)="closeGenerateSheet()" (quickGenerate)="onQuickGenerateList()"
+  (generateSelected)="onGenerateSelectedList($event)"></app-generate-sheet-list>
 
-<app-merge-review-sheet
-  *ngIf="isMergeSheetOpen"
-  [candidates]="mergeSheetData?.candidates || []"
-  (mergeApplied)="onMergeApply($event)"
-  (dismissed)="onMergeCancel()"
-  (skipped)="onMergeSkip()"
-></app-merge-review-sheet>
+<app-merge-review-sheet *ngIf="isMergeSheetOpen" [candidates]="mergeSheetData?.candidates || []"
+  (mergeApplied)="onMergeApply($event)" (dismissed)="onMergeCancel()"
+  (skipped)="onMergeSkip()"></app-merge-review-sheet>
 
-<app-snackbar
-  [message]="snackbarMessage"
-  [actionLabel]="snackbarActionLabel"
-  [isVisible]="isSnackbarVisible"
-  (actionClicked)="onSnackbarAction()"
-></app-snackbar>
+<app-snackbar [message]="snackbarMessage" [actionLabel]="snackbarActionLabel" [isVisible]="isSnackbarVisible"
+  (actionClicked)="onSnackbarAction()"></app-snackbar>

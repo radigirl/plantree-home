@@ -1,18 +1,5 @@
 @use '../variables' as *;
 
-.meal-info-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: rgba(92, 143, 134, 0.1);
-  color: $color-primary-dark;
-  font-size: 0.8rem;
-  font-weight: 600;
-  line-height: 1;
-}
 
 .list-status--active {
   background: #dff5e3;
@@ -37,4 +24,48 @@
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
+}
+
+/* MEAL CHIPS */
+
+.meal-chip-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.meal-time-chip {
+  @extend .meal-chip-base;
+  gap: 5px;
+  background: rgba(237, 242, 239, 0.95);
+  color: $color-text-muted;
+}
+
+.meal-status-chip {
+  @extend .meal-chip-base;
+  font-weight: 400;
+  color: $color-primary-dark;
+}
+
+.meal-status--to-prepare {
+  background: $status-to-prepare-bg;
+  color: $status-to-prepare-text;
+}
+
+.meal-status--in-progress {
+  background: $status-in-progress-bg;
+  color: $status-in-progress-text;
+}
+
+.meal-status--ready-to-serve {
+  background: $status-ready-bg;
+  color: $status-ready-text;
+  box-shadow: 0 2px 8px rgba(92, 143, 134, 0.08);
 }

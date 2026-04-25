@@ -2,6 +2,7 @@
 @use '../../../../styles/breakpoints' as *;
 @use '../../../../styles/components/buttons' as *;
 @use '../../../../styles/components/inputs' as *;
+@use '../../../../styles/components/chips' as *;
 
 :host {
   display: block;
@@ -571,12 +572,12 @@
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
 .meal-cook-label {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: $color-primary-dark;
 }
@@ -592,7 +593,8 @@
 
 .meal-cook {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.92rem;
+  line-height: 1;
   color: $color-text-muted;
 }
 
@@ -608,53 +610,36 @@
   flex-wrap: wrap;
 }
 
-.meal-time,
-.meal-status {
+.meal-cook-avatar-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.78);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 28px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  line-height: 1;
-  white-space: nowrap;
-  flex-shrink: 0;
+}
+
+.meal-cook-avatar-symbol {
+  color: rgba($color-primary-dark, 0.55);
 }
 
 .meal-time {
-  gap: 5px;
-  background: rgba(237, 242, 239, 0.95);
-  color: $color-text-muted;
-  opacity: 0.82;
-}
-
-.meal-time-icon {
-  font-size: 0.82rem;
-  line-height: 1;
-  opacity: 0.75;
-}
-
-.meal-status {
-  color: $color-primary-dark;
-  font-weight: 500;
+  @extend .meal-time-chip;
   opacity: 1;
 }
 
-.meal-status--to-prepare {
-  background: $status-to-prepare-bg;
-  color: $status-to-prepare-text;
+.meal-time-icon {
+  color: rgba($color-primary-dark, 0.38);
+  flex-shrink: 0;
+  transform: translateY(1px);
 }
 
-.meal-status--in-progress {
-  background: $status-in-progress-bg;
-  color: $status-in-progress-text;
-}
-
-.meal-status--ready-to-serve {
-  background: $status-ready-bg;
-  color: $status-ready-text;
-  box-shadow: 0 2px 8px rgba(92, 143, 134, 0.08);
+.meal-status {
+  @extend .meal-status-chip;
+  opacity: 1;
 }
 
 .meal-action-button {
@@ -841,6 +826,7 @@
   font-size: 0.82rem;
   color: $color-text-muted;
 }
+
 @include mobile {
   .day-details-page {
     gap: 14px;
@@ -1200,24 +1186,19 @@
     font-size: 1.25rem;
   }
 
-  .meal-cook-label,
+  .meal-cook-label {
+    font-size: 0.92rem;
+  }
+
   .meal-cook {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
-  .meal-time,
-  .meal-status,
-  .meal-action-button {
-    min-height: 28px;
-    padding: 3px 9px;
-    font-size: 0.76rem;
-  }
-
-  .meal-action-button {
-    height: 26px;
-    padding: 0 2px;
-    font-size: 0.76rem;
-  }
+ .meal-action-button {
+  height: 26px;
+  padding: 0 2px;
+  font-size: 0.76rem;
+}
 
   .meal-action-icon {
     font-size: 0.68rem;

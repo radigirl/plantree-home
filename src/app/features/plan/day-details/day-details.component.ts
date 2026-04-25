@@ -26,6 +26,7 @@ import { ConfirmationDialogComponent } from '../../../shared/components/confirma
 import { SpaceStateService } from '../../../services/space.state.service';
 import { Subject } from 'rxjs';
 import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
+import { LucideAngularModule, Clock3, UserRound } from 'lucide-angular';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type AddMealMode = 'search' | 'new';
@@ -34,7 +35,7 @@ type ChangeMealMode = 'search' | 'create-from-current';
 @Component({
   selector: 'app-day-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent],
+  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent, LucideAngularModule],
   templateUrl: './day-details.component.html',
   styleUrl: './day-details.component.scss',
 })
@@ -100,6 +101,8 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
   coveredMealIds = new Set<string>();
   mealIdToListName: Record<string, string> = {};
+  readonly Clock3 = Clock3;
+  readonly UserRound = UserRound;
 
   private destroy$ = new Subject<void>();
 

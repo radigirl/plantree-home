@@ -11,6 +11,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { SpaceStateService } from '../../services/space.state.service';
 import { Trophy, ChefHat, LucideAngularModule } from 'lucide-angular';
+import { UserRound } from 'lucide-angular';
 
 @Component({
   selector: 'app-week-stats',
@@ -47,6 +48,7 @@ export class WeekStatsComponent implements OnInit, OnDestroy {
 
   readonly trophyIcon = Trophy;
   readonly emptyChefIcon = ChefHat;
+  readonly userRoundIcon = UserRound;
 
   private destroy$ = new Subject<void>();
 

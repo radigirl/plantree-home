@@ -142,6 +142,22 @@
   opacity: 0.95;
 }
 
+.cook-avatar-icon-small {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.78);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cook-avatar-symbol-small {
+  color: rgba($color-primary-dark, 0.55);
+  transform: translateY(1px);
+}
+
 /* leaderboard */
 .leaderboard-row {
   display: flex;
