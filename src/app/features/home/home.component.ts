@@ -16,7 +16,9 @@ import {
 import { SpaceStateService } from '../../services/space.state.service';
 import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { AfterViewInit } from '@angular/core';
+import { GroceryService } from '../../services/grocery.service';
+import { MealsService } from '../../services/meal.service';
+import { MemberStateService } from '../../services/member.state.service';
 
 @Component({
   selector: 'app-home',
@@ -28,6 +30,10 @@ import { AfterViewInit } from '@angular/core';
 export class HomeComponent implements OnInit, OnDestroy {
   weekMeals: DayPlan[] = [];
   isLoading = true;
+  activeListsCount = 0;
+  latestActiveListName = '';
+  mealsCount = 0;
+  lastAddedMealName = '';
 
   currentWeekStart: Date = this.getStartOfWeek(new Date());
 
@@ -41,22 +47,37 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private mealPlanService: MealPlanService,
+    private mealsService: MealsService,
+    private memberStateService: MemberStateService,
     private spaceStateService: SpaceStateService,
+    private groceryService: GroceryService,
     private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
-  this.spaceStateService.currentSpace$
-    .pipe(
-      takeUntil(this.destroy$),
-      filter((space): space is NonNullable<typeof space> => !!space),
-      map(space => space.id),
-      distinctUntilChanged()
-    )
-    .subscribe(async () => {
-      await this.loadWeekPlan();
-    });
-}
+    this.spaceStateService.currentSpace$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((space): space is NonNullable<typeof space> => !!space),
+        map((space) => space.id),
+        distinctUntilChanged()
+      )
+      .subscribe(async () => {
+        await this.loadWeekPlan();
+        await this.loadGrocerySummary();
+      });
+
+    this.memberStateService.currentMember$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((member): member is NonNullable<typeof member> => !!member),
+        map((member) => member.id),
+        distinctUntilChanged()
+      )
+      .subscribe(async (memberId) => {
+        await this.loadMealsSummary(memberId);
+      });
+  }
 
   async loadWeekPlan(): Promise<void> {
     this.isLoading = true;
@@ -146,8 +167,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   openWeekStats(): void {
-    console.log('Week Stats clicked');
-  }
+  this.router.navigate(['/week-stats']);
+}
 
   openCookFromPantry() {
     this.router.navigate(['/cook-from-pantry']);
@@ -176,12 +197,41 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.router.navigate(['/meals']);
   }
 
-//   ngAfterViewInit(): void {
-//   window.scrollTo(0, 0);
-// }
+  async loadGrocerySummary(): Promise<void> {
+    try {
+      const lists = await this.groceryService.getGroceryLists();
+      const activeLists = lists.filter(
+        (list) => list.status?.toLowerCase() === 'active'
+      );
+      this.activeListsCount = activeLists.length;
+      this.latestActiveListName = activeLists[0]?.name ?? '';
 
-   ngOnDestroy(): void {
-  this.destroy$.next();
-  this.destroy$.complete();
-}
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error loading grocery summary:', error);
+      this.activeListsCount = 0;
+      this.latestActiveListName = '';
+    }
+  }
+
+  async loadMealsSummary(memberId: number): Promise<void> {
+    try {
+      const meals = await this.mealsService.getMeals(memberId);
+
+      this.mealsCount = meals.length;
+      this.lastAddedMealName = meals[0]?.name ?? '';
+
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error loading meals summary:', error);
+      this.mealsCount = 0;
+      this.lastAddedMealName = '';
+      this.cdr.detectChanges();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

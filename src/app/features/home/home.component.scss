@@ -391,6 +391,25 @@
   color: $color-text-muted;
 }
 
+.summary-card-main--latest {
+  margin-bottom: 0;
+  line-height: 1.28;
+
+  padding-left: 9px;
+  text-indent: -9px;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.summary-card-value--ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @include mobile {
   .home-page {
     margin-left: -8px;

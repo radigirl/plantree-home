@@ -95,10 +95,15 @@
           <div class="card__content">
             <div class="summary-card-content">
               <p class="summary-card-main">• {{ plannedMealsCount }} planned</p>
+
+              <p class="summary-card-main" *ngIf="plannedMealsCount > 0" style="margin-bottom:0; line-height:1.28;">
+                • {{ emptyDaysCount }} days remaining
+              </p>
             </div>
           </div>
         </article>
 
+        <!-- MY MEALS -->
         <!-- MY MEALS -->
         <article class="card card--meals" (click)="openMeals()">
           <div class="card__header">
@@ -108,8 +113,19 @@
 
           <div class="card__content">
             <div class="summary-card-content">
-              <p class="summary-card-main">• Last cooked:</p>
-              <p class="summary-card-main second-line">Shopska salad</p>
+
+              <ng-container *ngIf="mealsCount > 0; else noMeals">
+                <p class="summary-card-main">• Last added:</p>
+
+                <p class="summary-card-main second-line summary-card-value--ellipsis" style="line-height:1.28;">
+                  {{ lastAddedMealName }}
+                </p>
+              </ng-container>
+
+              <ng-template #noMeals>
+                <p class="summary-card-main">• 0 saved meals</p>
+              </ng-template>
+
             </div>
           </div>
         </article>
@@ -121,11 +137,14 @@
             <h3 class="card__title">Lists</h3>
           </div>
 
-          <div class="card__content">
-            <div class="summary-card-content">
-              <p class="summary-card-main">• {{ plannedMealsCount }} active lists</p>
-              <p class="summary-card-main">• {{ plannedMealsCount }} items left</p>
-            </div>
+          <div class="summary-card-content">
+            <p class="summary-card-main">• {{ activeListsCount }} active lists</p>
+
+            <ng-container *ngIf="activeListsCount > 0">
+              <p class="summary-card-main summary-card-main--latest" *ngIf="activeListsCount > 0">
+                • Latest: {{ latestActiveListName }}
+              </p>
+            </ng-container>
           </div>
         </article>
 

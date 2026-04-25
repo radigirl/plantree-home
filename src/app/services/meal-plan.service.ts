@@ -8,7 +8,7 @@ import { SpaceStateService } from './space.state.service';
   providedIn: 'root',
 })
 export class MealPlanService {
-  constructor(private supabaseService: SupabaseService, private spaceStateService: SpaceStateService) {}
+  constructor(private supabaseService: SupabaseService, private spaceStateService: SpaceStateService) { }
 
   async getWeekPlan(weekStart: Date): Promise<DayPlan[]> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
@@ -32,8 +32,9 @@ export class MealPlanService {
         planned_date,
         status,
         created_at,
+        completed_at,
         meal:meals!planned_meals_meal_id_fkey (
-          id,
+          id,   
           name,
           prep_time,
           ingredients,
@@ -91,6 +92,7 @@ export class MealPlanService {
       const plannedMeal: PlannedMeal = {
         id: item.id,
         status: item.status,
+        completed_at: item.completed_at ?? null,
         meal: {
           id: mealData.id,
           name: mealData.name,
@@ -103,11 +105,11 @@ export class MealPlanService {
         },
         cook: cookData
           ? {
-              id: cookData.id,
-              name: cookData.name,
-              avatar_url: cookData.avatar_url ?? undefined,
-              created_at: cookData.created_at,
-            }
+            id: cookData.id,
+            name: cookData.name,
+            avatar_url: cookData.avatar_url ?? undefined,
+            created_at: cookData.created_at,
+          }
           : undefined,
       };
 
@@ -181,11 +183,11 @@ export class MealPlanService {
         },
         cook: cookData
           ? {
-              id: cookData.id,
-              name: cookData.name,
-              avatar_url: cookData.avatar_url ?? undefined,
-              created_at: cookData.created_at,
-            }
+            id: cookData.id,
+            name: cookData.name,
+            avatar_url: cookData.avatar_url ?? undefined,
+            created_at: cookData.created_at,
+          }
           : undefined,
       };
 
@@ -375,9 +377,15 @@ export class MealPlanService {
     plannedMealId: string,
     status: 'to-prepare' | 'in-progress' | 'ready-to-serve'
   ): Promise<void> {
-    const { data, error } = await this.supabaseService.supabase
+    const payload = {
+      status,
+      completed_at:
+        status === 'ready-to-serve' ? new Date().toISOString() : null,
+    };
+
+    const { error } = await this.supabaseService.supabase
       .from('planned_meals')
-      .update({ status })
+      .update(payload)
       .eq('id', plannedMealId)
       .select();
 
@@ -538,4 +546,91 @@ export class MealPlanService {
 
     return result;
   }
+
+  async getCookedMealsForWeek(weekStart: Date): Promise<PlannedMeal[]> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return [];
+    }
+
+    const start = new Date(weekStart);
+    start.setHours(0, 0, 0, 0);
+
+    const nextWeekStart = new Date(start);
+    nextWeekStart.setDate(start.getDate() + 7);
+
+    const { data, error } = await this.supabaseService.supabase
+      .from('planned_meals')
+      .select(`
+      id,
+      planned_date,
+      status,
+      created_at,
+      completed_at,
+      meal:meals!planned_meals_meal_id_fkey (
+        id,
+        name,
+        prep_time,
+        ingredients,
+        image_url,
+        instructions,
+        created_at
+      ),
+      cook:members!planned_meals_cook_member_id_fkey (
+        id,
+        name,
+        avatar_url,
+        created_at
+      )
+    `)
+      .eq('space_id', spaceId)
+      .eq('status', 'ready-to-serve')
+      .gte('completed_at', start.toISOString())
+      .lt('completed_at', nextWeekStart.toISOString())
+      .order('completed_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching cooked meals for week:', error);
+      return [];
+    }
+
+    const meals: PlannedMeal[] = [];
+
+    for (const item of data ?? []) {
+      const mealData = Array.isArray(item.meal) ? item.meal[0] : item.meal;
+      const cookData = Array.isArray(item.cook) ? item.cook[0] : item.cook;
+
+      if (!mealData) {
+        continue;
+      }
+
+      meals.push({
+        id: item.id,
+        status: item.status,
+        completed_at: item.completed_at ?? null,
+        meal: {
+          id: mealData.id,
+          name: mealData.name,
+          prepTime: mealData.prep_time ?? undefined,
+          ingredients: mealData.ingredients ?? [],
+          image_url:
+            this.supabaseService.getMealImageUrl(mealData.image_url) ??
+            undefined,
+          instructions: mealData.instructions ?? undefined,
+        },
+        cook: cookData
+          ? {
+            id: cookData.id,
+            name: cookData.name,
+            avatar_url: cookData.avatar_url ?? undefined,
+            created_at: cookData.created_at,
+          }
+          : undefined,
+      });
+    }
+
+    return meals;
+  }
+
 }

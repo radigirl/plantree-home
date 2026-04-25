@@ -11,4 +11,5 @@ export interface PlannedMeal {
   meal: Meal;
   cook?: Member;
   status: PlannedMealStatus;
+  completed_at?: string | null;
 }

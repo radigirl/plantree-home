@@ -7,6 +7,7 @@ import { DayDetailsComponent } from './features/plan/day-details/day-details.com
 import { GroceryListDetailsComponent } from './features/grocery-lists/grocery-list-details/grocery-list-details.component';
 import { MealsComponent } from './features/meals/meals.component';
 import { CookFromPantryComponent } from './features/cook-from-pantry/cook-from-pantry.component';
+import { WeekStatsComponent } from './features/week-stats/week-stats.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -19,4 +20,5 @@ export const routes: Routes = [
   { path: 'grocery-lists', component: GroceryListsComponent },
   { path: 'grocery-lists/:id', component: GroceryListDetailsComponent },
   { path: 'meals', component: MealsComponent },
+  { path: 'week-stats', component: WeekStatsComponent },
 ];
