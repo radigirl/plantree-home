@@ -26,6 +26,7 @@ import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { MealDialogComponent } from './meal-dialog/meal-dialog.component';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
+import { Clock3, LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-meals',
@@ -39,7 +40,8 @@ import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.com
     CalendarPickerComponent,
     MealDialogComponent,
     ConfirmationDialogComponent,
-    SnackbarComponent
+    SnackbarComponent,
+    LucideAngularModule
   ],
   templateUrl: './meals.component.html',
   styleUrl: './meals.component.scss',
@@ -79,6 +81,8 @@ export class MealsComponent implements OnInit, OnDestroy {
   isMealDialogOpen = false;
   mealDialogMode: 'create' | 'edit' | 'createFromExisting' = 'create';
   mealDialogInitialMeal: Meal | null = null;
+
+  readonly clock3Icon = Clock3;
 
   private destroy$ = new Subject<void>();
 

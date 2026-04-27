@@ -1,20 +1,8 @@
-<div
-  *ngIf="isOpen && meal"
-  class="meal-details-modal-overlay"
-  (click)="onClose()"
->
-  <div
-    class="meal-details-modal-sheet"
-    (click)="$event.stopPropagation()"
-  >
+<div *ngIf="isOpen && meal" class="meal-details-modal-overlay" (click)="onClose()">
+  <div class="meal-details-modal-sheet" (click)="$event.stopPropagation()">
     <div class="meal-details-modal-sheet__handle"></div>
 
-    <button
-      type="button"
-      class="meal-details-modal-sheet__close"
-      (click)="onClose()"
-      aria-label="Close meal details"
-    >
+    <button type="button" class="meal-details-modal-sheet__close" (click)="onClose()" aria-label="Close meal details">
       ×
     </button>
 
@@ -30,7 +18,8 @@
           <div class="meal-meta-row">
             <div class="meal-meta">
               <span class="meal-time" *ngIf="meal.prepTime != null">
-                <span class="meal-time-icon">◷</span>
+                <lucide-icon [img]="clock3Icon" [size]="12" [strokeWidth]="1.5" class="meal-time-icon">
+                </lucide-icon>
                 {{ meal.prepTime }} min
               </span>
 
@@ -42,11 +31,7 @@
         </div>
 
         <div class="meal-image">
-          <img
-            [src]="meal.image_url || 'assets/meals/default-meal.png'"
-            class="meal-image-img"
-            [alt]="meal.name"
-          />
+          <img [src]="meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name" />
         </div>
       </div>
 

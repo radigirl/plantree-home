@@ -62,7 +62,7 @@
 
 .action-sheet {
   width: 100%;
-  max-height: 45vh;
+  max-height: calc(100dvh - 24px);
   border-radius: 28px 28px 0 0;
   background: rgba(255, 252, 247, 0.98);
   border: 1px solid rgba(207, 222, 215, 0.95);

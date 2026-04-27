@@ -69,3 +69,10 @@
   color: $status-ready-text;
   box-shadow: 0 2px 8px rgba(92, 143, 134, 0.08);
 }
+
+.meal-info-chip-shared {
+  @extend .meal-chip-base;
+  background: rgba(223, 238, 229, 0.92);
+  color: $color-primary-dark;
+  font-weight: 600;
+}
