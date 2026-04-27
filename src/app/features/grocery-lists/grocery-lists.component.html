@@ -3,7 +3,7 @@
     <app-page-loading></app-page-loading>
   </div>
 
-  <ng-container *ngIf="!isLoading">
+  <div *ngIf="!isLoading" class="lists-content">
     <div class="page-header-row">
       <div class="page-header">
         <h1 class="page-title">Grocery Lists</h1>
@@ -17,7 +17,7 @@
 
     <p *ngIf="error" class="lists-error">{{ error }}</p>
 
-    <div *ngIf="!error && groceryLists.length > 0; else empty">
+    <div *ngIf="!error && groceryLists.length > 0; else empty" class="lists-results-scroll">
       <div class="lists-list">
         <div class="list-card" [class.list-card--menu-open]="openMenuListId === list.id" *ngFor="let list of mainLists"
           (click)="openList(list)">
@@ -118,7 +118,7 @@
     <ng-template #empty>
       <p class="lists-empty">No grocery lists yet.</p>
     </ng-template>
-  </ng-container>
+  </div>
 </section>
 
 <app-responsive-action-menu *ngIf="selectedListForActions && isMobileViewport()" [isOpen]="!!openMenuListId"
