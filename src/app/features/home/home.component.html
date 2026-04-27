@@ -48,8 +48,18 @@
                 <div class="today-cook-row">
                   <span class="today-cook-label">Cook:</span>
 
-                  <img [src]="firstTodayMeal?.cook?.avatar_url || 'assets/avatars/unassigned.png'"
-                    class="today-inline-avatar" [alt]="firstTodayMeal?.cook?.name || 'Cook avatar'" />
+                  <ng-container *ngIf="firstTodayMeal?.cook as cook; else todayUnassignedCook">
+                    <img [src]="cook.avatar_url || 'assets/avatars/unassigned.png'" class="today-inline-avatar"
+                      [alt]="cook.name || 'Cook avatar'" />
+                  </ng-container>
+
+                  <ng-template #todayUnassignedCook>
+                    <span class="today-inline-avatar-icon">
+                      <lucide-icon [img]="userRoundIcon" [size]="12" [strokeWidth]="2"
+                        class="today-inline-avatar-symbol">
+                      </lucide-icon>
+                    </span>
+                  </ng-template>
 
                   <p class="today-secondary-text">
                     {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
@@ -58,7 +68,8 @@
 
                 <div class="today-meta-row">
                   <span class="today-time-badge" *ngIf="firstTodayMeal?.meal?.prepTime != null">
-                    <span class="today-time-icon">◷</span>
+                    <lucide-icon [img]="clock3Icon" [size]="12" [strokeWidth]="1.5" class="today-time-icon">
+                    </lucide-icon>
                     {{ firstTodayMeal?.meal?.prepTime }} min
                   </span>
 

@@ -11,7 +11,9 @@ import {
   CalendarDays,
   Utensils,
   Trophy,
-  ShoppingCart
+  ShoppingCart,
+  Clock3,
+  UserRound
 } from 'lucide-angular';
 import { SpaceStateService } from '../../services/space.state.service';
 import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
@@ -44,6 +46,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   readonly groceryListsIcon = ShoppingCart;
   readonly myMealsIcon = Utensils;
   readonly statsIcon = Trophy;
+  readonly clock3Icon = Clock3;
+  readonly userRoundIcon = UserRound;
 
   private destroy$ = new Subject<void>();
 
@@ -136,12 +140,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get emptyDaysCount(): number {
-  const today = this.formatDateLocal(new Date());
+    const today = this.formatDateLocal(new Date());
 
-  return this.weekMeals.filter(
-    (day) => day.fullDate >= today && day.meals.length === 0
-  ).length;
-}
+    return this.weekMeals.filter(
+      (day) => day.fullDate >= today && day.meals.length === 0
+    ).length;
+  }
 
   openToday(): void {
     const today = this.formatDateLocal(new Date());

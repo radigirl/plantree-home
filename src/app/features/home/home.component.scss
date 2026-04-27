@@ -1,5 +1,6 @@
 @use '../../../styles/variables' as *;
 @use '../../../styles/breakpoints' as *;
+@use '../../../styles/components/chips' as *;
 
 .home-page {
   padding: 0;
@@ -189,41 +190,42 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 4px;
-}
-
-.today-time-badge,
-.meal-status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: 0 16px;
-  border-radius: 999px;
-  font-size: 0.98rem;
-  font-weight: 600;
-  white-space: nowrap;
+  margin-bottom: 0;
 }
 
 .today-time-badge {
-  gap: 8px;
-  background: rgba(237, 242, 239, 0.95);
-  color: $color-text-muted;
-}
-
-.today-time-icon {
-  font-size: 1rem;
-  line-height: 1;
-  opacity: 0.8;
+  @extend .meal-time-chip;
 }
 
 .meal-status {
-  background: rgba(243, 232, 196, 0.75);
-  color: $color-primary-dark;
+  @extend .meal-status-chip;
+}
+
+.today-time-icon {
+  color: rgba($color-primary-dark, 0.38);
+  flex-shrink: 0;
+  transform: translateY(1px);
+}
+
+.today-inline-avatar-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.78);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.today-inline-avatar-symbol {
+  color: rgba($color-primary-dark, 0.55);
+  transform: translateY(1px);
 }
 
 .today-more-meals {
-  margin: 2px 0 0;
+  margin: 0;
   font-size: 0.98rem;
   font-weight: 600;
   color: $color-primary-dark;
@@ -438,7 +440,6 @@
 
   .card__title {
     font-size: 1.45rem;
-    padding-right: 52px;
   }
 
   .today-card {
@@ -446,7 +447,7 @@
   }
 
   .today-card-body {
-    gap: 7px;
+    gap: 4px;
   }
 
   .today-main-text {
@@ -474,16 +475,9 @@
     font-size: 0.92rem;
   }
 
-  .today-time-badge,
-  .meal-status {
-    min-height: 34px;
-    padding: 0 12px;
-    font-size: 0.88rem;
-  }
-
   .today-meta-row {
     gap: 10px;
-    margin-bottom: 2px;
+    margin-bottom: 0;
   }
 
   .today-more-meals {
@@ -496,7 +490,7 @@
   }
 
   .today-meal-image {
-    aspect-ratio: 16 / 8.2;
+    aspect-ratio: 16 / 9;
   }
 
   .meal-add-btn--circle {
@@ -675,7 +669,7 @@
 
 
   .today-card--empty .today-meal-image {
-    aspect-ratio: 16 / 14.6;
+    aspect-ratio: 16 / 12.6;
   }
 }
 
@@ -753,7 +747,7 @@
   }
 
   .today-meal-image {
-    aspect-ratio: 16 / 8.2;
+    aspect-ratio: 16 / 8.5;
   }
 
   .today-card--empty .today-meal-image {
