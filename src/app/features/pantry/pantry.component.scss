@@ -270,6 +270,13 @@
   overflow: visible;
 }
 
+.pantry-results-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
 .pantry-item-row {
   display: grid;
   align-items: center;
@@ -521,15 +528,13 @@
 
 .pantry-search-sticky {
   position: sticky;
-  top: -25px;
-  z-index: 20;
+  top: 62px;
+  z-index: 80;
   background: $color-surface;
-  padding: 0;
-  transition: padding 0.18s ease;
-  padding-top:12px;
-  padding-bottom: 12px;
-  margin-top: -6px;
+  margin-top: 0;
   margin-bottom: -6px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .pantry-search-sticky::after {
@@ -685,13 +690,48 @@
   .pantry-remove {
     font-size: 0.98rem;
   }
+}
 
+@include tablet {
+  .pantry-page {
+    margin-top: -15px;
+    overflow: visible;
+  }
 
+  .pantry-search-sticky {
+    top: 68px;
+  }
 }
 
 @include desktop {
   .pantry-page {
+    width: min(1200px, calc(100vw - 300px));
+    height: calc(100vh - #{$layout-header-height-desktop} - 86px);
+    margin: 16px auto 0;
     gap: 10px;
+    overflow: hidden;
+  }
+
+  .pantry-search-sticky {
+    position: static;
+    top: auto;
+  }
+
+  .pantry-results-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 12px;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .pantry-results-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
   }
 
   .pantry-item-row {
@@ -712,9 +752,5 @@
   .pantry-stepper-button {
     min-width: 26px;
     min-height: 26px;
-  }
-
-   .pantry-search-sticky {
-    top: 86px;
   }
 }

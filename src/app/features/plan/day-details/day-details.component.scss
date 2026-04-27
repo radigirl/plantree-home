@@ -834,11 +834,50 @@
     margin-right: -8px;
     margin-top: -15px;
     width: calc(100% + 16px);
+
+    height: calc(100dvh - #{$layout-header-height-mobile} - #{$layout-bottom-nav-height});
+    min-height: 0;
+    overflow: hidden;
   }
 
   .day-details-shell {
     gap: 12px;
     padding: 0;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .day-details-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 0 12px;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .day-details-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  .day-details-card {
+    flex-shrink: 0;
+  }
+
+  .day-details-card {
+    flex-shrink: 0;
+  }
+
+  .day-details-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
   }
 
   .day-details-header {
@@ -1194,11 +1233,11 @@
     font-size: 0.9rem;
   }
 
- .meal-action-button {
-  height: 26px;
-  padding: 0 2px;
-  font-size: 0.76rem;
-}
+  .meal-action-button {
+    height: 26px;
+    padding: 0 2px;
+    font-size: 0.76rem;
+  }
 
   .meal-action-icon {
     font-size: 0.68rem;
@@ -1237,7 +1276,7 @@
   }
 
   .day-details-list {
-    padding: 0 0 80px;
+    padding: 0 0 12px;
   }
 
   .meal-mode-toggle {
@@ -1289,10 +1328,72 @@
   }
 }
 
+@include tablet {
+  .day-details-page {
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: -15px;
+    width: 100%;
+
+    height: calc(100dvh - 68px - #{$layout-bottom-nav-height} - 16px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .day-details-shell {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .day-details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 12px;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .day-details-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  .day-details-card {
+    flex-shrink: 0;
+    height: auto;
+  }
+}
+
 @include desktop {
   .day-details-page {
-    width: clamp(640px, 56vw, 860px);
-    margin: 0 auto;
+    width: min(1200px, calc(100vw - 300px));
+    height: calc(100vh - #{$layout-header-height-desktop} - 70px);
+    margin: 16px auto 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .day-details-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+
+  .day-details-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
   }
 
   .day-details-shell {
@@ -1300,7 +1401,8 @@
   }
 
   .day-details-card {
-    padding: 18px;
+    height: auto;
+    align-self: start;
   }
 
   .meal-main {
@@ -1382,5 +1484,12 @@
     justify-content: center;
     flex-shrink: 0;
     cursor: pointer;
+  }
+}
+
+@include desktop-xl {
+  .day-details-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
   }
 }

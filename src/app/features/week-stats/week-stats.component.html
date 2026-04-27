@@ -14,120 +14,123 @@
       </p>
     </div>
 
-    <!-- CHEF HERO -->
-    <section class="stats-card hero-card">
 
-      <ng-container *ngIf="winnerCount > 0; else emptyChef">
+    <div class="week-stats-scroll">
+      <!-- CHEF HERO -->
+      <section class="stats-card hero-card">
 
-        <h3 class="section-title hero-title">
-          <lucide-icon [img]="trophyIcon" [size]="16" class="hero-title-icon"></lucide-icon>
+        <ng-container *ngIf="winnerCount > 0; else emptyChef">
 
-          {{ chefLabel }}
-        </h3>
+          <h3 class="section-title hero-title">
+            <lucide-icon [img]="trophyIcon" [size]="16" class="hero-title-icon"></lucide-icon>
 
-        <div class="hero-avatar-stack" *ngIf="winnerAvatars.length > 0">
-          <img *ngFor="let avatar of winnerAvatars; let i = index" class="hero-winner-avatar"
-            [class.hero-winner-avatar--second]="i === 1" [src]="avatar" [alt]="chefDisplayName" />
-        </div>
+            {{ chefLabel }}
+          </h3>
 
-        <h2 class="hero-name">
-          {{ chefDisplayName }}
-        </h2>
+          <div class="hero-avatar-stack" *ngIf="winnerAvatars.length > 0">
+            <img *ngFor="let avatar of winnerAvatars; let i = index" class="hero-winner-avatar"
+              [class.hero-winner-avatar--second]="i === 1" [src]="avatar" [alt]="chefDisplayName" />
+          </div>
 
-        <p class="hero-meta">
-          <ng-container *ngIf="isTie; else singleWinnerMeta">
-            {{ winnerCount }}
-            {{ winnerCount === 1 ? 'meal each' : 'meals each' }}
-          </ng-container>
-          <ng-template #singleWinnerMeta>
-            {{ winnerCount }}
-            {{ winnerCount === 1 ? 'meal by ' : 'meals by ' }}
-            {{ winnerName }}
-          </ng-template>
-        </p>
-      </ng-container>
+          <h2 class="hero-name">
+            {{ chefDisplayName }}
+          </h2>
 
-      <ng-template #emptyChef>
-        <h3 class="section-title hero-title">
-          <lucide-icon [img]="emptyChefIcon" [size]="16" class="hero-title-icon"></lucide-icon>
-
-          Chef of the week
-        </h3>
-
-        <h2 class="hero-name">
-          No meals cooked yet
-        </h2>
-
-        <p class="hero-meta">
-          Start cooking to unlock stats
-        </p>
-      </ng-template>
-
-    </section>
-
-    <!-- WEEK SUMMARY -->
-    <section class="stats-card">
-      <h3 class="section-title">This Week</h3>
-
-      <div class="stat-row">
-        <span>Meals cooked</span>
-        <strong>{{ cookedMeals.length }}</strong>
-      </div>
-
-      <div class="stat-row">
-        <span>Active cooks</span>
-        <strong>{{ activeCooksCount }}</strong>
-      </div>
-    </section>
-
-    <!-- FAMILY LEADERBOARD -->
-    <section class="stats-card" *ngIf="leaderboard.length > 0">
-      <h3 class="section-title">Family Leaderboard</h3>
-
-      <div class="leaderboard-row" *ngFor="let cook of leaderboard; let i = index">
-        <div class="leaderboard-person">
-          <span class="leaderboard-rank">{{ i + 1 }}</span>
-
-          <img class="cook-avatar" [src]="cook.avatar || 'assets/avatars/unassigned.png'" [alt]="cook.name" />
-
-          <span>{{ cook.name }}</span>
-        </div>
-
-        <strong>{{ cook.count }}</strong>
-      </div>
-    </section>
-
-    <!-- COOKED MEALS -->
-    <section class="stats-card">
-      <h3 class="section-title">Cooked Meals</h3>
-
-      <p class="empty-copy" *ngIf="cookedMeals.length === 0">
-        No cooked meals yet this week.
-      </p>
-
-      <div class="meal-row meal-row--rich" *ngFor="let meal of cookedMeals">
-        <img class="meal-thumb" [src]="meal.imageUrl || 'assets/meals/default-meal.png'" [alt]="meal.name" />
-
-        <div class="meal-row-main">
-          <span class="meal-name">{{ meal.name }}</span>
-
-          <span class="meal-cook">
-            <ng-container *ngIf="meal.cookAvatar; else unassignedCookIcon">
-              <img class="cook-avatar-small" [src]="meal.cookAvatar" [alt]="meal.cook" />
+          <p class="hero-meta">
+            <ng-container *ngIf="isTie; else singleWinnerMeta">
+              {{ winnerCount }}
+              {{ winnerCount === 1 ? 'meal each' : 'meals each' }}
             </ng-container>
-
-            <ng-template #unassignedCookIcon>
-              <span class="cook-avatar-icon-small">
-                <lucide-icon [img]="userRoundIcon" [size]="12" [strokeWidth]="2" class="cook-avatar-symbol-small">
-                </lucide-icon>
-              </span>
+            <ng-template #singleWinnerMeta>
+              {{ winnerCount }}
+              {{ winnerCount === 1 ? 'meal by ' : 'meals by ' }}
+              {{ winnerName }}
             </ng-template>
+          </p>
+        </ng-container>
 
-            {{ meal.cook ? ('Cooked by ' + meal.cook) : 'No cook assigned' }}
-          </span>
+        <ng-template #emptyChef>
+          <h3 class="section-title hero-title">
+            <lucide-icon [img]="emptyChefIcon" [size]="16" class="hero-title-icon"></lucide-icon>
+
+            Chef of the week
+          </h3>
+
+          <h2 class="hero-name">
+            No meals cooked yet
+          </h2>
+
+          <p class="hero-meta">
+            Start cooking to unlock stats
+          </p>
+        </ng-template>
+
+      </section>
+
+      <!-- WEEK SUMMARY -->
+      <section class="stats-card">
+        <h3 class="section-title">This Week</h3>
+
+        <div class="stat-row">
+          <span>Meals cooked</span>
+          <strong>{{ cookedMeals.length }}</strong>
         </div>
-      </div>
-    </section>
+
+        <div class="stat-row">
+          <span>Active cooks</span>
+          <strong>{{ activeCooksCount }}</strong>
+        </div>
+      </section>
+
+      <!-- FAMILY LEADERBOARD -->
+      <section class="stats-card" *ngIf="leaderboard.length > 0">
+        <h3 class="section-title">Family Leaderboard</h3>
+
+        <div class="leaderboard-row" *ngFor="let cook of leaderboard; let i = index">
+          <div class="leaderboard-person">
+            <span class="leaderboard-rank">{{ i + 1 }}</span>
+
+            <img class="cook-avatar" [src]="cook.avatar || 'assets/avatars/unassigned.png'" [alt]="cook.name" />
+
+            <span>{{ cook.name }}</span>
+          </div>
+
+          <strong>{{ cook.count }}</strong>
+        </div>
+      </section>
+
+      <!-- COOKED MEALS -->
+      <section class="stats-card">
+        <h3 class="section-title">Cooked Meals</h3>
+
+        <p class="empty-copy" *ngIf="cookedMeals.length === 0">
+          No cooked meals yet this week.
+        </p>
+
+        <div class="meal-row meal-row--rich" *ngFor="let meal of cookedMeals">
+          <img class="meal-thumb" [src]="meal.imageUrl || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+
+          <div class="meal-row-main">
+            <span class="meal-name">{{ meal.name }}</span>
+
+            <span class="meal-cook">
+              <ng-container *ngIf="meal.cookAvatar; else unassignedCookIcon">
+                <img class="cook-avatar-small" [src]="meal.cookAvatar" [alt]="meal.cook" />
+              </ng-container>
+
+              <ng-template #unassignedCookIcon>
+                <span class="cook-avatar-icon-small">
+                  <lucide-icon [img]="userRoundIcon" [size]="12" [strokeWidth]="2" class="cook-avatar-symbol-small">
+                  </lucide-icon>
+                </span>
+              </ng-template>
+
+              {{ meal.cook ? ('Cooked by ' + meal.cook) : 'No cook assigned' }}
+            </span>
+          </div>
+        </div>
+      </section>
+    </div>
 
   </ng-container>
 

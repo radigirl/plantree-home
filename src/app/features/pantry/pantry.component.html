@@ -32,213 +32,217 @@
         </div>
       </div>
 
-      <div class="pantry-sort-row">
-        <div class="pantry-sort-left">
-          <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'all'"
-            (click)="setMode('all')">
-            All
-          </button>
+      <div class="pantry-results-scroll">
 
-          <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'expiry'"
-            (click)="setMode('expiry')">
-            Expiry
-          </button>
+        <div class="pantry-sort-row">
+          <div class="pantry-sort-left">
+            <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'all'"
+              (click)="setMode('all')">
+              All
+            </button>
 
-          <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'recent'"
-            (click)="setMode('recent')">
-            Recent
+            <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'expiry'"
+              (click)="setMode('expiry')">
+              Expiry
+            </button>
+
+            <button type="button" class="pantry-sort-pill" [class.pantry-sort-pill--active]="mode === 'recent'"
+              (click)="setMode('recent')">
+              Recent
+            </button>
+          </div>
+
+          <button type="button" class="pantry-clean-trigger" (click)="onCleanPantry()">
+            Clean ▾
           </button>
         </div>
 
-        <button type="button" class="pantry-clean-trigger" (click)="onCleanPantry()">
-         Clean ▾
-        </button>
-      </div>
 
-      <div class="always-present-section">
-        <button type="button" class="always-present-header" (click)="toggleAlwaysPresent()">
-          <span class="always-present-title">
-            Always present
-            <ng-container *ngIf="alwaysPresentItems.length > 0">
-              ({{ alwaysPresentItems.length }})
-            </ng-container>
-          </span>
 
-          <span class="always-present-chevron">
-            {{ isAlwaysPresentExpanded ? '▾' : '▸' }}
-          </span>
-        </button>
-
-        <p *ngIf="alwaysPresentItems.length === 0" class="always-present-helper">
-          Add things like salt, pepper, oil...
-        </p>
-
-        <div *ngIf="isAlwaysPresentExpanded" class="always-present-content">
-          <div *ngIf="alwaysPresentItems.length > 0" class="always-present-chips">
-            <div class="always-present-chip" *ngFor="let item of alwaysPresentItems">
-              <span class="always-present-chip__label">{{ item.name }}</span>
-
-              <button type="button" class="always-present-chip__remove"
-                (click)="deleteAlwaysPresentItem(item); $event.stopPropagation()"
-                [attr.aria-label]="'Remove ' + item.name">
-                ×
-              </button>
-            </div>
-          </div>
-
-          <button *ngIf="!isAddingAlwaysPresent" type="button" class="always-present-add-chip"
-            (click)="startAddingAlwaysPresent(); $event.stopPropagation()">
-            +
-          </button>
-
-          <div *ngIf="isAddingAlwaysPresent" class="always-present-add-row">
-            <input type="text" [(ngModel)]="newAlwaysPresentName" placeholder="Add item" class="always-present-input"
-              (keydown.enter)="addAlwaysPresentItem()" />
-
-            <button type="button" class="btn-primary always-present-add-button"
-              (click)="addAlwaysPresentItem()">
-              Add
-            </button>
-
-            <button type="button" class="btn-secondary always-present-cancel-button"
-              (click)="cancelAddingAlwaysPresent()">
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="pantry-cook-link" (click)="goToCookFromPantry()">
-        See what you can cook →
-      </div>
-
-      <ng-container *ngIf="pantryItems.length > 0; else empty">
-
-        <!-- ALL MODE -->
-        <div *ngIf="mode === 'all'" class="pantry-items-table">
-          <div class="pantry-item-row pantry-item-row--all" *ngFor="let item of allItems">
-            <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
-              {{ getDisplayName(item) }}
-            </button>
-
-            <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
-              <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountAll">
-                <div class="pantry-amount-pill">
-                  <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
-                    <span class="pantry-amount-pill__action">-</span>
-                  </button>
-
-                  <span class="pantry-amount-pill__value">{{ item.amount }}</span>
-
-                  <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
-                    <span class="pantry-amount-pill__action">+</span>
-                  </button>
-                </div>
+        <div class="always-present-section">
+          <button type="button" class="always-present-header" (click)="toggleAlwaysPresent()">
+            <span class="always-present-title">
+              Always present
+              <ng-container *ngIf="alwaysPresentItems.length > 0">
+                ({{ alwaysPresentItems.length }})
               </ng-container>
+            </span>
 
-              <ng-template #measuredAmountAll>
-                <button type="button" class="pantry-amount-pill pantry-amount-pill--measured" (click)="onEditItem(item)"
-                  [attr.aria-label]="'Edit pantry item ' + item.name">
-                  {{ item.size_amount }}&nbsp;{{ item.size_unit }}
+            <span class="always-present-chevron">
+              {{ isAlwaysPresentExpanded ? '▾' : '▸' }}
+            </span>
+          </button>
+
+          <p *ngIf="alwaysPresentItems.length === 0" class="always-present-helper">
+            Add things like salt, pepper, oil...
+          </p>
+
+          <div *ngIf="isAlwaysPresentExpanded" class="always-present-content">
+            <div *ngIf="alwaysPresentItems.length > 0" class="always-present-chips">
+              <div class="always-present-chip" *ngFor="let item of alwaysPresentItems">
+                <span class="always-present-chip__label">{{ item.name }}</span>
+
+                <button type="button" class="always-present-chip__remove"
+                  (click)="deleteAlwaysPresentItem(item); $event.stopPropagation()"
+                  [attr.aria-label]="'Remove ' + item.name">
+                  ×
                 </button>
-              </ng-template>
+              </div>
             </div>
 
-            <div class="pantry-item-actions">
-              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
-                <span class="pantry-remove">×</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- EXPIRY MODE -->
-        <div *ngIf="mode === 'expiry'" class="pantry-items-table">
-          <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of expiryItems">
-            <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
-              {{ getDisplayName(item) }}
+            <button *ngIf="!isAddingAlwaysPresent" type="button" class="always-present-add-chip"
+              (click)="startAddingAlwaysPresent(); $event.stopPropagation()">
+              +
             </button>
 
-            <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
-              <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountExpiry">
-                <div class="pantry-amount-pill">
-                  <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
-                    <span class="pantry-amount-pill__action">-</span>
-                  </button>
+            <div *ngIf="isAddingAlwaysPresent" class="always-present-add-row">
+              <input type="text" [(ngModel)]="newAlwaysPresentName" placeholder="Add item" class="always-present-input"
+                (keydown.enter)="addAlwaysPresentItem()" />
 
-                  <span class="pantry-amount-pill__value">{{ item.amount }}</span>
+              <button type="button" class="btn-primary always-present-add-button" (click)="addAlwaysPresentItem()">
+                Add
+              </button>
 
-                  <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
-                    <span class="pantry-amount-pill__action">+</span>
-                  </button>
-                </div>
-              </ng-container>
-
-              <ng-template #measuredAmountExpiry>
-                <button type="button" class="pantry-amount-pill pantry-amount-pill--measured" (click)="onEditItem(item)"
-                  [attr.aria-label]="'Edit pantry item ' + item.name">
-                  {{ item.size_amount }}&nbsp;{{ item.size_unit }}
-                </button>
-              </ng-template>
-            </div>
-            <div class="pantry-item-date">
-              {{ item.expiry_date | date:'dd MMM' }}
-            </div>
-            <div class="pantry-item-actions">
-              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
-                <span class="pantry-remove">×</span>
+              <button type="button" class="btn-secondary always-present-cancel-button"
+                (click)="cancelAddingAlwaysPresent()">
+                Cancel
               </button>
             </div>
           </div>
         </div>
 
-        <!-- RECENT MODE -->
-        <div *ngIf="mode === 'recent'" class="pantry-items-table">
-          <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of recentItems">
-            <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
-              {{ getDisplayName(item) }}
-            </button>
-
-            <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
-              <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountRecent">
-                <div class="pantry-amount-pill">
-                  <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
-                    <span class="pantry-amount-pill__action">-</span>
-                  </button>
-
-                  <span class="pantry-amount-pill__value">{{ item.amount }}</span>
-
-                  <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
-                    <span class="pantry-amount-pill__action">+</span>
-                  </button>
-                </div>
-              </ng-container>
-
-              <ng-template #measuredAmountRecent>
-                <button type="button" class="pantry-amount-pill pantry-amount-pill--measured" (click)="onEditItem(item)"
-                  [attr.aria-label]="'Edit pantry item ' + item.name">
-                  {{ item.size_amount }}&nbsp;{{ item.size_unit }}
-                </button>
-              </ng-template>
-            </div>
-
-            <div class="pantry-item-date">
-              {{ item.created_at | date:'dd MMM' }}
-            </div>
-
-            <div class="pantry-item-actions">
-              <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
-                <span class="pantry-remove">×</span>
-              </button>
-            </div>
-          </div>
+        <div class="pantry-cook-link" (click)="goToCookFromPantry()">
+          See what you can cook →
         </div>
 
-      </ng-container>
+        <ng-container *ngIf="pantryItems.length > 0; else empty">
 
-      <ng-template #empty>
-        <p class="pantry-empty">No pantry items yet.</p>
-      </ng-template>
+          <!-- ALL MODE -->
+          <div *ngIf="mode === 'all'" class="pantry-items-table">
+            <div class="pantry-item-row pantry-item-row--all" *ngFor="let item of allItems">
+              <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
+                {{ getDisplayName(item) }}
+              </button>
+
+              <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
+                <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountAll">
+                  <div class="pantry-amount-pill">
+                    <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
+                      <span class="pantry-amount-pill__action">-</span>
+                    </button>
+
+                    <span class="pantry-amount-pill__value">{{ item.amount }}</span>
+
+                    <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
+                      <span class="pantry-amount-pill__action">+</span>
+                    </button>
+                  </div>
+                </ng-container>
+
+                <ng-template #measuredAmountAll>
+                  <button type="button" class="pantry-amount-pill pantry-amount-pill--measured"
+                    (click)="onEditItem(item)" [attr.aria-label]="'Edit pantry item ' + item.name">
+                    {{ item.size_amount }}&nbsp;{{ item.size_unit }}
+                  </button>
+                </ng-template>
+              </div>
+
+              <div class="pantry-item-actions">
+                <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
+                  <span class="pantry-remove">×</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- EXPIRY MODE -->
+          <div *ngIf="mode === 'expiry'" class="pantry-items-table">
+            <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of expiryItems">
+              <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
+                {{ getDisplayName(item) }}
+              </button>
+
+              <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
+                <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountExpiry">
+                  <div class="pantry-amount-pill">
+                    <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
+                      <span class="pantry-amount-pill__action">-</span>
+                    </button>
+
+                    <span class="pantry-amount-pill__value">{{ item.amount }}</span>
+
+                    <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
+                      <span class="pantry-amount-pill__action">+</span>
+                    </button>
+                  </div>
+                </ng-container>
+
+                <ng-template #measuredAmountExpiry>
+                  <button type="button" class="pantry-amount-pill pantry-amount-pill--measured"
+                    (click)="onEditItem(item)" [attr.aria-label]="'Edit pantry item ' + item.name">
+                    {{ item.size_amount }}&nbsp;{{ item.size_unit }}
+                  </button>
+                </ng-template>
+              </div>
+              <div class="pantry-item-date">
+                {{ item.expiry_date | date:'dd MMM' }}
+              </div>
+              <div class="pantry-item-actions">
+                <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
+                  <span class="pantry-remove">×</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECENT MODE -->
+          <div *ngIf="mode === 'recent'" class="pantry-items-table">
+            <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of recentItems">
+              <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
+                {{ getDisplayName(item) }}
+              </button>
+
+              <div class="pantry-item-amount" [class.pantry-item-amount--measured]="item.unit === 'measured'">
+                <ng-container *ngIf="item.unit !== 'measured'; else measuredAmountRecent">
+                  <div class="pantry-amount-pill">
+                    <button type="button" class="pantry-stepper-button" (click)="decrementItem(item)">
+                      <span class="pantry-amount-pill__action">-</span>
+                    </button>
+
+                    <span class="pantry-amount-pill__value">{{ item.amount }}</span>
+
+                    <button type="button" class="pantry-stepper-button" (click)="incrementItem(item)">
+                      <span class="pantry-amount-pill__action">+</span>
+                    </button>
+                  </div>
+                </ng-container>
+
+                <ng-template #measuredAmountRecent>
+                  <button type="button" class="pantry-amount-pill pantry-amount-pill--measured"
+                    (click)="onEditItem(item)" [attr.aria-label]="'Edit pantry item ' + item.name">
+                    {{ item.size_amount }}&nbsp;{{ item.size_unit }}
+                  </button>
+                </ng-template>
+              </div>
+
+              <div class="pantry-item-date">
+                {{ item.created_at | date:'dd MMM' }}
+              </div>
+
+              <div class="pantry-item-actions">
+                <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
+                  <span class="pantry-remove">×</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </ng-container>
+
+        <ng-template #empty>
+          <p class="pantry-empty">No pantry items yet.</p>
+        </ng-template>
+      </div>
     </ng-container>
   </ng-container>
 </section>
