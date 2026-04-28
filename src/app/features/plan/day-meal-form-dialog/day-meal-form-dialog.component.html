@@ -1,0 +1,35 @@
+<div class="day-meal-form-dialog-overlay" *ngIf="isOpen" (click)="onOverlayClick()">
+  <div class="day-meal-form-dialog" (click)="$event.stopPropagation()">
+    <div class="day-meal-form-dialog__content">
+      <h3 class="day-meal-form-dialog__title">
+        {{ getTitle() }}
+      </h3>
+
+      <div class="meal-field" *ngIf="mode === 'edit-cook'">
+        <label for="dialogCook">Cook</label>
+
+        <select id="dialogCook" [(ngModel)]="selectedCookId">
+          <option [ngValue]="null">Unassigned</option>
+
+          <option *ngFor="let member of availableMembers" [ngValue]="member.id">
+            {{ member.name }}
+          </option>
+        </select>
+      </div>
+
+      <p class="form-helper" *ngIf="mode !== 'edit-cook'">
+        Dialog shell is ready. Next we will move the Day Details form here.
+      </p>
+    </div>
+
+    <div class="button-row day-meal-form-dialog__actions">
+      <button type="button" class="btn-secondary" (click)="onCancel()">
+        Cancel
+      </button>
+
+      <button type="button" class="btn-primary" [disabled]="isSaving" (click)="onSave()">
+        Save
+      </button>
+    </div>
+  </div>
+</div>

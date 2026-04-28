@@ -35,7 +35,7 @@
       This day has already passed. Meals can be viewed, but new meals cannot be added.
     </p>
 
-    <div class="add-meal-form" *ngIf="isFormOpen" #mealFormContainer>
+    <div class="add-meal-form" *ngIf="false" #mealFormContainer>
       <div class="add-meal-field">
         <label>{{ getFormTitle() }}</label>
       </div>
@@ -562,6 +562,15 @@
   </div>
 </div>
 
+<app-day-meal-form-dialog
+  [isOpen]="isFormOpen"
+  [mode]="formMode"
+  [plannedMeal]="editingMeal"
+  [availableMembers]="availableMembers"
+  (closed)="cancelAddMeal()"
+  (saved)="onDayMealFormSaved($event)">
+</app-day-meal-form-dialog>
+
 <app-responsive-action-menu *ngIf="selectedMealForActions && !isDesktopViewport() && !isPastDate()"
   [isOpen]="!!openMealMenuId" [title]="selectedMealForActions.meal.name"
   [subtitle]="selectedMealForActions.meal.prepTime != null ? (selectedMealForActions.meal.prepTime + ' min') : ''"
@@ -576,3 +585,4 @@
     </app-confirmation-dialog>
   </div>
 </div>
+

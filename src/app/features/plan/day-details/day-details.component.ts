@@ -27,6 +27,7 @@ import { SpaceStateService } from '../../../services/space.state.service';
 import { Subject } from 'rxjs';
 import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { LucideAngularModule, Clock3, UserRound } from 'lucide-angular';
+import { DayMealFormDialogComponent } from '../day-meal-form-dialog/day-meal-form-dialog.component';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type AddMealMode = 'search' | 'new';
@@ -35,7 +36,7 @@ type ChangeMealMode = 'search' | 'create-from-current';
 @Component({
   selector: 'app-day-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent, LucideAngularModule],
+  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent, LucideAngularModule, DayMealFormDialogComponent],
   templateUrl: './day-details.component.html',
   styleUrl: './day-details.component.scss',
 })
@@ -987,6 +988,16 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   getMealCoverageListName(mealId: string): string | null {
     return this.mealIdToListName[String(mealId)] ?? null;
   }
+
+  onDayMealFormSaved(event: { mode: 'add' | 'edit-cook' | 'change-meal'; cookId: number | null }): void {
+  if (event.mode === 'edit-cook') {
+    this.selectedCookId = event.cookId;
+    this.saveEditCook();
+    return;
+  }
+
+  this.cancelAddMeal();
+}
 
   ngOnDestroy(): void {
     this.destroy$.next();
