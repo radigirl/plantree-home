@@ -989,14 +989,43 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     return this.mealIdToListName[String(mealId)] ?? null;
   }
 
-  onDayMealFormSaved(event: { mode: 'add' | 'edit-cook' | 'change-meal'; cookId: number | null }): void {
+  async onDayMealFormSaved(event: {
+  mode: 'add' | 'edit-cook' | 'change-meal';
+  cookId: number | null;
+  selectedMealId?: string | null;
+  changeMealMode?: 'search' | 'create-from-current';
+  addMealMode?: 'search' | 'new';
+}): Promise<void> {
+
   if (event.mode === 'edit-cook') {
     this.selectedCookId = event.cookId;
-    this.saveEditCook();
+    await this.saveEditCook();
     return;
   }
 
-  this.cancelAddMeal();
+  if (event.mode === 'change-meal') {
+    this.selectedCookId = event.cookId;
+    this.changeMealMode = event.changeMealMode ?? 'search';
+    this.selectedExistingMealId = event.selectedMealId ?? null;
+
+    if (this.changeMealMode === 'search') {
+      await this.saveChangeMeal();
+    }
+
+    return;
+  }
+
+  if (event.mode === 'add') {
+    this.selectedCookId = event.cookId;
+    this.addMealMode = event.addMealMode ?? 'search';
+    this.selectedExistingMealId = event.selectedMealId ?? null;
+
+    if (this.addMealMode === 'search') {
+      await this.saveMeal();
+    }
+
+    return;
+  }
 }
 
   ngOnDestroy(): void {

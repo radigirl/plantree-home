@@ -17,9 +17,196 @@
         </select>
       </div>
 
-      <p class="form-helper" *ngIf="mode !== 'edit-cook'">
-        Dialog shell is ready. Next we will move the Day Details form here.
-      </p>
+      <ng-container *ngIf="mode === 'add'">
+
+        <div class="meal-field" *ngIf="availableMeals.length > 0">
+          <label>How would you like to add it?</label>
+
+          <app-toggle-switch [options]="[
+        { label: 'My Meals', value: 'search' },
+        { label: 'New Meal', value: 'new' }
+      ]" [value]="addMealMode" (valueChange)="setAddMealMode($event)">
+          </app-toggle-switch>
+        </div>
+
+        <ng-container *ngIf="addMealMode === 'search' && availableMeals.length > 0">
+
+          <div class="meal-field">
+            <label for="mealSearch">Search meals</label>
+
+            <div class="search-input-wrap">
+              <input id="mealSearch" type="search" [(ngModel)]="mealSearchQuery"
+                placeholder="Search by title or ingredient" />
+            </div>
+          </div>
+
+          <div class="selected-meal-row" *ngIf="selectedAvailableMeal as selectedMeal">
+            <div class="selected-meal-row__image">
+              <img [src]="selectedMeal.image_url || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
+            </div>
+
+            <div class="selected-meal-row__content">
+              <div class="selected-meal-row__title">
+                {{ selectedMeal.name }}
+              </div>
+
+              <div class="selected-meal-row__meta" *ngIf="selectedMeal.prepTime != null">
+                {{ selectedMeal.prepTime }} min
+              </div>
+            </div>
+
+            <button type="button" class="selected-meal-row__remove" (click)="clearMealSearch()">
+              ×
+            </button>
+          </div>
+
+          <div class="meal-search-results-container meal-search-results-container--reserved">
+
+            <div class="meal-search-empty-wrap" *ngIf="!mealSearchQuery && !selectedExistingMealId">
+              <p class="meal-search-empty">Start typing to search meals</p>
+            </div>
+
+            <div class="meal-search-results" *ngIf="!selectedExistingMealId && displayedAvailableMeals.length > 0">
+
+              <button type="button" class="meal-search-result meal-search-result--row"
+                *ngFor="let meal of displayedAvailableMeals" (click)="selectMealForAdd(meal.id)">
+
+                <div class="meal-search-result__image">
+                  <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+                </div>
+
+                <div class="meal-search-result__content">
+                  <div class="meal-search-result__title">
+                    {{ meal.name }}
+                  </div>
+
+                  <div class="meal-search-result__meta">
+                    <span *ngIf="meal.prepTime != null">
+                      {{ meal.prepTime }} min
+                    </span>
+                  </div>
+                </div>
+
+              </button>
+            </div>
+
+            <div class="meal-search-empty-wrap"
+              *ngIf="mealSearchQuery && displayedAvailableMeals.length === 0 && !selectedExistingMealId">
+
+              <p class="meal-search-empty">No meals found.</p>
+            </div>
+
+          </div>
+        </ng-container>
+
+        <div class="meal-field"
+          *ngIf="(addMealMode === 'search' && selectedExistingMealId) || addMealMode === 'new' || availableMeals.length === 0">
+
+          <label for="addCook">Cook</label>
+
+          <select id="addCook" [(ngModel)]="selectedCookId">
+            <option [ngValue]="null">Unassigned</option>
+
+            <option *ngFor="let member of availableMembers" [ngValue]="member.id">
+              {{ member.name }}
+            </option>
+          </select>
+        </div>
+
+      </ng-container>
+
+      <ng-container *ngIf="mode === 'change-meal'">
+        <div class="meal-field">
+          <label>How would you like to change it?</label>
+
+          <app-toggle-switch [options]="[
+        { label: 'My Meals', value: 'search' },
+        { label: 'Use current as a base', value: 'create-from-current' }
+      ]" [value]="changeMealMode" (valueChange)="setChangeMealMode($event)"></app-toggle-switch>
+
+          <p class="form-helper" *ngIf="changeMealMode === 'create-from-current'">
+            A new meal will be created. The original stays unchanged.
+          </p>
+        </div>
+
+        <ng-container *ngIf="changeMealMode === 'search'">
+          <div class="meal-field">
+            <label for="changeMealSearch">Search meals</label>
+
+            <div class="search-input-wrap">
+              <input id="changeMealSearch" type="search" inputmode="search" [(ngModel)]="changeMealSearchQuery"
+                placeholder="Search by title or ingredient" autocomplete="off" autocorrect="off" autocapitalize="off"
+                spellcheck="false" enterkeyhint="search" />
+            </div>
+          </div>
+
+          <div class="selected-meal-row" *ngIf="selectedChangeMeal as selectedMeal">
+            <div class="selected-meal-row__image">
+              <img [src]="selectedMeal.image_url || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
+            </div>
+
+            <div class="selected-meal-row__content">
+              <div class="selected-meal-row__title">
+                {{ selectedMeal.name }}
+              </div>
+
+              <div class="selected-meal-row__meta" *ngIf="selectedMeal.prepTime != null">
+                {{ selectedMeal.prepTime }} min
+              </div>
+            </div>
+
+            <button type="button" class="selected-meal-row__remove" (click)="clearChangeMealSearch()"
+              aria-label="Remove selected meal">
+              ×
+            </button>
+          </div>
+
+          <div class="meal-search-results-container meal-search-results-container--reserved">
+            <div class="meal-search-empty-wrap" *ngIf="!changeMealSearchQuery && !selectedExistingMealId">
+              <p class="meal-search-empty">Start typing to search meals</p>
+            </div>
+
+            <div class="meal-search-results" *ngIf="!selectedExistingMealId && displayedChangeMealOptions.length > 0">
+              <button type="button" class="meal-search-result meal-search-result--row"
+                *ngFor="let meal of displayedChangeMealOptions"
+                [class.meal-search-result--selected]="selectedExistingMealId === meal.id"
+                (click)="selectMealForChange(meal.id)">
+                <div class="meal-search-result__image">
+                  <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+                </div>
+
+                <div class="meal-search-result__content">
+                  <div class="meal-search-result__title">
+                    {{ meal.name }}
+                  </div>
+
+                  <div class="meal-search-result__meta">
+                    <span *ngIf="meal.prepTime != null">{{ meal.prepTime }} min</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div class="meal-search-empty-wrap"
+              *ngIf="changeMealSearchQuery && displayedChangeMealOptions.length === 0 && !selectedExistingMealId">
+              <p class="meal-search-empty">No meals found.</p>
+            </div>
+          </div>
+        </ng-container>
+
+        <div class="meal-field">
+          <label for="changeCook">Cook</label>
+
+          <select id="changeCook" [(ngModel)]="selectedCookId">
+            <option [ngValue]="null">Unassigned</option>
+            <option *ngFor="let member of availableMembers" [ngValue]="member.id">
+              {{ member.name }}
+            </option>
+          </select>
+        </div>
+      </ng-container>
+
+
     </div>
 
     <div class="button-row day-meal-form-dialog__actions">

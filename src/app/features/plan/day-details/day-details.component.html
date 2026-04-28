@@ -565,8 +565,9 @@
 <app-day-meal-form-dialog
   [isOpen]="isFormOpen"
   [mode]="formMode"
-  [plannedMeal]="editingMeal"
+  [plannedMeal]="selectedMealForActions"
   [availableMembers]="availableMembers"
+  [availableMeals]="availableMeals"
   (closed)="cancelAddMeal()"
   (saved)="onDayMealFormSaved($event)">
 </app-day-meal-form-dialog>
@@ -585,4 +586,3 @@
     </app-confirmation-dialog>
   </div>
 </div>
-
