@@ -115,6 +115,75 @@
 
       </ng-container>
 
+      <ng-container *ngIf="addMealMode === 'new' || availableMeals.length === 0">
+        <div class="meal-field">
+          <label for="newDialogMealName">Meal name</label>
+          <input id="newDialogMealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
+        </div>
+
+        <div class="meal-field">
+          <label>Meal photo</label>
+
+          <div class="meal-image-block">
+            <div class="meal-image-thumb" *ngIf="selectedImagePreview">
+              <img [src]="selectedImagePreview" alt="Meal preview" />
+            </div>
+
+            <div class="meal-image-content">
+              <label for="newDialogMealImage" class="meal-image-upload">
+                <span class="meal-image-upload__button">Choose file</span>
+
+                <span class="meal-image-upload__name">
+                  {{ selectedImageFile?.name || 'No file chosen' }}
+                </span>
+              </label>
+
+              <input id="newDialogMealImage" class="meal-image-upload__input" type="file" accept="image/*"
+                (change)="onMealImageSelected($event)" />
+
+              <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
+                (click)="removeSelectedMealImage()">
+                ✕ Remove
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="meal-field">
+          <button type="button" class="meal-details-toggle" [class.open]="showAdvanced"
+            (click)="showAdvanced = !showAdvanced">
+            <span class="meal-details-toggle__icon">
+              {{ showAdvanced ? '▾' : '▸' }}
+            </span>
+            {{ showAdvanced ? 'Hide details' : 'Add details' }}
+          </button>
+
+          <p class="form-helper" *ngIf="newMealHasDetails && !showAdvanced">
+            Details already added
+          </p>
+        </div>
+
+        <ng-container *ngIf="showAdvanced">
+          <div class="meal-field">
+            <label for="newDialogPrepTime">Prep time (minutes)</label>
+            <input id="newDialogPrepTime" type="number" min="0" [(ngModel)]="newPrepTime" placeholder="Optional" />
+          </div>
+
+          <div class="meal-field">
+            <label for="newDialogIngredients">Ingredients</label>
+            <textarea id="newDialogIngredients" [(ngModel)]="mealIngredientsText"
+              placeholder="Add ingredients (comma or new line)">
+      </textarea>
+          </div>
+
+          <div class="meal-field">
+            <label for="newDialogInstructions">Instructions</label>
+            <textarea id="newDialogInstructions" [(ngModel)]="mealInstructions" placeholder="Add instructions">
+      </textarea>
+          </div>
+        </ng-container>
+      </ng-container>
+
       <ng-container *ngIf="mode === 'change-meal'">
         <div class="meal-field">
           <label>How would you like to change it?</label>
@@ -192,6 +261,74 @@
               <p class="meal-search-empty">No meals found.</p>
             </div>
           </div>
+        </ng-container>
+
+        <ng-container *ngIf="changeMealMode === 'create-from-current'">
+          <div class="meal-field">
+            <label for="baseMealName">Meal name</label>
+            <input id="baseMealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
+          </div>
+
+          <div class="meal-field">
+            <label>Meal photo</label>
+
+            <div class="meal-image-block">
+              <div class="meal-image-thumb" *ngIf="selectedImagePreview">
+                <img [src]="selectedImagePreview" alt="Meal preview" />
+              </div>
+
+              <div class="meal-image-content">
+                <label for="baseMealImage" class="meal-image-upload">
+                  <span class="meal-image-upload__button">Choose file</span>
+
+                  <span class="meal-image-upload__name">
+                    {{ selectedImageFile?.name || 'No file chosen' }}
+                  </span>
+                </label>
+
+                <input id="baseMealImage" class="meal-image-upload__input" type="file" accept="image/*"
+                  (change)="onMealImageSelected($event)" />
+
+                <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
+                  (click)="removeSelectedMealImage()">
+                  ✕ Remove
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="meal-field">
+            <button type="button" class="meal-details-toggle" [class.open]="showChangeAdvanced"
+              (click)="showChangeAdvanced = !showChangeAdvanced">
+              <span class="meal-details-toggle__icon">
+                {{ showChangeAdvanced ? '▾' : '▸' }}
+              </span>
+              {{ showChangeAdvanced ? 'Hide details' : 'Edit details' }}
+            </button>
+
+            <p class="form-helper" *ngIf="(changeMealIngredientsText || changeMealInstructions) && !showChangeAdvanced">
+              Details already added
+            </p>
+          </div>
+
+          <ng-container *ngIf="showChangeAdvanced">
+            <div class="meal-field">
+              <label for="basePrepTime">Prep time (minutes)</label>
+              <input id="basePrepTime" type="number" min="0" [(ngModel)]="newPrepTime" placeholder="Optional" />
+            </div>
+
+            <div class="meal-field">
+              <label for="baseIngredients">Ingredients</label>
+              <textarea id="baseIngredients" [(ngModel)]="changeMealIngredientsText"
+                placeholder="Add ingredients (comma or new line)"></textarea>
+            </div>
+
+            <div class="meal-field">
+              <label for="baseInstructions">Instructions</label>
+              <textarea id="baseInstructions" [(ngModel)]="changeMealInstructions"
+                placeholder="Add instructions"></textarea>
+            </div>
+          </ng-container>
         </ng-container>
 
         <div class="meal-field">

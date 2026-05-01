@@ -1,11 +1,9 @@
 import {
   ChangeDetectorRef,
   Component,
-  ElementRef,
   HostListener,
   OnDestroy,
   OnInit,
-  ViewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -107,8 +105,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-
-  @ViewChild('mealFormContainer') mealFormContainer?: ElementRef<HTMLElement>;
 
   constructor(
     private route: ActivatedRoute,
@@ -291,72 +287,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     return this.availableMeals.find((meal) => meal.id === this.selectedExistingMealId) ?? null;
   }
 
-  clearMealSearch(): void {
-    this.mealSearchQuery = '';
-    this.selectedExistingMealId = null;
-  }
-
-  clearChangeMealSearch(): void {
-    this.changeMealSearchQuery = '';
-    this.selectedExistingMealId = null;
-  }
-
-  selectMealForAdd(mealId: string): void {
-    this.selectedExistingMealId = mealId;
-    this.mealSearchQuery = '';
-  }
-
-  selectMealForChange(mealId: string): void {
-    this.selectedExistingMealId = mealId;
-    this.changeMealSearchQuery = '';
-  }
-
-  setAddMealMode(mode: AddMealMode): void {
-    this.addMealMode = mode;
-
-    this.mealSearchQuery = '';
-    this.selectedExistingMealId = null;
-    this.showAdvanced = false;
-
-    if (mode === 'search') {
-      this.newMealName = '';
-      this.newPrepTime = null;
-      this.selectedImagePreview = null;
-      this.selectedImageFile = null;
-      this.mealIngredientsText = '';
-      this.mealInstructions = '';
-    }
-  }
-
-  setChangeMealMode(mode: ChangeMealMode): void {
-    this.changeMealMode = mode;
-
-    this.changeMealSearchQuery = '';
-    this.selectedExistingMealId = null;
-    this.showChangeAdvanced = false;
-
-    if (mode === 'search') {
-      this.newMealName = '';
-      this.newPrepTime = null;
-      this.selectedImagePreview = null;
-      this.selectedImageFile = null;
-      this.changeMealIngredientsText = '';
-      this.changeMealInstructions = '';
-      return;
-    }
-
-    const currentMeal = this.meals.find(
-      (meal) => meal.id === this.editingPlannedMealId
-    )?.meal;
-
-    this.newMealName = currentMeal?.name ?? '';
-    this.newPrepTime = currentMeal?.prepTime ?? null;
-    this.selectedImagePreview = currentMeal?.image_url ?? null;
-    this.selectedImageFile = null;
-    this.changeMealIngredientsText = (currentMeal?.ingredients ?? []).join('\n');
-    this.changeMealInstructions = currentMeal?.instructions ?? '';
-  }
-
   toggleMeal(mealId: string): void {
     this.expandedMealId = this.expandedMealId === mealId ? null : mealId;
   }
@@ -446,7 +376,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     this.changeMealSearchQuery = '';
 
     this.closeMealMenu();
-    this.scrollFormIntoView();
   }
 
   async onChangeMeal(meal: PlannedMeal): Promise<void> {
@@ -477,7 +406,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     await this.loadAvailableMeals();
 
     this.closeMealMenu();
-    this.scrollFormIntoView();
   }
 
   cancelAddMeal(): void {
@@ -718,22 +646,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     return this.route.snapshot.queryParamMap.get('source');
   }
 
-  private scrollFormIntoView(): void {
-    setTimeout(() => {
-      const form = this.mealFormContainer?.nativeElement;
-
-      if (!form) return;
-
-      const rect = form.getBoundingClientRect();
-      const absoluteTop = window.scrollY + rect.top;
-      const topOffset = 140;
-
-      window.scrollTo({
-        top: Math.max(absoluteTop - topOffset, 0),
-        behavior: 'smooth',
-      });
-    }, 0);
-  }
 
   getStatusLabel(status: string): string {
     return MEAL_STATUS_LABELS[status] || status;
@@ -817,16 +729,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  getFormTitle(): string {
-    switch (this.formMode) {
-      case 'edit-cook':
-        return 'Edit cook';
-      case 'change-meal':
-        return 'Change meal';
-      default:
-        return 'Add meal';
-    }
-  }
 
   toggleMealMenu(meal: PlannedMeal): void {
     if (this.isPastDate()) {
@@ -990,43 +892,58 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onDayMealFormSaved(event: {
-  mode: 'add' | 'edit-cook' | 'change-meal';
-  cookId: number | null;
-  selectedMealId?: string | null;
-  changeMealMode?: 'search' | 'create-from-current';
-  addMealMode?: 'search' | 'new';
-}): Promise<void> {
+    mode: 'add' | 'edit-cook' | 'change-meal';
+    cookId: number | null;
+    selectedMealId?: string | null;
+    changeMealMode?: 'search' | 'create-from-current';
+    addMealMode?: 'search' | 'new';
 
-  if (event.mode === 'edit-cook') {
-    this.selectedCookId = event.cookId;
-    await this.saveEditCook();
-    return;
-  }
+    newMealName?: string;
+    newPrepTime?: number | null;
+    mealIngredientsText?: string;
+    mealInstructions?: string;
+    changeMealIngredientsText?: string;
+    changeMealInstructions?: string;
+    selectedImageFile?: File | null;
+  }): Promise<void> {
+    if (event.mode === 'edit-cook') {
+      this.selectedCookId = event.cookId;
+      await this.saveEditCook();
+      return;
+    }
 
-  if (event.mode === 'change-meal') {
-    this.selectedCookId = event.cookId;
-    this.changeMealMode = event.changeMealMode ?? 'search';
-    this.selectedExistingMealId = event.selectedMealId ?? null;
+    if (event.mode === 'change-meal') {
+      this.selectedCookId = event.cookId;
+      this.changeMealMode = event.changeMealMode ?? 'search';
+      this.selectedExistingMealId = event.selectedMealId ?? null;
 
-    if (this.changeMealMode === 'search') {
+      this.newMealName = event.newMealName ?? '';
+      this.newPrepTime = event.newPrepTime ?? null;
+      this.selectedImageFile = event.selectedImageFile ?? null;
+      this.selectedImagePreview = null;
+      this.changeMealIngredientsText = event.changeMealIngredientsText ?? '';
+      this.changeMealInstructions = event.changeMealInstructions ?? '';
+
       await this.saveChangeMeal();
+      return;
     }
 
-    return;
-  }
+    if (event.mode === 'add') {
+      this.selectedCookId = event.cookId;
+      this.addMealMode = event.addMealMode ?? 'search';
+      this.selectedExistingMealId = event.selectedMealId ?? null;
 
-  if (event.mode === 'add') {
-    this.selectedCookId = event.cookId;
-    this.addMealMode = event.addMealMode ?? 'search';
-    this.selectedExistingMealId = event.selectedMealId ?? null;
+      this.newMealName = event.newMealName ?? '';
+      this.newPrepTime = event.newPrepTime ?? null;
+      this.mealIngredientsText = event.mealIngredientsText ?? '';
+      this.mealInstructions = event.mealInstructions ?? '';
+      this.selectedImageFile = event.selectedImageFile ?? null;
+      this.selectedImagePreview = null;
 
-    if (this.addMealMode === 'search') {
       await this.saveMeal();
+      return;
     }
-
-    return;
   }
-}
 
   ngOnDestroy(): void {
     this.destroy$.next();

@@ -37,6 +37,14 @@ export class DayMealFormDialogComponent implements OnChanges {
     selectedMealId?: string | null;
     changeMealMode?: 'search' | 'create-from-current';
     addMealMode?: 'search' | 'new';
+
+    newMealName?: string;
+    newPrepTime?: number | null;
+    mealIngredientsText?: string;
+    mealInstructions?: string;
+    selectedImageFile?: File | null;
+    changeMealIngredientsText?: string;
+    changeMealInstructions?: string;
   }>();
 
   isSaving = false;
@@ -46,6 +54,16 @@ export class DayMealFormDialogComponent implements OnChanges {
   selectedExistingMealId: string | null = null;
   addMealMode: 'search' | 'new' = 'search';
   mealSearchQuery = '';
+  newMealName = '';
+  newPrepTime: number | null = null;
+  mealIngredientsText = '';
+  mealInstructions = '';
+  selectedImageFile: File | null = null;
+  selectedImagePreview: string | null = null;
+  showAdvanced = false;
+  changeMealIngredientsText = '';
+  changeMealInstructions = '';
+  showChangeAdvanced = false;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && this.isOpen) {
@@ -71,10 +89,25 @@ export class DayMealFormDialogComponent implements OnChanges {
 
       if (this.mode === 'add') {
         this.addMealMode = this.availableMeals.length > 0 ? 'search' : 'new';
+        this.newMealName = '';
+        this.newPrepTime = null;
+        this.mealIngredientsText = '';
+        this.mealInstructions = '';
+        this.selectedImageFile = null;
+        this.selectedImagePreview = null;
+        this.showAdvanced = false;
       }
 
       if (this.mode === 'change-meal') {
         this.changeMealMode = 'search';
+        this.showChangeAdvanced = false;
+
+        this.newMealName = this.plannedMeal?.meal?.name ?? '';
+        this.newPrepTime = this.plannedMeal?.meal?.prepTime ?? null;
+        this.selectedImagePreview = this.plannedMeal?.meal?.image_url ?? null;
+        this.selectedImageFile = null;
+        this.changeMealIngredientsText = (this.plannedMeal?.meal?.ingredients ?? []).join('\n');
+        this.changeMealInstructions = this.plannedMeal?.meal?.instructions ?? '';
       }
     }
   }
@@ -104,12 +137,32 @@ export class DayMealFormDialogComponent implements OnChanges {
 
     this.isSaving = true;
 
+    if (this.mode === 'add' && this.addMealMode === 'new' && !this.newMealName.trim()) {
+      return;
+    }
+
+    if (
+      this.mode === 'change-meal' &&
+      this.changeMealMode === 'create-from-current' &&
+      !this.newMealName.trim()
+    ) {
+      return;
+    }
+
     this.saved.emit({
       mode: this.mode,
       cookId: this.selectedCookId,
       selectedMealId: this.selectedExistingMealId,
       changeMealMode: this.changeMealMode,
       addMealMode: this.addMealMode,
+
+      newMealName: this.newMealName,
+      newPrepTime: this.newPrepTime,
+      mealIngredientsText: this.mealIngredientsText,
+      mealInstructions: this.mealInstructions,
+      selectedImageFile: this.selectedImageFile,
+      changeMealIngredientsText: this.changeMealIngredientsText,
+      changeMealInstructions: this.changeMealInstructions,
     });
   }
 
@@ -205,6 +258,38 @@ export class DayMealFormDialogComponent implements OnChanges {
   clearMealSearch(): void {
     this.selectedExistingMealId = null;
     this.mealSearchQuery = '';
+  }
+
+  get newMealHasDetails(): boolean {
+    return !!(
+      this.mealIngredientsText.trim() ||
+      this.mealInstructions.trim()
+    );
+  }
+
+  onMealImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (!file) {
+      this.selectedImageFile = null;
+      this.selectedImagePreview = null;
+      return;
+    }
+
+    this.selectedImageFile = file;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.selectedImagePreview = reader.result as string;
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  removeSelectedMealImage(): void {
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
   }
 
 }
