@@ -1,0 +1,109 @@
+<div *ngIf="isOpen && meal" class="day-meal-details-dialog-overlay" (click)="onClose()">
+  <div class="day-meal-details-dialog-sheet" (click)="$event.stopPropagation()">
+
+    <div class="day-meal-details-dialog-header">
+      <p class="day-meal-details-dialog-name">
+        {{ meal.meal.name }}
+      </p>
+
+      <button type="button" class="day-meal-details-dialog-sheet__close" (click)="onClose()"
+        aria-label="Close meal details">
+        ×
+      </button>
+    </div>
+
+    <div class="day-meal-details-dialog-card">
+      <div class="day-meal-details-dialog-main">
+        <div class="day-meal-details-dialog-info">
+
+          <div class="day-meal-details-dialog-cook-row">
+            <span class="day-meal-details-dialog-cook-label">Cook:</span>
+
+            <img *ngIf="meal.cook" [src]="meal.cook.avatar_url || 'assets/avatars/unassigned.png'"
+              class="day-meal-details-dialog-cook-avatar" [alt]="meal.cook.name || 'Cook avatar'" />
+
+            <span *ngIf="!meal.cook" class="day-meal-details-dialog-cook-avatar-icon">
+              <lucide-icon [img]="UserRound" [size]="12" [strokeWidth]="2">
+              </lucide-icon>
+            </span>
+
+            <span class="day-meal-details-dialog-cook">
+              {{ meal.cook?.name || 'Unassigned' }}
+            </span>
+          </div>
+
+          <div class="day-meal-details-dialog-meta">
+            <span class="meal-time" *ngIf="meal.meal.prepTime != null">
+              <lucide-icon [img]="Clock3" [size]="12" [strokeWidth]="1.5" class="meal-time-icon">
+              </lucide-icon>
+              {{ meal.meal.prepTime }} min
+            </span>
+
+            <span class="meal-status" [ngClass]="'meal-status--' + meal.status">
+              {{ getStatusLabel(meal.status) }}
+            </span>
+          </div>
+
+          <p class="day-meal-details-dialog-coverage" *ngIf="coverageListName && !isPast">
+            In: {{ coverageListName }}
+          </p>
+        </div>
+
+        <div class="day-meal-details-dialog-image">
+          <img [src]="meal.meal.image_url || 'assets/meals/default-meal.png'" class="day-meal-details-dialog-image-img"
+            [alt]="meal.meal.name || 'Meal image'" />
+        </div>
+      </div>
+
+      <div class="day-meal-details-dialog-actions" *ngIf="!isPast && getPrimaryActionLabel(meal.status)">
+        <button type="button" class="day-meal-details-dialog-primary-action"
+          [class.day-meal-details-dialog-primary-action--start]="meal.status === 'to-prepare'"
+          [class.day-meal-details-dialog-primary-action--ready]="meal.status === 'in-progress'"
+          [class.day-meal-details-dialog-primary-action--reset]="meal.status === 'ready-to-serve'"
+          (click)="onPrimaryAction()">
+          <span class="day-meal-details-dialog-primary-action__icon">
+            {{ getPrimaryActionIcon(meal.status) }}
+          </span>
+
+          <span>
+            {{ getPrimaryActionLabel(meal.status) }}
+          </span>
+        </button>
+      </div>
+
+      <div class="day-meal-details-dialog-recipe">
+        <p class="day-meal-details-dialog-empty" *ngIf="!meal.meal.ingredients?.length && !meal.meal.instructions">
+          No recipe details added
+        </p>
+
+        <ng-container *ngIf="meal.meal.ingredients?.length || meal.meal.instructions">
+          <div class="day-meal-details-dialog-section">
+            <p class="day-meal-details-dialog-section-title">Ingredients</p>
+
+            <ul class="day-meal-details-dialog-ingredients-list" *ngIf="meal.meal.ingredients?.length">
+              <li *ngFor="let ingredient of meal.meal.ingredients">
+                {{ ingredient }}
+              </li>
+            </ul>
+
+            <p class="day-meal-details-dialog-empty" *ngIf="!meal.meal.ingredients?.length">
+              No ingredients added
+            </p>
+          </div>
+
+          <div class="day-meal-details-dialog-section">
+            <p class="day-meal-details-dialog-section-title">Instructions</p>
+
+            <p class="day-meal-details-dialog-instructions" *ngIf="meal.meal.instructions">
+              {{ meal.meal.instructions }}
+            </p>
+
+            <p class="day-meal-details-dialog-empty" *ngIf="!meal.meal.instructions">
+              No instructions added
+            </p>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>

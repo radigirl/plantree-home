@@ -18,6 +18,8 @@
   padding: 16px;
   background: rgba(20, 24, 22, 0.45);
   pointer-events: auto;
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .meal-details-modal-sheet {
@@ -32,6 +34,8 @@
   box-sizing: border-box;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .meal-details-modal-sheet::-webkit-scrollbar {

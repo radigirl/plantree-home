@@ -1,0 +1,308 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/components/chips' as *;
+@use '../../../../styles/breakpoints' as *;
+
+
+.day-meal-details-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(46, 58, 50, 0.34);
+}
+
+.day-meal-details-dialog-sheet {
+  position: relative;
+  width: min(560px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 28px;
+  background: $color-surface-soft;
+  box-shadow: 0 22px 54px rgba(46, 58, 50, 0.22);
+  padding: 20px;
+  box-sizing: border-box;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.day-meal-details-dialog-sheet::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.day-meal-details-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.day-meal-details-dialog-name {
+  margin: 0;
+  flex: 1;
+}
+
+.day-meal-details-dialog-sheet__close {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 252, 247, 0.86);
+  color: $color-primary-dark;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.day-meal-details-dialog-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.day-meal-details-dialog-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.day-meal-details-dialog-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 34px;
+}
+
+.day-meal-details-dialog-name {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.15;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.day-meal-details-dialog-cook-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.day-meal-details-dialog-cook-label {
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.day-meal-details-dialog-cook-avatar,
+.day-meal-details-dialog-cook-avatar-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.day-meal-details-dialog-cook-avatar {
+  object-fit: cover;
+}
+
+.day-meal-details-dialog-cook-avatar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.78);
+  color: rgba($color-primary-dark, 0.55);
+}
+
+.day-meal-details-dialog-cook {
+  color: $color-text-muted;
+}
+
+.day-meal-details-dialog-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.meal-time {
+  @extend .meal-time-chip;
+}
+
+.meal-status {
+  @extend .meal-status-chip;
+}
+
+.day-meal-details-dialog-coverage {
+  margin: 0;
+  font-size: 0.86rem;
+  color: $color-text-muted;
+}
+
+.day-meal-details-dialog-image {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.day-meal-details-dialog-image-img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  display: block;
+}
+
+.day-meal-details-dialog-actions {
+  display: flex;
+  margin-top: 2px;
+}
+
+.day-meal-details-dialog-primary-action {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+
+  background: rgba(255, 252, 247, 0.7);
+  color: $color-primary-dark;
+  border: 1px solid rgba(207, 222, 215, 0.6);
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.day-meal-details-dialog-primary-action:hover {
+  background: rgba(255, 252, 247, 0.9);
+  border-color: rgba(207, 222, 215, 0.9);
+}
+
+.day-meal-details-dialog-primary-action:active {
+  transform: scale(0.97);
+}
+
+.day-meal-details-dialog-primary-action:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* START */
+.day-meal-details-dialog-primary-action--start {
+  background: rgba(245, 235, 213, 0.92);
+  border-color: rgba(209, 180, 106, 0.35);
+}
+
+.day-meal-details-dialog-primary-action--start:hover {
+  background: rgba(245, 235, 213, 1);
+  border-color: rgba(209, 180, 106, 0.5);
+}
+
+/* IN PROGRESS */
+.day-meal-details-dialog-primary-action--ready {
+  background: rgba(120, 180, 200, 0.22);
+  border-color: rgba(100, 160, 180, 0.45);
+  color: $color-primary-dark;
+}
+
+.day-meal-details-dialog-primary-action--ready:hover {
+  background: rgba(120, 180, 200, 0.32);
+  border-color: rgba(100, 160, 180, 0.55);
+}
+
+/* RESET */
+.day-meal-details-dialog-primary-action--reset {
+  background: rgba(92, 143, 134, 0.08);
+  border: 1px solid rgba(92, 143, 134, 0.18);
+}
+
+.day-meal-details-dialog-primary-action--reset:hover {
+  background: rgba(92, 143, 134, 0.12);
+  border-color: rgba(92, 143, 134, 0.28);
+}
+
+/* ICON */
+.day-meal-details-dialog-primary-action__icon {
+  font-size: 0.84rem;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.day-meal-details-dialog-recipe {
+  border-top: 1px solid rgba(207, 222, 215, 0.7);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.day-meal-details-dialog-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-meal-details-dialog-section-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.day-meal-details-dialog-ingredients-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 14px;
+}
+
+.day-meal-details-dialog-ingredients-list li,
+.day-meal-details-dialog-instructions,
+.day-meal-details-dialog-empty {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: $color-text-muted;
+}
+
+.day-meal-details-dialog-instructions,
+.day-meal-details-dialog-empty {
+  margin: 0;
+}
+
+.day-meal-details-dialog-instructions {
+  white-space: pre-line;
+}
+
+@include mobile {
+  .day-meal-details-dialog-overlay {
+    align-items: center;
+    padding: 12px;
+  }
+
+  .day-meal-details-dialog-sheet {
+    width: min(520px, 92vw);
+    max-height: 90vh;
+    padding: 18px;
+    border-radius: 24px;
+  }
+}

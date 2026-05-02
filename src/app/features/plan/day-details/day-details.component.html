@@ -20,8 +20,8 @@
       </div>
 
       <!-- RIGHT -->
-      <button type="button" class="btn-add" [disabled]="isPastDate()"
-        [class.btn-add--disabled]="isPastDate()" (click)="openAddMealFromDay()">
+      <button type="button" class="btn-add" [disabled]="isPastDate()" [class.btn-add--disabled]="isPastDate()"
+        (click)="openAddMealFromDay()">
         <svg class="btn-add__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -35,13 +35,17 @@
       This day has already passed. Meals can be viewed, but new meals cannot be added.
     </p>
 
-    <div class="day-details-empty" *ngIf="meals.length === 0">
-      <p class="day-details-empty-text">No meals planned for this day yet.</p>
+    <div class="day-details-empty-wrapper" *ngIf="meals.length === 0">
+      <div class="day-details-empty">
+        <p class="day-details-empty-text">
+          No meals planned for this day yet.
+        </p>
+      </div>
     </div>
 
     <div class="day-details-list" *ngIf="meals.length > 0">
-      <div class="day-details-card" [attr.id]="'meal-card-' + meal.id" [class.expanded]="expandedMealId === meal.id"
-        *ngFor="let meal of meals" (click)="toggleMeal(meal.id)">
+      <div class="day-details-card" [attr.id]="'meal-card-' + meal.id" *ngFor="let meal of meals"
+        (click)="openMealDetailsDialog(meal)">
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
           <button type="button" class="icon-button meal-menu-button" [disabled]="isPastDate()"
             (click)="$event.stopPropagation(); toggleMealMenu(meal)">
@@ -111,24 +115,6 @@
               In: {{ getMealCoverageListName(meal.id) }}
             </div>
 
-            <div class="meal-actions-row">
-              <button type="button" class="meal-action-button" *ngIf="getPrimaryActionLabel(meal.status)"
-                (click)="$event.stopPropagation(); onPrimaryAction(meal)">
-                <span class="meal-action-icon">
-                  {{ getPrimaryActionIcon(meal.status) }}
-                </span>
-                {{ getPrimaryActionLabel(meal.status) }}
-              </button>
-
-              <div class="meal-recipe-toggle">
-                <p class="meal-tap-hint" *ngIf="expandedMealId !== meal.id">
-                  View recipe
-                </p>
-                <p class="meal-collapse-hint" *ngIf="expandedMealId === meal.id">
-                  Hide recipe
-                </p>
-              </div>
-            </div>
           </div>
 
           <div class="meal-image">
@@ -136,54 +122,18 @@
               [alt]="meal.meal.name || 'Meal image'" />
           </div>
         </div>
-
-        <div class="meal-expanded" *ngIf="expandedMealId === meal.id">
-          <div class="meal-expanded-content">
-            <p class="meal-ingredients-empty" *ngIf="!meal.meal.ingredients?.length && !meal.meal.instructions">
-              No recipe details added
-            </p>
-
-            <ng-container *ngIf="meal.meal.ingredients?.length || meal.meal.instructions">
-              <div class="meal-ingredients">
-                <p class="meal-ingredients-title">Ingredients</p>
-
-                <ul class="meal-ingredients-list" *ngIf="meal.meal.ingredients?.length">
-                  <li *ngFor="let ingredient of meal.meal.ingredients">
-                    {{ ingredient }}
-                  </li>
-                </ul>
-
-                <p class="meal-ingredients-empty" *ngIf="!meal.meal.ingredients?.length">
-                  No ingredients added
-                </p>
-              </div>
-
-              <div class="meal-instructions">
-                <p class="meal-instructions-title">Instructions</p>
-
-                <p class="meal-instructions-text" *ngIf="meal.meal.instructions">
-                  {{ meal.meal.instructions }}
-                </p>
-
-                <p class="meal-ingredients-empty" *ngIf="!meal.meal.instructions">
-                  No instructions added
-                </p>
-              </div>
-            </ng-container>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </div>
 
-<app-day-meal-form-dialog
-  [isOpen]="isFormOpen"
-  [mode]="formMode"
-  [plannedMeal]="selectedMealForActions"
-  [availableMembers]="availableMembers"
-  [availableMeals]="availableMeals"
-  (closed)="cancelAddMeal()"
+<app-day-meal-details-dialog [isOpen]="!!selectedMealForDetails" [meal]="selectedMealForDetails" [isPast]="isPastDate()"
+  [coverageListName]="selectedMealForDetails ? getMealCoverageListName(selectedMealForDetails.id) : null"
+  (closed)="closeMealDetailsDialog()" (primaryAction)="onPrimaryAction($event)">
+</app-day-meal-details-dialog>
+
+<app-day-meal-form-dialog [isOpen]="isFormOpen" [mode]="formMode" [plannedMeal]="selectedMealForForm"
+  [availableMembers]="availableMembers" [availableMeals]="availableMeals" (closed)="cancelAddMeal()"
   (saved)="onDayMealFormSaved($event)">
 </app-day-meal-form-dialog>
 

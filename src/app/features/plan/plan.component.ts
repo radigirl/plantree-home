@@ -58,7 +58,6 @@ import { Clock3, UserRound } from 'lucide-angular';
 export class PlanComponent implements OnInit, OnDestroy {
   weekMeals: DayPlan[] = [];
   isLoading = true;
-  isReady = false; // when returning from details
   currentWeekStart: Date = this.getStartOfWeek(new Date());
   selectedDayIndex: number | null = null;
 
