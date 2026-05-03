@@ -168,17 +168,17 @@
 
 .space-menu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 8px);
   right: 0;
-  min-width: 180px;
+  min-width: 160px;
   padding: 6px;
-  border-radius: 14px;
-  background: #fbfbfa;
-  border: 1px solid rgba(58, 116, 108, 0.08);
-  box-shadow: 0 6px 18px rgba(46, 58, 50, 0.10);
+  border-radius: 16px;
+  background: $color-surface-soft;
+  border: 1px solid rgba(58, 116, 108, 0.06);
+  box-shadow: 0 12px 30px rgba(46, 58, 50, 0.14);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   z-index: 200;
 }
 
@@ -188,17 +188,39 @@
   background: transparent;
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 5px 10px;
   border-radius: 12px;
   cursor: pointer;
   text-align: left;
+  min-height: 36px;
   font-size: 14px;
   font-weight: 500;
-  color: $color-primary-dark;
+  color: $color-text;
+  justify-content: space-between;
 }
 
 .space-menu-item:hover {
   background: rgba(92, 143, 134, 0.08);
+}
+
+.space-menu-item:focus,
+.space-menu-item:focus-visible,
+.space-menu-item:active {
+  outline: none;
+  box-shadow: none;
+}
+
+.space-menu-item.is-active {
+  background: rgba(92, 143, 134, 0.12);
+  color: $color-primary-dark;
+}
+
+.space-check {
+  width: 16px; 
+  height: 16px;
+  stroke-width: 1.8;
+  color: $color-primary-dark;
+  opacity: 0.6;
 }
 
 .member-menu {
@@ -240,6 +262,23 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+}
+
+.add-item {
+  padding: 4px 10px 4px 28px;
+  color: $color-text-muted;
+  font-weight: 400;
+  min-height: 30px;
+}
+
+.add-item:hover {
+  background: rgba(92, 143, 134, 0.04);
+}
+
+.space-divider {
+  height: 1px;
+  background: rgba(46, 58, 50, 0.035);
+  margin: 3px 8px 3px 28px;
 }
 
 @include mobile {

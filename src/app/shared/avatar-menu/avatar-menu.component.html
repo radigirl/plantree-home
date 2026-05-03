@@ -1,0 +1,232 @@
+<div class="avatar-menu-root" (click)="$event.stopPropagation()">
+  <button
+    type="button"
+    class="account-circle"
+    (click)="toggleMenu($event)"
+    [attr.aria-expanded]="isOpen"
+    aria-label="Open main menu"
+  >
+    <ng-container *ngIf="currentMember?.avatar_url; else fallbackIcon">
+      <img
+        [src]="currentMember?.avatar_url"
+        [alt]="currentMember?.name || 'Current member'"
+        class="account-avatar"
+      />
+    </ng-container>
+
+    <ng-template #fallbackIcon>
+      <lucide-icon [img]="userIcon"></lucide-icon>
+    </ng-template>
+  </button>
+
+  <div class="avatar-menu" *ngIf="isOpen">
+    <div class="current-member-row">
+      <img
+        [src]="currentMember?.avatar_url || 'assets/avatars/avatar-placeholder.png'"
+        [alt]="currentMember?.name || 'Current member'"
+        class="current-member-avatar"
+      />
+
+      <div>
+        <div class="current-member-name">
+          {{ currentMember?.name || 'Member' }}
+        </div>
+        <div class="current-member-label">Current member</div>
+      </div>
+    </div>
+
+    <button type="button" class="menu-item" (click)="toggleSection('members')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="usersIcon" [size]="18"></lucide-icon>
+        <span>Change member</span>
+      </span>
+
+      <lucide-icon
+        class="menu-chevron"
+        [img]="openSection === 'members' ? chevronDownIcon : chevronRightIcon"
+      ></lucide-icon>
+    </button>
+
+    <div class="collapsible-list" *ngIf="openSection === 'members'">
+      <button
+        type="button"
+        class="member-menu-item nested-menu-item"
+        *ngFor="let member of members"
+        [class.is-active]="member.id === currentMember?.id"
+        (click)="selectMember(member)"
+      >
+        <span class="member-left">
+          <img
+            [src]="member.avatar_url || 'assets/avatars/avatar-placeholder.png'"
+            [alt]="member.name"
+            class="member-menu-avatar"
+          />
+          <span>{{ member.name }}</span>
+        </span>
+
+        <lucide-icon
+          *ngIf="member.id === currentMember?.id"
+          class="active-check"
+          [img]="checkIcon"
+        ></lucide-icon>
+      </button>
+
+      <div class="nested-divider"></div>
+
+      <button
+        type="button"
+        class="member-menu-item nested-menu-item add-member-item"
+        (click)="onAddMember()"
+      >
+        + Add member
+      </button>
+    </div>
+
+    <div class="menu-divider"></div>
+
+    <button type="button" class="menu-item" (click)="navigateTo('/cook-from-pantry')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="chefHatIcon" [size]="18"></lucide-icon>
+        <span>Cook from pantry</span>
+      </span>
+    </button>
+
+    <button type="button" class="menu-item" (click)="navigateTo('/meals')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="myMealsIcon" [size]="18"></lucide-icon>
+        <span>My Meals</span>
+      </span>
+    </button>
+
+    <button type="button" class="menu-item" (click)="navigateTo('/week-stats')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="statsIcon" [size]="18"></lucide-icon>
+        <span>Week Stats</span>
+      </span>
+    </button>
+
+    <button type="button" class="menu-item" (click)="navigateTo('/notifications')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="bellIcon" [size]="18"></lucide-icon>
+        <span>Notifications</span>
+      </span>
+    </button>
+
+    <div class="menu-divider"></div>
+
+    <button type="button" class="menu-item" (click)="toggleSection('language')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="globeIcon" [size]="18"></lucide-icon>
+        <span>Language</span>
+      </span>
+
+      <lucide-icon
+        class="menu-chevron"
+        [img]="openSection === 'language' ? chevronDownIcon : chevronRightIcon"
+      ></lucide-icon>
+    </button>
+
+    <div class="collapsible-list" *ngIf="openSection === 'language'">
+      <button
+        type="button"
+        class="select-menu-item nested-menu-item"
+        *ngFor="let language of languages"
+        [class.is-active]="language.code === currentLanguage"
+        (click)="selectLanguage(language.code)"
+      >
+        <span>{{ language.label }}</span>
+
+        <lucide-icon
+          *ngIf="language.code === currentLanguage"
+          class="active-check"
+          [img]="checkIcon"
+        ></lucide-icon>
+      </button>
+    </div>
+
+    <button type="button" class="menu-item" (click)="toggleSection('settings')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="settingsIcon" [size]="18"></lucide-icon>
+        <span>Settings</span>
+      </span>
+
+      <lucide-icon
+        class="menu-chevron"
+        [img]="openSection === 'settings' ? chevronDownIcon : chevronRightIcon"
+      ></lucide-icon>
+    </button>
+
+    <div class="collapsible-list" *ngIf="openSection === 'settings'">
+      <button
+        type="button"
+        class="select-menu-item nested-menu-item"
+        (click)="onSettingsAction('members')"
+      >
+        Manage members
+      </button>
+
+      <button
+        type="button"
+        class="select-menu-item nested-menu-item"
+        (click)="onSettingsAction('spaces')"
+      >
+        Manage spaces
+      </button>
+
+      <button
+        type="button"
+        class="select-menu-item nested-menu-item"
+        (click)="onSettingsAction('meals')"
+      >
+        Manage meals
+      </button>
+
+      <button
+        type="button"
+        class="select-menu-item nested-menu-item account-toggle"
+        (click)="toggleAccountSection()"
+      >
+        <span>Account</span>
+
+        <lucide-icon
+          class="menu-chevron"
+          [img]="isAccountSectionOpen ? chevronDownIcon : chevronRightIcon"
+        ></lucide-icon>
+      </button>
+    </div>
+
+    <div class="collapsible-list account-submenu" *ngIf="isAccountSectionOpen">
+      <button
+        type="button"
+        class="select-menu-item nested-menu-item nested-menu-item--deep"
+        (click)="onAccountAction('edit-profile')"
+      >
+        Edit profile
+      </button>
+
+      <button
+        type="button"
+        class="select-menu-item nested-menu-item nested-menu-item--deep danger-action"
+        (click)="onAccountAction('delete-account')"
+      >
+        Delete account
+      </button>
+    </div>
+
+    <button type="button" class="menu-item" (click)="navigateTo('/about')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="infoIcon" [size]="18"></lucide-icon>
+        <span>About</span>
+      </span>
+    </button>
+
+    <div class="menu-divider"></div>
+
+    <button type="button" class="menu-item danger" (click)="logout()">
+      <span class="menu-item-left">
+        <lucide-icon [img]="logoutIcon" [size]="18"></lucide-icon>
+        <span>Logout</span>
+      </span>
+    </button>
+  </div>
+</div>

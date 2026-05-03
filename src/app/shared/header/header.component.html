@@ -19,33 +19,25 @@
       </button>
 
       <div class="space-menu" *ngIf="isSpaceMenuOpen">
-        <button type="button" class="space-menu-item" *ngFor="let space of spaces" (click)="selectSpace(space)">
-          {{ space.name }}
+        <button type="button" class="space-menu-item" *ngFor="let space of spaces" (click)="selectSpace(space)"
+          [class.is-active]="space.id === currentSpace.id">
+          <span>{{ space.name }}</span>
+
+          <lucide-icon *ngIf="space.id === currentSpace.id" class="space-check" [img]="checkIcon"></lucide-icon>
+        </button>
+
+        <div class="space-divider"></div>
+
+        <button class="space-menu-item add-item" (click)="onAddSpace()">
+          + Add space
         </button>
       </div>
     </div>
 
     <div class="member-switcher">
-      <button type="button" class="account-circle" (click)="toggleMemberMenu()" [attr.aria-expanded]="isMemberMenuOpen"
-        aria-label="Open member switcher">
-        <ng-container *ngIf="currentMember$ | async as currentMember; else fallbackIcon">
-          <img *ngIf="currentMember?.avatar_url; else fallbackIcon" [src]="currentMember.avatar_url"
-            [alt]="currentMember.name || 'Current member'" class="account-avatar" />
-        </ng-container>
-
-        <ng-template #fallbackIcon>
-          <lucide-icon [img]="memberIcon"></lucide-icon>
-        </ng-template>
-      </button>
-
-      <div class="member-menu" *ngIf="isMemberMenuOpen">
-        <button type="button" class="member-menu-item" *ngFor="let member of members" (click)="selectMember(member)">
-          <img [src]="member.avatar_url || 'assets/avatars/avatar-placeholder.png'" [alt]="member.name"
-            class="member-menu-avatar" />
-
-          <span>{{ member.name }}</span>
-        </button>
-      </div>
+      <app-avatar-menu [members]="members" [currentMember]="currentMember$ | async" [closeSignal]="avatarCloseSignal"
+        (menuOpened)="onAvatarMenuOpened()" (memberSelected)="selectMember($event)">
+      </app-avatar-menu>
     </div>
   </div>
 </header>

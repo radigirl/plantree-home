@@ -1,0 +1,287 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/breakpoints' as *;
+
+.avatar-menu-root {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.account-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(58, 116, 108, 0.12);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+    padding: 0;
+}
+
+.account-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+.account-circle lucide-icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.2;
+    color: rgba(58, 116, 108, 0.8);
+}
+
+.account-circle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.avatar-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 8px;
+    width: 260px;
+    padding: 8px;
+    border-radius: 18px;
+    background: $color-surface-soft;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(58, 116, 108, 0.06);
+    box-shadow: 0 12px 30px rgba(46, 58, 50, 0.14);
+    z-index: 250;
+}
+
+.current-member-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px 12px;
+}
+
+.current-member-avatar,
+.member-menu-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.current-member-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: $color-text;
+}
+
+.current-member-label {
+    margin-top: 2px;
+    font-size: 11px;
+    color: $color-text-muted;
+}
+
+.menu-divider {
+    height: 1px;
+    background: rgba(46, 58, 50, 0.06);
+    margin: 6px 4px;
+}
+
+/* BASE MENU ITEMS */
+.menu-item,
+.member-menu-item,
+.select-menu-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 13px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    color: $color-text;
+    line-height: 1.2;
+}
+
+.menu-item:hover,
+.menu-item:focus,
+.menu-item:active,
+.menu-item:focus-visible {
+    background: transparent;
+    outline: none;
+    box-shadow: none;
+}
+
+.member-menu-item:hover,
+.select-menu-item:hover {
+    background: rgba(92, 143, 134, 0.08);
+}
+
+.member-menu-item:focus,
+.select-menu-item:focus,
+.member-menu-item:active,
+.select-menu-item:active,
+.member-menu-item:focus-visible,
+.select-menu-item:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+.menu-item-left,
+.member-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+/* ICONS */
+.menu-item lucide-icon {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.8;
+    color: rgba(58, 116, 108, 0.85);
+}
+
+.menu-chevron {
+    width: 15px;
+    height: 15px;
+    opacity: 0.5;
+}
+
+/* COLLAPSIBLE */
+.collapsible-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 2px 0 4px;
+}
+
+/* NESTED ITEMS  */
+.nested-menu-item {
+    min-height: 28px;
+    padding: 2px 10px 2px 52px;
+    font-size: 13.5px;
+}
+
+/* ACTIVE STATE — only selected sub-items */
+.member-menu-item.is-active,
+.select-menu-item.is-active {
+    background: rgba(92, 143, 134, 0.08);
+    color: $color-primary-dark;
+    font-weight: 500;
+    border-radius: 16px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+/* CHECK ICON */
+.active-check {
+    width: 16px;
+    height: 16px;
+    color: $color-primary-dark;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transform: scale(0.9);
+}
+
+/* LOGOUT */
+.danger {
+    color: $color-text;
+}
+
+.danger lucide-icon {
+    color: rgba(58, 116, 108, 0.85);
+}
+
+.nested-divider {
+    height: 1px;
+    background: rgba(46, 58, 50, 0.035);
+    margin: 4px 10px 4px 52px;
+}
+
+.add-member-item {
+    min-height: 30px;
+    padding: 3px 10px 4px 52px;
+    color: $color-text-muted;
+    font-weight: 400;
+}
+
+.add-member-item:hover {
+    background: rgba(92, 143, 134, 0.04);
+    color: $color-primary-dark;
+}
+
+.nested-divider {
+    height: 1px;
+    background: rgba(46, 58, 50, 0.035);
+    margin: 4px 10px 4px 52px;
+}
+
+.account-toggle {
+  background: transparent;
+}
+
+.account-toggle:hover {
+  background: rgba(92, 143, 134, 0.05);
+}
+
+/* LEVEL 3 (Account submenu) */
+.nested-menu-item--deep {
+  min-height: 28px;
+  padding: 2px 10px 2px 76px;
+  color: $color-text-muted;
+  font-weight: 400;
+}
+
+.nested-menu-item--deep:hover {
+  color: $color-primary-dark;
+  background: rgba(92, 143, 134, 0.05);
+}
+
+.account-toggle,
+.account-toggle:hover,
+.account-toggle:focus,
+.account-toggle:active,
+.account-toggle:focus-visible {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+/* RESPONSIVE */
+@include mobile {
+    .avatar-menu {
+        position: fixed;
+        top: $layout-header-height-mobile;
+        right: 8px;
+        width: min(260px, 85vw);
+        border-radius: 18px;
+    }
+}
+
+@include tablet {
+    .avatar-menu {
+        position: fixed;
+        top: $layout-header-height-desktop;
+        right: 12px;
+        width: 280px;
+        border-radius: 18px;
+    }
+}
+
+@include desktop {
+    .avatar-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 260px;
+        border-radius: 18px;
+    }
+}
