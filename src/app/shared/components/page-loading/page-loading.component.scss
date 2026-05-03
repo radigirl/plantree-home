@@ -1,3 +1,6 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
+
 :host {
   position: fixed;
   inset: 0;
@@ -36,5 +39,12 @@
 @keyframes page-loading-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@include desktop {
+  :host {
+    left: $layout-sidebar-width;
+    width: calc(100vw - #{$layout-sidebar-width});
   }
 }
