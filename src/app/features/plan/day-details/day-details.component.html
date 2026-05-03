@@ -32,7 +32,7 @@
     </div>
 
     <p class="day-details-past-note" *ngIf="isPastDate()">
-      This day has already passed. Meals can be viewed, but new meals cannot be added.
+      This day has passed. You can still correct cook and meal status for statistics.
     </p>
 
     <div class="day-details-empty-wrapper" *ngIf="meals.length === 0">
@@ -47,7 +47,7 @@
       <div class="day-details-card" [attr.id]="'meal-card-' + meal.id" *ngFor="let meal of meals"
         (click)="openMealDetailsDialog(meal)">
         <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
-          <button type="button" class="icon-button meal-menu-button" [disabled]="isPastDate()"
+          <button type="button" class="icon-button meal-menu-button"
             (click)="$event.stopPropagation(); toggleMealMenu(meal)">
             <svg class="icon-button__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="12" cy="5" r="1"></circle>
@@ -56,18 +56,23 @@
             </svg>
           </button>
 
-          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isPastDate() && isDesktopViewport()">
-            <button type="button" class="meal-menu-item"
+          <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && isDesktopViewport()">
+            <button *ngIf="!isPastDate()" type="button" class="meal-menu-item"
               (click)="$event.stopPropagation(); closeMealMenu(); onChangeMeal(meal)">
               Change meal
             </button>
 
             <button type="button" class="meal-menu-item"
               (click)="$event.stopPropagation(); closeMealMenu(); onEditCook(meal)">
-              Edit cook
+              Change cook
             </button>
 
-            <button type="button" class="meal-menu-item"
+            <button type="button" class="meal-menu-item" *ngIf="getPastStatusActionLabel(meal.status)"
+              (click)="$event.stopPropagation(); closeMealMenu(); onPrimaryAction(meal)">
+              {{ getPastStatusActionLabel(meal.status) }}
+            </button>
+
+            <button *ngIf="!isPastDate()" type="button" class="meal-menu-item"
               (click)="$event.stopPropagation(); closeMealMenu(); onRemoveMeal(meal)">
               Remove
             </button>
@@ -137,7 +142,7 @@
   (saved)="onDayMealFormSaved($event)">
 </app-day-meal-form-dialog>
 
-<app-responsive-action-menu *ngIf="selectedMealForActions && !isDesktopViewport() && !isPastDate()"
+<app-responsive-action-menu *ngIf="selectedMealForActions && !isDesktopViewport()"
   [isOpen]="!!openMealMenuId" [title]="selectedMealForActions.meal.name"
   [subtitle]="selectedMealForActions.meal.prepTime != null ? (selectedMealForActions.meal.prepTime + ' min') : ''"
   [image]="selectedMealForActions.meal.image_url || 'assets/meals/default-meal.png'"

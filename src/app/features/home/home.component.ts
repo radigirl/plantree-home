@@ -159,17 +159,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   onAddTodayClick(event: MouseEvent): void {
-    event.stopPropagation();
+  event.stopPropagation();
 
-    const today = this.formatDateLocal(new Date());
+  const today = new Date().toISOString().slice(0, 10);
 
-    this.router.navigate(['/plan/day', today], {
-      queryParams: {
-        add: 'true',
-        source: 'home'
-      }
-    });
-  }
+  this.router.navigate(['/plan/day', today], {
+    queryParams: {
+      add: 'true',
+      source: 'home',
+    },
+  });
+}
 
   openWeekPlan(): void {
     this.router.navigate(['/plan']);

@@ -1,5 +1,6 @@
 @use '../../../../styles/variables' as *;
 @use '../../../../styles/components/buttons' as *;
+@use '../../../../styles/breakpoints' as *;
 
 .day-meal-form-dialog-overlay {
   position: fixed;
@@ -411,4 +412,22 @@
   line-height: 1.25;
   color: #9a4d4d;
   font-weight: 600;
+}
+
+@include desktop {
+  .day-meal-form-dialog-overlay {
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(140px, 22vh, 260px) 24px 40px;
+  }
+
+  .day-meal-form-dialog {
+    max-height: calc(100vh - clamp(180px, 26vh, 300px));
+  }
+
+  .meal-field textarea {
+    min-height: 110px;
+    max-height: 180px;
+    padding: 8px 10px;
+  }
 }

@@ -181,7 +181,7 @@ export class DayMealFormDialogComponent implements OnChanges {
   getTitle(): string {
     switch (this.mode) {
       case 'edit-cook':
-        return 'Edit cook';
+        return 'Change cook';
       case 'change-meal':
         return 'Change meal';
       default:

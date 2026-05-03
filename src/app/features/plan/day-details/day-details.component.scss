@@ -485,10 +485,15 @@
     overflow: hidden;
   }
 
+ @include tablet {
   .day-details-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
+
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto;
 
     flex: 1;
     min-height: 0;
@@ -500,6 +505,7 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
+}
 
   .day-details-list::-webkit-scrollbar {
     width: 0;
@@ -515,18 +521,29 @@
 
 @include desktop {
   .day-details-page {
-    width: min(1200px, calc(100vw - 300px));
+    width: min(1100px, calc(100vw - 300px));
     height: calc(100vh - #{$layout-header-height-desktop} - 86px);
     margin: 16px auto 0;
     min-height: 0;
     overflow: hidden;
   }
 
-  .day-details-list {
+   .day-details-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+    grid-auto-rows: max-content;
+    align-content: start;
     align-items: start;
+    gap: 18px;
+
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 24px;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
   .day-details-list::-webkit-scrollbar {
@@ -536,6 +553,9 @@
   }
 
   .day-details-shell {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
     gap: 18px;
   }
 
@@ -549,14 +569,32 @@
   }
 
   .meal-name {
-    font-size: 1.35rem;
-  }
+  min-height: 48px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meal-image {
+  aspect-ratio: 16 / 10;
+}
+
+.meal-image-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 }
 
 @include desktop-xl {
+  .day-details-page {
+    width: min(1120px, calc(100vw - 320px));
+  }
+
   .day-details-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
   }
 }

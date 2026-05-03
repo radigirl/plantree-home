@@ -675,9 +675,8 @@
 
 @include desktop {
   .home-page {
-    width: 100%;
-    max-width: none;
-    margin: 0;
+    width: min(1200px, calc(100vw - 300px));
+    margin: 0 auto;
     margin-top: -10px;
     padding-top: 10px;
   }
@@ -785,5 +784,13 @@
     line-height: 1.2;
     color: $color-text-muted;
     padding-left: 15px;
+  }
+}
+
+@include desktop-xl {
+  .home-page {
+    width: min(1200px, calc(100vw - 300px));
+    margin-left: auto;
+    margin-right: auto;
   }
 }

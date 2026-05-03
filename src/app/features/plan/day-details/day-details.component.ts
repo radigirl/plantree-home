@@ -83,7 +83,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
   mealActions: ResponsiveActionMenuItem[] = [
     { id: 'change', label: 'Change meal' },
-    { id: 'edit-cook', label: 'Edit cook' },
+    { id: 'edit-cook', label: 'Change cook' },
     { id: 'remove', label: 'Remove' },
   ];
 
@@ -96,6 +96,8 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   readonly UserRound = UserRound;
 
   selectedMealForDetails: PlannedMeal | null = null;
+
+  entrySource: string | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -161,6 +163,12 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     this.route.queryParamMap
       .pipe(takeUntil(this.destroy$))
       .subscribe(async (params) => {
+        const source = params.get('source');
+
+        if (source === 'home' || source === 'plan') {
+          this.entrySource = source;
+        }
+
         const shouldOpenAddForm = params.get('add') === 'true';
 
         if (shouldOpenAddForm && !this.isPastDate() && !this.isFormOpen) {
@@ -280,7 +288,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   private getSource(): string | null {
-    return this.route.snapshot.queryParamMap.get('source');
+    return this.entrySource ?? this.route.snapshot.queryParamMap.get('source');
   }
 
   goBack(): void {
@@ -299,9 +307,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onEditCook(meal: PlannedMeal): Promise<void> {
-    if (this.isPastDate()) {
-      return;
-    }
     this.isFormOpen = true;
     this.formMode = 'edit-cook';
     this.editingPlannedMealId = meal.id;
@@ -341,46 +346,52 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   cancelAddMeal(): void {
-    const source = this.getAddSource();
-    this.isFormOpen = false;
-    this.formMode = 'add';
-    this.editingPlannedMealId = null;
-    this.editingMealId = null;
-    this.newMealName = '';
-    this.newPrepTime = null;
-    this.selectedCookId = null;
-    this.openMealMenuId = null;
-    this.selectedImageFile = null;
-    this.selectedImagePreview = null;
-    this.mealInstructions = '';
-    this.changeMealInstructions = '';
-    this.mealIngredientsText = '';
-    this.changeMealIngredientsText = '';
-    this.changeMealMode = 'search';
-    this.addMealMode = 'search';
-    this.selectedExistingMealId = null;
-    this.selectedMealForForm = null;
+  const modeBeforeReset = this.formMode;
+  const source = this.getAddSource();
 
-    if (source === 'plan') {
-      this.router.navigate(['/plan']);
-      return;
-    }
+  this.isFormOpen = false;
+  this.formMode = 'add';
+  this.editingPlannedMealId = null;
+  this.editingMealId = null;
+  this.newMealName = '';
+  this.newPrepTime = null;
+  this.selectedCookId = null;
+  this.openMealMenuId = null;
+  this.selectedImageFile = null;
+  this.selectedImagePreview = null;
+  this.mealInstructions = '';
+  this.changeMealInstructions = '';
+  this.mealIngredientsText = '';
+  this.changeMealIngredientsText = '';
+  this.changeMealMode = 'search';
+  this.addMealMode = 'search';
+  this.selectedExistingMealId = null;
+  this.selectedMealForForm = null;
 
-    if (source === 'home') {
-      this.router.navigate(['/home']);
-      return;
-    }
-
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        add: null,
-        source: null,
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+  if (modeBeforeReset !== 'add') {
+    return;
   }
+
+  if (source === 'plan') {
+    this.router.navigate(['/plan']);
+    return;
+  }
+
+  if (source === 'home') {
+    this.router.navigate(['/home']);
+    return;
+  }
+
+  this.router.navigate([], {
+    relativeTo: this.route,
+    queryParams: {
+      add: null,
+      source: null,
+    },
+    queryParamsHandling: 'merge',
+    replaceUrl: true,
+  });
+}
 
 
 
@@ -433,7 +444,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
         );
       }
 
-      this.cancelAddMeal();
+      this.closeFormAfterSave();
       await this.loadMealsForDate(this.date);
     } catch (error) {
       console.error('Error saving meal:', error);
@@ -453,7 +464,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
         this.selectedCookId
       );
 
-      this.cancelAddMeal();
+      this.closeFormAfterSave();
       await this.loadMealsForDate(this.date);
     } catch (error) {
       console.error('Error updating planned meal cook:', error);
@@ -463,84 +474,84 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   private getMealStoragePath(imageUrl?: string | null): string | null {
-  if (!imageUrl) return null;
+    if (!imageUrl) return null;
 
-  const marker = '/storage/v1/object/public/';
-  const markerIndex = imageUrl.indexOf(marker);
+    const marker = '/storage/v1/object/public/';
+    const markerIndex = imageUrl.indexOf(marker);
 
-  if (markerIndex === -1) {
-    return imageUrl;
+    if (markerIndex === -1) {
+      return imageUrl;
+    }
+
+    const afterPublic = imageUrl.slice(markerIndex + marker.length);
+    const parts = afterPublic.split('/');
+
+    return parts.slice(1).join('/');
   }
 
-  const afterPublic = imageUrl.slice(markerIndex + marker.length);
-  const parts = afterPublic.split('/');
+  async saveChangeMeal(): Promise<void> {
+    if (!this.date || !this.editingPlannedMealId) {
+      return;
+    }
 
-  return parts.slice(1).join('/');
-}
+    try {
+      if (this.changeMealMode === 'search') {
+        if (!this.selectedExistingMealId) {
+          return;
+        }
 
-async saveChangeMeal(): Promise<void> {
-  if (!this.date || !this.editingPlannedMealId) {
-    return;
-  }
+        await this.mealPlanService.updatePlannedMealMeal(
+          this.editingPlannedMealId,
+          this.selectedExistingMealId,
+          this.selectedCookId
+        );
+      } else {
+        if (!this.newMealName.trim()) {
+          return;
+        }
 
-  try {
-    if (this.changeMealMode === 'search') {
-      if (!this.selectedExistingMealId) {
-        return;
-      }
+        const currentPlannedMeal = this.meals.find(
+          (meal) => meal.id === this.editingPlannedMealId
+        );
 
-      await this.mealPlanService.updatePlannedMealMeal(
-        this.editingPlannedMealId,
-        this.selectedExistingMealId,
-        this.selectedCookId
-      );
-    } else {
-      if (!this.newMealName.trim()) {
-        return;
-      }
+        let imagePath: string | null = this.getMealStoragePath(
+          currentPlannedMeal?.meal.image_url ?? null
+        );
 
-      const currentPlannedMeal = this.meals.find(
-        (meal) => meal.id === this.editingPlannedMealId
-      );
+        if (this.selectedImageFile) {
+          const extension = this.selectedImageFile.name.split('.').pop() || 'jpg';
+          const fileName = `${crypto.randomUUID()}.${extension}`;
 
-      let imagePath: string | null = this.getMealStoragePath(
-        currentPlannedMeal?.meal.image_url ?? null
-      );
+          imagePath = await this.supabaseService.uploadMealImage(
+            this.selectedImageFile,
+            fileName
+          );
+        }
 
-      if (this.selectedImageFile) {
-        const extension = this.selectedImageFile.name.split('.').pop() || 'jpg';
-        const fileName = `${crypto.randomUUID()}.${extension}`;
+        const parsedIngredients = this.changeMealIngredientsText
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean);
 
-        imagePath = await this.supabaseService.uploadMealImage(
-          this.selectedImageFile,
-          fileName
+        await this.mealPlanService.createMealAndReplacePlannedMeal(
+          this.editingPlannedMealId,
+          this.newMealName.trim(),
+          this.newPrepTime,
+          this.selectedCookId,
+          imagePath,
+          this.changeMealInstructions.trim() || null,
+          parsedIngredients
         );
       }
 
-      const parsedIngredients = this.changeMealIngredientsText
-        .split('\n')
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-      await this.mealPlanService.createMealAndReplacePlannedMeal(
-        this.editingPlannedMealId,
-        this.newMealName.trim(),
-        this.newPrepTime,
-        this.selectedCookId,
-        imagePath,
-        this.changeMealInstructions.trim() || null,
-        parsedIngredients
-      );
+      this.closeFormAfterSave();
+      await this.loadMealsForDate(this.date);
+    } catch (error) {
+      console.error('Error changing planned meal meal:', error);
+    } finally {
+      this.cdr.detectChanges();
     }
-
-    this.cancelAddMeal();
-    await this.loadMealsForDate(this.date);
-  } catch (error) {
-    console.error('Error changing planned meal meal:', error);
-  } finally {
-    this.cdr.detectChanges();
   }
-}
 
   openAddMealFromDay(): void {
     if (!this.date || this.isPastDate()) {
@@ -611,6 +622,24 @@ async saveChangeMeal(): Promise<void> {
     }
   }
 
+  getPastStatusActionLabel(status: string): string | null {
+    if (!this.isPastDate()) {
+      return null;
+    }
+
+    switch (status) {
+      case 'to-prepare':
+      case 'in-progress':
+        return 'Mark ready';
+
+      case 'ready-to-serve':
+        return 'Reset status';
+
+      default:
+        return null;
+    }
+  }
+
   getPrimaryActionIcon(status: string): string {
     switch (status) {
       case 'to-prepare':
@@ -626,10 +655,6 @@ async saveChangeMeal(): Promise<void> {
 
 
   toggleMealMenu(meal: PlannedMeal): void {
-    if (this.isPastDate()) {
-      return;
-    }
-
     const isSameMeal = this.openMealMenuId === meal.id;
     this.openMealMenuId = isSameMeal ? null : meal.id;
     this.selectedMealForActions = isSameMeal ? null : meal;
@@ -641,7 +666,7 @@ async saveChangeMeal(): Promise<void> {
   }
 
   async onPrimaryAction(meal: PlannedMeal): Promise<void> {
-    if (this.isPastDate() || !this.date) {
+    if (!this.date) {
       return;
     }
 
@@ -714,12 +739,26 @@ async saveChangeMeal(): Promise<void> {
   }
 
   getResponsiveMealActions(meal: PlannedMeal): ResponsiveActionMenuItem[] {
-    return [
-      { id: 'change', label: 'Change meal' },
-      { id: 'edit-cook', label: 'Edit cook' },
-      { id: 'remove', label: 'Remove' },
+  if (this.isPastDate()) {
+    const actions: ResponsiveActionMenuItem[] = [
+      { id: 'edit-cook', label: 'Change cook' },
     ];
+
+    const statusLabel = this.getPastStatusActionLabel(meal.status);
+
+    if (statusLabel) {
+      actions.push({ id: 'primary', label: statusLabel });
+    }
+
+    return actions;
   }
+
+  return [
+    { id: 'change', label: 'Change meal' },
+    { id: 'edit-cook', label: 'Change cook' },
+    { id: 'remove', label: 'Remove' },
+  ];
+}
 
   async onMealActionSelected(actionId: string): Promise<void> {
     if (!this.selectedMealForActions) {
@@ -819,6 +858,24 @@ async saveChangeMeal(): Promise<void> {
 
   closeMealDetailsDialog(): void {
     this.selectedMealForDetails = null;
+  }
+
+  private closeFormAfterSave(): void {
+    this.isFormOpen = false;
+    this.formMode = 'add';
+    this.editingPlannedMealId = null;
+    this.editingMealId = null;
+    this.selectedMealForForm = null;
+    this.selectedExistingMealId = null;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        add: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   ngOnDestroy(): void {
