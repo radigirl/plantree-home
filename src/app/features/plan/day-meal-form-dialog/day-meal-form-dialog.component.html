@@ -30,43 +30,49 @@
         </div>
 
         <ng-container *ngIf="addMealMode === 'search' && availableMeals.length > 0">
+          <div class="selected-meals-block" *ngIf="selectedAvailableMeals.length > 0">
+            <p class="selected-meals-label">
+              Selected meals ({{ selectedAvailableMeals.length }})
+            </p>
+
+            <div class="selected-meals-chips" #selectedMealsChips
+              [class.selected-meals-chips--expanded]="chipsExpanded">
+              <button type="button" class="selected-meal-chip" *ngFor="let selectedMeal of selectedAvailableMeals"
+                (click)="removeMealFromAddSelection(selectedMeal.id)">
+                <span>{{ selectedMeal.name }}</span>
+                <span class="selected-meal-chip__remove">×</span>
+              </button>
+            </div>
+            <button type="button" class="selected-meals-more" *ngIf="selectedMealsHasOverflow || chipsExpanded"
+              (click)="toggleChipsExpanded()">
+              {{ chipsExpanded ? 'Show less' : 'Show all selected' }}
+            </button>
+          </div>
           <div class="meal-field">
             <label for="mealSearch">Search meals</label>
 
             <div class="search-input-wrap">
               <input id="mealSearch" type="search" [(ngModel)]="mealSearchQuery"
                 placeholder="Search by title or ingredient" />
+
+              <button *ngIf="mealSearchQuery" type="button" class="search-clear-btn" (click)="mealSearchQuery = ''"
+                aria-label="Clear search">
+                ×
+              </button>
             </div>
           </div>
 
-          <div class="selected-meal-row" *ngIf="selectedAvailableMeal as selectedMeal">
-            <div class="selected-meal-row__image">
-              <img [src]="selectedMeal.image_url || 'assets/meals/default-meal.png'" [alt]="selectedMeal.name" />
-            </div>
-
-            <div class="selected-meal-row__content">
-              <div class="selected-meal-row__title">
-                {{ selectedMeal.name }}
-              </div>
-
-              <div class="selected-meal-row__meta" *ngIf="selectedMeal.prepTime != null">
-                {{ selectedMeal.prepTime }} min
-              </div>
-            </div>
-
-            <button type="button" class="selected-meal-row__remove" (click)="clearMealSearch()">
-              ×
-            </button>
-          </div>
-
-          <div class="meal-search-results-container meal-search-results-container--reserved">
-            <div class="meal-search-empty-wrap" *ngIf="!mealSearchQuery && !selectedExistingMealId">
+          <div class="meal-search-results-container meal-search-results-container--reserved"
+            [class.has-results]="displayedAvailableMeals.length > 0">
+            <div class="meal-search-empty-wrap" *ngIf="!mealSearchQuery">
               <p class="meal-search-empty">Start typing to search meals</p>
             </div>
 
-            <div class="meal-search-results" *ngIf="!selectedExistingMealId && displayedAvailableMeals.length > 0">
+            <div class="meal-search-results" *ngIf="displayedAvailableMeals.length > 0">
               <button type="button" class="meal-search-result meal-search-result--row"
-                *ngFor="let meal of displayedAvailableMeals" (click)="selectMealForAdd(meal.id)">
+                *ngFor="let meal of displayedAvailableMeals"
+                [class.meal-search-result--selected]="isMealSelectedForAdd(meal.id)"
+                (click)="selectMealForAdd(meal.id)">
 
                 <div class="meal-search-result__image">
                   <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
@@ -86,8 +92,7 @@
               </button>
             </div>
 
-            <div class="meal-search-empty-wrap"
-              *ngIf="mealSearchQuery && displayedAvailableMeals.length === 0 && !selectedExistingMealId">
+            <div class="meal-search-empty-wrap" *ngIf="mealSearchQuery && displayedAvailableMeals.length === 0">
 
               <p class="meal-search-empty">No meals found.</p>
             </div>
@@ -205,6 +210,10 @@
               <input id="changeMealSearch" type="search" inputmode="search" [(ngModel)]="changeMealSearchQuery"
                 placeholder="Search by title or ingredient" autocomplete="off" autocorrect="off" autocapitalize="off"
                 spellcheck="false" enterkeyhint="search" />
+              <button *ngIf="changeMealSearchQuery" type="button" class="search-clear-btn"
+                (click)="changeMealSearchQuery = ''" aria-label="Clear search">
+                ×
+              </button>
             </div>
           </div>
 

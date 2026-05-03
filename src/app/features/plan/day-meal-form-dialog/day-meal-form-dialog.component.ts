@@ -5,6 +5,10 @@ import {
   Output,
   OnChanges,
   SimpleChanges,
+  ElementRef,
+  ViewChild,
+  AfterViewChecked,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -45,6 +49,7 @@ export class DayMealFormDialogComponent implements OnChanges {
     selectedImageFile?: File | null;
     changeMealIngredientsText?: string;
     changeMealInstructions?: string;
+    selectedMealIds?: string[];
   }>();
 
   isSaving = false;
@@ -52,6 +57,7 @@ export class DayMealFormDialogComponent implements OnChanges {
   changeMealMode: 'search' | 'create-from-current' = 'search';
   changeMealSearchQuery = '';
   selectedExistingMealId: string | null = null;
+  selectedExistingMealIds: string[] = [];
   addMealMode: 'search' | 'new' = 'search';
   mealSearchQuery = '';
   newMealName = '';
@@ -65,6 +71,12 @@ export class DayMealFormDialogComponent implements OnChanges {
   changeMealInstructions = '';
   showChangeAdvanced = false;
   formError = '';
+  chipsExpanded = false;
+
+  @ViewChild('selectedMealsChips') selectedMealsChips?: ElementRef<HTMLDivElement>;
+  selectedMealsHasOverflow = false;
+
+  constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && this.isOpen) {
@@ -72,6 +84,7 @@ export class DayMealFormDialogComponent implements OnChanges {
       this.isSaving = false;
 
       this.selectedExistingMealId = null;
+      this.selectedExistingMealIds = [];
       this.mealSearchQuery = '';
       this.changeMealSearchQuery = '';
       this.formError = '';
@@ -123,7 +136,7 @@ export class DayMealFormDialogComponent implements OnChanges {
     ) {
       return;
     }
-    if (this.mode === 'add' && this.addMealMode === 'search' && !this.selectedExistingMealId) {
+    if (this.mode === 'add' && this.addMealMode === 'search' && this.selectedExistingMealIds.length === 0) {
       return;
     }
     if (this.mode === 'add' && this.addMealMode === 'new' && !this.newMealName.trim()) {
@@ -149,6 +162,7 @@ export class DayMealFormDialogComponent implements OnChanges {
       mode: this.mode,
       cookId: this.selectedCookId,
       selectedMealId: this.selectedExistingMealId,
+      selectedMealIds: this.selectedExistingMealIds,
       changeMealMode: this.changeMealMode,
       addMealMode: this.addMealMode,
 
@@ -249,28 +263,15 @@ export class DayMealFormDialogComponent implements OnChanges {
     });
   }
 
-  get selectedAvailableMeal(): Meal | null {
-    if (!this.selectedExistingMealId) return null;
-    return this.availableMeals.find((meal) => meal.id === this.selectedExistingMealId) ?? null;
-  }
-
   setAddMealMode(mode: string): void {
     if (mode !== 'search' && mode !== 'new') return;
 
     this.addMealMode = mode;
     this.selectedExistingMealId = null;
+    this.selectedExistingMealIds = [];
     this.mealSearchQuery = '';
   }
 
-  selectMealForAdd(mealId: string): void {
-    this.selectedExistingMealId = mealId;
-    this.mealSearchQuery = '';
-  }
-
-  clearMealSearch(): void {
-    this.selectedExistingMealId = null;
-    this.mealSearchQuery = '';
-  }
 
   get newMealHasDetails(): boolean {
     return !!(
@@ -293,9 +294,66 @@ export class DayMealFormDialogComponent implements OnChanges {
     this.selectedImagePreview = URL.createObjectURL(file);
   }
 
+  selectMealForAdd(mealId: string): void {
+    if (this.selectedExistingMealIds.includes(mealId)) {
+      this.selectedExistingMealIds = this.selectedExistingMealIds.filter((id) => id !== mealId);
+      return;
+    }
+
+    this.selectedExistingMealIds = [...this.selectedExistingMealIds, mealId];
+  }
+
+  removeMealFromAddSelection(mealId: string): void {
+    this.selectedExistingMealIds = this.selectedExistingMealIds.filter((id) => id !== mealId);
+  }
+
+  clearMealSearch(): void {
+    this.selectedExistingMealIds = [];
+    this.mealSearchQuery = '';
+  }
+
+  isMealSelectedForAdd(mealId: string): boolean {
+    return this.selectedExistingMealIds.includes(mealId);
+  }
+
+  get selectedAvailableMeals(): Meal[] {
+    return this.availableMeals.filter((meal) =>
+      this.selectedExistingMealIds.includes(meal.id)
+    );
+  }
+
   removeSelectedMealImage(): void {
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
+  }
+
+  ngAfterViewChecked(): void {
+    this.updateSelectedMealsOverflow();
+  }
+
+  private updateSelectedMealsOverflow(): void {
+  const element = this.selectedMealsChips?.nativeElement;
+
+  if (!element) {
+    this.selectedMealsHasOverflow = false;
+    this.chipsExpanded = false;
+    return;
+  }
+
+  if (this.chipsExpanded) {
+    return;
+  }
+
+  const hasOverflow = element.scrollHeight > element.clientHeight + 1;
+
+  if (this.selectedMealsHasOverflow !== hasOverflow) {
+    this.selectedMealsHasOverflow = hasOverflow;
+    this.cdr.detectChanges();
+  }
+}
+
+  toggleChipsExpanded(): void {
+    this.chipsExpanded = !this.chipsExpanded;
   }
 
 }

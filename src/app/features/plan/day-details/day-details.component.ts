@@ -26,6 +26,7 @@ import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { LucideAngularModule, Clock3, UserRound } from 'lucide-angular';
 import { DayMealFormDialogComponent } from '../day-meal-form-dialog/day-meal-form-dialog.component';
 import { DayMealDetailsDialogComponent } from '../day-meal-details-dialog/day-meal-details-dialog.component';
+import { SnackbarComponent } from '../../../shared/components/snackbar/snackbar.component';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type AddMealMode = 'search' | 'new';
@@ -34,7 +35,7 @@ type ChangeMealMode = 'search' | 'create-from-current';
 @Component({
   selector: 'app-day-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent, LucideAngularModule, DayMealFormDialogComponent, DayMealDetailsDialogComponent],
+  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent, LucideAngularModule, DayMealFormDialogComponent, DayMealDetailsDialogComponent, SnackbarComponent],
   templateUrl: './day-details.component.html',
   styleUrl: './day-details.component.scss',
 })
@@ -78,6 +79,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   addMealMode: AddMealMode = 'search';
   changeMealMode: ChangeMealMode = 'search';
   selectedExistingMealId: string | null = null;
+  selectedExistingMealIds: string[] = [];
 
   selectedMealForActions: PlannedMeal | null = null;
 
@@ -98,6 +100,10 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   selectedMealForDetails: PlannedMeal | null = null;
 
   entrySource: string | null = null;
+
+  snackbarMessage = '';
+  snackbarVisible = false;
+  private snackbarTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -268,6 +274,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     this.selectedCookId = currentMember?.id ?? null;
 
     this.selectedExistingMealId = null;
+    this.selectedExistingMealIds = [];
 
     await this.loadAvailableMeals();
 
@@ -318,6 +325,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     this.selectedImageFile = null;
     this.selectedImagePreview = null;
     this.selectedExistingMealId = null;
+    this.selectedExistingMealIds = [];
     this.selectedMealForForm = meal;
     this.closeMealMenu();
   }
@@ -346,52 +354,53 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   cancelAddMeal(): void {
-  const modeBeforeReset = this.formMode;
-  const source = this.getAddSource();
+    const modeBeforeReset = this.formMode;
+    const source = this.getAddSource();
 
-  this.isFormOpen = false;
-  this.formMode = 'add';
-  this.editingPlannedMealId = null;
-  this.editingMealId = null;
-  this.newMealName = '';
-  this.newPrepTime = null;
-  this.selectedCookId = null;
-  this.openMealMenuId = null;
-  this.selectedImageFile = null;
-  this.selectedImagePreview = null;
-  this.mealInstructions = '';
-  this.changeMealInstructions = '';
-  this.mealIngredientsText = '';
-  this.changeMealIngredientsText = '';
-  this.changeMealMode = 'search';
-  this.addMealMode = 'search';
-  this.selectedExistingMealId = null;
-  this.selectedMealForForm = null;
+    this.isFormOpen = false;
+    this.formMode = 'add';
+    this.editingPlannedMealId = null;
+    this.editingMealId = null;
+    this.newMealName = '';
+    this.newPrepTime = null;
+    this.selectedCookId = null;
+    this.openMealMenuId = null;
+    this.selectedImageFile = null;
+    this.selectedImagePreview = null;
+    this.mealInstructions = '';
+    this.changeMealInstructions = '';
+    this.mealIngredientsText = '';
+    this.changeMealIngredientsText = '';
+    this.changeMealMode = 'search';
+    this.addMealMode = 'search';
+    this.selectedExistingMealId = null;
+    this.selectedExistingMealIds = [];
+    this.selectedMealForForm = null;
 
-  if (modeBeforeReset !== 'add') {
-    return;
+    if (modeBeforeReset !== 'add') {
+      return;
+    }
+
+    if (source === 'plan') {
+      this.router.navigate(['/plan']);
+      return;
+    }
+
+    if (source === 'home') {
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        add: null,
+        source: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
-
-  if (source === 'plan') {
-    this.router.navigate(['/plan']);
-    return;
-  }
-
-  if (source === 'home') {
-    this.router.navigate(['/home']);
-    return;
-  }
-
-  this.router.navigate([], {
-    relativeTo: this.route,
-    queryParams: {
-      add: null,
-      source: null,
-    },
-    queryParamsHandling: 'merge',
-    replaceUrl: true,
-  });
-}
 
 
 
@@ -402,15 +411,17 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
     try {
       if (this.addMealMode === 'search') {
-        if (!this.selectedExistingMealId) {
+        if (this.selectedExistingMealIds.length === 0) {
           return;
         }
 
-        await this.mealPlanService.createPlannedMealFromExistingMeal(
-          this.selectedExistingMealId,
-          this.selectedCookId,
-          this.date
-        );
+        for (const mealId of this.selectedExistingMealIds) {
+          await this.mealPlanService.createPlannedMealFromExistingMeal(
+            mealId,
+            this.selectedCookId,
+            this.date
+          );
+        }
       } else {
         if (!this.newMealName.trim()) {
           return;
@@ -739,26 +750,26 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   getResponsiveMealActions(meal: PlannedMeal): ResponsiveActionMenuItem[] {
-  if (this.isPastDate()) {
-    const actions: ResponsiveActionMenuItem[] = [
-      { id: 'edit-cook', label: 'Change cook' },
-    ];
+    if (this.isPastDate()) {
+      const actions: ResponsiveActionMenuItem[] = [
+        { id: 'edit-cook', label: 'Change cook' },
+      ];
 
-    const statusLabel = this.getPastStatusActionLabel(meal.status);
+      const statusLabel = this.getPastStatusActionLabel(meal.status);
 
-    if (statusLabel) {
-      actions.push({ id: 'primary', label: statusLabel });
+      if (statusLabel) {
+        actions.push({ id: 'primary', label: statusLabel });
+      }
+
+      return actions;
     }
 
-    return actions;
+    return [
+      { id: 'change', label: 'Change meal' },
+      { id: 'edit-cook', label: 'Change cook' },
+      { id: 'remove', label: 'Remove' },
+    ];
   }
-
-  return [
-    { id: 'change', label: 'Change meal' },
-    { id: 'edit-cook', label: 'Change cook' },
-    { id: 'remove', label: 'Remove' },
-  ];
-}
 
   async onMealActionSelected(actionId: string): Promise<void> {
     if (!this.selectedMealForActions) {
@@ -799,58 +810,83 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onDayMealFormSaved(event: {
-    mode: 'add' | 'edit-cook' | 'change-meal';
-    cookId: number | null;
-    selectedMealId?: string | null;
-    changeMealMode?: 'search' | 'create-from-current';
-    addMealMode?: 'search' | 'new';
+  mode: 'add' | 'edit-cook' | 'change-meal';
+  cookId: number | null;
+  selectedMealId?: string | null;
+  selectedMealIds?: string[];
+  changeMealMode?: 'search' | 'create-from-current';
+  addMealMode?: 'search' | 'new';
 
-    newMealName?: string;
-    newPrepTime?: number | null;
-    mealIngredientsText?: string;
-    mealInstructions?: string;
-    changeMealIngredientsText?: string;
-    changeMealInstructions?: string;
-    selectedImageFile?: File | null;
-  }): Promise<void> {
-    if (event.mode === 'edit-cook') {
-      this.selectedCookId = event.cookId;
-      await this.saveEditCook();
-      return;
-    }
-
-    if (event.mode === 'change-meal') {
-      this.selectedCookId = event.cookId;
-      this.changeMealMode = event.changeMealMode ?? 'search';
-      this.selectedExistingMealId = event.selectedMealId ?? null;
-
-      this.newMealName = event.newMealName ?? '';
-      this.newPrepTime = event.newPrepTime ?? null;
-      this.selectedImageFile = event.selectedImageFile ?? null;
-      this.selectedImagePreview = null;
-      this.changeMealIngredientsText = event.changeMealIngredientsText ?? '';
-      this.changeMealInstructions = event.changeMealInstructions ?? '';
-
-      await this.saveChangeMeal();
-      return;
-    }
-
-    if (event.mode === 'add') {
-      this.selectedCookId = event.cookId;
-      this.addMealMode = event.addMealMode ?? 'search';
-      this.selectedExistingMealId = event.selectedMealId ?? null;
-
-      this.newMealName = event.newMealName ?? '';
-      this.newPrepTime = event.newPrepTime ?? null;
-      this.mealIngredientsText = event.mealIngredientsText ?? '';
-      this.mealInstructions = event.mealInstructions ?? '';
-      this.selectedImageFile = event.selectedImageFile ?? null;
-      this.selectedImagePreview = null;
-
-      await this.saveMeal();
-      return;
-    }
+  newMealName?: string;
+  newPrepTime?: number | null;
+  mealIngredientsText?: string;
+  mealInstructions?: string;
+  changeMealIngredientsText?: string;
+  changeMealInstructions?: string;
+  selectedImageFile?: File | null;
+}): Promise<void> {
+  if (event.mode === 'edit-cook') {
+    this.selectedCookId = event.cookId;
+    await this.saveEditCook();
+    this.showSnackbar('Cook updated');
+    return;
   }
+
+  if (event.mode === 'change-meal') {
+    this.selectedCookId = event.cookId;
+    this.changeMealMode = event.changeMealMode ?? 'search';
+    this.selectedExistingMealId = event.selectedMealId ?? null;
+
+    this.newMealName = event.newMealName ?? '';
+    this.newPrepTime = event.newPrepTime ?? null;
+    this.selectedImageFile = event.selectedImageFile ?? null;
+    this.selectedImagePreview = null;
+    this.changeMealIngredientsText = event.changeMealIngredientsText ?? '';
+    this.changeMealInstructions = event.changeMealInstructions ?? '';
+
+    await this.saveChangeMeal();
+    this.showSnackbar('Meal changed');
+    return;
+  }
+
+  if (event.mode === 'add') {
+    this.selectedCookId = event.cookId;
+    this.addMealMode = event.addMealMode ?? 'search';
+    this.selectedExistingMealId = event.selectedMealId ?? null;
+    this.selectedExistingMealIds = event.selectedMealIds ?? [];
+
+    this.newMealName = event.newMealName ?? '';
+    this.newPrepTime = event.newPrepTime ?? null;
+    this.mealIngredientsText = event.mealIngredientsText ?? '';
+    this.mealInstructions = event.mealInstructions ?? '';
+    this.selectedImageFile = event.selectedImageFile ?? null;
+    this.selectedImagePreview = null;
+
+    const addedMealsCount = this.selectedExistingMealIds.length;
+    const singleAddedMealId =
+      addedMealsCount === 1 ? this.selectedExistingMealIds[0] : null;
+    const newMealNameForSnackbar = this.newMealName.trim();
+
+    await this.saveMeal();
+
+    if (this.addMealMode === 'search') {
+      if (addedMealsCount > 1) {
+        this.showSnackbar(`${addedMealsCount} meals added`);
+      } else if (singleAddedMealId) {
+        const meal = this.availableMeals.find((m) => m.id === singleAddedMealId);
+        this.showSnackbar(meal ? `${meal.name} added` : 'Meal added');
+      } else {
+        this.showSnackbar('Meal added');
+      }
+    } else if (this.addMealMode === 'new' && newMealNameForSnackbar) {
+      this.showSnackbar(`${newMealNameForSnackbar} added`);
+    } else {
+      this.showSnackbar('Meal added');
+    }
+
+    return;
+  }
+}
 
   openMealDetailsDialog(meal: PlannedMeal): void {
     this.selectedMealForDetails = meal;
@@ -867,6 +903,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     this.editingMealId = null;
     this.selectedMealForForm = null;
     this.selectedExistingMealId = null;
+    this.selectedExistingMealIds = [];
 
     this.router.navigate([], {
       relativeTo: this.route,
@@ -876,6 +913,18 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  private showSnackbar(message: string): void {
+    this.snackbarMessage = message;
+    this.snackbarVisible = true;
+
+    setTimeout(() => {
+      this.snackbarVisible = false;
+      this.cdr.detectChanges();
+    }, 2500);
+
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {
