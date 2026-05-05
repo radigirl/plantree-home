@@ -35,6 +35,7 @@ import {
   AppLanguage,
   LanguageStateService,
 } from '../../services/language.state.service';
+import { MemberStateService } from '../../services/member.state.service';
 
 type OpenMenuSection = 'members' | 'language' | 'settings' | 'account' | null;
 
@@ -84,7 +85,8 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
 
   constructor(
     private router: Router,
-    private languageStateService: LanguageStateService
+    private languageStateService: LanguageStateService,
+    private memberStateService: MemberStateService
   ) { }
 
   ngOnInit(): void {
@@ -140,12 +142,16 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
     this.memberSelected.emit(member);
   }
 
-  selectLanguage(language: AppLanguage): void {
+  async selectLanguage(language: AppLanguage): Promise<void> {
     if (language === this.currentLanguage) {
       return;
     }
 
-    this.languageStateService.setLanguage(language);
+    try {
+      await this.memberStateService.setCurrentMemberLanguage(language);
+    } catch (error) {
+      console.error('Failed to save selected language', error);
+    }
   }
 
   navigateTo(path: string): void {

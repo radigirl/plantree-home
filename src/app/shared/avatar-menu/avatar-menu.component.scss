@@ -31,8 +31,18 @@
 .account-circle lucide-icon {
     width: 20px;
     height: 20px;
-    stroke-width: 2.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
     color: rgba(58, 116, 108, 0.8);
+}
+
+.account-circle lucide-icon svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    stroke-width: 2.2;
 }
 
 .account-circle:hover {
@@ -66,8 +76,25 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    object-fit: cover;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.current-member-avatar img,
+.member-menu-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.current-member-avatar lucide-icon,
+.member-menu-avatar lucide-icon {
+    width: 16px;
+    height: 16px;
+    color: $color-text-muted;
 }
 
 .current-member-name {
@@ -88,7 +115,6 @@
     margin: 6px 4px;
 }
 
-/* BASE MENU ITEMS */
 .menu-item,
 .member-menu-item,
 .select-menu-item {
@@ -141,7 +167,6 @@
     min-width: 0;
 }
 
-/* ICONS */
 .menu-item lucide-icon {
     width: 20px;
     height: 20px;
@@ -155,7 +180,6 @@
     opacity: 0.5;
 }
 
-/* COLLAPSIBLE */
 .collapsible-list {
     display: flex;
     flex-direction: column;
@@ -163,14 +187,12 @@
     margin: 2px 0 4px;
 }
 
-/* NESTED ITEMS  */
 .nested-menu-item {
     min-height: 28px;
     padding: 2px 10px 2px 52px;
     font-size: 13.5px;
 }
 
-/* ACTIVE STATE — only selected sub-items */
 .member-menu-item.is-active,
 .select-menu-item.is-active {
     background: rgba(92, 143, 134, 0.08);
@@ -181,7 +203,6 @@
     padding-bottom: 2px;
 }
 
-/* CHECK ICON */
 .active-check {
     width: 16px;
     height: 16px;
@@ -191,7 +212,6 @@
     transform: scale(0.9);
 }
 
-/* LOGOUT */
 .danger {
     color: $color-text;
 }
@@ -218,31 +238,24 @@
     color: $color-primary-dark;
 }
 
-.nested-divider {
-    height: 1px;
-    background: rgba(46, 58, 50, 0.035);
-    margin: 4px 10px 4px 52px;
-}
-
 .account-toggle {
-  background: transparent;
+    background: transparent;
 }
 
 .account-toggle:hover {
-  background: rgba(92, 143, 134, 0.05);
+    background: rgba(92, 143, 134, 0.05);
 }
 
-/* LEVEL 3 (Account submenu) */
 .nested-menu-item--deep {
-  min-height: 28px;
-  padding: 2px 10px 2px 76px;
-  color: $color-text-muted;
-  font-weight: 400;
+    min-height: 28px;
+    padding: 2px 10px 2px 76px;
+    color: $color-text-muted;
+    font-weight: 400;
 }
 
 .nested-menu-item--deep:hover {
-  color: $color-primary-dark;
-  background: rgba(92, 143, 134, 0.05);
+    color: $color-primary-dark;
+    background: rgba(92, 143, 134, 0.05);
 }
 
 .account-toggle,
@@ -250,12 +263,11 @@
 .account-toggle:focus,
 .account-toggle:active,
 .account-toggle:focus-visible {
-  background: transparent;
-  outline: none;
-  box-shadow: none;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
 }
 
-/* RESPONSIVE */
 @include mobile {
     .avatar-menu {
         position: fixed;
