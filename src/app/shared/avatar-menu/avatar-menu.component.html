@@ -2,8 +2,8 @@
   <button type="button" class="account-circle" (click)="toggleMenu($event)" [attr.aria-expanded]="isOpen"
     aria-label="Open main menu">
     <ng-container *ngIf="currentMember?.avatar_url; else fallbackIcon">
-      <img [src]="currentMember?.avatar_url" [alt]="currentMember?.name || 'Current member'" class="account-avatar"
-        (error)="currentMember && (currentMember.avatar_url = undefined)"/>
+      <img [src]="currentMember?.avatar_url" [alt]="currentMember?.name || ('menu.currentMember' | translate)"
+        class="account-avatar" (error)="currentMember && (currentMember.avatar_url = undefined)" />
     </ng-container>
 
     <ng-template #fallbackIcon>
@@ -15,7 +15,7 @@
     <div class="current-member-row">
       <div class="current-member-avatar">
         <ng-container *ngIf="currentMember?.avatar_url; else currentMemberFallbackIcon">
-          <img [src]="currentMember?.avatar_url" [alt]="currentMember?.name || 'Current member'"
+          <img [src]="currentMember?.avatar_url" [alt]="currentMember?.name || ('menu.currentMember' | translate)"
             (error)="currentMember && (currentMember.avatar_url = undefined)" />
         </ng-container>
 
@@ -26,16 +26,16 @@
 
       <div>
         <div class="current-member-name">
-          {{ currentMember?.name || 'Member' }}
+          {{ currentMember?.name || ('menu.member' | translate) }}
         </div>
-        <div class="current-member-label">Current member</div>
+        <div class="current-member-label">{{ 'menu.currentMember' | translate }}</div>
       </div>
     </div>
 
     <button type="button" class="menu-item" (click)="toggleSection('members')">
       <span class="menu-item-left">
         <lucide-icon [img]="usersIcon" [size]="18"></lucide-icon>
-        <span>Change member</span>
+        <span>{{ 'menu.changeMember' | translate }}</span>
       </span>
 
       <lucide-icon class="menu-chevron"
@@ -64,7 +64,7 @@
       <div class="nested-divider"></div>
 
       <button type="button" class="member-menu-item nested-menu-item add-member-item" (click)="onAddMember()">
-        + Add member
+        {{ 'menu.addMember' | translate }}
       </button>
     </div>
 
@@ -73,28 +73,28 @@
     <button type="button" class="menu-item" (click)="navigateTo('/cook-from-pantry')">
       <span class="menu-item-left">
         <lucide-icon [img]="chefHatIcon" [size]="18"></lucide-icon>
-        <span>Cook from pantry</span>
+        <span>{{ 'menu.cookFromPantry' | translate }}</span>
       </span>
     </button>
 
     <button type="button" class="menu-item" (click)="navigateTo('/meals')">
       <span class="menu-item-left">
         <lucide-icon [img]="myMealsIcon" [size]="18"></lucide-icon>
-        <span>My Meals</span>
+        <span>{{ 'menu.myMeals' | translate }}</span>
       </span>
     </button>
 
     <button type="button" class="menu-item" (click)="navigateTo('/week-stats')">
       <span class="menu-item-left">
         <lucide-icon [img]="statsIcon" [size]="18"></lucide-icon>
-        <span>Week Stats</span>
+        <span>{{ 'menu.weekStats' | translate }}</span>
       </span>
     </button>
 
     <button type="button" class="menu-item" (click)="navigateTo('/notifications')">
       <span class="menu-item-left">
         <lucide-icon [img]="bellIcon" [size]="18"></lucide-icon>
-        <span>Notifications</span>
+        <span>{{ 'menu.notifications' | translate }}</span>
       </span>
     </button>
 
@@ -103,7 +103,7 @@
     <button type="button" class="menu-item" (click)="toggleSection('language')">
       <span class="menu-item-left">
         <lucide-icon [img]="globeIcon" [size]="18"></lucide-icon>
-        <span>Language</span>
+        <span>{{ 'menu.language' | translate }}</span>
       </span>
 
       <lucide-icon class="menu-chevron"
@@ -122,7 +122,7 @@
     <button type="button" class="menu-item" (click)="toggleSection('settings')">
       <span class="menu-item-left">
         <lucide-icon [img]="settingsIcon" [size]="18"></lucide-icon>
-        <span>Settings</span>
+        <span>{{ 'menu.settings' | translate }}</span>
       </span>
 
       <lucide-icon class="menu-chevron"
@@ -131,19 +131,19 @@
 
     <div class="collapsible-list" *ngIf="openSection === 'settings'">
       <button type="button" class="select-menu-item nested-menu-item" (click)="onSettingsAction('members')">
-        Manage members
+        {{ 'menu.manageMembers' | translate }}
       </button>
 
       <button type="button" class="select-menu-item nested-menu-item" (click)="onSettingsAction('spaces')">
-        Manage spaces
+        {{ 'menu.manageSpaces' | translate }}
       </button>
 
       <button type="button" class="select-menu-item nested-menu-item" (click)="onSettingsAction('meals')">
-        Manage meals
+        {{ 'menu.manageMeals' | translate }}
       </button>
 
       <button type="button" class="select-menu-item nested-menu-item account-toggle" (click)="toggleAccountSection()">
-        <span>Account</span>
+        <span>{{ 'menu.account' | translate }}</span>
 
         <lucide-icon class="menu-chevron"
           [img]="isAccountSectionOpen ? chevronDownIcon : chevronRightIcon"></lucide-icon>
@@ -153,19 +153,19 @@
     <div class="collapsible-list account-submenu" *ngIf="isAccountSectionOpen">
       <button type="button" class="select-menu-item nested-menu-item nested-menu-item--deep"
         (click)="onAccountAction('edit-profile')">
-        Edit profile
+        {{ 'menu.editProfile' | translate }}
       </button>
 
       <button type="button" class="select-menu-item nested-menu-item nested-menu-item--deep danger-action"
         (click)="onAccountAction('delete-account')">
-        Delete account
+        {{ 'menu.deleteAccount' | translate }}
       </button>
     </div>
 
     <button type="button" class="menu-item" (click)="navigateTo('/about')">
       <span class="menu-item-left">
         <lucide-icon [img]="infoIcon" [size]="18"></lucide-icon>
-        <span>About</span>
+        <span>{{ 'menu.about' | translate }}</span>
       </span>
     </button>
 
@@ -174,7 +174,7 @@
     <button type="button" class="menu-item danger" (click)="logout()">
       <span class="menu-item-left">
         <lucide-icon [img]="logoutIcon" [size]="18"></lucide-icon>
-        <span>Logout</span>
+        <span>{{ 'menu.logout' | translate }}</span>
       </span>
     </button>
   </div>

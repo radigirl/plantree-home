@@ -1,21 +1,21 @@
 <nav class="navigation">
   <button class="nav-item" (click)="goTo('/home')">
     <lucide-icon [img]="homeIcon" class="nav-icon"></lucide-icon>
-    <span class="nav-label">Home</span>
+    <span class="nav-label">{{ 'nav.home' | translate }}</span>
   </button>
 
   <button class="nav-item" (click)="goTo('/plan')">
     <lucide-icon [img]="planIcon" class="nav-icon"></lucide-icon>
-    <span class="nav-label">Plan</span>
+    <span class="nav-label">{{ 'nav.plan' | translate }}</span>
   </button>
 
   <button class="nav-item" (click)="goTo('/grocery-lists')">
     <lucide-icon [img]="groceryListsIcon" class="nav-icon"></lucide-icon>
-    <span class="nav-label">Lists</span>
+    <span class="nav-label">{{ 'nav.lists' | translate }}</span>
   </button>
 
   <button class="nav-item" (click)="goTo('/pantry')">
     <lucide-icon [img]="pantryIcon" class="nav-icon"></lucide-icon>
-    <span class="nav-label">Pantry</span>
+    <span class="nav-label">{{ 'nav.pantry' | translate }}</span>
   </button>
 </nav>

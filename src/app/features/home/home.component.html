@@ -6,15 +6,21 @@
 
       <article class="card card--pantry home-grid__pantry" (click)="openCookFromPantry()">
         <div class="pantry-copy">
-          <h3 class="card__title card__title--compact">Cook from your pantry →</h3>
-          <p class="card__subtitle card__subtitle--pantry">Find your next meal</p>
+          <h3 class="card__title card__title--compact">
+            {{ 'home.cookFromPantry' | translate }}
+          </h3>
+          <p class="card__subtitle card__subtitle--pantry">
+            {{ 'home.findNextMeal' | translate }}
+          </p>
         </div>
       </article>
 
       <!-- TODAY CARD -->
       <article class="card home-grid__featured" (click)="openToday()">
         <div class="card__header">
-          <h3 class="card__title">What’s for today?</h3>
+          <h3 class="card__title">
+            {{ 'home.whatsForToday' | translate }}
+          </h3>
 
           <button type="button" class="meal-add-btn meal-add-btn--circle today-card__add-btn"
             (click)="onAddTodayClick($event)">
@@ -26,7 +32,9 @@
           <ng-container *ngIf="!hasTodayMeals; else todayMealsContent">
             <div class="today-card today-card--empty">
               <div class="today-card-body">
-                <p class="today-empty-title">No meal planned yet</p>
+                <p class="today-empty-title">
+                  {{ 'home.noMealPlanned' | translate }}
+                </p>
                 <div class="today-empty-meta-space" aria-hidden="true"></div>
               </div>
 
@@ -46,7 +54,9 @@
                 </p>
 
                 <div class="today-cook-row">
-                  <span class="today-cook-label">Cook:</span>
+                  <span class="today-cook-label">
+                    {{ 'home.cookLabel' | translate }}
+                  </span>
 
                   <ng-container *ngIf="firstTodayMeal?.cook as cook; else todayUnassignedCook">
                     <img [src]="cook.avatar_url || 'assets/avatars/unassigned.png'" class="today-inline-avatar"
@@ -62,7 +72,7 @@
                   </ng-template>
 
                   <p class="today-secondary-text">
-                    {{ firstTodayMeal?.cook?.name || 'Unassigned' }}
+                    {{ firstTodayMeal?.cook?.name || ('home.unassigned' | translate) }}
                   </p>
                 </div>
 
@@ -79,7 +89,10 @@
                 </div>
 
                 <p class="today-more-meals" [class.today-more-meals--hidden]="!hasMultipleTodayMeals">
-                  +{{ additionalMealsCount }} more {{ additionalMealsCount > 1 ? 'meals' : 'meal' }}
+                  +{{ additionalMealsCount }}
+                  {{ additionalMealsCount === 1
+                  ? ('home.moreMeals' | translate)
+                  : ('home.moreMealsPlural' | translate) }}
                 </p>
               </div>
 
@@ -100,17 +113,25 @@
         <article class="card card--week" (click)="openWeekPlan()">
           <div class="card__header">
             <lucide-icon [img]="planIcon" [size]="18" class="card-icon"></lucide-icon>
-            <h3 class="card__title">Week Plan</h3>
+            <h3 class="card__title">
+              {{ 'home.weekPlan' | translate }}
+            </h3>
           </div>
 
           <div class="card__content">
             <div class="summary-card-content">
-              <p class="summary-card-main">• {{ plannedMealsCount }} planned</p>
+              <p class="summary-card-main">
+                • {{ plannedMealsCount }}
+                {{ plannedMealsCount === 1
+                ? ('home.plannedOne' | translate)
+                : ('home.plannedMany' | translate) }}
+              </p>
 
               <p class="summary-card-main" *ngIf="plannedMealsCount > 0" style="margin-bottom:0; line-height:1.28;">
                 • {{ emptyDaysCount }}
-                {{ emptyDaysCount === 1 ? 'day' : 'days' }}
-                remaining
+                {{ emptyDaysCount === 1
+                ? ('home.dayRemainingOne' | translate)
+                : ('home.dayRemainingMany' | translate) }}
               </p>
             </div>
           </div>
@@ -120,14 +141,18 @@
         <article class="card card--meals" (click)="openMeals()">
           <div class="card__header">
             <lucide-icon [img]="myMealsIcon" [size]="18" class="card-icon long-icon"></lucide-icon>
-            <h3 class="card__title">My Meals</h3>
+            <h3 class="card__title">
+              {{ 'home.myMeals' | translate }}
+            </h3>
           </div>
 
           <div class="card__content">
             <div class="summary-card-content">
 
               <ng-container *ngIf="mealsCount > 0; else noMeals">
-                <p class="summary-card-main">• Last added:</p>
+                <p class="summary-card-main">
+                  • {{ 'home.lastAdded' | translate }}
+                </p>
 
                 <p class="summary-card-main second-line summary-card-value--ellipsis" style="line-height:1.28;">
                   {{ lastAddedMealName }}
@@ -135,7 +160,9 @@
               </ng-container>
 
               <ng-template #noMeals>
-                <p class="summary-card-main">• 0 saved meals</p>
+                <p class="summary-card-main">
+                  • {{ 'home.noSavedMeals' | translate }}
+                </p>
               </ng-template>
 
             </div>
@@ -146,16 +173,23 @@
         <article class="card card--lists" (click)="openGroceryLists()">
           <div class="card__header">
             <lucide-icon [img]="groceryListsIcon" [size]="18" class="card-icon"></lucide-icon>
-            <h3 class="card__title">Lists</h3>
+            <h3 class="card__title">
+              {{ 'home.lists' | translate }}
+            </h3>
           </div>
 
           <div class="card__content">
             <div class="summary-card-content">
-              <p class="summary-card-main">• {{ activeListsCount }} active lists</p>
+              <p class="summary-card-main">
+                • {{ activeListsCount }}
+                {{ activeListsCount === 1
+                ? ('home.activeListOne' | translate)
+                : ('home.activeListMany' | translate) }}
+              </p>
 
               <ng-container *ngIf="activeListsCount > 0">
                 <p class="summary-card-main summary-card-main--latest">
-                  • Latest: {{ latestActiveListName }}
+                  • {{ 'home.latest' | translate }} {{ latestActiveListName }}
                 </p>
               </ng-container>
             </div>
@@ -166,7 +200,9 @@
         <article class="card card--stats" (click)="openWeekStats()">
           <div class="card__header">
             <lucide-icon [img]="statsIcon" [size]="18" class="card-icon long-icon"></lucide-icon>
-            <h3 class="card__title">Week Stats</h3>
+            <h3 class="card__title">
+              {{ 'home.weekStats' | translate }}
+            </h3>
           </div>
 
           <div class="card__content">
@@ -179,7 +215,9 @@
               </ng-container>
 
               <ng-template #noWeekStats>
-                <p class="summary-card-main">• No meals cooked yet</p>
+                <p class="summary-card-main">
+                  • {{ 'home.noMealsCooked' | translate }}
+                </p>
               </ng-template>
             </div>
           </div>

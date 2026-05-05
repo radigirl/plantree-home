@@ -7,11 +7,12 @@ import {
   Refrigerator,
   ShoppingCart
 } from 'lucide-angular';
+import { TranslatePipe } from '../pipes/translate.pipe';
 
 @Component({
   selector: 'app-navigation',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, TranslatePipe],
   templateUrl: './navigation.component.html',
   styleUrl: './navigation.component.scss'
 })

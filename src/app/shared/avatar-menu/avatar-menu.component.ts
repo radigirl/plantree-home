@@ -36,13 +36,14 @@ import {
   LanguageStateService,
 } from '../../services/language.state.service';
 import { MemberStateService } from '../../services/member.state.service';
+import { TranslatePipe } from '../pipes/translate.pipe';
 
 type OpenMenuSection = 'members' | 'language' | 'settings' | 'account' | null;
 
 @Component({
   selector: 'app-avatar-menu',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, TranslatePipe],
   templateUrl: './avatar-menu.component.html',
   styleUrl: './avatar-menu.component.scss',
 })
@@ -78,6 +79,8 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
     { code: 'en', label: 'English' },
     { code: 'bg', label: 'Български' },
   ];
+
+  t = (key: string): string => this.languageStateService.t(key);
 
   isAccountSectionOpen = false;
 

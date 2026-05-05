@@ -5,7 +5,6 @@ import { DayPlan } from '../../models/day-plan.model';
 import { PlannedMeal } from '../../models/planned-meal.model';
 import { MealPlanService } from '../../services/meal-plan.service';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
-import { getStatusLabel } from '../../shared/utils/meal.utils';
 import {
   LucideAngularModule,
   CalendarDays,
@@ -21,11 +20,13 @@ import { Subject } from 'rxjs';
 import { GroceryService } from '../../services/grocery.service';
 import { MealsService } from '../../services/meal.service';
 import { MemberStateService } from '../../services/member.state.service';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../services/language.state.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, PageLoadingComponent, LucideAngularModule],
+  imports: [CommonModule, PageLoadingComponent, LucideAngularModule, TranslatePipe],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -36,7 +37,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   latestActiveListName = '';
   mealsCount = 0;
   lastAddedMealName = '';
-  weekStatsLabel = 'Chef of the week';
+  weekStatsLabel = '';
   weekStatsDisplayName = '';
   weekStatsCount = 0;
 
@@ -58,6 +59,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private memberStateService: MemberStateService,
     private spaceStateService: SpaceStateService,
     private groceryService: GroceryService,
+    private languageStateService: LanguageStateService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -128,7 +130,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       return '';
     }
 
-    return getStatusLabel(this.firstTodayMeal.status);
+    return this.languageStateService.t(`mealStatus.${this.firstTodayMeal.status}`);
   }
 
   get additionalMealsCount(): number {
@@ -159,17 +161,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   onAddTodayClick(event: MouseEvent): void {
-  event.stopPropagation();
+    event.stopPropagation();
 
-  const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
 
-  this.router.navigate(['/plan/day', today], {
-    queryParams: {
-      add: 'true',
-      source: 'home',
-    },
-  });
-}
+    this.router.navigate(['/plan/day', today], {
+      queryParams: {
+        add: 'true',
+        source: 'home',
+      },
+    });
+  }
 
   openWeekPlan(): void {
     this.router.navigate(['/plan']);
@@ -254,7 +256,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.calculateWeekStatsSummary(cookedMealsWithCook);
     } catch (error) {
       console.error('Error loading home week stats summary:', error);
-      this.weekStatsLabel = 'Chef of the week';
+      this.weekStatsLabel = this.languageStateService.t('home.chefOfTheWeek');
       this.weekStatsDisplayName = '';
       this.weekStatsCount = 0;
     }
@@ -283,7 +285,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     if (ranked.length === 0) {
       this.weekStatsLabel = '';
-      this.weekStatsDisplayName = 'No meals cooked yet';
+      this.weekStatsDisplayName = '';
       this.weekStatsCount = 0;
       return;
     }
@@ -294,15 +296,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.weekStatsCount = topCount;
 
     if (topCooks.length === 1) {
-      this.weekStatsLabel = 'Chef of the week:';
+      this.weekStatsLabel = this.languageStateService.t('home.chefOfTheWeek');
       this.weekStatsDisplayName = `${topCooks[0].name} (${topCount})`;
       return;
     }
 
-    this.weekStatsLabel = 'Top cooks:';
+    this.weekStatsLabel = this.languageStateService.t('home.topCooks');
 
     if (topCooks.length === 2) {
-      this.weekStatsDisplayName = `${topCooks[0].name} & ${topCooks[1].name} (${topCount})`;
+      this.weekStatsDisplayName =
+        `${topCooks[0].name} ${this.languageStateService.t('common.and')} ${topCooks[1].name} (${topCount})`;
       return;
     }
 
