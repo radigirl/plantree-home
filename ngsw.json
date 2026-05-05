@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1777960762518,
+  "timestamp": 1777971038718,
   "index": "https://radigirl.github.io/plantree-home/index.html",
   "assetGroups": [
     {
@@ -13,7 +13,7 @@
       "urls": [
         "https://radigirl.github.io/plantree-home/favicon.ico",
         "https://radigirl.github.io/plantree-home/index.html",
-        "https://radigirl.github.io/plantree-home/main-32OUY6VK.js",
+        "https://radigirl.github.io/plantree-home/main-D4E5G26L.js",
         "https://radigirl.github.io/plantree-home/manifest.webmanifest",
         "https://radigirl.github.io/plantree-home/styles-HYS42MNC.css"
       ],
@@ -27,10 +27,6 @@
         "ignoreVary": true
       },
       "urls": [
-        "https://radigirl.github.io/plantree-home/assets/avatars/dad.png",
-        "https://radigirl.github.io/plantree-home/assets/avatars/mom.png",
-        "https://radigirl.github.io/plantree-home/assets/avatars/unassigned.png",
-        "https://radigirl.github.io/plantree-home/assets/avatars/yasen.png",
         "https://radigirl.github.io/plantree-home/assets/logo.png",
         "https://radigirl.github.io/plantree-home/assets/meals/blank-meal.png",
         "https://radigirl.github.io/plantree-home/assets/meals/default-meal.png",
@@ -42,18 +38,14 @@
   ],
   "dataGroups": [],
   "hashTable": {
-    "https://radigirl.github.io/plantree-home/assets/avatars/dad.png": "424323cbb50dabada31016af7f9023037f89cfc2",
-    "https://radigirl.github.io/plantree-home/assets/avatars/mom.png": "158e3923cfc3dfc50d87139c889e2572550c7101",
-    "https://radigirl.github.io/plantree-home/assets/avatars/unassigned.png": "5496ad0c1ed76040a7d24f3938b8661679c5d3d8",
-    "https://radigirl.github.io/plantree-home/assets/avatars/yasen.png": "58a0b59a594b5145a7ac7d2d20e7d8ba82d21a3f",
     "https://radigirl.github.io/plantree-home/assets/logo.png": "e9264b1a8e32d4d7e750334f8859ab4229cef063",
     "https://radigirl.github.io/plantree-home/assets/meals/blank-meal.png": "53e9cb29ab4f423c3e0c475edae1c4aeb04b696a",
     "https://radigirl.github.io/plantree-home/assets/meals/default-meal.png": "cab464a354701f1620b0a4031fe19fcd2b9ad774",
     "https://radigirl.github.io/plantree-home/favicon.ico": "ac9fc7da178ba1d037f4130210e51a240d2b221f",
     "https://radigirl.github.io/plantree-home/icons/icon-152x152.png": "74345efd885fa7d3a3c1211b5c99c24732904c79",
     "https://radigirl.github.io/plantree-home/icons/icon-192x192.png": "2adb9c24c27877515a93dca4a048d1c55d8ba375",
-    "https://radigirl.github.io/plantree-home/index.html": "eb5e159deb38b65089942a9e8013226354d8acfe",
-    "https://radigirl.github.io/plantree-home/main-32OUY6VK.js": "39e07336a9563f8984837f03eabb3b951cfa7d39",
+    "https://radigirl.github.io/plantree-home/index.html": "8be492d9acaf3784c1672f13417688479e9c09b9",
+    "https://radigirl.github.io/plantree-home/main-D4E5G26L.js": "9042d988a9ab35c726a4ca205a38f298a9da3589",
     "https://radigirl.github.io/plantree-home/manifest.webmanifest": "9603438a0c8402256e1f1861d2c38a84586a4e09",
     "https://radigirl.github.io/plantree-home/styles-HYS42MNC.css": "77158e6cb90c94270d5454295f2932b429583e4c"
   },
