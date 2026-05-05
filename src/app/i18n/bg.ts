@@ -38,7 +38,7 @@ export const bg = {
     whatsForToday: 'Какво ще готвим днес?',
     noMealPlanned: 'Няма планирани ястия',
     cookLabel: 'Готвач:',
-    unassigned: 'Няма избран',
+    unassigned: 'Не е избран',
 
     moreMeals: 'още ястие',
     moreMealsPlural: 'още ястия',
