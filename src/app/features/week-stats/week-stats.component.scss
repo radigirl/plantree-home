@@ -239,25 +239,35 @@
 
 @include mobile {
   .week-stats-page {
-    margin-left: -8px;
-    margin-right: -8px;
-    margin-top: -15px;
+  margin-left: -8px;
+  margin-right: -8px;
+  margin-top: -15px;
 
-    height: calc(100dvh - #{$layout-header-height-mobile} - #{$layout-bottom-nav-height});
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-bottom: 12px;
+  height: calc(100dvh - #{$layout-header-height-mobile} - #{$layout-bottom-nav-height} - 16px);
+  min-height: 0;
+  overflow: hidden;
 
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
+  display: flex;
+  flex-direction: column;
+}
 
-  .week-stats-page::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-    display: none;
-  }
+ .week-stats-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 12px;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.week-stats-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
 
   .page-header {
     position: sticky;
@@ -290,23 +300,33 @@
 
 @include tablet {
   .week-stats-page {
-    margin-top: -15px;
+  margin-top: -15px;
 
-    height: calc(100dvh - 68px - #{$layout-bottom-nav-height} - 16px);
-    min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-bottom: 12px;
+  height: calc(100dvh - 68px - #{$layout-bottom-nav-height} - 16px);
+  min-height: 0;
+  overflow: hidden;
 
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
+  display: flex;
+  flex-direction: column;
+}
 
-  .week-stats-page::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-    display: none;
-  }
+.week-stats-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 12px;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.week-stats-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
 
   .page-header {
     position: sticky;
