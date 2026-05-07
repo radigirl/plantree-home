@@ -7,7 +7,7 @@
       </p>
 
       <button type="button" class="day-meal-details-dialog-sheet__close" (click)="onClose()"
-        aria-label="Close meal details">
+        [attr.aria-label]="'mealDetails.close' | translate">
         ×
       </button>
     </div>
@@ -17,10 +17,10 @@
         <div class="day-meal-details-dialog-info">
 
           <div class="day-meal-details-dialog-cook-row">
-            <span class="day-meal-details-dialog-cook-label">Cook:</span>
+            <span class="day-meal-details-dialog-cook-label">{{ 'home.cookLabel' | translate }}</span>
 
             <img *ngIf="meal.cook" [src]="meal.cook.avatar_url || 'assets/avatars/unassigned.png'"
-              class="day-meal-details-dialog-cook-avatar" [alt]="meal.cook.name || 'Cook avatar'" />
+              class="day-meal-details-dialog-cook-avatar" [alt]="meal.cook.name || ('home.cookAvatarAlt' | translate)" />
 
             <span *ngIf="!meal.cook" class="day-meal-details-dialog-cook-avatar-icon">
               <lucide-icon [img]="UserRound" [size]="12" [strokeWidth]="2">
@@ -28,7 +28,7 @@
             </span>
 
             <span class="day-meal-details-dialog-cook">
-              {{ meal.cook?.name || 'Unassigned' }}
+              {{ meal.cook?.name || ('home.unassigned' | translate) }}
             </span>
           </div>
 
@@ -45,13 +45,13 @@
           </div>
 
           <p class="day-meal-details-dialog-coverage" *ngIf="coverageListName && !isPast">
-            In: {{ coverageListName }}
+            {{ 'generateSheet.inList' | translate }} {{ coverageListName }}
           </p>
         </div>
 
         <div class="day-meal-details-dialog-image">
           <img [src]="meal.meal.image_url || 'assets/meals/default-meal.png'" class="day-meal-details-dialog-image-img"
-            [alt]="meal.meal.name || 'Meal image'" />
+            [alt]="meal.meal.name || ('home.mealImageAlt' | translate)" />
         </div>
       </div>
 
@@ -73,12 +73,12 @@
 
       <div class="day-meal-details-dialog-recipe">
         <p class="day-meal-details-dialog-empty" *ngIf="!meal.meal.ingredients?.length && !meal.meal.instructions">
-          No recipe details added
+          {{ 'mealDetails.noDetails' | translate }}
         </p>
 
         <ng-container *ngIf="meal.meal.ingredients?.length || meal.meal.instructions">
           <div class="day-meal-details-dialog-section">
-            <p class="day-meal-details-dialog-section-title">Ingredients</p>
+            <p class="day-meal-details-dialog-section-title">{{ 'mealDialog.ingredients' | translate }}</p>
 
             <ul class="day-meal-details-dialog-ingredients-list" *ngIf="meal.meal.ingredients?.length">
               <li *ngFor="let ingredient of meal.meal.ingredients">
@@ -87,19 +87,19 @@
             </ul>
 
             <p class="day-meal-details-dialog-empty" *ngIf="!meal.meal.ingredients?.length">
-              No ingredients added
+              {{ 'mealDetails.noIngredients' | translate }}
             </p>
           </div>
 
           <div class="day-meal-details-dialog-section">
-            <p class="day-meal-details-dialog-section-title">Instructions</p>
+            <p class="day-meal-details-dialog-section-title">{{ 'mealDialog.instructions' | translate }}</p>
 
             <p class="day-meal-details-dialog-instructions" *ngIf="meal.meal.instructions">
               {{ meal.meal.instructions }}
             </p>
 
             <p class="day-meal-details-dialog-empty" *ngIf="!meal.meal.instructions">
-              No instructions added
+              {{ 'mealDetails.noInstructions' | translate }}
             </p>
           </div>
         </ng-container>

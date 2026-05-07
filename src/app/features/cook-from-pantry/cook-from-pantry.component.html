@@ -6,40 +6,40 @@
   <div class="page-header-row">
     <div class="page-header">
       <h1 class="page-title">
-        Cook from your pantry
+        {{ 'cookFromPantry.title' | translate }}
       </h1>
-      <p class="page-subtitle">See what you can cook</p>
+      <p class="page-subtitle">{{ 'cookFromPantry.subtitle' | translate }}</p>
     </div>
   </div>
 
 
   <!-- BOTH EMPTY -->
   <div class="cook-from-pantry-empty" *ngIf="emptyState === 'both-empty'">
-    <h2>Nothing here yet</h2>
-    <p>Add meals and pantry items to get started.</p>
+    <h2>{{ 'cookFromPantry.nothingHereYet' | translate }}</h2>
+    <p>{{ 'cookFromPantry.addMealsAndPantry' | translate }}</p>
   </div>
 
   <!-- NO MEALS -->
   <div class="cook-from-pantry-empty" *ngIf="emptyState === 'no-meals'">
-    <h2>No meals yet</h2>
-    <p>Add your meals to start cooking from your pantry.</p>
+    <h2>{{ 'cookFromPantry.noMealsYet' | translate }}</h2>
+    <p>{{ 'cookFromPantry.addMealsToStart' | translate }}</p>
   </div>
 
   <!-- EMPTY PANTRY -->
   <div class="cook-from-pantry-empty" *ngIf="emptyState === 'empty-pantry'">
-    <h2>Your pantry is empty</h2>
-    <p>Add ingredients to see matching meals here.</p>
+    <h2>{{ 'cookFromPantry.pantryEmpty' | translate }}</h2>
+    <p>{{ 'cookFromPantry.addIngredientsToMatch' | translate }}</p>
   </div>
 
   <!-- NO MATCHES -->
   <div class="cook-from-pantry-empty" *ngIf="emptyState === 'none' && sortedMeals.length === 0">
-    <h2>No matching meals</h2>
-    <p>None of your meals match your pantry yet.</p>
+    <h2>{{ 'cookFromPantry.noMatchingMeals' | translate }}</h2>
+    <p>{{ 'cookFromPantry.noMealsMatch' | translate }}</p>
   </div>
 
   <!-- LIST -->
   <div class="cook-from-pantry-list" *ngIf="emptyState === 'none' && sortedMeals.length > 0">
-    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals" (pointerdown)="onCardPointerDown($event)"
+    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals"
       (click)="openInfoSheet($event, meal)">
       <!-- IMAGE -->
       <div class="cook-from-pantry-card__image">
@@ -64,7 +64,8 @@
 </div>
 
 
-<app-responsive-action-menu [isOpen]="isActionMenuOpen" [title]="'Add ' + (selectedMeal?.name || '') + ' to plan'"
+<app-responsive-action-menu [isOpen]="isActionMenuOpen"
+  [title]="('cookFromPantry.addToPlanPrefix' | translate) + ' ' + (selectedMeal?.name || '') + ' ' + ('cookFromPantry.addToPlanSuffix' | translate)"
   [image]="selectedMeal?.image_url || ''" [actions]="actionMenuItems" (closed)="closeActionMenu()"
   (actionSelected)="onActionSelected($event)">
 </app-responsive-action-menu>
@@ -88,11 +89,11 @@
     <div class="cook-from-pantry-sheet__footer">
       <button type="button" class="cook-from-pantry-sheet__button cook-from-pantry-sheet__button--secondary"
         (click)="closeInfoSheet()">
-        Cancel
+        {{ 'cookFromPantry.cancel' | translate }}
       </button>
       <button type="button" class="cook-from-pantry-sheet__button cook-from-pantry-sheet__button--primary"
         (click)="onAddFromInfo()">
-        Add to plan
+        {{ 'cookFromPantry.addToPlan' | translate }}
       </button>
     </div>
   </div>
@@ -102,28 +103,22 @@
   <div class="cook-from-pantry-sheet" (click)="$event.stopPropagation()">
     <div class="cook-from-pantry-sheet__handle"></div>
 
-    <div class="calendar-picker-sheet__mode-toggle">
-      <button type="button" class="calendar-picker-sheet__mode-btn"
-        [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'single'"
-        (click)="calendarSelectionMode = 'single'; selectedPlanDates = []">
-        Single day
-      </button>
+    <app-toggle-switch [options]="[
+  { label: ('meals.singleDay' | translate), value: 'single' },
+  { label: ('meals.multipleDays' | translate), value: 'multiple' }
+]" [value]="calendarSelectionMode" (valueChange)="setCalendarSelectionMode($event === 'multiple' ? 'multiple' : 'single')">
+    </app-toggle-switch>
 
-      <button type="button" class="calendar-picker-sheet__mode-btn"
-        [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'multiple'"
-        (click)="calendarSelectionMode = 'multiple'; selectedPlanDates = []">
-        Multiple days
-      </button>
-    </div>
-
-    <app-calendar-picker [title]="'Add ' + selectedMeal.name + ' to plan'" [selectionMode]="calendarSelectionMode"
-      [selectedDates]="selectedPlanDates" [disablePastDates]="true" [showFooterActions]="true"
-      (selectedDatesChange)="onCalendarDatesChange($event)" (confirm)="confirmPickedDates($event)"
-      (cancel)="closePickDate()">
+    <app-calendar-picker
+      [title]="getAddToPlanTitle(selectedMeal.name)"
+      [selectionMode]="calendarSelectionMode" [selectedDates]="selectedPlanDates" [disablePastDates]="true"
+      [showFooterActions]="true" (selectedDatesChange)="onCalendarDatesChange($event)"
+      (confirm)="confirmPickedDates($event)" (cancel)="closePickDate()">
     </app-calendar-picker>
   </div>
 </div>
 
-<div class="bottom-toast" *ngIf="toastMessage">
-  {{ toastMessage }}
-</div>
+<app-snackbar
+  [isVisible]="!!toastMessage"
+  [message]="toastMessage || ''">
+</app-snackbar>

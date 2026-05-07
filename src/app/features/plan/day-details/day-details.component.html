@@ -27,18 +27,18 @@
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
 
-        <span>Add meal</span>
+        <span>{{ 'common.add' | translate }}</span>
       </button>
     </div>
 
     <p class="day-details-past-note" *ngIf="isPastDate()">
-      This day has passed. You can still correct cook and meal status for statistics.
+      {{ 'dayDetails.pastNote' | translate }}
     </p>
 
     <div class="day-details-empty-wrapper" *ngIf="meals.length === 0">
       <div class="day-details-empty">
         <p class="day-details-empty-text">
-          No meals planned for this day yet.
+          {{ 'dayDetails.empty' | translate }}
         </p>
       </div>
     </div>
@@ -59,12 +59,12 @@
           <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && isDesktopViewport()">
             <button *ngIf="!isPastDate()" type="button" class="meal-menu-item"
               (click)="$event.stopPropagation(); closeMealMenu(); onChangeMeal(meal)">
-              Change meal
+              {{ 'dayDetails.changeMeal' | translate }}
             </button>
 
             <button type="button" class="meal-menu-item"
               (click)="$event.stopPropagation(); closeMealMenu(); onEditCook(meal)">
-              Change cook
+              {{ 'dayDetails.changeCook' | translate }}
             </button>
 
             <button type="button" class="meal-menu-item" *ngIf="getPastStatusActionLabel(meal.status)"
@@ -74,7 +74,7 @@
 
             <button *ngIf="!isPastDate()" type="button" class="meal-menu-item"
               (click)="$event.stopPropagation(); closeMealMenu(); onRemoveMeal(meal)">
-              Remove
+              {{ 'common.remove' | translate }}
             </button>
           </div>
         </div>
@@ -87,9 +87,9 @@
               </p>
 
               <div class="meal-cook-row">
-                <span class="meal-cook-label">Cook:</span>
+                <span class="meal-cook-label">{{ 'home.cookLabel' | translate }}</span>
                 <img *ngIf="meal.cook" [src]="meal.cook.avatar_url || 'assets/avatars/unassigned.png'"
-                  class="meal-cook-avatar" [alt]="meal.cook.name || 'Cook avatar'" />
+                  class="meal-cook-avatar" [alt]="meal.cook.name || ('home.cookAvatarAlt' | translate)" />
 
                 <span *ngIf="!meal.cook" class="meal-cook-avatar-icon">
                   <lucide-icon [img]="UserRound" [size]="12" [strokeWidth]="2" class="meal-cook-avatar-symbol">
@@ -97,7 +97,7 @@
                 </span>
 
                 <p class="meal-cook">
-                  {{ meal.cook?.name || 'Unassigned' }}
+                  {{ meal.cook?.name || ('home.unassigned' | translate) }}
                 </p>
               </div>
             </div>
@@ -117,14 +117,14 @@
             </div>
 
             <div class="meal-coverage" *ngIf="!isPastDate() && isMealCovered(meal.id)">
-              In: {{ getMealCoverageListName(meal.id) }}
+              {{ 'generateSheet.inList' | translate }} {{ getMealCoverageListName(meal.id) }}
             </div>
 
           </div>
 
           <div class="meal-image">
             <img [src]="meal.meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img"
-              [alt]="meal.meal.name || 'Meal image'" />
+              [alt]="meal.meal.name || ('home.mealImageAlt' | translate)" />
           </div>
         </div>
       </div>
@@ -142,8 +142,8 @@
   (saved)="onDayMealFormSaved($event)">
 </app-day-meal-form-dialog>
 
-<app-responsive-action-menu *ngIf="selectedMealForActions && !isDesktopViewport()"
-  [isOpen]="!!openMealMenuId" [title]="selectedMealForActions.meal.name"
+<app-responsive-action-menu *ngIf="selectedMealForActions && !isDesktopViewport()" [isOpen]="!!openMealMenuId"
+  [title]="selectedMealForActions.meal.name"
   [subtitle]="selectedMealForActions.meal.prepTime != null ? (selectedMealForActions.meal.prepTime + ' min') : ''"
   [image]="selectedMealForActions.meal.image_url || 'assets/meals/default-meal.png'"
   [actions]="getResponsiveMealActions(selectedMealForActions)" (closed)="closeMealMenu()"
@@ -151,14 +151,12 @@
 
 <div class="confirm-dialog-overlay" *ngIf="isDeleteConfirmOpen" (click)="closeDeleteConfirm()">
   <div class="confirm-dialog-shell" (click)="$event.stopPropagation()">
-    <app-confirmation-dialog title="Remove meal" [message]="getDeleteConfirmMessage()" confirmLabel="Confirm"
-      cancelLabel="Cancel" (cancel)="closeDeleteConfirm()" (confirm)="confirmRemoveMeal()">
+    <app-confirmation-dialog [title]="'dayDetails.removeTitle' | translate" [message]="getDeleteConfirmMessage()"
+      [confirmLabel]="'common.confirm' | translate" [cancelLabel]="'common.cancel' | translate"
+      (cancel)="closeDeleteConfirm()" (confirm)="confirmRemoveMeal()">
     </app-confirmation-dialog>
   </div>
 </div>
 
-<app-snackbar
-  [isVisible]="snackbarVisible"
-  [message]="snackbarMessage"
-  [actionLabel]="''">
+<app-snackbar [isVisible]="snackbarVisible" [message]="snackbarMessage" [actionLabel]="''">
 </app-snackbar>

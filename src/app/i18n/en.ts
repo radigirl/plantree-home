@@ -13,8 +13,11 @@ export const en = {
     show: 'Show',
     hide: 'Hide',
     undo: 'Undo',
+    confirm: 'Confirm',
+    back: 'Back',
+    continueQuestion: 'Do you want to continue?',
+    clearSearch: 'Clear search',
   },
-
   menu: {
     member: 'Member',
     changeMember: 'Change member',
@@ -35,38 +38,31 @@ export const en = {
     editProfile: 'Edit profile',
     deleteAccount: 'Delete account',
   },
-
   nav: {
     home: 'Home',
     plan: 'Plan',
     lists: 'Lists',
     pantry: 'Pantry',
   },
-
   home: {
     cookFromPantry: 'Cook from your pantry →',
     findNextMeal: 'Find your next meal',
-
     whatsForToday: 'What’s for today?',
     noMealPlanned: 'No meals planned yet',
     cookLabel: 'Cook:',
     unassigned: 'Unassigned',
-
     weekPlan: 'Week Plan',
     plannedOne: 'planned',
     plannedMany: 'planned',
     dayRemainingOne: 'day remaining',
     dayRemainingMany: 'days remaining',
-
     myMeals: 'My Meals',
     lastAdded: 'Last added:',
     noSavedMeals: '0 saved meals',
-
     lists: 'Lists',
     activeListOne: 'active list',
     activeListMany: 'active lists',
     latest: 'Latest:',
-
     weekStats: 'Week Stats',
     chefOfTheWeek: 'Chef of the week:',
     topCooks: 'Top cooks:',
@@ -108,27 +104,20 @@ export const en = {
   meals: {
     title: 'My Meals',
     subtitle: 'Create, manage, and add to your plan',
-
     searchPlaceholder: 'Search meals...',
     noResults: 'No meals found',
     empty: 'No meals yet',
-
     actions: 'Meal actions',
-
     edit: 'Edit',
     createFromThis: 'Create from this',
     addToPlan: 'Add to plan',
     remove: 'Remove',
-
     removeTitle: 'Remove meal',
     removeMessage: 'Remove "{{name}}" from your My Meals? You can still access it through other members or past plans.',
-
     ingredient: 'ingredient',
     ingredients: 'ingredients',
-
     singleDay: 'Single day',
     multipleDays: 'Multiple days',
-
     addToPlanWithName: 'Add "{{name}}" to plan',
     addedToDayToast: '{{name}} added to {{day}}',
     addedToMultipleDaysToast: '{{name}} added to {{count}} days',
@@ -144,27 +133,21 @@ export const en = {
   mealDialog: {
     createTitle: 'Create meal',
     editTitle: 'Edit meal',
-
-    mealName: 'Meal name',
+    mealName: 'Name',
     mealNamePlaceholder: 'Enter meal name',
-
     prepTime: 'Prep time (minutes)',
     optional: 'Optional',
-
     ingredients: 'Ingredients',
     ingredientsHelper: 'One per line or comma separated',
     ingredientsExample: 'e.g.: 2 eggs, 200 g cheese, 1 onion, 1/2 cup milk',
     quantityTip: 'Tip: quantity first',
     ingredientsPlaceholder: 'Add ingredients',
-
     instructions: 'Instructions',
     instructionsPlaceholder: 'e.g.: boil the pasta, prepare the sauce, mix and serve.',
-
-    mealPhoto: 'Meal photo',
+    mealPhoto: 'Photo',
     previewAlt: 'Meal preview',
     chooseFile: 'Choose file',
     noFileChosen: 'No file chosen',
-
     save: 'Save',
     update: 'Update',
     saving: 'Saving...',
@@ -178,29 +161,100 @@ export const en = {
   generateSheet: {
     title: 'Generate grocery list',
     subtitle: 'Create a list from meals in this week',
-
     allCovered: 'All upcoming meals already added to lists',
     generateUpcoming: 'Generate from upcoming meals',
     tapToReviewCoverage: 'Tap below to see which meals are in which lists',
-
     alreadyCoveredSkipped: 'already added to lists will be skipped',
-
     reviewCoverage: 'Review included meals',
     adjustSelection: 'Adjust selection',
-
     selectDays: 'Select days',
     inList: 'In:',
-
     allMealsAlreadyCovered: 'All meals already added to lists',
-
     createList: 'Create list',
-
     noMealsPlanned: 'No meals planned this week',
     addMealsToGenerate: 'Add meals in order to generate a grocery list',
-
     planListName: 'Plan list',
     creatingList: 'Creating grocery list...',
     createListFailed: 'Could not create grocery list',
     listCreated: 'Grocery list created',
+  },
+  dayDetails: {
+    addMeal: 'Add meal',
+    pastNote: 'This day has passed. You can still correct cook and meal status for statistics.',
+    empty: 'No meals planned for this day yet.',
+    changeMeal: 'Change meal',
+    changeCook: 'Change cook',
+    removeTitle: 'Remove meal',
+    startCooking: 'Start cooking',
+    markReady: 'Mark ready',
+    reset: 'Reset',
+    resetStatus: 'Reset status',
+    removeMessage: 'Remove "{{name}}" from this day?',
+    cookUpdated: 'Cook updated',
+    mealChanged: 'Meal changed',
+    mealAdded: 'Meal added',
+    mealAddedWithName: '{{name}} added',
+    multipleMealsAdded: '{{count}} meals added',
+  },
+  dayMealForm: {
+    howAdd: 'How would you like to add?',
+    newMeal: 'New meal',
+    selectedMeals: 'Selected meals',
+    showLess: 'Show less',
+    showAllSelected: 'Show all',
+    searchMeals: 'Search meals',
+    searchPlaceholder: 'Search by title or ingredient',
+    startTyping: 'Start typing to search meals',
+    imageSelected: 'Image selected',
+    ingredientsPlaceholder: 'Add ingredients (comma or new line)',
+    instructionsPlaceholder: 'Add instructions',
+    addDetails: 'Add details',
+    editDetails: 'Edit details',
+    hideDetails: 'Hide details',
+    detailsAlreadyAdded: 'Details already added',
+    howChange: 'How would you like to change it?',
+    useCurrentAsBase: 'From current',
+    createFromCurrentHelper: 'A new meal will be created. The original stays unchanged.',
+    removeSelectedMeal: 'Remove selected meal',
+    makeChangeBeforeSaving: 'Make at least one change before saving.',
+  },
+  cookFromPantry: {
+    title: 'Cook from your pantry',
+    subtitle: 'See what you can cook',
+    nothingHereYet: 'Nothing here yet',
+    addMealsAndPantry: 'Add meals and pantry items to get started.',
+    noMealsYet: 'No meals yet',
+    addMealsToStart: 'Add your meals to start cooking from your pantry.',
+    pantryEmpty: 'Your pantry is empty',
+    addIngredientsToMatch: 'Add ingredients to see matching meals here.',
+    noMatchingMeals: 'No matching meals',
+    noMealsMatch: 'None of your meals match your pantry yet.',
+    cancel: 'Cancel',
+    addToPlan: 'Add to plan',
+    singleDay: 'Single day',
+    multipleDays: 'Multiple days',
+    addMealToPlan: 'Add "{{name}}" to plan',
+    addToPlanPrefix: 'Добави',
+    addToPlanSuffix: 'към плана',
+  },
+  weekStats: {
+    title: 'Week Stats',
+    subtitle: 'See how your household cooked this week',
+    chefOfTheWeek: 'Chef of the week',
+    topCooks: 'Top cooks',
+    noMealsCooked: 'No meals cooked yet',
+    startCooking: 'Start cooking to unlock stats',
+    thisWeek: 'This Week',
+    mealsCooked: 'Meals cooked',
+    activeCooks: 'Active cooks',
+    familyLeaderboard: 'Family Leaderboard',
+    cookedMeals: 'Cooked Meals',
+    noCookedMealsThisWeek: 'No cooked meals yet this week.',
+    mealEach: 'meal each',
+    mealsEach: 'meals each',
+    mealBy: 'meal by',
+    mealsBy: 'meals by',
+    cookedBy: 'Cooked by',
+    noCookAssigned: 'No cook assigned',
   }
 };

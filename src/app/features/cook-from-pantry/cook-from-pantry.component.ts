@@ -28,6 +28,10 @@ import {
   map,
   takeUntil,
 } from 'rxjs/operators';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../services/language.state.service';
+import { ToggleSwitchComponent } from '../../shared/components/toggle-switch/toggle-switch.component';
+import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 
 type EmptyState =
   | 'none'
@@ -48,7 +52,10 @@ interface CookFromPantryMeal extends Meal {
     CommonModule,
     PageLoadingComponent,
     ResponsiveActionMenuComponent,
-    CalendarPickerComponent
+    CalendarPickerComponent,
+    TranslatePipe,
+    ToggleSwitchComponent,
+    SnackbarComponent,
   ],
   templateUrl: './cook-from-pantry.component.html',
   styleUrl: './cook-from-pantry.component.scss',
@@ -69,11 +76,13 @@ export class CookFromPantryComponent
 
   availableItems: (PantryItem | AlwaysPresentPantryItem)[] = [];
 
-  actionMenuItems: ResponsiveActionMenuItem[] = [
-    { id: 'today', label: 'Today' },
-    { id: 'tomorrow', label: 'Tomorrow' },
-    { id: 'pick-date', label: 'Pick a date' },
-  ];
+  get actionMenuItems(): ResponsiveActionMenuItem[] {
+    return [
+      { id: 'today', label: this.languageStateService.t('common.today') },
+      { id: 'tomorrow', label: this.languageStateService.t('common.tomorrow') },
+      { id: 'pick-date', label: this.languageStateService.t('common.pickDate') },
+    ];
+  }
 
   isAddToPlanLoading = false;
 
@@ -91,6 +100,7 @@ export class CookFromPantryComponent
     private spaceStateService: SpaceStateService,
     private mealPlanService: MealPlanService,
     private memberStateService: MemberStateService,
+    private languageStateService: LanguageStateService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -279,7 +289,7 @@ export class CookFromPantryComponent
     }
 
     const formattedDate = this.formatDate(date);
-    const label = action === 'today' ? 'Today' : 'Tomorrow';
+    const label = this.formatToastDayLabel(formattedDate);
 
     this.isAddToPlanLoading = true;
 
@@ -291,11 +301,16 @@ export class CookFromPantryComponent
       );
 
       this.closeActionMenu();
-      this.showToast(`${meal.name} added to ${label}`);
+      this.showToast(
+        this.languageStateService
+          .t('meals.addedToDayToast')
+          .replace('{{name}}', meal.name)
+          .replace('{{day}}', label)
+      );
     } catch (error) {
       console.error('Failed to add meal:', error);
       this.closeActionMenu();
-      this.showToast('Failed to add meal');
+      this.showToast(this.languageStateService.t('meals.failedToAdd'));
     } finally {
       this.isAddToPlanLoading = false;
     }
@@ -315,10 +330,8 @@ export class CookFromPantryComponent
     if (!this.selectedMeal || !dates.length) {
       return;
     }
-
     const meal = this.selectedMeal;
     this.isAddToPlanLoading = true;
-
     try {
       for (const date of dates) {
         await this.mealPlanService.createPlannedMealFromExistingMeal(
@@ -327,21 +340,25 @@ export class CookFromPantryComponent
           date
         );
       }
-
       this.resetCalendarSelection();
       this.isPickDateOpen = false;
       this.selectedMeal = null;
-
       this.showToast(
         dates.length === 1
-          ? `${meal.name} added to ${this.formatToastDayLabel(dates[0])}`
-          : `${meal.name} added to ${dates.length} days`
+          ? this.languageStateService
+            .t('meals.addedToDayToast')
+            .replace('{{name}}', meal.name)
+            .replace('{{day}}', this.formatToastDayLabel(dates[0]))
+          : this.languageStateService
+            .t('meals.addedToMultipleDaysToast')
+            .replace('{{name}}', meal.name)
+            .replace('{{count}}', String(dates.length))
       );
     } catch (error) {
       console.error('Failed to add meal:', error);
       this.isPickDateOpen = false;
       this.selectedMeal = null;
-      this.showToast('Failed to add meal');
+      this.showToast(this.languageStateService.t('meals.failedToAdd'));
     } finally {
       this.isAddToPlanLoading = false;
     }
@@ -367,15 +384,12 @@ export class CookFromPantryComponent
     }, 2500);
   }
 
+ private formatToastDayLabel(dateString: string): string {
+  const date = new Date(`${dateString}T12:00:00`);
+  const months = this.languageStateService.t('monthsLong') as unknown as string[];
 
-  onCardPointerDown(event: PointerEvent): void {
-    event.preventDefault();
-  }
-
-  private formatToastDayLabel(dateString: string): string {
-    const date = new Date(`${dateString}T12:00:00`);
-    return date.toLocaleDateString('en-US', { weekday: 'long' });
-  }
+  return `${date.getDate()} ${months[date.getMonth()]}`;
+}
 
   private resetCalendarSelection(): void {
     this.selectedPlanDates = [];
@@ -399,6 +413,19 @@ export class CookFromPantryComponent
     this.selectedMeal = this.selectedMealForInfo;
     this.selectedMealForInfo = null;
     this.isActionMenuOpen = true;
+  }
+
+  setCalendarSelectionMode(mode: 'single' | 'multiple'): void {
+    this.calendarSelectionMode = mode;
+    this.selectedPlanDates = [];
+  }
+
+  getAddToPlanTitle(mealName?: string | null): string {
+    const name = mealName || '';
+
+    return this.languageStateService
+      .t('meals.addToPlanWithName')
+      .replace('{{name}}', name);
   }
 
   ngOnDestroy(): void {

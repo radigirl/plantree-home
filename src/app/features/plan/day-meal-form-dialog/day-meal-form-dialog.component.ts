@@ -17,13 +17,15 @@ import { Member } from '../../../models/member.model';
 import { PlannedMeal } from '../../../models/planned-meal.model';
 import { Meal } from '../../../models/meal.model';
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../../services/language.state.service';
 
 type DayMealFormMode = 'add' | 'edit-cook' | 'change-meal';
 
 @Component({
   selector: 'app-day-meal-form-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToggleSwitchComponent],
+  imports: [CommonModule, FormsModule, ToggleSwitchComponent, TranslatePipe],
   templateUrl: './day-meal-form-dialog.component.html',
   styleUrl: './day-meal-form-dialog.component.scss',
 })
@@ -76,7 +78,10 @@ export class DayMealFormDialogComponent implements OnChanges {
   @ViewChild('selectedMealsChips') selectedMealsChips?: ElementRef<HTMLDivElement>;
   selectedMealsHasOverflow = false;
 
-  constructor(private cdr: ChangeDetectorRef) { }
+  constructor(
+  private cdr: ChangeDetectorRef,
+  private languageStateService: LanguageStateService
+) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && this.isOpen) {
@@ -154,7 +159,7 @@ export class DayMealFormDialogComponent implements OnChanges {
       this.changeMealMode === 'create-from-current' &&
       !this.hasCreateFromCurrentChanges
     ) {
-      this.formError = 'Make at least one change before saving.';
+      this.formError = this.languageStateService.t('dayMealForm.makeChangeBeforeSaving');
       return;
     }
     this.isSaving = true;
@@ -193,15 +198,17 @@ export class DayMealFormDialogComponent implements OnChanges {
   }
 
   getTitle(): string {
-    switch (this.mode) {
-      case 'edit-cook':
-        return 'Change cook';
-      case 'change-meal':
-        return 'Change meal';
-      default:
-        return 'Add meal';
-    }
+  switch (this.mode) {
+    case 'edit-cook':
+      return this.languageStateService.t('dayDetails.changeCook');
+
+    case 'change-meal':
+      return this.languageStateService.t('dayDetails.changeMeal');
+
+    default:
+      return this.languageStateService.t('dayDetails.addMeal');
   }
+}
 
   get displayedChangeMealOptions(): Meal[] {
     const query = this.changeMealSearchQuery.trim().toLowerCase();

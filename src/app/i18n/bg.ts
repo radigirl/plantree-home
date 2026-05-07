@@ -13,6 +13,10 @@ export const bg = {
     show: 'Покажи',
     hide: 'Скрий',
     undo: 'Отмени',
+    confirm: 'Потвърди',
+    back: 'Назад',
+    continueQuestion: 'Искаш ли да продължиш?',
+    clearSearch: 'Изчисти търсенето',
   },
   menu: {
     member: 'Член',
@@ -34,38 +38,31 @@ export const bg = {
     editProfile: 'Редактирай профил',
     deleteAccount: 'Изтрий акаунт',
   },
-
   nav: {
     home: 'Начало',
     plan: 'План',
     lists: 'Списъци',
     pantry: 'Продукти',
   },
-
   home: {
     cookFromPantry: 'Готви с наличното →',
     findNextMeal: 'Намери следващото си ястие',
-
     whatsForToday: 'Какво ще готвим днес?',
     noMealPlanned: 'Няма планирани ястия',
     cookLabel: 'Готвач:',
     unassigned: 'Не е избран',
-
     weekPlan: 'Седмичен план',
     plannedOne: 'планирано',
     plannedMany: 'планирани',
     dayRemainingOne: 'ден остава',
     dayRemainingMany: 'дни остават',
-
     myMeals: 'Моите ястия',
     lastAdded: 'Последно добавено:',
     noSavedMeals: 'Няма запазени ястия',
-
     lists: 'Списъци',
     activeListOne: 'активен списък',
     activeListMany: 'активни списъка',
     latest: 'Последен:',
-
     weekStats: 'Седмична статистика',
     chefOfTheWeek: 'Готвач на седмицата:',
     topCooks: 'Топ готвачи:',
@@ -77,7 +74,6 @@ export const bg = {
     mealOne: 'ястие',
     mealMany: 'ястия',
   },
-
   mealStatus: {
     'to-prepare': 'Предстои',
     'in-progress': 'Готви се',
@@ -91,7 +87,6 @@ export const bg = {
   },
   daysShort: ['Нд', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
   daysShortMondayFirst: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'],
-
   monthsLong: [
     'Януари',
     'Февруари',
@@ -109,27 +104,20 @@ export const bg = {
   meals: {
     title: 'Моите ястия',
     subtitle: 'Създавай, организирай, планирай',
-
     searchPlaceholder: 'Търси ястия...',
     noResults: 'Няма намерени ястия',
     empty: 'Все още няма добавени ястия',
-
     actions: 'Действия',
-
     edit: 'Редактирай',
     createFromThis: 'Използвай като основа',
     addToPlan: 'Добави към плана',
     remove: 'Премахни',
-
     removeTitle: 'Премахване на ястие',
     removeMessage: 'Да премахна ли „{{name}}“ от Моите ястия? Все още ще можеш да го достъпваш чрез други членове или минали планове.',
-
     ingredient: 'съставка',
     ingredients: 'съставки',
-
     singleDay: 'Един ден',
     multipleDays: 'Няколко дни',
-
     addToPlanWithName: 'Добави „{{name}}“ към плана',
     addedToDayToast: '„{{name}}“ е добавено за {{day}}',
     addedToMultipleDaysToast: '„{{name}}“ е добавено към {{count}} дни',
@@ -145,27 +133,21 @@ export const bg = {
   mealDialog: {
     createTitle: 'Създай ястие',
     editTitle: 'Редактирай ястие',
-
-    mealName: 'Име на ястието',
+    mealName: 'Име',
     mealNamePlaceholder: 'Въведи име на ястие',
-
     prepTime: 'Време за приготвяне (минути)',
     optional: 'Незадължително',
-
     ingredients: 'Съставки',
     ingredientsHelper: 'По една на ред или разделени със запетая',
     ingredientsExample: 'напр.: 2 яйца, 200 гр. сирене, 1 лук, 1/2 чаша мляко',
     quantityTip: 'Съвет: първо количеството',
     ingredientsPlaceholder: 'Добави съставки',
-
     instructions: 'Инструкции',
     instructionsPlaceholder: 'напр.: сварете пастата, пригответе соса, смесете и сервирайте.',
-
-    mealPhoto: 'Снимка на ястие',
+    mealPhoto: 'Снимка',
     previewAlt: 'Преглед на ястие',
     chooseFile: 'Избери файл',
     noFileChosen: 'Няма избран файл',
-
     save: 'Запази',
     update: 'Запази промените',
     saving: 'Запазване...',
@@ -179,29 +161,100 @@ export const bg = {
   generateSheet: {
     title: 'Генерирай списък',
     subtitle: 'Създай списък от ястията за тази седмица',
-
     allCovered: 'Всички предстоящи ястия вече са добавени в списъци',
     generateUpcoming: 'Генерирай от предстоящите ястия',
     tapToReviewCoverage: 'Докосни по-долу, за да видиш кои ястия в кои списъци са',
-
     alreadyCoveredSkipped: 'вече са добавени в списъци и ще бъдат пропуснати',
-
     reviewCoverage: 'Прегледай включените ястия',
     adjustSelection: 'Редактирай избора',
-
     selectDays: 'Избери дни',
     inList: 'В:',
-
     allMealsAlreadyCovered: 'Всички ястия вече са добавени в списъци',
-
     createList: 'Създай списък',
-
     noMealsPlanned: 'Няма планирани ястия тази седмица',
     addMealsToGenerate: 'Добави ястия, за да генерираш списък',
-
-    planListName: 'Списък от плана',
+    planListName: 'Списък от план',
     creatingList: 'Създаване на списък...',
     createListFailed: 'Списъкът не беше създаден',
     listCreated: 'Списъкът е създаден',
+  },
+  dayDetails: {
+    addMeal: 'Добави ястие',
+    pastNote: 'Този ден е минал. Все още можеш да коригираш готвача и статуса на ястието за статистиката.',
+    empty: 'Все още няма планирани ястия за този ден.',
+    changeMeal: 'Смени ястието',
+    changeCook: 'Смени готвача',
+    removeTitle: 'Премахване на ястие',
+    startCooking: 'Започни готвене',
+    markReady: 'Маркирай като готово',
+    reset: 'Нулирай',
+    resetStatus: 'Нулирай статуса',
+    removeMessage: 'Да премахна ли „{{name}}“ от този ден?',
+    cookUpdated: 'Готвачът е обновен',
+    mealChanged: 'Ястието е сменено',
+    mealAdded: 'Ястието е добавено',
+    mealAddedWithName: '„{{name}}“ е добавено',
+    multipleMealsAdded: '{{count}} ястия са добавени',
+  },
+  dayMealForm: {
+    howAdd: 'Как искаш да добавиш?',
+    newMeal: 'Ново ястие',
+    selectedMeals: 'Избрани ястия',
+    showLess: 'Покажи по-малко',
+    showAllSelected: 'Покажи всички',
+    searchMeals: 'Търси ястия',
+    searchPlaceholder: 'Търси по име или съставка',
+    startTyping: 'Започни да пишеш, за да търсиш ястия',
+    imageSelected: 'Избрана е снимка',
+    ingredientsPlaceholder: 'Добави съставки (със запетая или на нов ред)',
+    instructionsPlaceholder: 'Добави инструкции',
+    addDetails: 'Добави детайли',
+    editDetails: 'Редактирай детайли',
+    hideDetails: 'Скрий детайлите',
+    detailsAlreadyAdded: 'Вече има добавени детайли',
+    howChange: 'Как искаш да смениш ястието?',
+    useCurrentAsBase: 'От текущото',
+    createFromCurrentHelper: 'Ще бъде създадено ново ястие. Оригиналът остава непроменен.',
+    removeSelectedMeal: 'Премахни избраното ястие',
+    makeChangeBeforeSaving: 'Направи поне една промяна преди запазване.',
+  },
+  cookFromPantry: {
+    title: 'Готви с наличното',
+    subtitle: 'Виж какво можеш да сготвиш',
+    nothingHereYet: 'Тук още няма нищо',
+    addMealsAndPantry: 'Добави ястия и продукти, за да започнеш.',
+    noMealsYet: 'Все още няма ястия',
+    addMealsToStart: 'Добави свои ястия, за да готвиш с наличното.',
+    pantryEmpty: 'Нямаш добавени продукти',
+    addIngredientsToMatch: 'Добави продукти, за да видиш подходящи ястия тук.',
+    noMatchingMeals: 'Няма подходящи ястия',
+    noMealsMatch: 'Все още няма ястия, които съвпадат с наличните продукти.',
+    cancel: 'Отказ',
+    addToPlan: 'Добави към плана',
+    singleDay: 'Един ден',
+    multipleDays: 'Няколко дни',
+    addMealToPlan: 'Добави „{{name}}“ към плана',
+    addToPlanPrefix: 'Add',
+    addToPlanSuffix: 'to plan',
+  },
+  weekStats: {
+    title: 'Седмична статистика',
+    subtitle: 'Виж как готвихте тази седмица',
+    chefOfTheWeek: 'Готвач на седмицата',
+    topCooks: 'Топ готвачи',
+    noMealsCooked: 'Все още няма сготвени ястия',
+    startCooking: 'Започнете да готвите, за да отключите статистика',
+    thisWeek: 'Тази седмица',
+    mealsCooked: 'Сготвени ястия',
+    activeCooks: 'Активни готвачи',
+    familyLeaderboard: 'Семейна класация',
+    cookedMeals: 'Сготвени ястия',
+    noCookedMealsThisWeek: 'Все още няма сготвени ястия тази седмица.',
+    mealEach: 'ястие всеки',
+    mealsEach: 'ястия всеки',
+    mealBy: 'ястие от',
+    mealsBy: 'ястия от',
+    cookedBy: 'Сготвено от',
+    noCookAssigned: 'Не е избран готвач',
   }
 };

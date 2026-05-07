@@ -11,7 +11,8 @@
   align-items: flex-start;
   justify-content: center;
 
-  padding: 72px 16px 16px;
+  padding: 48px 16px 16px;
+
   background: rgba(0, 0, 0, 0.4);
   box-sizing: border-box;
 }
@@ -19,31 +20,29 @@
 .day-meal-form-dialog {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 
   width: calc(100vw - 32px);
   max-width: 520px;
-  max-height: calc(100dvh - 88px);
+  max-height: calc(100dvh - 64px);
 
   padding: 24px;
   border-radius: 28px;
   background: $color-surface-soft;
   box-sizing: border-box;
+
   overflow: hidden;
 }
 
 .day-meal-form-dialog__content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-
+  gap: 10px;
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 2px;
-
-  scrollbar-width: none;
-  -ms-overflow-style: none;
 }
 
 .day-meal-form-dialog__title {
@@ -76,10 +75,21 @@
   border-radius: 14px;
   border: 1px solid rgba(207, 222, 215, 0.95);
   background: rgba(255, 252, 247, 0.92);
-  color: $color-primary-dark;
-  font-size: 0.96rem;
+  color: rgba(60, 80, 70, 0.78);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.35;
   outline: none;
   box-sizing: border-box;
+}
+
+.meal-field input::placeholder,
+.meal-field textarea::placeholder {
+  color: rgba(60, 80, 70, 0.38);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 400;
 }
 
 .meal-field input,
@@ -89,13 +99,17 @@
 }
 
 .meal-field textarea {
-  min-height: 64px;
+  min-height: 58px;
   max-height: 92px;
   padding: 2px 6px;
   resize: vertical;
   font-family: inherit;
   line-height: 1.35;
   overflow-y: auto;
+}
+
+.meal-field textarea::placeholder {
+  line-height: 1.4;
 }
 
 .meal-field input:focus,
@@ -108,13 +122,13 @@
 /* IMAGE BLOCK */
 .meal-image-block {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
   padding: 6px 8px;
   border-radius: 14px;
   border: 1px solid rgba(207, 222, 215, 0.9);
   background: rgba(255, 252, 247, 0.92);
-  min-height: 54px;
+  min-height: 50px;
 }
 
 .meal-image-thumb {
@@ -195,6 +209,7 @@
   flex-shrink: 0;
   display: flex;
   gap: 12px;
+  margin-top: 8px;
 }
 
 .day-meal-form-dialog__actions .btn-secondary,
@@ -205,7 +220,7 @@
 .form-helper {
   font-size: 0.8rem;
   line-height: 1.15;
-  margin: 1px 0 0;
+  margin: -1px 0 0;
   color: rgba(60, 80, 70, 0.55);
 }
 
@@ -214,14 +229,22 @@
   color: rgba(60, 80, 70, 0.5);
 }
 
-.meal-field input, .meal-field textarea {
-  color: $color-text-muted;
+.day-meal-form-dialog__content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba($color-primary, 0.22) transparent;
 }
 
 .day-meal-form-dialog__content::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
+  width: 4px;
+}
+
+.day-meal-form-dialog__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.day-meal-form-dialog__content::-webkit-scrollbar-thumb {
+  background: rgba($color-primary, 0.22);
+  border-radius: 999px;
 }
 
 .meal-details-toggle {
@@ -229,13 +252,17 @@
   border: none;
   background: transparent;
   padding: 2px 0;
+  margin-top: -2px;
+
   color: $color-primary-dark;
   font: inherit;
   font-size: 0.9rem;
   font-weight: 600;
+
   display: inline-flex;
   align-items: center;
   gap: 5px;
+
   cursor: pointer;
 }
 
@@ -448,10 +475,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-
-  max-height: 64px;
+  max-height: 30px;
   overflow: hidden;
-
   padding-right: 2px;
   padding-bottom: 2px;
 }
@@ -489,17 +514,20 @@
 .selected-meals-more {
   display: inline-flex;
   align-self: flex-start;
-
   margin: 4px 0 0;
   padding: 0;
-
   border: none;
   background: transparent;
-
   font-size: 12px;
   font-weight: 600;
   color: rgba($color-primary-dark, 0.68);
   cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.selected-meals-more:focus {
+  outline: none;
 }
 
 .search-input-wrap {
@@ -549,11 +577,11 @@
   .day-meal-form-dialog-overlay {
     align-items: flex-start;
     justify-content: center;
-    padding: clamp(140px, 22vh, 260px) 24px 40px;
+    padding: clamp(90px, 14vh, 140px) 24px 40px;
   }
 
   .day-meal-form-dialog {
-    max-height: calc(100vh - clamp(180px, 26vh, 300px));
+    max-height: calc(100vh - clamp(130px, 18vh, 180px));
   }
 
   .meal-field textarea {

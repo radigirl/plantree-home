@@ -155,7 +155,7 @@
   width: 100%;
   height: auto;
   opacity: 0.9;
-  aspect-ratio: 16 / 12.7;
+  aspect-ratio: 16 / 12.5;
 }
 
 .today-cook-row {
@@ -187,8 +187,7 @@
 }
 
 .today-secondary-text--unassigned {
-  opacity: 0.78;
-  font-size: 0.86rem;
+  opacity: 0.72;
 }
 
 .today-meta-row {
@@ -334,6 +333,10 @@
   }
 }
 
+.card--week .card__title {
+  max-width: 72px;
+}
+
 .card-icon {
   flex-shrink: 0;
   color: $color-primary-dark;
@@ -477,7 +480,8 @@
 
   .today-cook-label,
   .today-secondary-text {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
+    line-height: 1.1;
   }
 
   .today-meta-row {

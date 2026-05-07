@@ -12,11 +12,13 @@ import { takeUntil, filter, map, distinctUntilChanged } from 'rxjs/operators';
 import { SpaceStateService } from '../../services/space.state.service';
 import { Trophy, ChefHat, LucideAngularModule } from 'lucide-angular';
 import { UserRound } from 'lucide-angular';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../services/language.state.service';
 
 @Component({
   selector: 'app-week-stats',
   standalone: true,
-  imports: [CommonModule, PageLoadingComponent, LucideAngularModule],
+  imports: [CommonModule, PageLoadingComponent, LucideAngularModule, TranslatePipe],
   templateUrl: './week-stats.component.html',
   styleUrls: ['./week-stats.component.scss'],
 })
@@ -27,7 +29,7 @@ export class WeekStatsComponent implements OnInit, OnDestroy {
   winnerCount = 0;
   isTie = false;
   currentWeekStart: Date = this.getStartOfWeek(new Date());
-  chefLabel = 'Chef of the week';
+  chefLabel = '';
   chefDisplayName = '';
 
   cookedMeals: {
@@ -53,10 +55,11 @@ export class WeekStatsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private mealPlanService: MealPlanService,
-    private spaceStateService: SpaceStateService,
-    private cdr: ChangeDetectorRef
-  ) { }
+  private mealPlanService: MealPlanService,
+  private spaceStateService: SpaceStateService,
+  private languageStateService: LanguageStateService,
+  private cdr: ChangeDetectorRef
+) { }
 
   ngOnInit(): void {
     this.spaceStateService.currentSpace$
@@ -126,7 +129,7 @@ export class WeekStatsComponent implements OnInit, OnDestroy {
       this.winnerName = '';
       this.winnerCount = 0;
       this.isTie = false;
-      this.chefLabel = 'Chef of the week';
+      this.chefLabel = this.languageStateService.t('weekStats.chefOfTheWeek');
       this.chefDisplayName = '';
       this.winnerAvatars = [];
       this.cookedMeals = [];
@@ -168,7 +171,7 @@ export class WeekStatsComponent implements OnInit, OnDestroy {
       this.winnerName = '';
       this.winnerCount = 0;
       this.isTie = false;
-      this.chefLabel = 'Chef of the week';
+      this.chefLabel = this.languageStateService.t('weekStats.chefOfTheWeek');
       this.chefDisplayName = '';
       this.winnerAvatars = [];
       return;
@@ -180,7 +183,7 @@ export class WeekStatsComponent implements OnInit, OnDestroy {
       this.winnerName = '';
       this.winnerCount = 0;
       this.isTie = false;
-      this.chefLabel = 'Chef of the week';
+      this.chefLabel = this.languageStateService.t('weekStats.chefOfTheWeek');
       this.chefDisplayName = '';
       this.winnerAvatars = [];
       return;
@@ -192,14 +195,14 @@ export class WeekStatsComponent implements OnInit, OnDestroy {
     this.isTie = topCooks.length > 1;
 
     if (!this.isTie) {
-      this.chefLabel = 'Chef of the week';
+      this.chefLabel = this.languageStateService.t('weekStats.chefOfTheWeek');
       this.winnerName = topCooks[0].name;
       this.chefDisplayName = topCooks[0].name;
       this.winnerAvatars = topCooks[0].avatar ? [topCooks[0].avatar] : [];
       return;
     }
 
-    this.chefLabel = 'Top cooks';
+    this.chefLabel = this.languageStateService.t('weekStats.topCooks');
     this.winnerName = '';
     this.winnerAvatars = topCooks
       .slice(0, 2)

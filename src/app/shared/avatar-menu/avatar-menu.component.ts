@@ -138,24 +138,28 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   selectMember(member: Member): void {
-    if (member.id === this.currentMember?.id) {
-      return;
-    }
-
-    this.memberSelected.emit(member);
+  if (member.id === this.currentMember?.id) {
+    this.closeMenu();
+    return;
   }
+
+  this.memberSelected.emit(member);
+  this.closeMenu();
+}
 
   async selectLanguage(language: AppLanguage): Promise<void> {
-    if (language === this.currentLanguage) {
-      return;
-    }
-
-    try {
-      await this.memberStateService.setCurrentMemberLanguage(language);
-    } catch (error) {
-      console.error('Failed to save selected language', error);
-    }
+  if (language === this.currentLanguage) {
+    this.closeMenu();
+    return;
   }
+
+  try {
+    await this.memberStateService.setCurrentMemberLanguage(language);
+    this.closeMenu();
+  } catch (error) {
+    console.error('Failed to save selected language', error);
+  }
+}
 
   navigateTo(path: string): void {
     this.router.navigate([path]);

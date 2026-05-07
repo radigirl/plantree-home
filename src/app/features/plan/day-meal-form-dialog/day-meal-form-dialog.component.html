@@ -1,15 +1,16 @@
 <div class="day-meal-form-dialog-overlay" *ngIf="isOpen" (click)="onOverlayClick()">
   <div class="day-meal-form-dialog" (click)="$event.stopPropagation()">
+    <h3 class="day-meal-form-dialog__title">
+      {{ getTitle() }}
+    </h3>
+
     <div class="day-meal-form-dialog__content">
-      <h3 class="day-meal-form-dialog__title">
-        {{ getTitle() }}
-      </h3>
 
       <div class="meal-field" *ngIf="mode === 'edit-cook'">
-        <label for="dialogCook">Cook</label>
+        <label for="dialogCook">{{ 'home.cookLabel' | translate }}</label>
 
         <select id="dialogCook" [(ngModel)]="selectedCookId">
-          <option [ngValue]="null">Unassigned</option>
+          <option [ngValue]="null">{{ 'home.unassigned' | translate }}</option>
 
           <option *ngFor="let member of availableMembers" [ngValue]="member.id">
             {{ member.name }}
@@ -20,11 +21,11 @@
       <ng-container *ngIf="mode === 'add'">
 
         <div class="meal-field" *ngIf="availableMeals.length > 0">
-          <label>How would you like to add?</label>
+          <label>{{ 'dayMealForm.howAdd' | translate }}</label>
 
           <app-toggle-switch [options]="[
-        { label: 'My Meals', value: 'search' },
-        { label: 'New Meal', value: 'new' }
+        { label: ('meals.title' | translate), value: 'search' },
+        { label: ('dayMealForm.newMeal' | translate), value: 'new' }
       ]" [value]="addMealMode" (valueChange)="setAddMealMode($event)">
           </app-toggle-switch>
         </div>
@@ -32,7 +33,7 @@
         <ng-container *ngIf="addMealMode === 'search' && availableMeals.length > 0">
           <div class="selected-meals-block" *ngIf="selectedAvailableMeals.length > 0">
             <p class="selected-meals-label">
-              Selected meals ({{ selectedAvailableMeals.length }})
+              {{ 'dayMealForm.selectedMeals' | translate }} ({{ selectedAvailableMeals.length }})
             </p>
 
             <div class="selected-meals-chips" #selectedMealsChips
@@ -45,18 +46,18 @@
             </div>
             <button type="button" class="selected-meals-more" *ngIf="selectedMealsHasOverflow || chipsExpanded"
               (click)="toggleChipsExpanded()">
-              {{ chipsExpanded ? 'Show less' : 'Show all selected' }}
+              {{ chipsExpanded ? ('dayMealForm.showLess' | translate) : ('dayMealForm.showAllSelected' | translate) }}
             </button>
           </div>
           <div class="meal-field">
-            <label for="mealSearch">Search meals</label>
+            <label for="mealSearch">{{ 'dayMealForm.searchMeals' | translate }}</label>
 
             <div class="search-input-wrap">
               <input id="mealSearch" type="search" [(ngModel)]="mealSearchQuery"
-                placeholder="Search by title or ingredient" />
+                [placeholder]="'dayMealForm.searchPlaceholder' | translate" />
 
               <button *ngIf="mealSearchQuery" type="button" class="search-clear-btn" (click)="mealSearchQuery = ''"
-                aria-label="Clear search">
+                [attr.aria-label]="'common.clearSearch' | translate">
                 ×
               </button>
             </div>
@@ -65,7 +66,7 @@
           <div class="meal-search-results-container meal-search-results-container--reserved"
             [class.has-results]="displayedAvailableMeals.length > 0">
             <div class="meal-search-empty-wrap" *ngIf="!mealSearchQuery">
-              <p class="meal-search-empty">Start typing to search meals</p>
+              <p class="meal-search-empty">{{ 'dayMealForm.startTyping' | translate }}</p>
             </div>
 
             <div class="meal-search-results" *ngIf="displayedAvailableMeals.length > 0">
@@ -94,33 +95,36 @@
 
             <div class="meal-search-empty-wrap" *ngIf="mealSearchQuery && displayedAvailableMeals.length === 0">
 
-              <p class="meal-search-empty">No meals found.</p>
+              <p class="meal-search-empty">{{ 'meals.noResults' | translate }}</p>
             </div>
           </div>
         </ng-container>
 
         <ng-container *ngIf="addMealMode === 'new' || availableMeals.length === 0">
           <div class="meal-field">
-            <label for="newDialogMealName">Meal name</label>
-            <input id="newDialogMealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
+            <label for="newDialogMealName">{{ 'mealDialog.mealName' | translate }}</label>
+            <input id="newDialogMealName" type="text" [(ngModel)]="newMealName"
+              [placeholder]="'mealDialog.mealNamePlaceholder' | translate" />
           </div>
 
           <div class="meal-field">
-            <label>Meal photo</label>
+            <label>{{ 'mealDialog.mealPhoto' | translate }}</label>
 
             <div class="meal-image-block">
               <div class="meal-image-thumb" *ngIf="selectedImagePreview">
-                <img [src]="selectedImagePreview" alt="Meal preview" />
+                <img [src]="selectedImagePreview" [alt]="'mealDialog.previewAlt' | translate" />
               </div>
 
               <div class="meal-image-content">
                 <label for="newDialogMealImage" class="meal-image-upload">
-                  <span class="meal-image-upload__button">Choose file</span>
+                  <span class="meal-image-upload__button">{{ 'mealDialog.chooseFile' | translate }}</span>
 
                   <span class="meal-image-upload__name">
                     {{
                     selectedImageFile?.name
-                    || (selectedImagePreview ? 'Image selected' : 'No file chosen')
+                    || (selectedImagePreview
+                    ? ('dayMealForm.imageSelected' | translate)
+                    : ('mealDialog.noFileChosen' | translate))
                     }}
                   </span>
                 </label>
@@ -130,7 +134,7 @@
 
                 <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
                   (click)="removeSelectedMealImage()">
-                  ✕ Remove
+                  ✕ {{ 'common.remove' | translate }}
                 </button>
               </div>
             </div>
@@ -144,30 +148,32 @@
                 {{ showAdvanced ? '▾' : '▸' }}
               </span>
 
-              {{ showAdvanced ? 'Hide details' : 'Add details' }}
+              {{ showAdvanced ? ('dayMealForm.hideDetails' | translate) : ('dayMealForm.addDetails' | translate) }}
             </button>
 
             <p class="form-helper" *ngIf="newMealHasDetails && !showAdvanced">
-              Details already added
+              {{ 'dayMealForm.detailsAlreadyAdded' | translate }}
             </p>
           </div>
 
           <ng-container *ngIf="showAdvanced">
             <div class="meal-field">
-              <label for="newDialogPrepTime">Prep time (minutes)</label>
-              <input id="newDialogPrepTime" type="number" min="0" [(ngModel)]="newPrepTime" placeholder="Optional" />
+              <label for="newDialogPrepTime">{{ 'mealDialog.prepTime' | translate }}</label>
+              <input id="newDialogPrepTime" type="number" min="0" [(ngModel)]="newPrepTime"
+                [placeholder]="'mealDialog.optional' | translate" />
             </div>
 
             <div class="meal-field">
-              <label for="newDialogIngredients">Ingredients</label>
+              <label for="newDialogIngredients">{{ 'mealDialog.ingredients' | translate }}</label>
               <textarea id="newDialogIngredients" [(ngModel)]="mealIngredientsText"
-                placeholder="Add ingredients (comma or new line)">
+                [placeholder]="'dayMealForm.ingredientsPlaceholder' | translate">
         </textarea>
             </div>
 
             <div class="meal-field">
-              <label for="newDialogInstructions">Instructions</label>
-              <textarea id="newDialogInstructions" [(ngModel)]="mealInstructions" placeholder="Add instructions">
+              <label for="newDialogInstructions">{{ 'mealDialog.instructions' | translate }}</label>
+              <textarea id="newDialogInstructions" [(ngModel)]="mealInstructions"
+                [placeholder]="'dayMealForm.instructionsPlaceholder' | translate">
         </textarea>
             </div>
           </ng-container>
@@ -175,10 +181,10 @@
 
         <div class="meal-field" *ngIf="mode === 'add'">
 
-          <label for="addCook">Cook</label>
+          <label for="addCook">{{ 'home.cookLabel' | translate }}</label>
 
           <select id="addCook" [(ngModel)]="selectedCookId">
-            <option [ngValue]="null">Unassigned</option>
+            <option [ngValue]="null">{{ 'home.unassigned' | translate }}</option>
 
             <option *ngFor="let member of availableMembers" [ngValue]="member.id">
               {{ member.name }}
@@ -190,28 +196,28 @@
 
       <ng-container *ngIf="mode === 'change-meal'">
         <div class="meal-field">
-          <label>How would you like to change it?</label>
+          <label>{{ 'dayMealForm.howChange' | translate }}</label>
 
           <app-toggle-switch [options]="[
-        { label: 'My Meals', value: 'search' },
-        { label: 'Use current as a base', value: 'create-from-current' }
+        { label: ('meals.title' | translate), value: 'search' },
+        { label: ('dayMealForm.useCurrentAsBase' | translate), value: 'create-from-current' } 
       ]" [value]="changeMealMode" (valueChange)="setChangeMealMode($event)"></app-toggle-switch>
 
           <p class="form-helper" *ngIf="changeMealMode === 'create-from-current'">
-            A new meal will be created. The original stays unchanged.
+            {{ 'dayMealForm.createFromCurrentHelper' | translate }}
           </p>
         </div>
 
         <ng-container *ngIf="changeMealMode === 'search'">
           <div class="meal-field">
-            <label for="changeMealSearch">Search meals</label>
+            <label for="changeMealSearch">{{ 'dayMealForm.searchMeals' | translate }}</label>
 
             <div class="search-input-wrap">
               <input id="changeMealSearch" type="search" inputmode="search" [(ngModel)]="changeMealSearchQuery"
-                placeholder="Search by title or ingredient" autocomplete="off" autocorrect="off" autocapitalize="off"
-                spellcheck="false" enterkeyhint="search" />
+                [placeholder]="'dayMealForm.searchPlaceholder' | translate" autocomplete="off" autocorrect="off"
+                autocapitalize="off" spellcheck="false" enterkeyhint="search" />
               <button *ngIf="changeMealSearchQuery" type="button" class="search-clear-btn"
-                (click)="changeMealSearchQuery = ''" aria-label="Clear search">
+                (click)="changeMealSearchQuery = ''" [attr.aria-label]="'common.clearSearch' | translate">
                 ×
               </button>
             </div>
@@ -233,14 +239,14 @@
             </div>
 
             <button type="button" class="selected-meal-row__remove" (click)="clearChangeMealSearch()"
-              aria-label="Remove selected meal">
+              [attr.aria-label]="'dayMealForm.removeSelectedMeal' | translate">
               ×
             </button>
           </div>
 
           <div class="meal-search-results-container meal-search-results-container--reserved">
             <div class="meal-search-empty-wrap" *ngIf="!changeMealSearchQuery && !selectedExistingMealId">
-              <p class="meal-search-empty">Start typing to search meals</p>
+              <p class="meal-search-empty">{{ 'dayMealForm.startTyping' | translate }}</p>
             </div>
 
             <div class="meal-search-results" *ngIf="!selectedExistingMealId && displayedChangeMealOptions.length > 0">
@@ -266,33 +272,36 @@
 
             <div class="meal-search-empty-wrap"
               *ngIf="changeMealSearchQuery && displayedChangeMealOptions.length === 0 && !selectedExistingMealId">
-              <p class="meal-search-empty">No meals found.</p>
+              <p class="meal-search-empty">{{ 'meals.noResults' | translate }}</p>
             </div>
           </div>
         </ng-container>
 
         <ng-container *ngIf="changeMealMode === 'create-from-current'">
           <div class="meal-field">
-            <label for="baseMealName">Meal name</label>
-            <input id="baseMealName" type="text" [(ngModel)]="newMealName" placeholder="Enter meal name" />
+            <label for="baseMealName">{{ 'mealDialog.mealName' | translate }}</label>
+            <input id="baseMealName" type="text" [(ngModel)]="newMealName"
+              [placeholder]="'mealDialog.mealNamePlaceholder' | translate" />
           </div>
 
           <div class="meal-field">
-            <label>Meal photo</label>
+            <label>{{ 'mealDialog.mealPhoto' | translate }}</label>
 
             <div class="meal-image-block">
               <div class="meal-image-thumb" *ngIf="selectedImagePreview">
-                <img [src]="selectedImagePreview" alt="Meal preview" />
+                <img [src]="selectedImagePreview" [alt]="'mealDialog.previewAlt' | translate" />
               </div>
 
               <div class="meal-image-content">
                 <label for="baseMealImage" class="meal-image-upload">
-                  <span class="meal-image-upload__button">Choose file</span>
+                  <span class="meal-image-upload__button">{{ 'mealDialog.chooseFile' | translate }}</span>
 
                   <span class="meal-image-upload__name">
                     {{
                     selectedImageFile?.name
-                    || (selectedImagePreview ? 'Image selected' : 'No file chosen')
+                    || (selectedImagePreview
+                    ? ('dayMealForm.imageSelected' | translate)
+                    : ('mealDialog.noFileChosen' | translate))
                     }}
                   </span>
                 </label>
@@ -302,7 +311,7 @@
 
                 <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
                   (click)="removeSelectedMealImage()">
-                  ✕ Remove
+                  ✕ {{ 'common.remove' | translate }}
                 </button>
               </div>
             </div>
@@ -314,39 +323,41 @@
               <span class="meal-details-toggle__icon">
                 {{ showChangeAdvanced ? '▾' : '▸' }}
               </span>
-              {{ showChangeAdvanced ? 'Hide details' : 'Edit details' }}
+              {{ showChangeAdvanced ? ('dayMealForm.hideDetails' | translate) : ('dayMealForm.editDetails' | translate)
+              }}
             </button>
 
             <p class="form-helper" *ngIf="(changeMealIngredientsText || changeMealInstructions) && !showChangeAdvanced">
-              Details already added
+              {{ 'dayMealForm.detailsAlreadyAdded' | translate }}
             </p>
           </div>
 
           <ng-container *ngIf="showChangeAdvanced">
             <div class="meal-field">
-              <label for="basePrepTime">Prep time (minutes)</label>
-              <input id="basePrepTime" type="number" min="0" [(ngModel)]="newPrepTime" placeholder="Optional" />
+              <label for="basePrepTime">{{ 'mealDialog.prepTime' | translate }}</label>
+              <input id="basePrepTime" type="number" min="0" [(ngModel)]="newPrepTime"
+                [placeholder]="'mealDialog.optional' | translate" />
             </div>
 
             <div class="meal-field">
-              <label for="baseIngredients">Ingredients</label>
+              <label for="baseIngredients">{{ 'mealDialog.ingredients' | translate }}</label>
               <textarea id="baseIngredients" [(ngModel)]="changeMealIngredientsText"
-                placeholder="Add ingredients (comma or new line)"></textarea>
+                [placeholder]="'dayMealForm.ingredientsPlaceholder' | translate"></textarea>
             </div>
 
             <div class="meal-field">
-              <label for="baseInstructions">Instructions</label>
+              <label for="baseInstructions">{{ 'mealDialog.instructions' | translate }}</label>
               <textarea id="baseInstructions" [(ngModel)]="changeMealInstructions"
-                placeholder="Add instructions"></textarea>
+                [placeholder]="'dayMealForm.instructionsPlaceholder' | translate"></textarea>
             </div>
           </ng-container>
         </ng-container>
 
         <div class="meal-field">
-          <label for="changeCook">Cook</label>
+          <label for="changeCook">{{ 'home.cookLabel' | translate }}</label>
 
           <select id="changeCook" [(ngModel)]="selectedCookId">
-            <option [ngValue]="null">Unassigned</option>
+            <option [ngValue]="null">{{ 'home.unassigned' | translate }}</option>
             <option *ngFor="let member of availableMembers" [ngValue]="member.id">
               {{ member.name }}
             </option>
@@ -359,11 +370,11 @@
     </p>
     <div class="button-row day-meal-form-dialog__actions">
       <button type="button" class="btn-secondary" (click)="onCancel()">
-        Cancel
+        {{ 'common.cancel' | translate }}
       </button>
 
       <button type="button" class="btn-primary" [disabled]="isSaving" (click)="onSave()">
-        Save
+        {{ 'mealDialog.save' | translate }}
       </button>
     </div>
   </div>

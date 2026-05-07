@@ -7,13 +7,12 @@
   <ng-container *ngIf="!isLoading">
 
     <div class="page-header">
-      <h1 class="page-title">Week Stats</h1>
+      <h1 class="page-title">{{ 'weekStats.title' | translate }}</h1>
 
       <p class="page-subtitle">
-        See how your household cooked this week
+        {{ 'weekStats.subtitle' | translate }}
       </p>
     </div>
-
 
     <div class="week-stats-scroll">
       <!-- CHEF HERO -->
@@ -39,11 +38,11 @@
           <p class="hero-meta">
             <ng-container *ngIf="isTie; else singleWinnerMeta">
               {{ winnerCount }}
-              {{ winnerCount === 1 ? 'meal each' : 'meals each' }}
+             {{ winnerCount === 1 ? ('weekStats.mealEach' | translate) : ('weekStats.mealsEach' | translate) }}
             </ng-container>
             <ng-template #singleWinnerMeta>
               {{ winnerCount }}
-              {{ winnerCount === 1 ? 'meal by ' : 'meals by ' }}
+              {{ winnerCount === 1 ? ('weekStats.mealBy' | translate) : ('weekStats.mealsBy' | translate) }}
               {{ winnerName }}
             </ng-template>
           </p>
@@ -53,15 +52,15 @@
           <h3 class="section-title hero-title">
             <lucide-icon [img]="emptyChefIcon" [size]="16" class="hero-title-icon"></lucide-icon>
 
-            Chef of the week
+           {{ 'weekStats.chefOfTheWeek' | translate }}
           </h3>
 
           <h2 class="hero-name">
-            No meals cooked yet
+            {{ 'weekStats.noMealsCooked' | translate }}
           </h2>
 
           <p class="hero-meta">
-            Start cooking to unlock stats
+            {{ 'weekStats.startCooking' | translate }}
           </p>
         </ng-template>
 
@@ -69,22 +68,22 @@
 
       <!-- WEEK SUMMARY -->
       <section class="stats-card">
-        <h3 class="section-title">This Week</h3>
+        <h3 class="section-title">{{ 'weekStats.thisWeek' | translate }}</h3>
 
         <div class="stat-row">
-          <span>Meals cooked</span>
+          <span>{{ 'weekStats.mealsCooked' | translate }}</span>
           <strong>{{ cookedMeals.length }}</strong>
         </div>
 
         <div class="stat-row">
-          <span>Active cooks</span>
+          <span>{{ 'weekStats.activeCooks' | translate }}</span>
           <strong>{{ activeCooksCount }}</strong>
         </div>
       </section>
 
       <!-- FAMILY LEADERBOARD -->
       <section class="stats-card" *ngIf="leaderboard.length > 0">
-        <h3 class="section-title">Family Leaderboard</h3>
+        <h3 class="section-title">{{ 'weekStats.familyLeaderboard' | translate }}</h3>
 
         <div class="leaderboard-row" *ngFor="let cook of leaderboard; let i = index">
           <div class="leaderboard-person">
@@ -101,10 +100,10 @@
 
       <!-- COOKED MEALS -->
       <section class="stats-card">
-        <h3 class="section-title">Cooked Meals</h3>
+        <h3 class="section-title">{{ 'weekStats.cookedMeals' | translate }}</h3>
 
         <p class="empty-copy" *ngIf="cookedMeals.length === 0">
-          No cooked meals yet this week.
+          {{ 'weekStats.noCookedMealsThisWeek' | translate }}
         </p>
 
         <div class="meal-row meal-row--rich" *ngFor="let meal of cookedMeals">
@@ -125,7 +124,7 @@
                 </span>
               </ng-template>
 
-              {{ meal.cook ? ('Cooked by ' + meal.cook) : 'No cook assigned' }}
+              {{ meal.cook ? (('weekStats.cookedBy' | translate) + ' ' + meal.cook) : ('weekStats.noCookAssigned' | translate) }}
             </span>
           </div>
         </div>

@@ -27,6 +27,8 @@ import { LucideAngularModule, Clock3, UserRound } from 'lucide-angular';
 import { DayMealFormDialogComponent } from '../day-meal-form-dialog/day-meal-form-dialog.component';
 import { DayMealDetailsDialogComponent } from '../day-meal-details-dialog/day-meal-details-dialog.component';
 import { SnackbarComponent } from '../../../shared/components/snackbar/snackbar.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../../services/language.state.service';
 
 type DayDetailsFormMode = 'add' | 'edit-cook' | 'change-meal';
 type AddMealMode = 'search' | 'new';
@@ -35,7 +37,7 @@ type ChangeMealMode = 'search' | 'create-from-current';
 @Component({
   selector: 'app-day-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent, LucideAngularModule, DayMealFormDialogComponent, DayMealDetailsDialogComponent, SnackbarComponent],
+  imports: [CommonModule, RouterModule, FormsModule, PageLoadingComponent, ResponsiveActionMenuComponent, ConfirmationDialogComponent, LucideAngularModule, DayMealFormDialogComponent, DayMealDetailsDialogComponent, SnackbarComponent, TranslatePipe],
   templateUrl: './day-details.component.html',
   styleUrl: './day-details.component.scss',
 })
@@ -83,12 +85,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
   selectedMealForActions: PlannedMeal | null = null;
 
-  mealActions: ResponsiveActionMenuItem[] = [
-    { id: 'change', label: 'Change meal' },
-    { id: 'edit-cook', label: 'Change cook' },
-    { id: 'remove', label: 'Remove' },
-  ];
-
   isDeleteConfirmOpen = false;
   mealPendingDelete: PlannedMeal | null = null;
 
@@ -116,6 +112,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    private languageStateService: LanguageStateService,
   ) { }
 
   @HostListener('document:click', ['$event'])
@@ -182,6 +179,14 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  get mealActions(): ResponsiveActionMenuItem[] {
+    return [
+      { id: 'change', label: this.languageStateService.t('dayDetails.changeMeal') },
+      { id: 'edit-cook', label: this.languageStateService.t('dayDetails.changeCook') },
+      { id: 'remove', label: this.languageStateService.t('common.remove') },
+    ];
   }
 
   async loadMembers(): Promise<void> {
@@ -288,10 +293,10 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   getBackLabel(): string {
     const source = this.getSource();
 
-    if (source === 'home') return 'Home';
-    if (source === 'plan') return 'Plan';
+    if (source === 'home') return this.languageStateService.t('nav.home');
+    if (source === 'plan') return this.languageStateService.t('nav.plan');
 
-    return 'Back';
+    return this.languageStateService.t('common.back');
   }
 
   private getSource(): string | null {
@@ -586,7 +591,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
 
   getStatusLabel(status: string): string {
-    return MEAL_STATUS_LABELS[status] || status;
+    return this.languageStateService.t(`mealStatus.${status}`);
   }
 
 
@@ -594,16 +599,21 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     if (!this.date) return '';
 
     const date = new Date(this.date);
-    return date.toLocaleDateString('en-US', { weekday: 'short' });
+    const days = this.languageStateService.t('daysShort') as unknown as string[];
+
+    return days[date.getDay()];
   }
 
   getShortDate(): string {
     if (!this.date) return '';
+
     const date = new Date(this.date);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
+    const months = this.languageStateService.t('monthsLong') as unknown as string[];
+    const isBg = this.languageStateService.getLanguage() === 'bg';
+
+    return isBg
+      ? `${date.getDate()} ${months[date.getMonth()]}`
+      : `${months[date.getMonth()]} ${date.getDate()}`;
   }
 
   isPastDate(): boolean {
@@ -623,11 +633,11 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   getPrimaryActionLabel(status: string): string | null {
     switch (status) {
       case 'to-prepare':
-        return 'Start cooking';
+        return this.languageStateService.t('dayDetails.startCooking');
       case 'in-progress':
-        return 'Mark ready';
+        return this.languageStateService.t('dayDetails.markReady');
       case 'ready-to-serve':
-        return 'Reset';
+        return this.languageStateService.t('dayDetails.reset');
       default:
         return null;
     }
@@ -641,10 +651,10 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     switch (status) {
       case 'to-prepare':
       case 'in-progress':
-        return 'Mark ready';
+        return this.languageStateService.t('dayDetails.markReady');
 
       case 'ready-to-serve':
-        return 'Reset status';
+        return this.languageStateService.t('dayDetails.resetStatus');
 
       default:
         return null;
@@ -719,8 +729,10 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
   getDeleteConfirmMessage(): string {
     return this.mealPendingDelete
-      ? `Remove "${this.mealPendingDelete.meal.name}" from this day?`
-      : 'Do you want to continue?';
+      ? this.languageStateService
+        .t('dayDetails.removeMessage')
+        .replace('{{name}}', this.mealPendingDelete.meal.name)
+      : this.languageStateService.t('common.continueQuestion');
   }
 
   closeDeleteConfirm(): void {
@@ -752,7 +764,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   getResponsiveMealActions(meal: PlannedMeal): ResponsiveActionMenuItem[] {
     if (this.isPastDate()) {
       const actions: ResponsiveActionMenuItem[] = [
-        { id: 'edit-cook', label: 'Change cook' },
+        { id: 'edit-cook', label: this.languageStateService.t('dayDetails.changeCook') },
       ];
 
       const statusLabel = this.getPastStatusActionLabel(meal.status);
@@ -765,9 +777,9 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     }
 
     return [
-      { id: 'change', label: 'Change meal' },
-      { id: 'edit-cook', label: 'Change cook' },
-      { id: 'remove', label: 'Remove' },
+      { id: 'change', label: this.languageStateService.t('dayDetails.changeMeal') },
+      { id: 'edit-cook', label: this.languageStateService.t('dayDetails.changeCook') },
+      { id: 'remove', label: this.languageStateService.t('common.remove') },
     ];
   }
 
@@ -810,83 +822,96 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onDayMealFormSaved(event: {
-  mode: 'add' | 'edit-cook' | 'change-meal';
-  cookId: number | null;
-  selectedMealId?: string | null;
-  selectedMealIds?: string[];
-  changeMealMode?: 'search' | 'create-from-current';
-  addMealMode?: 'search' | 'new';
+    mode: 'add' | 'edit-cook' | 'change-meal';
+    cookId: number | null;
+    selectedMealId?: string | null;
+    selectedMealIds?: string[];
+    changeMealMode?: 'search' | 'create-from-current';
+    addMealMode?: 'search' | 'new';
 
-  newMealName?: string;
-  newPrepTime?: number | null;
-  mealIngredientsText?: string;
-  mealInstructions?: string;
-  changeMealIngredientsText?: string;
-  changeMealInstructions?: string;
-  selectedImageFile?: File | null;
-}): Promise<void> {
-  if (event.mode === 'edit-cook') {
-    this.selectedCookId = event.cookId;
-    await this.saveEditCook();
-    this.showSnackbar('Cook updated');
-    return;
-  }
-
-  if (event.mode === 'change-meal') {
-    this.selectedCookId = event.cookId;
-    this.changeMealMode = event.changeMealMode ?? 'search';
-    this.selectedExistingMealId = event.selectedMealId ?? null;
-
-    this.newMealName = event.newMealName ?? '';
-    this.newPrepTime = event.newPrepTime ?? null;
-    this.selectedImageFile = event.selectedImageFile ?? null;
-    this.selectedImagePreview = null;
-    this.changeMealIngredientsText = event.changeMealIngredientsText ?? '';
-    this.changeMealInstructions = event.changeMealInstructions ?? '';
-
-    await this.saveChangeMeal();
-    this.showSnackbar('Meal changed');
-    return;
-  }
-
-  if (event.mode === 'add') {
-    this.selectedCookId = event.cookId;
-    this.addMealMode = event.addMealMode ?? 'search';
-    this.selectedExistingMealId = event.selectedMealId ?? null;
-    this.selectedExistingMealIds = event.selectedMealIds ?? [];
-
-    this.newMealName = event.newMealName ?? '';
-    this.newPrepTime = event.newPrepTime ?? null;
-    this.mealIngredientsText = event.mealIngredientsText ?? '';
-    this.mealInstructions = event.mealInstructions ?? '';
-    this.selectedImageFile = event.selectedImageFile ?? null;
-    this.selectedImagePreview = null;
-
-    const addedMealsCount = this.selectedExistingMealIds.length;
-    const singleAddedMealId =
-      addedMealsCount === 1 ? this.selectedExistingMealIds[0] : null;
-    const newMealNameForSnackbar = this.newMealName.trim();
-
-    await this.saveMeal();
-
-    if (this.addMealMode === 'search') {
-      if (addedMealsCount > 1) {
-        this.showSnackbar(`${addedMealsCount} meals added`);
-      } else if (singleAddedMealId) {
-        const meal = this.availableMeals.find((m) => m.id === singleAddedMealId);
-        this.showSnackbar(meal ? `${meal.name} added` : 'Meal added');
-      } else {
-        this.showSnackbar('Meal added');
-      }
-    } else if (this.addMealMode === 'new' && newMealNameForSnackbar) {
-      this.showSnackbar(`${newMealNameForSnackbar} added`);
-    } else {
-      this.showSnackbar('Meal added');
+    newMealName?: string;
+    newPrepTime?: number | null;
+    mealIngredientsText?: string;
+    mealInstructions?: string;
+    changeMealIngredientsText?: string;
+    changeMealInstructions?: string;
+    selectedImageFile?: File | null;
+  }): Promise<void> {
+    if (event.mode === 'edit-cook') {
+      this.selectedCookId = event.cookId;
+      await this.saveEditCook();
+      this.showSnackbar(this.languageStateService.t('dayDetails.cookUpdated'));
+      return;
     }
 
-    return;
+    if (event.mode === 'change-meal') {
+      this.selectedCookId = event.cookId;
+      this.changeMealMode = event.changeMealMode ?? 'search';
+      this.selectedExistingMealId = event.selectedMealId ?? null;
+
+      this.newMealName = event.newMealName ?? '';
+      this.newPrepTime = event.newPrepTime ?? null;
+      this.selectedImageFile = event.selectedImageFile ?? null;
+      this.selectedImagePreview = null;
+      this.changeMealIngredientsText = event.changeMealIngredientsText ?? '';
+      this.changeMealInstructions = event.changeMealInstructions ?? '';
+
+      await this.saveChangeMeal();
+      this.showSnackbar(this.languageStateService.t('dayDetails.mealChanged'));
+      return;
+    }
+
+    if (event.mode === 'add') {
+      this.selectedCookId = event.cookId;
+      this.addMealMode = event.addMealMode ?? 'search';
+      this.selectedExistingMealId = event.selectedMealId ?? null;
+      this.selectedExistingMealIds = event.selectedMealIds ?? [];
+
+      this.newMealName = event.newMealName ?? '';
+      this.newPrepTime = event.newPrepTime ?? null;
+      this.mealIngredientsText = event.mealIngredientsText ?? '';
+      this.mealInstructions = event.mealInstructions ?? '';
+      this.selectedImageFile = event.selectedImageFile ?? null;
+      this.selectedImagePreview = null;
+
+      const addedMealsCount = this.selectedExistingMealIds.length;
+      const singleAddedMealId =
+        addedMealsCount === 1 ? this.selectedExistingMealIds[0] : null;
+      const newMealNameForSnackbar = this.newMealName.trim();
+
+      await this.saveMeal();
+
+      if (this.addMealMode === 'search') {
+        if (addedMealsCount > 1) {
+          this.showSnackbar(
+            this.languageStateService
+              .t('dayDetails.multipleMealsAdded')
+              .replace('{{count}}', String(addedMealsCount))
+          );
+        } else if (singleAddedMealId) {
+          const meal = this.availableMeals.find((m) => m.id === singleAddedMealId);
+          this.showSnackbar(
+            meal
+              ? this.languageStateService
+                .t('dayDetails.mealAddedWithName')
+                .replace('{{name}}', meal.name)
+              : this.languageStateService.t('dayDetails.mealAdded')
+          );
+        } else {
+          this.showSnackbar(this.languageStateService.t('dayDetails.mealAdded'));
+        }
+      } else if (this.addMealMode === 'new' && newMealNameForSnackbar) {
+        this.showSnackbar(
+          this.languageStateService
+            .t('dayDetails.mealAddedWithName')
+            .replace('{{name}}', newMealNameForSnackbar)
+        );
+      } else {
+        this.showSnackbar(this.languageStateService.t('dayDetails.mealAdded'));
+      }
+      return;
+    }
   }
-}
 
   openMealDetailsDialog(meal: PlannedMeal): void {
     this.selectedMealForDetails = meal;
