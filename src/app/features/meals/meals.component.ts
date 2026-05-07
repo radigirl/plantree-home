@@ -27,6 +27,8 @@ import { MealDialogComponent } from './meal-dialog/meal-dialog.component';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 import { Clock3, LucideAngularModule } from 'lucide-angular';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../services/language.state.service';
 
 @Component({
   selector: 'app-meals',
@@ -41,7 +43,8 @@ import { Clock3, LucideAngularModule } from 'lucide-angular';
     MealDialogComponent,
     ConfirmationDialogComponent,
     SnackbarComponent,
-    LucideAngularModule
+    LucideAngularModule,
+    TranslatePipe
   ],
   templateUrl: './meals.component.html',
   styleUrl: './meals.component.scss',
@@ -71,13 +74,6 @@ export class MealsComponent implements OnInit, OnDestroy {
   isDeleteDialogOpen = false;
   mealToDelete: Meal | null = null;
 
-  mealActions: ResponsiveActionMenuItem[] = [
-    { id: 'edit', label: 'Edit meal' },
-    { id: 'create-from-this', label: 'Create from this' },
-    { id: 'add-to-plan', label: 'Add to Plan' },
-    { id: 'remove', label: 'Remove from My Meals' },
-  ];
-
   isMealDialogOpen = false;
   mealDialogMode: 'create' | 'edit' | 'createFromExisting' = 'create';
   mealDialogInitialMeal: Meal | null = null;
@@ -92,7 +88,8 @@ export class MealsComponent implements OnInit, OnDestroy {
     private supabaseService: SupabaseService,
     private cdr: ChangeDetectorRef,
     private memberStateService: MemberStateService,
-    private mealPlanService: MealPlanService
+    private mealPlanService: MealPlanService,
+    private languageStateService: LanguageStateService
   ) { }
 
   @HostListener('document:click', ['$event'])
@@ -121,7 +118,7 @@ export class MealsComponent implements OnInit, OnDestroy {
 
         if (!member) {
           this.meals = [];
-          this.isLoading = false;
+          this.isLoading = true;
           this.cdr.detectChanges();
           return;
         }
@@ -130,12 +127,13 @@ export class MealsComponent implements OnInit, OnDestroy {
       });
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    if (this.toastTimeout) {
-      clearTimeout(this.toastTimeout);
-    }
-    this.destroy$.complete();
+  get mealActions(): ResponsiveActionMenuItem[] {
+    return [
+      { id: 'edit', label: this.languageStateService.t('meals.edit') },
+      { id: 'create-from-this', label: this.languageStateService.t('meals.createFromThis') },
+      { id: 'add-to-plan', label: this.languageStateService.t('meals.addToPlan') },
+      { id: 'remove', label: this.languageStateService.t('meals.remove') },
+    ];
   }
 
   async loadMeals(memberId: number): Promise<void> {
@@ -200,7 +198,11 @@ export class MealsComponent implements OnInit, OnDestroy {
 
       await this.mealsService.hideMealForMember(meal.id, member.id);
       await this.loadMeals(member.id);
-      this.showToast(`${meal.name} removed from My Meals`);
+      this.showToast(
+        this.languageStateService
+          .t('meals.removedToast')
+          .replace('{{name}}', meal.name)
+      );
     } catch (error) {
       console.error('Error hiding meal:', error);
     } finally {
@@ -309,9 +311,9 @@ export class MealsComponent implements OnInit, OnDestroy {
 
   get addToPlanActions(): ResponsiveActionMenuItem[] {
     return [
-      { id: 'add-today', label: 'Today' },
-      { id: 'add-tomorrow', label: 'Tomorrow' },
-      { id: 'pick-date', label: 'Pick a date' },
+      { id: 'add-today', label: this.languageStateService.t('common.today') },
+      { id: 'add-tomorrow', label: this.languageStateService.t('common.tomorrow') },
+      { id: 'pick-date', label: this.languageStateService.t('common.pickDate') },
     ];
   }
 
@@ -328,7 +330,10 @@ export class MealsComponent implements OnInit, OnDestroy {
     }
 
     const formattedDate = this.formatDate(date);
-    const label = action === 'today' ? 'Today' : 'Tomorrow';
+    const label =
+      action === 'today'
+        ? this.languageStateService.t('common.today')
+        : this.languageStateService.t('common.tomorrow');
 
     this.isAddToPlanLoading = true;
 
@@ -340,11 +345,16 @@ export class MealsComponent implements OnInit, OnDestroy {
       );
 
       this.closeMealMenu();
-      this.showToast(`${meal.name} added to ${label}`);
+      this.showToast(
+        this.languageStateService
+          .t('meals.addedToDayToast')
+          .replace('{{name}}', meal.name)
+          .replace('{{day}}', label)
+      );
     } catch (error) {
       console.error(error);
       this.closeMealMenu();
-      this.showToast('Failed to add meal');
+      this.showToast(this.languageStateService.t('meals.failedToAdd'));
     } finally {
       this.isAddToPlanLoading = false;
     }
@@ -408,19 +418,27 @@ export class MealsComponent implements OnInit, OnDestroy {
       this.closeMealMenu();
       this.showToast(
         dates.length === 1
-          ? `${meal.name} added to ${this.formatToastDayLabel(dates[0])}`
-          : `${meal.name} added to ${dates.length} days`
+          ? this.languageStateService
+            .t('meals.addedToDayToast')
+            .replace('{{name}}', meal.name)
+            .replace('{{day}}', this.formatToastDayLabel(dates[0]))
+          : this.languageStateService
+            .t('meals.addedToMultipleDaysToast')
+            .replace('{{name}}', meal.name)
+            .replace('{{count}}', String(dates.length))
       );
     } catch (error) {
       console.error(error);
       this.closeMealMenu();
-      this.showToast('Failed to add meal');
+      this.showToast(this.languageStateService.t('meals.failedToAdd'));
     }
   }
 
   private formatToastDayLabel(dateString: string): string {
     const date = new Date(`${dateString}T12:00:00`);
-    return date.toLocaleDateString('en-US', { weekday: 'long' });
+    const months = this.languageStateService.t('monthsLong') as unknown as string[];
+
+    return `${date.getDate()} ${months[date.getMonth()]}`;
   }
 
   private resetCalendarSelection(): void {
@@ -489,8 +507,12 @@ export class MealsComponent implements OnInit, OnDestroy {
         await this.loadMeals(member.id);
         this.showToast(
           data.mode === 'edit'
-            ? `${data.mealName} updated`
-            : `${data.mealName} saved to My Meals`
+            ? this.languageStateService
+              .t('meals.updatedToast')
+              .replace('{{name}}', data.mealName)
+            : this.languageStateService
+              .t('meals.savedToast')
+              .replace('{{name}}', data.mealName)
         );
       }
     } catch (error) {
@@ -502,6 +524,14 @@ export class MealsComponent implements OnInit, OnDestroy {
     this.isMealDialogOpen = false;
     this.mealDialogInitialMeal = null;
     this.mealDialogMode = 'create';
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.destroy$.complete();
   }
 
 }

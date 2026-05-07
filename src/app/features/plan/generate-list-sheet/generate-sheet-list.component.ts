@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../../services/language.state.service';
 
 export interface GenerateListMealItem {
   id: string;
@@ -11,8 +13,8 @@ export interface GenerateListMealItem {
 
 export interface GenerateListDayItem {
   key: string;
-  label: string;   // Mon
-  date: string;    // 11 Apr
+  label: string;
+  date: string;
   isToday?: boolean;
   isPast?: boolean;
   meals: GenerateListMealItem[];
@@ -32,14 +34,14 @@ interface GenerateListDayState extends GenerateListDayItem {
 @Component({
   selector: 'app-generate-sheet-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './generate-sheet-list.component.html',
   styleUrls: ['./generate-sheet-list.component.scss'],
 })
 export class GenerateSheetListComponent implements OnChanges {
   @Input() isOpen = false;
-  @Input() title = 'Generate grocery list';
-  @Input() subtitle = 'Create a list from meals in this week';
+  @Input() title?: string;
+  @Input() subtitle?: string;
   @Input() days: GenerateListDayItem[] = [];
 
   @Output() closed = new EventEmitter<void>();
@@ -48,6 +50,16 @@ export class GenerateSheetListComponent implements OnChanges {
 
   isAdjusting = false;
   dayStates: GenerateListDayState[] = [];
+
+  constructor(private languageStateService: LanguageStateService) { }
+
+  get sheetTitle(): string {
+    return this.title || this.languageStateService.t('generateSheet.title');
+  }
+
+  get sheetSubtitle(): string {
+    return this.subtitle || this.languageStateService.t('generateSheet.subtitle');
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['days']) {
@@ -72,21 +84,21 @@ export class GenerateSheetListComponent implements OnChanges {
     return this.dayStates.filter((day) => day.checked && this.hasCheckedMeals(day)).length;
   }
 
- get selectedMealsCount(): number {
-  return this.dayStates.reduce((count, day) => {
-    return count + day.meals.filter((meal) => meal.checked && !meal.isCovered).length;
-  }, 0);
-}
+  get selectedMealsCount(): number {
+    return this.dayStates.reduce((count, day) => {
+      return count + day.meals.filter((meal) => meal.checked && !meal.isCovered).length;
+    }, 0);
+  }
 
-get coveredMealsCount(): number {
-  return this.dayStates.reduce((count, day) => {
-    return count + day.meals.filter((meal) => meal.isCovered).length;
-  }, 0);
-}
+  get coveredMealsCount(): number {
+    return this.dayStates.reduce((count, day) => {
+      return count + day.meals.filter((meal) => meal.isCovered).length;
+    }, 0);
+  }
 
-get allMealsCovered(): boolean {
-  return this.selectedMealsCount === 0 && this.coveredMealsCount > 0;
-}
+  get allMealsCovered(): boolean {
+    return this.selectedMealsCount === 0 && this.coveredMealsCount > 0;
+  }
 
   openAdjust(): void {
     this.isAdjusting = true;
@@ -107,15 +119,15 @@ get allMealsCovered(): boolean {
   }
 
   toggleDay(day: GenerateListDayState): void {
-  const nextChecked = !day.checked;
+    const nextChecked = !day.checked;
 
-  day.meals = day.meals.map((meal) => ({
-    ...meal,
-    checked: meal.isCovered ? false : nextChecked,
-  }));
+    day.meals = day.meals.map((meal) => ({
+      ...meal,
+      checked: meal.isCovered ? false : nextChecked,
+    }));
 
-  day.checked = day.meals.some((meal) => meal.checked);
-}
+    day.checked = day.meals.some((meal) => meal.checked);
+  }
 
   toggleDayExpanded(day: GenerateListDayState): void {
     day.expanded = !day.expanded;
@@ -137,43 +149,43 @@ get allMealsCovered(): boolean {
   }
 
   onGenerateSelected(): void {
-  const selectedDayKeys = this.dayStates
-    .filter((day) => day.meals.some((meal) => meal.checked && !meal.isCovered))
-    .map((day) => day.key);
+    const selectedDayKeys = this.dayStates
+      .filter((day) => day.meals.some((meal) => meal.checked && !meal.isCovered))
+      .map((day) => day.key);
 
-  const selectedMealIds = this.dayStates.flatMap((day) =>
-    day.meals
-      .filter((meal) => meal.checked && !meal.isCovered)
-      .map((meal) => meal.id)
-  );
+    const selectedMealIds = this.dayStates.flatMap((day) =>
+      day.meals
+        .filter((meal) => meal.checked && !meal.isCovered)
+        .map((meal) => meal.id)
+    );
 
-  this.generateSelected.emit({
-    selectedDayKeys,
-    selectedMealIds,
-  });
-}
-
- private initializeState(): void {
-  this.dayStates = (this.days || [])
-    .filter((day) => day.meals?.length > 0)
-    .map((day) => {
-      const defaultSelected = !day.isPast;
-
-      const meals = (day.meals || []).map((meal) => ({
-        ...meal,
-        checked: defaultSelected && !meal.isCovered,
-      }));
-
-      return {
-        ...day,
-        checked: meals.some((meal) => meal.checked),
-        expanded: false,
-        meals,
-      };
+    this.generateSelected.emit({
+      selectedDayKeys,
+      selectedMealIds,
     });
-}
+  }
 
- private hasCheckedMeals(day: GenerateListDayState): boolean {
-  return day.meals.some((meal) => meal.checked && !meal.isCovered);
-}
+  private initializeState(): void {
+    this.dayStates = (this.days || [])
+      .filter((day) => day.meals?.length > 0)
+      .map((day) => {
+        const defaultSelected = !day.isPast;
+
+        const meals = (day.meals || []).map((meal) => ({
+          ...meal,
+          checked: defaultSelected && !meal.isCovered,
+        }));
+
+        return {
+          ...day,
+          checked: meals.some((meal) => meal.checked),
+          expanded: false,
+          meals,
+        };
+      });
+  }
+
+  private hasCheckedMeals(day: GenerateListDayState): boolean {
+    return day.meals.some((meal) => meal.checked && !meal.isCovered);
+  }
 }

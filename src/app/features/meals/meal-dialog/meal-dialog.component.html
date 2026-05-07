@@ -3,72 +3,106 @@
 
     <div class="meal-dialog__content">
       <h3 class="meal-dialog__title">
-        {{ mode === 'edit' ? 'Edit meal' : 'Create meal' }}
+        {{ mode === 'edit'
+          ? ('mealDialog.editTitle' | translate)
+          : ('mealDialog.createTitle' | translate) }}
       </h3>
 
       <!-- Meal name -->
       <div class="meal-field">
-        <label for="dialogMealName">Meal name</label>
-        <input id="dialogMealName" type="text" [(ngModel)]="mealName" placeholder="Enter meal name" />
+        <label for="dialogMealName">{{ 'mealDialog.mealName' | translate }}</label>
+        <input
+          id="dialogMealName"
+          type="text"
+          [(ngModel)]="mealName"
+          [placeholder]="'mealDialog.mealNamePlaceholder' | translate"
+        />
       </div>
 
       <!-- Prep time -->
       <div class="meal-field">
-        <label for="prepTime">Prep time (minutes)</label>
-        <input id="prepTime" type="number" min="0" [(ngModel)]="prepTime" placeholder="Optional" />
+        <label for="prepTime">{{ 'mealDialog.prepTime' | translate }}</label>
+        <input
+          id="prepTime"
+          type="number"
+          min="0"
+          [(ngModel)]="prepTime"
+          [placeholder]="'mealDialog.optional' | translate"
+        />
       </div>
 
       <!-- Ingredients -->
       <div class="meal-field">
-        <label>Ingredients</label>
+        <label>{{ 'mealDialog.ingredients' | translate }}</label>
+
         <div class="form-helper">
-          One per line or comma separated
-        </div>
-        <div class="form-helper examples">
-          e.g. 2 eggs • 200 g cheese • 1 onion • 1/2 cup milk
-        </div>
-        <div class="form-helper examples">
-          Tip: quantity first
+          {{ 'mealDialog.ingredientsHelper' | translate }}
         </div>
 
-        <textarea [(ngModel)]="ingredientsText" placeholder="Add ingredients" rows="4"></textarea>
+        <div class="form-helper examples">
+          {{ 'mealDialog.ingredientsExample' | translate }}
+        </div>
+
+        <div class="form-helper examples">
+          {{ 'mealDialog.quantityTip' | translate }}
+        </div>
+
+        <textarea
+          [(ngModel)]="ingredientsText"
+          [placeholder]="'mealDialog.ingredientsPlaceholder' | translate"
+          rows="4"
+        ></textarea>
       </div>
 
       <!-- Instructions -->
       <div class="meal-field">
-        <label for="instructions">Instructions</label>
-        <textarea id="instructions" [(ngModel)]="instructions" rows="4"
-          placeholder="e.g. Cook pasta, prepare sauce, mix and serve."></textarea>
+        <label for="instructions">{{ 'mealDialog.instructions' | translate }}</label>
+        <textarea
+          id="instructions"
+          [(ngModel)]="instructions"
+          rows="4"
+          [placeholder]="'mealDialog.instructionsPlaceholder' | translate"
+        ></textarea>
       </div>
 
       <!-- Image -->
       <div class="meal-field">
-        <label>Meal photo</label>
+        <label>{{ 'mealDialog.mealPhoto' | translate }}</label>
 
         <div class="meal-image-block">
 
           <!-- Preview -->
           <div class="meal-image-thumb" *ngIf="selectedImagePreview">
-            <img [src]="selectedImagePreview" alt="Meal preview" />
+            <img [src]="selectedImagePreview" [alt]="'mealDialog.previewAlt' | translate" />
           </div>
 
           <!-- Upload -->
           <div class="meal-image-content">
             <label class="meal-image-upload">
-              <span class="meal-image-upload__button">Choose file</span>
-
-              <span class="meal-image-upload__name">
-                {{ selectedImageFile?.name || imageName || 'No file chosen' }}
+              <span class="meal-image-upload__button">
+                {{ 'mealDialog.chooseFile' | translate }}
               </span>
 
-              <input type="file" accept="image/*" class="meal-image-upload__input"
-                (change)="onMealImageSelected($event)" />
+              <span class="meal-image-upload__name">
+                {{ selectedImageFile?.name || imageName || ('mealDialog.noFileChosen' | translate) }}
+              </span>
+
+              <input
+                type="file"
+                accept="image/*"
+                class="meal-image-upload__input"
+                (change)="onMealImageSelected($event)"
+              />
             </label>
 
             <!-- Remove -->
-            <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
-              (click)="removeSelectedMealImage()">
-              ✕ Remove
+            <button
+              *ngIf="selectedImagePreview"
+              type="button"
+              class="meal-image-remove"
+              (click)="removeSelectedMealImage()"
+            >
+              ✕ {{ 'common.remove' | translate }}
             </button>
           </div>
         </div>
@@ -78,13 +112,15 @@
     <!-- Actions -->
     <div class="button-row meal-dialog__actions">
       <button type="button" class="btn-secondary" (click)="onCancel()">
-        Cancel
+        {{ 'common.cancel' | translate }}
       </button>
 
       <button type="button" class="btn-primary" [disabled]="isSaving" (click)="onSave()">
         {{ isSaving
-        ? 'Saving...'
-        : (mode === 'edit' ? 'Update' : 'Save') }}
+          ? ('mealDialog.saving' | translate)
+          : (mode === 'edit'
+              ? ('mealDialog.update' | translate)
+              : ('mealDialog.save' | translate)) }}
       </button>
     </div>
 

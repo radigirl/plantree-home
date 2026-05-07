@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { LanguageStateService } from '../../../services/language.state.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+
 
 @Component({
   selector: 'app-calendar-picker',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './calendar-picker.component.html',
   styleUrls: ['./calendar-picker.component.scss'],
 })
@@ -22,8 +25,14 @@ export class CalendarPickerComponent implements OnChanges {
   @Output() cancel = new EventEmitter<void>();
 
   currentMonth = new Date();
-  weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   calendarDays: any[] = [];
+
+  constructor(private languageStateService: LanguageStateService) { }
+
+
+  ngOnInit(): void {
+    this.buildCalendar();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedDates'] || changes['selectionMode']) {
@@ -31,8 +40,8 @@ export class CalendarPickerComponent implements OnChanges {
     }
   }
 
-  ngOnInit(): void {
-    this.buildCalendar();
+  get weekdayLabels(): string[] {
+    return this.languageStateService.t('daysShortMondayFirst') as unknown as string[];
   }
 
   previousMonth(): void {
@@ -93,10 +102,8 @@ export class CalendarPickerComponent implements OnChanges {
   }
 
   get monthLabel(): string {
-    return this.currentMonth.toLocaleDateString('en-US', {
-      month: 'long',
-      year: 'numeric',
-    });
+    const months = this.languageStateService.t('monthsLong') as unknown as string[];
+    return `${months[this.currentMonth.getMonth()]} ${this.currentMonth.getFullYear()}`;
   }
 
   private buildCalendar(): void {
@@ -141,6 +148,7 @@ export class CalendarPickerComponent implements OnChanges {
       isCurrentMonth,
       isPast: this.disablePastDates && dateKey < todayKey,
       isSelected: this.selectedDates.includes(dateKey),
+      isToday: dateKey === todayKey,
     };
   }
 

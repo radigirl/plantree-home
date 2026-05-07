@@ -40,7 +40,8 @@
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image today-card-image--placeholder">
-                  <img src="assets/meals/blank-meal.png" alt="Meal placeholder" class="today-meal-image" />
+                  <img src="assets/meals/blank-meal.png" [alt]="'home.mealPlaceholderAlt' | translate"
+                    class="today-meal-image" />
                 </div>
               </div>
             </div>
@@ -60,7 +61,7 @@
 
                   <ng-container *ngIf="firstTodayMeal?.cook as cook; else todayUnassignedCook">
                     <img [src]="cook.avatar_url || 'assets/avatars/unassigned.png'" class="today-inline-avatar"
-                      [alt]="cook.name || 'Cook avatar'" />
+                      [alt]="cook.name || ('home.cookAvatarAlt' | translate)" />
                   </ng-container>
 
                   <ng-template #todayUnassignedCook>
@@ -71,7 +72,8 @@
                     </span>
                   </ng-template>
 
-                  <p class="today-secondary-text">
+                  <p class="today-secondary-text"
+                    [class.today-secondary-text--unassigned]="!firstTodayMeal?.cook?.name">
                     {{ firstTodayMeal?.cook?.name || ('home.unassigned' | translate) }}
                   </p>
                 </div>
@@ -89,17 +91,17 @@
                 </div>
 
                 <p class="today-more-meals" [class.today-more-meals--hidden]="!hasMultipleTodayMeals">
-                  +{{ additionalMealsCount }}
+                  {{ 'home.moreMealsPrefix' | translate }} {{ additionalMealsCount }}
                   {{ additionalMealsCount === 1
-                  ? ('home.moreMeals' | translate)
-                  : ('home.moreMealsPlural' | translate) }}
+                  ? ('home.mealOne' | translate)
+                  : ('home.mealMany' | translate) }}
                 </p>
               </div>
 
               <div class="today-card-image-wrap">
                 <div class="today-card-image">
                   <img [src]="firstTodayMeal?.meal?.image_url || 'assets/meals/default-meal.png'"
-                    class="today-meal-image" [alt]="firstTodayMeal?.meal?.name || 'Meal image'" />
+                    class="today-meal-image" [alt]="firstTodayMeal?.meal?.name || ('home.mealImageAlt' | translate)" />
                 </div>
               </div>
             </div>

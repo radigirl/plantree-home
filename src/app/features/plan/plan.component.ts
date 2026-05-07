@@ -23,7 +23,7 @@ import {
 } from 'lucide-angular';
 import { SpaceStateService } from '../../services/space.state.service';
 import { Subject } from 'rxjs';
-import { filter, map, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { filter, map, distinctUntilChanged, takeUntil, skip } from 'rxjs/operators';
 import { GenerateSheetListComponent } from './generate-list-sheet/generate-sheet-list.component';
 import { GroceryService } from '../../services/grocery.service';
 import { MemberStateService } from '../../services/member.state.service';
@@ -45,13 +45,15 @@ import {
   MeasurementRuleRow
 } from '../../services/ingredient-rules.service';
 import { Clock3, UserRound } from 'lucide-angular';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../services/language.state.service';
 
 
 
 @Component({
   selector: 'app-plan',
   standalone: true,
-  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule, GenerateSheetListComponent, SnackbarComponent, MergeReviewSheetComponent],
+  imports: [CommonModule, RouterModule, PageLoadingComponent, CalendarPickerComponent, LucideAngularModule, GenerateSheetListComponent, SnackbarComponent, MergeReviewSheetComponent, TranslatePipe],
   templateUrl: './plan.component.html',
   styleUrl: './plan.component.scss',
 })
@@ -108,21 +110,37 @@ export class PlanComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private groceryService: GroceryService,
-    private memberStateService: MemberStateService
+    private memberStateService: MemberStateService,
+    private languageStateService: LanguageStateService
   ) { }
 
   ngOnInit(): void {
-    this.spaceStateService.currentSpace$
-      .pipe(
-        takeUntil(this.destroy$),
-        filter((space): space is NonNullable<typeof space> => !!space),
-        map((space) => space.id),
-        distinctUntilChanged()
-      )
-      .subscribe(async () => {
-        await this.initializePlanForCurrentSpace();
-      });
-  }
+  this.spaceStateService.currentSpace$
+    .pipe(
+      takeUntil(this.destroy$),
+      filter((space): space is NonNullable<typeof space> => !!space),
+      map((space) => space.id),
+      distinctUntilChanged()
+    )
+    .subscribe(async () => {
+      await this.initializePlanForCurrentSpace();
+    });
+
+  this.languageStateService.currentLanguage$
+    .pipe(
+      skip(1),
+      takeUntil(this.destroy$)
+    )
+    .subscribe(async () => {
+      await this.loadWeekPlan();
+
+      if (this.isGenerateSheetOpen) {
+        this.buildGenerateSheetDays();
+      }
+
+      this.cdr.detectChanges();
+    });
+}
 
   private async initializePlanForCurrentSpace(): Promise<void> {
     const returnDate = sessionStorage.getItem('planReturnDate');
@@ -242,13 +260,7 @@ export class PlanComponent implements OnInit, OnDestroy {
   }
 
   getStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-      'to-prepare': 'To prepare',
-      'in-progress': 'In progress',
-      'ready-to-serve': 'Ready',
-    };
-
-    return map[status] || status;
+    return this.languageStateService.t(`mealStatus.${status}`);
   }
 
   getStartOfWeek(date: Date): Date {
@@ -304,11 +316,24 @@ export class PlanComponent implements OnInit, OnDestroy {
     const end = new Date(this.currentWeekStart);
     end.setDate(start.getDate() + 6);
 
-    const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
-    const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+    const isBg = this.languageStateService.getLanguage() === 'bg';
+
+    const monthNames = isBg
+      ? ['Ян', 'Фев', 'Март', 'Апр', 'Май', 'Юни', 'Юли', 'Авг', 'Сеп', 'Окт', 'Ное', 'Дек']
+      : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const startMonth = monthNames[start.getMonth()];
+    const endMonth = monthNames[end.getMonth()];
+
+    if (isBg) {
+      if (startMonth === endMonth) {
+        return `${start.getDate()} – ${end.getDate()} ${startMonth}`;
+      }
+      return `${start.getDate()} ${startMonth} – ${end.getDate()} ${endMonth}`;
+    }
 
     if (startMonth === endMonth) {
-      return `${startMonth} ${start.getDate()}–${end.getDate()}`;
+      return `${startMonth} ${start.getDate()} – ${end.getDate()}`;
     }
 
     return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}`;
@@ -652,7 +677,7 @@ export class PlanComponent implements OnInit, OnDestroy {
 
   openCalendar(): void {
     this.isCalendarOpen = true;
-    this.selectedCalendarDates = [this.formatDateForInput(this.currentWeekStart)];
+    this.selectedCalendarDates = [this.formatDateForInput(new Date())];
     document.body.style.overflow = 'hidden';
   }
 
@@ -720,7 +745,7 @@ export class PlanComponent implements OnInit, OnDestroy {
 
             return {
               id: plannedMealId,
-              name: meal.meal?.name || 'Untitled meal',
+              name: meal.meal?.name || this.languageStateService.t('meals.untitledMeal'),
               isCovered,
               coveredListName: isCovered
                 ? this.getMealCoverageListName(plannedMealId)
@@ -816,8 +841,10 @@ export class PlanComponent implements OnInit, OnDestroy {
 
 
   private buildGeneratedListName(selectedDayKeys: string[]): string {
+    const prefix = this.languageStateService.t('generateSheet.planListName');
+
     if (!selectedDayKeys.length) {
-      return 'Plan list';
+      return prefix;
     }
 
     const sortedKeys = [...selectedDayKeys].sort();
@@ -825,19 +852,22 @@ export class PlanComponent implements OnInit, OnDestroy {
     const first = new Date(`${sortedKeys[0]}T12:00:00`);
     const last = new Date(`${sortedKeys[sortedKeys.length - 1]}T12:00:00`);
 
-    const formatDay = (date: Date): string =>
-      date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      });
+    const months = this.languageStateService.t('monthsLong') as unknown as string[];
 
-    // Handle single day vs range
+    const formatDay = (date: Date): string => {
+      const isBg = this.languageStateService.getLanguage() === 'bg';
+      const day = date.getDate();
+      const month = months[date.getMonth()];
+
+      return isBg ? `${day} ${month}` : `${month} ${day}`;
+    };
+
     const datePart =
       sortedKeys.length === 1
         ? formatDay(first)
-        : `${formatDay(first)}–${formatDay(last)}`;
+        : `${formatDay(first)} – ${formatDay(last)}`;
 
-    return `Plan list ${datePart}`;
+    return `${prefix} ${datePart}`;
   }
 
   private async ensureUniqueGeneratedListName(baseName: string): Promise<string> {
@@ -883,7 +913,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     }
 
     this.isGeneratingList = true;
-    this.showSnackbar('Creating grocery list...');
+    this.showSnackbar(this.languageStateService.t('generateSheet.creatingList'));
 
     try {
       const baseName = this.buildGeneratedListName(selectedDayKeys);
@@ -899,7 +929,7 @@ export class PlanComponent implements OnInit, OnDestroy {
       if (!createdList) {
         console.error('Failed to create generated grocery list');
         this.isGeneratingList = false;
-        this.showSnackbar('Could not create grocery list');
+        this.showSnackbar(this.languageStateService.t('generateSheet.createListFailed'));
         return;
       }
 
@@ -916,11 +946,14 @@ export class PlanComponent implements OnInit, OnDestroy {
 
       this.lastGeneratedListId = createdList.id;
       this.isGeneratingList = false;
-      this.showSnackbar('Grocery list created', 'Undo');
+      this.showSnackbar(
+        this.languageStateService.t('generateSheet.listCreated'),
+        this.languageStateService.t('common.undo')
+      );
     } catch (error) {
       console.error('Error creating generated grocery list:', error);
       this.isGeneratingList = false;
-      this.showSnackbar('Could not create grocery list');
+      this.showSnackbar(this.languageStateService.t('generateSheet.createListFailed'));
     }
   }
 

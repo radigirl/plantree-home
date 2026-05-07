@@ -156,6 +156,10 @@
   font: inherit;
   font-size: 0.93rem;
   font-weight: 600;
+
+  white-space: nowrap;
+  flex-shrink: 0;
+
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -166,7 +170,7 @@
   border-color: $color-primary;
 }
 
-.ction-pill--primary:hover {
+.action-pill--primary:hover {
   background: $color-primary-dark;
 }
 

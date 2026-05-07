@@ -228,12 +228,10 @@
   margin-bottom: 2px;
 }
 
-.meal-card__top--filled {
-  justify-content: center;
-}
-
-.meal-card__top--empty {
-  justify-content: space-between;
+.meal-card__top .meal-day {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .meal-add-btn {
@@ -312,8 +310,8 @@
 
 .meal-info__main {
   display: grid;
-  grid-template-columns: 136px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 12px;
   align-items: center;
   min-width: 0;
 }
@@ -336,9 +334,8 @@
 }
 
 .meal-cook-row {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  flex-wrap: nowrap;
   gap: 6px;
   min-width: 0;
 }
@@ -378,7 +375,12 @@
   margin: 0;
   font-size: 0.88rem;
   color: $color-text-muted;
-  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.meal-cook--unassigned {
+  opacity: 0.78;
 }
 
 .meal-meta {
@@ -443,9 +445,9 @@
 }
 
 .meal-image {
-  width: 128px;
-  min-width: 128px;
-  height: 96px;
+  width: 118px;
+  min-width: 118px;
+  height: 88px;
   margin-top: 0;
 }
 
@@ -683,7 +685,7 @@
 
   .meal-cook-label,
   .meal-cook {
-    font-size: 0.88rem;
+    font-size: 0.84rem;
   }
 
   .meal-more {
@@ -722,16 +724,6 @@
     font-size: 0.92rem;
   }
 
-  .meal-card--empty .meal-card__top {
-    justify-content: space-between;
-  }
-
-  .meal-card--empty .meal-day {
-    justify-content: flex-start;
-    width: auto;
-    text-align: left;
-  }
-
   .meal-empty-state {
     min-height: auto;
     padding-top: 0;
@@ -744,12 +736,12 @@
 
 @include tablet {
 
- .plan-page {
+  .plan-page {
     gap: 12px;
     margin-top: -15px;
   }
 
-   .controls {
+  .controls {
     top: 68px;
     margin-top: -10px;
     margin-bottom: -6px;
@@ -817,10 +809,6 @@
   .meal-add-btn--corner {
     top: 4px;
     right: 4px;
-  }
-
-  .meal-card--empty {
-    justify-content: center;
   }
 }
 
@@ -904,12 +892,6 @@
     word-break: normal;
   }
 
-  .meal-cook {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .meal-add-btn {
     font-size: 0.9rem;
     padding: 8px 16px;
@@ -925,7 +907,6 @@
   .meal-card--empty {
     padding: 12px 16px;
     min-height: 120px;
-    justify-content: center;
   }
 }
 
@@ -947,7 +928,6 @@
   }
 
   .meal-card--empty {
-    justify-content: center;
     min-height: 140px;
   }
 }

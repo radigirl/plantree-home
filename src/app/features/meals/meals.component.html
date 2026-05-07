@@ -6,17 +6,13 @@
     <div class="meals-top">
       <div class="page-header-row">
         <div class="page-header">
-          <h1 class="page-title">My Meals</h1>
-          <p class="page-subtitle">Create, manage, and add to your plan</p>
+          <h1 class="page-title">{{ 'meals.title' | translate }}</h1>
+          <p class="page-subtitle">{{ 'meals.subtitle' | translate }}</p>
         </div>
 
-        <button
-          type="button"
-          class="action-pill action-pill--primary"
-          *ngIf="!isMealDialogOpen"
-          (click)="startAddMeal()"
-        >
-          + Add
+        <button type="button" class="action-pill action-pill--primary" *ngIf="!isMealDialogOpen"
+          (click)="startAddMeal()">
+          + {{ 'common.add' | translate }}
         </button>
       </div>
     </div>
@@ -24,18 +20,9 @@
     <div class="meals-search-sticky">
       <div class="search-bar">
         <div class="search-input-wrap">
-          <input
-            type="text"
-            [(ngModel)]="mealSearchQuery"
-            placeholder="Search meals..."
-          />
+          <input type="text" [(ngModel)]="mealSearchQuery" [placeholder]="'meals.searchPlaceholder' | translate" />
 
-          <button
-            *ngIf="mealSearchQuery"
-            type="button"
-            class="search-clear"
-            (click)="clearMealSearch()"
-          >
+          <button *ngIf="mealSearchQuery" type="button" class="search-clear" (click)="clearMealSearch()">
             ×
           </button>
         </div>
@@ -45,17 +32,10 @@
     <div class="meals-results-scroll">
 
       <div class="meal-search-results" *ngIf="isSearching">
-        <button
-          type="button"
-          class="meal-search-result"
-          *ngFor="let meal of filteredMeals; trackBy: trackByMealId"
-          (click)="openSearchMealDetails(meal)"
-        >
+        <button type="button" class="meal-search-result" *ngFor="let meal of filteredMeals; trackBy: trackByMealId"
+          (click)="openSearchMealDetails(meal)">
           <div class="meal-search-result__image">
-            <img
-              [src]="meal.image_url || 'assets/meals/default-meal.png'"
-              [alt]="meal.name"
-            />
+            <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
           </div>
 
           <div class="meal-search-result__content">
@@ -69,90 +49,77 @@
               </span>
             </div>
 
-            <div
-              class="meal-search-result__menu-wrapper"
-              (click)="$event.stopPropagation()"
-            >
-              <button
-                type="button"
-                class="meal-search-result__menu"
-                (click)="$event.stopPropagation(); toggleMealMenu(meal)"
-                aria-label="Meal actions"
-              >
+            <div class="meal-search-result__menu-wrapper" (click)="$event.stopPropagation()">
+              <button type="button" class="meal-search-result__menu"
+                (click)="$event.stopPropagation(); toggleMealMenu(meal)" [attr.aria-label]="'meals.actions' | translate"
+                aria-haspopup="menu" [attr.aria-expanded]="openMealMenuId === meal.id">
                 ⋮
               </button>
+
+              <div class="meal-menu-dropdown meal-search-result__dropdown"
+                *ngIf="openMealMenuId === meal.id && !isMobileViewport()">
+                <button type="button" class="meal-menu-item"
+                  (click)="$event.stopPropagation(); closeMealMenu(); startEditMeal(meal)">
+                  {{ 'meals.edit' | translate }}
+                </button>
+
+                <button type="button" class="meal-menu-item"
+                  (click)="$event.stopPropagation(); closeMealMenu(); mealDialogMode = 'createFromExisting'; mealDialogInitialMeal = meal; isMealDialogOpen = true">
+                  {{ 'meals.createFromThis' | translate }}
+                </button>
+
+                <button type="button" class="meal-menu-item"
+                  (click)="$event.stopPropagation(); selectedMealForActions = meal; mealActionSheetMode = 'addToPlan'; openMealMenuId = meal.id">
+                  {{ 'meals.addToPlan' | translate }}
+                </button>
+
+                <button type="button" class="meal-menu-item meal-menu-item--danger"
+                  (click)="$event.stopPropagation(); closeMealMenu(); onDeleteMeal(meal)">
+                  {{ 'meals.remove' | translate }}
+                </button>
+              </div>
             </div>
           </div>
         </button>
 
         <p class="meals-empty-text" *ngIf="filteredMeals.length === 0">
-          No meals found.
+          {{ 'meals.noResults' | translate }}
         </p>
       </div>
 
-      <div class="meals-empty" *ngIf="!isSearching && !hasMeals">
-        <p class="meals-empty-text">No saved meals yet.</p>
+      <div class="meals-empty" *ngIf="!isLoading && !isSearching && !hasMeals">
+        <p class="meals-empty-text">{{ 'meals.empty' | translate }}</p>
       </div>
 
-      <div
-        class="meals-list"
-        *ngIf="!isSearching && hasMeals"
-      >
-        <div
-          class="meal-card"
-          [attr.id]="'meal-card-' + meal.id"
-          *ngFor="let meal of meals; trackBy: trackByMealId"
-          (click)="openSearchMealDetails(meal)"
-        >
-          <div
-            class="meal-menu-wrapper"
-            (click)="$event.stopPropagation()"
-          >
-            <button
-              type="button"
-              class="meal-menu-button"
-              (click)="$event.stopPropagation(); toggleMealMenu(meal)"
-              aria-label="Meal actions"
-              aria-haspopup="menu"
-              [attr.aria-expanded]="openMealMenuId === meal.id"
-            >
+      <div class="meals-list" *ngIf="!isLoading && !isSearching && hasMeals">
+        <div class="meal-card" [attr.id]="'meal-card-' + meal.id" *ngFor="let meal of meals; trackBy: trackByMealId"
+          (click)="openSearchMealDetails(meal)">
+          <div class="meal-menu-wrapper" (click)="$event.stopPropagation()">
+            <button type="button" class="meal-menu-button" (click)="$event.stopPropagation(); toggleMealMenu(meal)"
+              [attr.aria-label]="'meals.actions' | translate" aria-haspopup="menu"
+              [attr.aria-expanded]="openMealMenuId === meal.id">
               ⋮
             </button>
 
-            <div
-              class="meal-menu-dropdown"
-              *ngIf="openMealMenuId === meal.id && !isMobileViewport()"
-            >
-              <button
-                type="button"
-                class="meal-menu-item"
-                (click)="$event.stopPropagation(); closeMealMenu(); startEditMeal(meal)"
-              >
-                Edit meal
+            <div class="meal-menu-dropdown" *ngIf="openMealMenuId === meal.id && !isMobileViewport()">
+              <button type="button" class="meal-menu-item"
+                (click)="$event.stopPropagation(); closeMealMenu(); startEditMeal(meal)">
+                {{ 'meals.edit' | translate }}
               </button>
 
-              <button
-                type="button"
-                class="meal-menu-item"
-                (click)="$event.stopPropagation(); closeMealMenu(); mealDialogMode = 'createFromExisting'; mealDialogInitialMeal = meal; isMealDialogOpen = true"
-              >
-                Create from this
+              <button type="button" class="meal-menu-item"
+                (click)="$event.stopPropagation(); closeMealMenu(); mealDialogMode = 'createFromExisting'; mealDialogInitialMeal = meal; isMealDialogOpen = true">
+                {{ 'meals.createFromThis' | translate }}
               </button>
 
-              <button
-                type="button"
-                class="meal-menu-item"
-                (click)="$event.stopPropagation(); closeMealMenu(); selectedMealForActions = meal; mealActionSheetMode = 'addToPlan'; openMealMenuId = meal.id"
-              >
-                Add to Plan
+              <button type="button" class="meal-menu-item"
+                (click)="$event.stopPropagation(); closeMealMenu(); selectedMealForActions = meal; mealActionSheetMode = 'addToPlan'; openMealMenuId = meal.id">
+                {{ 'meals.addToPlan' | translate }}
               </button>
 
-              <button
-                type="button"
-                class="meal-menu-item meal-menu-item--danger"
-                (click)="$event.stopPropagation(); closeMealMenu(); onDeleteMeal(meal)"
-              >
-                Remove from My Meals
+              <button type="button" class="meal-menu-item meal-menu-item--danger"
+                (click)="$event.stopPropagation(); closeMealMenu(); onDeleteMeal(meal)">
+                {{ 'meals.remove' | translate }}
               </button>
             </div>
           </div>
@@ -167,37 +134,23 @@
 
               <div class="meal-meta-row">
                 <div class="meal-meta">
-                  <span
-                    class="meal-time"
-                    *ngIf="meal.prepTime != null"
-                  >
-                    <lucide-icon
-                      [img]="clock3Icon"
-                      [size]="12"
-                      [strokeWidth]="1.5"
-                      class="meal-time-icon"
-                    >
+                  <span class="meal-time" *ngIf="meal.prepTime != null">
+                    <lucide-icon [img]="clock3Icon" [size]="12" [strokeWidth]="1.5" class="meal-time-icon">
                     </lucide-icon>
 
                     {{ meal.prepTime }} min
                   </span>
 
-                  <span
-                    class="meal-info-chip"
-                    *ngIf="meal.ingredients?.length as ingredientsCount"
-                  >
-                    {{ ingredientsCount }} ingredient<span *ngIf="ingredientsCount > 1">s</span>
+                  <span class="meal-info-chip" *ngIf="meal.ingredients?.length as ingredientsCount">
+                    {{ ingredientsCount }} {{ ingredientsCount === 1 ? ('meals.ingredient' | translate) :
+                    ('meals.ingredients' | translate) }}
                   </span>
                 </div>
               </div>
             </div>
 
             <div class="meal-image">
-              <img
-                [src]="meal.image_url || 'assets/meals/default-meal.png'"
-                class="meal-image-img"
-                [alt]="meal.name"
-              />
+              <img [src]="meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name" />
             </div>
           </div>
         </div>
@@ -207,98 +160,56 @@
   </div>
 </div>
 
-<app-responsive-action-menu
-  *ngIf="selectedMealForActions && mealActionSheetMode !== 'pickDate'"
+<app-responsive-action-menu *ngIf="isMobileViewport() && selectedMealForActions && mealActionSheetMode !== 'pickDate'"
   [isOpen]="!!openMealMenuId"
-  [title]="mealActionSheetMode === 'actions' ? selectedMealForActions.name : 'Add to Plan'"
+  [title]="mealActionSheetMode === 'actions' ? selectedMealForActions.name : ('meals.addToPlan' | translate)"
   [subtitle]="mealActionSheetMode === 'actions'
     ? (selectedMealForActions.prepTime != null ? (selectedMealForActions.prepTime + ' min') : '')
-    : selectedMealForActions.name"
-  [image]="selectedMealForActions.image_url || 'assets/meals/default-meal.png'"
-  [actions]="mealActionSheetMode === 'actions' ? mealActions : addToPlanActions"
-  (closed)="closeMealMenu()"
-  (actionSelected)="onMealActionSelected($event)"
-></app-responsive-action-menu>
+    : selectedMealForActions.name" [image]="selectedMealForActions.image_url || 'assets/meals/default-meal.png'"
+  [actions]="mealActionSheetMode === 'actions' ? mealActions : addToPlanActions" (closed)="closeMealMenu()"
+  (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
 
-<div
-  class="calendar-picker-sheet-overlay"
-  *ngIf="selectedMealForActions && mealActionSheetMode === 'pickDate'"
-  (click)="closeMealMenu()"
->
-  <div
-    class="calendar-picker-sheet"
-    (click)="$event.stopPropagation()"
-  >
+<div class="calendar-picker-sheet-overlay" *ngIf="selectedMealForActions && mealActionSheetMode === 'pickDate'"
+  (click)="closeMealMenu()">
+  <div class="calendar-picker-sheet" (click)="$event.stopPropagation()">
     <div class="calendar-picker-sheet__handle"></div>
 
     <div class="calendar-picker-sheet__mode-toggle">
-      <button
-        type="button"
-        class="calendar-picker-sheet__mode-btn"
+      <button type="button" class="calendar-picker-sheet__mode-btn"
         [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'single'"
-        (click)="calendarSelectionMode = 'single'; selectedPlanDates = []"
-      >
-        Single day
+        (click)="calendarSelectionMode = 'single'; selectedPlanDates = []">
+        {{ 'meals.singleDay' | translate }}
       </button>
 
-      <button
-        type="button"
-        class="calendar-picker-sheet__mode-btn"
+      <button type="button" class="calendar-picker-sheet__mode-btn"
         [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'multiple'"
-        (click)="calendarSelectionMode = 'multiple'; selectedPlanDates = []"
-      >
-        Multiple days
+        (click)="calendarSelectionMode = 'multiple'; selectedPlanDates = []">
+        {{ 'meals.multipleDays' | translate }}
       </button>
     </div>
 
     <app-calendar-picker
-      [title]="'Add ' + selectedMealForActions.name + ' to plan'"
-      [selectionMode]="calendarSelectionMode"
-      [selectedDates]="selectedPlanDates"
-      (selectedDatesChange)="onCalendarDatesChange($event)"
-      (confirm)="confirmPickedDates($event)"
-      (cancel)="closeMealMenu()"
-    ></app-calendar-picker>
+      [title]="(('meals.addToPlanWithName' | translate).replace('{{name}}', selectedMealForActions.name))"
+      [selectionMode]="calendarSelectionMode" [selectedDates]="selectedPlanDates"
+      (selectedDatesChange)="onCalendarDatesChange($event)" (confirm)="confirmPickedDates($event)"
+      (cancel)="closeMealMenu()"></app-calendar-picker>
   </div>
 </div>
 
-<app-meal-details-modal
-  [meal]="selectedSearchMeal"
-  [isOpen]="isSearchMealDetailsOpen"
-  (close)="closeSearchMealDetails()"
-></app-meal-details-modal>
+<app-meal-details-modal [meal]="selectedSearchMeal" [isOpen]="isSearchMealDetailsOpen"
+  (close)="closeSearchMealDetails()"></app-meal-details-modal>
 
-<app-meal-dialog
-  [isOpen]="isMealDialogOpen"
-  [mode]="mealDialogMode"
-  [initialMeal]="mealDialogInitialMeal"
-  (close)="closeMealDialog()"
-  (save)="onMealDialogSave($event)"
-></app-meal-dialog>
+<app-meal-dialog [isOpen]="isMealDialogOpen" [mode]="mealDialogMode" [initialMeal]="mealDialogInitialMeal"
+  (close)="closeMealDialog()" (save)="onMealDialogSave($event)"></app-meal-dialog>
 
-<div
-  class="delete-dialog-overlay"
-  *ngIf="isDeleteDialogOpen"
-  (click)="closeDeleteDialog()"
->
-  <div
-    class="delete-dialog-shell"
-    (click)="$event.stopPropagation()"
-  >
-    <app-confirmation-dialog
-      [title]="'Remove meal'"
-      [message]="'Remove &quot;' + (mealToDelete?.name || '') + '&quot; from your My Meals? You can still access it through other members or past plans.'"
-      [confirmLabel]="'Remove'"
-      [cancelLabel]="'Cancel'"
-      (cancel)="closeDeleteDialog()"
-      (confirm)="confirmDeleteMeal()"
-    ></app-confirmation-dialog>
+<div class="delete-dialog-overlay" *ngIf="isDeleteDialogOpen" (click)="closeDeleteDialog()">
+  <div class="delete-dialog-shell" (click)="$event.stopPropagation()">
+    <app-confirmation-dialog [title]="'meals.removeTitle' | translate"
+      [message]="(('meals.removeMessage' | translate).replace('{{name}}', mealToDelete?.name || ''))"
+      [confirmLabel]="'common.remove' | translate" [cancelLabel]="'common.cancel' | translate"
+      (cancel)="closeDeleteDialog()" (confirm)="confirmDeleteMeal()"></app-confirmation-dialog>
   </div>
 </div>
 
-<app-snackbar
-  [message]="snackbarMessage"
-  [isVisible]="isSnackbarVisible"
-  [actionLabel]="snackbarActionLabel"
-  (actionClicked)="hideToast()"
-></app-snackbar>
+<app-snackbar [message]="snackbarMessage" [isVisible]="isSnackbarVisible" [actionLabel]="snackbarActionLabel"
+  (actionClicked)="hideToast()"></app-snackbar>

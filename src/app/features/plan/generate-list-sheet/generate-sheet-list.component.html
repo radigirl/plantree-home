@@ -5,10 +5,10 @@
 
       <div class="action-sheet__header action-sheet__header--no-image">
         <div class="action-sheet__text">
-          <p class="action-sheet__title">{{ title }}</p>
+          <p class="action-sheet__title">{{ sheetTitle }}</p>
 
-          <p class="action-sheet__subtitle" *ngIf="subtitle">
-            {{ subtitle }}
+          <p class="action-sheet__subtitle" *ngIf="sheetSubtitle">
+            {{ sheetSubtitle }}
           </p>
         </div>
       </div>
@@ -20,30 +20,40 @@
               [class.generate-sheet__primary-card--disabled]="allMealsCovered" [disabled]="allMealsCovered"
               (click)="!allMealsCovered && onQuickGenerate()">
               <span class="generate-sheet__primary-title">
-                {{ allMealsCovered ? 'All upcoming meals already covered' : 'Generate from upcoming meals' }}
+                {{ allMealsCovered
+                ? ('generateSheet.allCovered' | translate)
+                : ('generateSheet.generateUpcoming' | translate) }}
               </span>
 
               <span class="generate-sheet__primary-meta">
                 {{
                 allMealsCovered
-                ? 'Tap below to see which meals are in which lists'
-                : (selectedDaysCount + ' days • ' + selectedMealsCount + ' meals')
+                ? ('generateSheet.tapToReviewCoverage' | translate)
+                : (selectedDaysCount + ' ' +
+                (selectedDaysCount === 1 ? ('common.day' | translate) : ('common.days' | translate)) +
+                ' • ' +
+                selectedMealsCount + ' ' +
+                (selectedMealsCount === 1 ? ('meals.meal' | translate) : ('meals.meals' | translate)))
                 }}
               </span>
             </button>
 
             <p *ngIf="!allMealsCovered && coveredMealsCount > 0" class="generate-sheet__info">
-              {{ coveredMealsCount }} {{ coveredMealsCount === 1 ? 'meal' : 'meals' }} already covered will be skipped
+              {{ coveredMealsCount }}
+              {{ coveredMealsCount === 1 ? ('meals.meal' | translate) : ('meals.meals' | translate) }}
+              {{ 'generateSheet.alreadyCoveredSkipped' | translate }}
             </p>
 
             <button type="button" class="generate-sheet__secondary-action" (click)="openAdjust()">
-              {{ allMealsCovered ? 'Review coverage' : 'Adjust selection' }}
+              {{ allMealsCovered
+              ? ('generateSheet.reviewCoverage' | translate)
+              : ('generateSheet.adjustSelection' | translate) }}
             </button>
           </ng-container>
 
           <ng-template #adjustingState>
             <div class="generate-sheet__section">
-              <p class="generate-sheet__section-title">Select days</p>
+              <p class="generate-sheet__section-title">{{ 'generateSheet.selectDays' | translate }}</p>
 
               <div class="generate-sheet__days">
                 <div class="generate-sheet__day" *ngFor="let day of daysWithMeals">
@@ -57,13 +67,14 @@
                           {{ day.label }} {{ day.date }}
                         </span>
                         <span class="generate-sheet__day-meta">
-                          {{ day.meals.length }} {{ day.meals.length === 1 ? 'meal' : 'meals' }}
+                          {{ day.meals.length }}
+                          {{ day.meals.length === 1 ? ('meals.meal' | translate) : ('meals.meals' | translate) }}
                         </span>
                       </span>
                     </label>
 
                     <button type="button" class="generate-sheet__expand-btn" (click)="toggleDayExpanded(day)">
-                      {{ day.expanded ? 'Hide' : 'Show' }}
+                      {{ day.expanded ? ('common.hide' | translate) : ('common.show' | translate) }}
                     </button>
                   </div>
 
@@ -76,7 +87,7 @@
                         {{ meal.name }}
 
                         <span *ngIf="meal.isCovered" class="generate-sheet__meal-covered">
-                          In: {{ meal.coveredListName }}
+                          {{ 'generateSheet.inList' | translate }} {{ meal.coveredListName }}
                         </span>
                       </span>
                     </label>
@@ -87,16 +98,20 @@
 
             <div class="generate-sheet__footer">
               <p *ngIf="selectedMealsCount === 0" class="generate-sheet__info">
-                All meals already covered
+                {{ 'generateSheet.allMealsAlreadyCovered' | translate }}
               </p>
 
               <p *ngIf="selectedMealsCount > 0 && coveredMealsCount > 0" class="generate-sheet__info">
-                {{ coveredMealsCount }} meals already covered will be skipped
+                {{ coveredMealsCount }}
+                {{ coveredMealsCount === 1 ? ('meals.meal' | translate) : ('meals.meals' | translate) }}
+                {{ 'generateSheet.alreadyCoveredSkipped' | translate }}
               </p>
 
               <button type="button" class="generate-sheet__confirm-btn btn-primary"
                 [disabled]="selectedMealsCount === 0" (click)="onGenerateSelected()">
-                Create list ({{ selectedMealsCount }} {{ selectedMealsCount === 1 ? 'meal' : 'meals' }})
+                {{ 'generateSheet.createList' | translate }}
+                ({{ selectedMealsCount }}
+                {{ selectedMealsCount === 1 ? ('meals.meal' | translate) : ('meals.meals' | translate) }})
               </button>
             </div>
           </ng-template>
@@ -104,9 +119,9 @@
 
         <ng-template #emptyState>
           <div class="generate-sheet__empty">
-            <p class="generate-sheet__empty-title">No meals planned this week</p>
+            <p class="generate-sheet__empty-title">{{ 'generateSheet.noMealsPlanned' | translate }}</p>
             <p class="generate-sheet__empty-text">
-              Add meals in order to generate a grocery list.
+              {{ 'generateSheet.addMealsToGenerate' | translate }}
             </p>
           </div>
         </ng-template>

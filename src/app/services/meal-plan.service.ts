@@ -3,12 +3,17 @@ import { DayPlan } from '../models/day-plan.model';
 import { PlannedMeal } from '../models/planned-meal.model';
 import { SupabaseService } from './supabase.service';
 import { SpaceStateService } from './space.state.service';
+import { LanguageStateService } from './language.state.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MealPlanService {
-  constructor(private supabaseService: SupabaseService, private spaceStateService: SpaceStateService) { }
+  constructor(
+    private supabaseService: SupabaseService,
+    private spaceStateService: SpaceStateService,
+    private languageStateService: LanguageStateService
+  ) { }
 
   async getWeekPlan(weekStart: Date): Promise<DayPlan[]> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
@@ -66,9 +71,8 @@ export class MealPlanService {
       const date = new Date(monday);
       date.setDate(monday.getDate() + i);
 
-      const label = date.toLocaleDateString('en-US', {
-        weekday: 'short',
-      });
+      const daysShort = this.languageStateService.t('daysShort') as unknown as string[];
+      const label = daysShort[date.getDay()];
 
       week.push({
         day: label,

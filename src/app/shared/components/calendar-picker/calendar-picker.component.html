@@ -24,18 +24,27 @@
   <div class="calendar-picker__grid">
     <button type="button" class="calendar-picker__day" *ngFor="let day of calendarDays"
       [class.calendar-picker__day--muted]="!day.isCurrentMonth" [class.calendar-picker__day--past]="day.isPast"
-      [class.calendar-picker__day--selected]="day.isSelected" (click)="selectDay(day)">
+      [class.calendar-picker__day--selected]="day.isSelected" [class.calendar-picker__day--today]="day.isToday"
+      (click)="selectDay(day)">
       {{ day.dayNumber }}
     </button>
   </div>
 
   <div class="calendar-picker__footer" *ngIf="showFooterActions">
     <button type="button" class="calendar-picker__secondary" (click)="onCancel()">
-      Cancel
+      {{ 'common.cancel' | translate }}
     </button>
 
     <button type="button" class="calendar-picker__primary" [disabled]="!selectedDates.length" (click)="onConfirm()">
-      {{ selectionMode === 'multiple' ? ('Add to ' + selectedDates.length + ' days') : 'Add' }}
+      {{
+      selectionMode === 'multiple'
+      ? ('common.addTo' | translate) + ' ' +
+      selectedDates.length + ' ' +
+      (selectedDates.length === 1
+      ? ('common.day' | translate)
+      : ('common.days' | translate))
+      : ('common.add' | translate)
+      }}
     </button>
   </div>
 

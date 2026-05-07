@@ -77,6 +77,12 @@
   font-weight: 600;
 }
 
+.calendar-picker__day--today:not(.calendar-picker__day--selected) {
+  border: 1px solid rgba(92, 143, 134, 0.35);
+  background: rgba(92, 143, 134, 0.08);
+  color: $color-primary-dark;
+}
+
 .calendar-picker__day--muted {
   opacity: 0.45;
 }

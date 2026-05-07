@@ -7,7 +7,8 @@
     <div class="controls">
       <div class="week-navigation">
         <div class="week-navigation__side week-navigation__side--left">
-          <button type="button" class="week-nav-btn" (click)="goToPreviousWeek()" aria-label="Previous week">
+          <button type="button" class="week-nav-btn" (click)="goToPreviousWeek()"
+            [attr.aria-label]="'plan.previousWeek' | translate">
             <lucide-icon [img]="chevronLeftIcon"></lucide-icon>
           </button>
         </div>
@@ -19,17 +20,19 @@
         </div>
 
         <div class="week-navigation__side week-navigation__side--right">
-          <button type="button" class="week-nav-btn" (click)="goToNextWeek()" aria-label="Next week">
+          <button type="button" class="week-nav-btn" (click)="goToNextWeek()"
+            [attr.aria-label]="'plan.nextWeek' | translate">
             <lucide-icon [img]="chevronRightIcon"></lucide-icon>
           </button>
 
-          <button type="button" class="calendar-btn" (click)="openCalendar()" aria-label="Pick a date">
+          <button type="button" class="calendar-btn" (click)="openCalendar()"
+            [attr.aria-label]="'plan.pickDate' | translate">
             <lucide-icon [img]="calendarIcon"></lucide-icon>
           </button>
 
           <button type="button" class="today-btn" [class.today-btn--active]="!isViewingCurrentWeek()"
             (click)="goToToday()">
-            Today
+            {{ 'plan.today' | translate }}
           </button>
 
           <button type="button" class="lists-btn" (click)="generateWeeklyList()"
@@ -71,7 +74,7 @@
             <div class="meal-info__main">
               <div class="meal-image">
                 <img [src]="getFirstMeal(item)?.meal?.image_url || 'assets/meals/default-meal.png'"
-                  class="meal-image-img" [alt]="getFirstMeal(item)?.meal?.name || 'Meal image'" />
+                  class="meal-image-img" [alt]="getFirstMeal(item)?.meal?.name || ('home.mealImageAlt' | translate)" />
               </div>
 
               <div class="meal-details">
@@ -80,11 +83,13 @@
                 </p>
 
                 <div class="meal-cook-row">
-                  <span class="meal-cook-label">Cook:</span>
+                  <span class="meal-cook-label">
+                    {{ 'home.cookLabel' | translate }}
+                  </span>
 
                   <ng-container *ngIf="getFirstMeal(item)?.cook as cook; else notAssignedCook">
                     <img [src]="cook.avatar_url || 'assets/avatars/unassigned.png'" class="meal-cook-avatar"
-                      [alt]="cook.name || 'Cook avatar'" />
+                      [alt]="cook.name || ('home.cookAvatarAlt' | translate)" />
                   </ng-container>
 
                   <ng-template #notAssignedCook>
@@ -94,8 +99,8 @@
                     </span>
                   </ng-template>
 
-                  <p class="meal-cook">
-                    {{ getFirstMeal(item)?.cook?.name || 'Unassigned' }}
+                  <p class="meal-cook" [class.meal-cook--unassigned]="!getFirstMeal(item)?.cook?.name">
+                    {{ getFirstMeal(item)?.cook?.name || ('home.unassigned' | translate) }}
                   </p>
                 </div>
 
@@ -114,8 +119,10 @@
                 <p class="meal-more" [class.meal-more--hidden]="getAdditionalMealsCount(item) === 0">
                   <ng-container *ngIf="getAdditionalMealsCount(item) > 0">
                     <span class="meal-more__text">
-                      +{{ getAdditionalMealsCount(item) }} more meal<span
-                        *ngIf="getAdditionalMealsCount(item) > 1">s</span>
+                      {{ 'home.moreMealsPrefix' | translate }} {{ getAdditionalMealsCount(item) }}
+                      {{ getAdditionalMealsCount(item) === 1
+                      ? ('home.mealOne' | translate)
+                      : ('home.mealMany' | translate) }}
                     </span>
                     <span class="meal-more__arrow">→</span>
                   </ng-container>
@@ -126,7 +133,7 @@
 
           <ng-template #emptyDay>
             <div class="meal-empty-state">
-              <p class="meal-empty-text">No meal planned</p>
+              <p class="meal-empty-text">{{ 'home.noMealPlanned' | translate }}</p>
             </div>
           </ng-template>
         </div>
@@ -139,8 +146,8 @@
   <div class="calendar-picker-sheet" (click)="$event.stopPropagation()">
     <div class="calendar-picker-sheet__handle"></div>
 
-    <app-calendar-picker [title]="'Pick a date'" [selectionMode]="'single'" [selectedDates]="selectedCalendarDates"
-      [showFooterActions]="false" [autoConfirmOnSingleSelect]="true"
+    <app-calendar-picker [title]="'plan.pickDate' | translate" [selectionMode]="'single'"
+      [selectedDates]="selectedCalendarDates" [showFooterActions]="false" [autoConfirmOnSingleSelect]="true"
       (selectedDatesChange)="onCalendarDatesChange($event)"
       (confirm)="confirmCalendarDates($event)"></app-calendar-picker>
   </div>

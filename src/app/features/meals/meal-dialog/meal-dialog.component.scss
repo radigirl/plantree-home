@@ -61,10 +61,21 @@
   border-radius: 14px;
   border: 1px solid rgba(207, 222, 215, 0.95);
   background: rgba(255, 252, 247, 0.92);
-  color: $color-primary-dark;
-  font-size: 0.96rem;
+  color: rgba(60, 80, 70, 0.78);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.35;
   outline: none;
   box-sizing: border-box;
+}
+
+.meal-field input::placeholder,
+.meal-field textarea::placeholder {
+  color: rgba(60, 80, 70, 0.38);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 400;
 }
 
 .meal-field input,
@@ -76,11 +87,13 @@
 .meal-field textarea {
   min-height: 64px;
   max-height: 92px;
-  padding: 2px 6px;
+  padding: 8px 8px;
   resize: vertical;
-  font-family: inherit;
-  line-height: 1.35;
   overflow-y: auto;
+}
+
+.meal-field textarea::placeholder {
+  line-height: 1.4;
 }
 
 .meal-field input:focus,
@@ -197,8 +210,4 @@
 .form-helper.examples {
   margin: 0 0 6px;
   color: rgba(60, 80, 70, 0.5);
-}
-
-.meal-field input, .meal-field textarea {
-  color: $color-text-muted;
 }
