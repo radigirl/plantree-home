@@ -12,9 +12,9 @@
 
         <!-- Name -->
         <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label">Name</label>
+          <label class="pantry-item-sheet__label">{{ 'pantrySheet.name' | translate }}</label>
           <input type="text" class="input-field" [(ngModel)]="name" (ngModelChange)="updateNameError()"
-            placeholder="e.g. Milk" />
+            [placeholder]="'pantrySheet.namePlaceholder' | translate" />
         </div>
 
         <p class="pantry-item-sheet__error-slot" [class.is-visible]="!!nameErrorMessage">
@@ -23,37 +23,38 @@
 
         <!-- Type switcher -->
         <app-toggle-switch [options]="[
-    { label: 'Countable', value: 'countable' },
-    { label: 'Measured', value: 'measured' }
-  ]" [value]="type" (valueChange)="onTypeChange($event)"></app-toggle-switch>
+  { label: ('pantrySheet.countable' | translate), value: 'countable' },
+  { label: ('pantrySheet.measured' | translate), value: 'measured' }
+]" [value]="type" (valueChange)="onTypeChange($event)"></app-toggle-switch>
 
         <!-- Helper -->
         <p class="pantry-item-sheet__helper">
-          {{ type === 'measured' ? '· by weight or volume' : '· pcs, bottles, packs' }}
+          {{ type === 'measured' ? ('pantrySheet.measuredHelper' | translate) : ('pantrySheet.countableHelper' |
+          translate) }}
         </p>
 
         <!-- COUNTABLE -->
         <ng-container *ngIf="type === 'countable'; else measuredFields">
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
-              <label class="pantry-item-sheet__label">Quantity</label>
+              <label class="pantry-item-sheet__label">{{ 'pantrySheet.quantity' | translate }}</label>
               <input type="number" min="1" step="1" class="input-field" [(ngModel)]="amount" />
             </div>
           </div>
 
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
-              <label class="pantry-item-sheet__label">Unit</label>
+              <label class="pantry-item-sheet__label">{{ 'pantrySheet.unit' | translate }}</label>
               <div class="select-wrapper">
                 <select class="input-field" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
-                <option value="">No unit</option>
-                <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
-              </select>
+                  <option value="">{{ 'pantrySheet.noUnit' | translate }}</option>
+                  <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+                </select>
               </div>
             </div>
 
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
-              <label class="pantry-item-sheet__label">Size</label>
+              <label class="pantry-item-sheet__label">{{ 'pantrySheet.size' | translate }}</label>
               <input type="number" min="0" step="any" class="input-field" [(ngModel)]="sizeAmount"
                 (ngModelChange)="updateSizeUnitError()" [placeholder]="sizePlaceholder" />
             </div>
@@ -64,19 +65,19 @@
         <ng-template #measuredFields>
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
-              <label class="pantry-item-sheet__label">Unit</label>
+              <label class="pantry-item-sheet__label">{{ 'pantrySheet.unit' | translate }}</label>
               <div class="select-wrapper">
                 <select class="input-field" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
-                <option value="">Select unit</option>
-                <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
-              </select>
+                  <option value="">{{ 'pantrySheet.selectUnit' | translate }}</option>
+                  <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+                </select>
               </div>
             </div>
           </div>
 
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
-              <label class="pantry-item-sheet__label">Size</label>
+              <label class="pantry-item-sheet__label">{{ 'pantrySheet.size' | translate }}</label>
               <input type="number" min="0" step="any" class="input-field" [(ngModel)]="sizeAmount"
                 (ngModelChange)="updateSizeUnitError()" [placeholder]="sizePlaceholder" />
             </div>
@@ -90,13 +91,13 @@
 
         <!-- Expiry -->
         <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label">Expiry date</label>
+          <label class="pantry-item-sheet__label">{{ 'pantrySheet.expiryDate' | translate }}</label>
           <div class="pantry-item-sheet__date-input">
-            <input type="text" class="input-field input-field--date"
-              [value]="formatDateForDisplay(expiryDate)" placeholder="dd-mm-yyyy" readonly (click)="openCalendar()" />
+            <input type="text" class="input-field input-field--date" [value]="formatDateForDisplay(expiryDate)"
+              placeholder="dd-mm-yyyy" readonly (click)="openCalendar()" />
 
             <button type="button" class="pantry-item-sheet__date-button" (click)="openCalendar()"
-              aria-label="Open calendar">
+              [attr.aria-label]="'pantrySheet.openCalendar' | translate">
               <lucide-icon [img]="calendarIcon"></lucide-icon>
             </button>
           </div>
@@ -104,7 +105,7 @@
 
         <!-- Meta -->
         <div *ngIf="mode === 'edit' && createdAtLabel" class="pantry-item-sheet__meta">
-          <span class="pantry-item-sheet__meta-label">Added on</span>
+          <span class="pantry-item-sheet__meta-label">{{ 'pantrySheet.addedOn' | translate }}</span>
           <span class="pantry-item-sheet__meta-value">
             {{ createdAtLabel }}
           </span>
@@ -115,7 +116,7 @@
       <!-- Footer -->
       <div class="pantry-item-sheet__footer button-row">
         <button type="button" class="pantry-item-sheet__button btn-secondary" (click)="close()">
-          Cancel
+          {{ 'common.cancel' | translate }}
         </button>
 
         <button type="button" class="pantry-item-sheet__button btn-primary" (click)="save()">
@@ -131,8 +132,8 @@
   <div class="calendar-picker-sheet" (click)="$event.stopPropagation()">
     <div class="calendar-picker-sheet__handle"></div>
 
-    <app-calendar-picker [title]="'Pick a date'" [selectionMode]="'single'" [selectedDates]="selectedCalendarDates"
-      [showFooterActions]="false" [autoConfirmOnSingleSelect]="true"
+    <app-calendar-picker [title]="'common.pickDate' | translate" [selectionMode]="'single'"
+      [selectedDates]="selectedCalendarDates" [showFooterActions]="false" [autoConfirmOnSingleSelect]="true"
       (selectedDatesChange)="onCalendarDatesChange($event)" (confirm)="confirmCalendarDates($event)">
     </app-calendar-picker>
 

@@ -83,7 +83,7 @@
           [class.cook-from-pantry-sheet__icon--missing]="!isIngredientAvailable(ingredient)">
           {{ isIngredientAvailable(ingredient) ? '✓' : '✕' }}
         </span>
-        <span>{{ ingredient }}</span>
+        <span>{{ getDisplayIngredientName(ingredient) }}</span>
       </div>
     </div>
     <div class="cook-from-pantry-sheet__footer">

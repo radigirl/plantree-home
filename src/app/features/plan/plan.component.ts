@@ -39,7 +39,7 @@ import {
   MergeApplyValue,
 } from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
 import { normalizeIngredientKey } from '../../shared/utils/ingredient.util';
-import { parseMeasurementStyleIngredient } from '../../shared/utils/measurement-style.util';
+import { parseMeasurementStyleIngredient, formatMeasurementStyleDisplay } from '../../shared/utils/measurement-style.util';
 import {
   IngredientRulesService,
   MeasurementRuleRow
@@ -115,32 +115,32 @@ export class PlanComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-  this.spaceStateService.currentSpace$
-    .pipe(
-      takeUntil(this.destroy$),
-      filter((space): space is NonNullable<typeof space> => !!space),
-      map((space) => space.id),
-      distinctUntilChanged()
-    )
-    .subscribe(async () => {
-      await this.initializePlanForCurrentSpace();
-    });
+    this.spaceStateService.currentSpace$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((space): space is NonNullable<typeof space> => !!space),
+        map((space) => space.id),
+        distinctUntilChanged()
+      )
+      .subscribe(async () => {
+        await this.initializePlanForCurrentSpace();
+      });
 
-  this.languageStateService.currentLanguage$
-    .pipe(
-      skip(1),
-      takeUntil(this.destroy$)
-    )
-    .subscribe(async () => {
-      await this.loadWeekPlan();
+    this.languageStateService.currentLanguage$
+      .pipe(
+        skip(1),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(async () => {
+        await this.loadWeekPlan();
 
-      if (this.isGenerateSheetOpen) {
-        this.buildGenerateSheetDays();
-      }
+        if (this.isGenerateSheetOpen) {
+          this.buildGenerateSheetDays();
+        }
 
-      this.cdr.detectChanges();
-    });
-}
+        this.cdr.detectChanges();
+      });
+  }
 
   private async initializePlanForCurrentSpace(): Promise<void> {
     const returnDate = sessionStorage.getItem('planReturnDate');
@@ -1078,11 +1078,11 @@ export class PlanComponent implements OnInit, OnDestroy {
     style: 'cup' | 'tbsp' | 'tsp',
     ingredient: string
   ): string {
-    let styleLabel: string = style;
-
-    if (style === 'cup') {
-      styleLabel = count === 1 ? 'cup' : 'cups';
-    }
+    const styleLabel = formatMeasurementStyleDisplay(
+      style,
+      count,
+      this.languageStateService.getLanguage()
+    );
 
     return `${count} ${styleLabel} ${ingredient}`.trim();
   }

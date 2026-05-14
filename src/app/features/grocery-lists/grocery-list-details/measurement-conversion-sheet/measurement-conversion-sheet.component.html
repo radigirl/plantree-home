@@ -1,10 +1,10 @@
 <div class="measurement-sheet">
   <div class="measurement-sheet__header">
     <div class="measurement-sheet__heading">
-      <h2 class="measurement-sheet__title">Add quantity</h2>
+      <h2 class="measurement-sheet__title">{{ 'measurementSheet.title' | translate }}</h2>
 
       <p class="measurement-sheet__item" *ngIf="itemName">
-        For <strong>{{ itemName }}</strong>
+       {{ 'measurementSheet.forItem' | translate }} <strong>{{ itemName }}</strong>
       </p>
 
       <p class="measurement-sheet__info">
@@ -14,7 +14,7 @@
 
         <ng-template #existingBlock>
           <ng-container *ngIf="existingMatchLabel">
-            Already in list: <strong>{{ existingMatchLabel }}</strong>
+            {{ 'measurementSheet.alreadyInList' | translate }} <strong>{{ existingMatchLabel }}</strong>
           </ng-container>
         </ng-template>
       </p>
@@ -28,7 +28,7 @@
   <div class="measurement-sheet__body">
     <div class="measurement-sheet__field-group">
       <label class="measurement-sheet__label" for="measurement-amount">
-        Amount
+        {{ 'measurementSheet.amount' | translate }}
       </label>
 
       <input id="measurement-amount" type="number" min="0" step="any" inputmode="decimal" [(ngModel)]="amount"
@@ -37,12 +37,12 @@
 
     <div class="measurement-sheet__field-group">
       <label class="measurement-sheet__label" for="measurement-unit">
-        Unit
+        {{ 'measurementSheet.unit' | translate }}
       </label>
 
       <div class="select-wrapper">
         <select id="measurement-unit" [(ngModel)]="unit" class="input-field">
-          <option value="">Select unit</option>
+          <option value=""> {{ 'measurementSheet.selectUnit' | translate }} </option>
           <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
         </select>
       </div>
@@ -50,18 +50,18 @@
 
     <label class="measurement-sheet__remember">
       <input type="checkbox" [(ngModel)]="remember" class="measurement-sheet__checkbox" />
-      <span>Remember for future</span>
+      <span>{{ 'measurementSheet.remember' | translate }}</span>
     </label>
   </div>
 
   <div class="measurement-sheet__footer">
     <button type="button" class="measurement-sheet__button btn-secondary" (click)="onSkip()">
-      Skip
+      {{ 'measurementSheet.skip' | translate }}
     </button>
 
     <button type="button" class="measurement-sheet__button btn-primary" (click)="onApply()"
       [disabled]="amount === null || !unit">
-      Apply
+      {{ 'measurementSheet.apply' | translate }}
     </button>
   </div>
 </div>

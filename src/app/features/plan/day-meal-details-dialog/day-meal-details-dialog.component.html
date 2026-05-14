@@ -82,7 +82,7 @@
 
             <ul class="day-meal-details-dialog-ingredients-list" *ngIf="meal.meal.ingredients?.length">
               <li *ngFor="let ingredient of meal.meal.ingredients">
-                {{ ingredient }}
+                {{ getDisplayIngredientName(ingredient) }}
               </li>
             </ul>
 

@@ -32,6 +32,7 @@ import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import { LanguageStateService } from '../../services/language.state.service';
 import { ToggleSwitchComponent } from '../../shared/components/toggle-switch/toggle-switch.component';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
+import { formatLocalizedIngredientDisplay } from '../../shared/utils/measurement-style.util';
 
 type EmptyState =
   | 'none'
@@ -384,12 +385,12 @@ export class CookFromPantryComponent
     }, 2500);
   }
 
- private formatToastDayLabel(dateString: string): string {
-  const date = new Date(`${dateString}T12:00:00`);
-  const months = this.languageStateService.t('monthsLong') as unknown as string[];
+  private formatToastDayLabel(dateString: string): string {
+    const date = new Date(`${dateString}T12:00:00`);
+    const months = this.languageStateService.t('monthsLong') as unknown as string[];
 
-  return `${date.getDate()} ${months[date.getMonth()]}`;
-}
+    return `${date.getDate()} ${months[date.getMonth()]}`;
+  }
 
   private resetCalendarSelection(): void {
     this.selectedPlanDates = [];
@@ -426,6 +427,13 @@ export class CookFromPantryComponent
     return this.languageStateService
       .t('meals.addToPlanWithName')
       .replace('{{name}}', name);
+  }
+
+  getDisplayIngredientName(ingredient: string): string {
+    return formatLocalizedIngredientDisplay(
+      ingredient,
+      this.languageStateService.getLanguage()
+    );
   }
 
   ngOnDestroy(): void {

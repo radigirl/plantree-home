@@ -49,7 +49,7 @@
 
               <ul class="meal-ingredients-list" *ngIf="meal.ingredients?.length">
                 <li *ngFor="let ingredient of meal.ingredients">
-                  {{ ingredient }}
+                 {{ getDisplayIngredientName(ingredient) }}
                 </li>
               </ul>
 

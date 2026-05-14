@@ -46,10 +46,16 @@ import {
   getMergeableRawIngredientInfo,
   getIngredientSortKey,
 } from '../../../shared/utils/ingredient-merge.util';
-import { parseMeasurementStyleIngredient } from '../../../shared/utils/measurement-style.util';
+import {
+  parseMeasurementStyleIngredient,
+  formatMeasurementStyleDisplay,
+  formatLocalizedIngredientDisplay,
+} from '../../../shared/utils/measurement-style.util';
 import { ArrowLeftRight, LucideAngularModule } from 'lucide-angular';
 import { MeasurementConversionSheetComponent } from './measurement-conversion-sheet/measurement-conversion-sheet.component';
 import { IngredientRulesService, MeasurementRuleRow } from '../../../services/ingredient-rules.service';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../../services/language.state.service';
 
 
 @Component({
@@ -66,7 +72,8 @@ import { IngredientRulesService, MeasurementRuleRow } from '../../../services/in
     PantryActionDialogComponent,
     MergeReviewSheetComponent,
     LucideAngularModule,
-    MeasurementConversionSheetComponent
+    MeasurementConversionSheetComponent,
+    TranslatePipe,
   ],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
@@ -90,10 +97,12 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   editItemName = '';
 
-  itemActions: ResponsiveActionMenuItem[] = [
-    { id: 'edit', label: 'Edit' },
-    { id: 'delete', label: 'Delete' },
-  ];
+  get itemActions(): ResponsiveActionMenuItem[] {
+    return [
+      { id: 'edit', label: this.languageStateService.t('groceryListDetails.edit') },
+      { id: 'delete', label: this.languageStateService.t('groceryListDetails.delete') },
+    ];
+  }
 
   isPantryDialogOpen = false;
   pantryDialogTitle = '';
@@ -145,6 +154,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     private spaceStateService: SpaceStateService,
     private pantryService: PantryService,
     private ingredientRulesService: IngredientRulesService,
+    private languageStateService: LanguageStateService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -157,7 +167,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const listId = this.route.snapshot.paramMap.get('id');
 
     if (!listId) {
-      this.error = 'Missing grocery list id.';
+      this.error = this.languageStateService.t('groceryListDetails.missingListId');
       this.isLoading = false;
       this.cdr.detectChanges();
       return;
@@ -194,7 +204,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       this.groceryList = await this.groceryService.getGroceryListById(listId);
 
       if (!this.groceryList) {
-        this.error = 'Grocery list not found.';
+        this.error = this.languageStateService.t('groceryListDetails.listNotFound');
         return;
       }
 
@@ -208,7 +218,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       this.subscribeToGroceryItems(listId);
     } catch (error) {
       console.error('Error loading grocery list:', error);
-      this.error = 'Could not load grocery list.';
+      this.error = this.languageStateService.t('groceryListDetails.loadListError');
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -374,7 +384,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         );
 
         if (!success) {
-          this.error = 'Could not update grocery item.';
+          this.error = this.languageStateService.t('groceryListDetails.updateItemError');
           this.cdr.detectChanges();
           return;
         }
@@ -395,7 +405,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       );
 
       if (!success) {
-        this.error = 'Could not update grocery item.';
+        this.error = this.languageStateService.t('groceryListDetails.updateItemError');
         this.cdr.detectChanges();
         return;
       }
@@ -412,7 +422,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     );
 
     if (!created) {
-      this.error = 'Could not add grocery item.';
+      this.error = this.languageStateService.t('groceryListDetails.addItemError');
       this.cdr.detectChanges();
       return;
     }
@@ -605,7 +615,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       );
 
       if (!success) {
-        this.error = 'Could not update grocery item.';
+        this.error = this.languageStateService.t('groceryListDetails.updateItemError');
         this.cdr.detectChanges();
         return;
       }
@@ -640,7 +650,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
           this.pendingEditItemName
         );
         if (!success) {
-          this.error = 'Could not update grocery item.';
+          this.error = this.languageStateService.t('groceryListDetails.updateItemError');
           this.cdr.detectChanges();
           return;
         }
@@ -749,7 +759,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     );
 
     if (!updateSuccess) {
-      this.error = 'Could not update grocery item.';
+      this.error = this.languageStateService.t('groceryListDetails.updateItemError');
       this.cdr.detectChanges();
       return null;
     }
@@ -803,7 +813,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     if (nextStatus === 'bought') {
       item.boughtBy = {
         id: boughtByMemberId,
-        name: currentMember?.name || 'You',
+        name: currentMember?.name || this.languageStateService.t('groceryListDetails.you'),
       };
     } else {
       item.boughtBy = null;
@@ -833,7 +843,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       if (!resetSuccess) {
         item.status = previousStatus;
         item.boughtBy = previousBoughtBy;
-        this.error = 'Could not reset pantry state.';
+        this.error = this.languageStateService.t('groceryListDetails.resetPantryError');
         this.cdr.detectChanges();
         return;
       }
@@ -956,7 +966,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         );
 
         if (!success) {
-          this.error = 'Could not update grocery item.';
+          this.error = this.languageStateService.t('groceryListDetails.updateItemError');
           this.cdr.detectChanges();
           return;
         }
@@ -981,7 +991,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       );
 
       if (!success) {
-        this.error = 'Could not update grocery item.';
+        this.error = this.languageStateService.t('groceryListDetails.updateItemError');
         this.cdr.detectChanges();
         return;
       }
@@ -999,7 +1009,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     );
 
     if (!success) {
-      this.error = 'Could not update grocery item.';
+      this.error = this.languageStateService.t('groceryListDetails.updateItemError');
       this.cdr.detectChanges();
       return;
     }
@@ -1059,7 +1069,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const success = await this.groceryService.deleteGroceryItem(item.id);
 
     if (!success) {
-      this.error = 'Could not delete grocery item.';
+      this.error = this.languageStateService.t('groceryListDetails.deleteItemError');
       this.cdr.detectChanges();
       return;
     }
@@ -1077,11 +1087,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   getDeleteMessage(): string {
-    if (!this.selectedItemForDelete?.name) {
-      return 'Are you sure you want to delete this item?';
+    const name = this.selectedItemForDelete?.name;
+    if (!name) {
+      return this.languageStateService.t('groceryListDetails.deleteItemMessageGeneric');
     }
-
-    return `Are you sure you want to delete "${this.selectedItemForDelete.name}"?`;
+    return this.languageStateService
+      .t('groceryListDetails.deleteItemMessageWithName')
+      .replace('{{name}}', name);
   }
 
   getItemMetaParts(item: any) {
@@ -1091,8 +1103,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const isBoughtByYou = currentMember?.id === item.boughtBy?.id;
 
     return {
-      addedByName: item.addedBy?.name || 'Someone',
-      boughtByName: item.boughtBy?.name || 'Someone',
+      addedByName: item.addedBy?.name || this.languageStateService.t('groceryListDetails.someone'),
+      boughtByName: item.boughtBy?.name || this.languageStateService.t('groceryListDetails.someone'),
       isAddedByYou,
       isBoughtByYou,
       isBought: item.status === 'bought',
@@ -1154,7 +1166,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       this.groceryList.id
     );
     if (!success) {
-      this.error = 'Could not complete list.';
+      this.error = this.languageStateService.t('groceryLists.completeError');
       this.cdr.detectChanges();
       return;
     }
@@ -1170,8 +1182,12 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   openPantryDialogForComplete(list: GroceryList, pending: number): void {
     this.pendingPantryList = list;
-    this.pantryDialogTitle = 'Move to pantry?';
-    this.pantryDialogMessage = `This list has ${pending} bought ${pending === 1 ? 'item' : 'items'} that can be moved to pantry.`;
+    this.pantryDialogTitle = this.languageStateService.t('groceryLists.moveToPantryTitle');
+    this.pantryDialogMessage = pending === 1
+      ? this.languageStateService.t('groceryLists.completePantryMessageOne')
+      : this.languageStateService
+        .t('groceryLists.completePantryMessageMany')
+        .replace('{{count}}', String(pending));
     this.pantryDialogShowSkip = true;
     this.isPantryDialogOpen = true;
 
@@ -1215,7 +1231,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     );
 
     if (!success) {
-      this.error = 'Could not undo completed list.';
+      this.error = this.languageStateService.t('groceryLists.undoError');
       this.clearToastState();
       this.cdr.detectChanges();
       return;
@@ -1255,7 +1271,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   showCompletedUndoToast(list: GroceryList): void {
     this.undoCompletedList = list;
     this.toastActionType = 'undo-complete';
-    this.showToast('List marked as completed', 'Undo');
+    this.showToast(
+      this.languageStateService.t('groceryLists.listCompleted'),
+      this.languageStateService.t('groceryLists.undo')
+    );
   }
 
   async onPantryDialogAction(
@@ -1274,7 +1293,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       const movedCount = await this.moveItemsToPantry(list);
       const success = await this.groceryService.completeGroceryList(list.id);
       if (!success) {
-        this.error = 'Could not complete list.';
+        this.error = this.languageStateService.t('groceryLists.completeError');
         this.cdr.detectChanges();
         return;
       }
@@ -1285,8 +1304,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       };
       this.showToast(
         movedCount === 1
-          ? '1 item moved to pantry and list completed'
-          : `${movedCount} items moved to pantry and list completed`
+          ? this.languageStateService.t('groceryLists.movedOneCompleted')
+          : this.languageStateService
+            .t('groceryLists.movedManyCompleted')
+            .replace('{{count}}', String(movedCount))
       );
       this.cdr.detectChanges();
       return;
@@ -1294,7 +1315,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     if (action === 'skip') {
       const success = await this.groceryService.completeGroceryList(list.id);
       if (!success) {
-        this.error = 'Could not complete list.';
+        this.error = this.languageStateService.t('groceryLists.completeError');
         this.cdr.detectChanges();
         return;
       }
@@ -1332,7 +1353,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       return itemsToMove.length;
     } catch (error) {
       console.error('Move to pantry failed:', error);
-      this.error = 'Could not move items to pantry.';
+      this.error = this.languageStateService.t('groceryLists.moveError');
       this.cdr.detectChanges();
       return 0;
     }
@@ -1363,12 +1384,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   private formatCoverageDay(dateKey: string): string {
     const date = new Date(`${dateKey}T12:00:00`);
+    const days = this.languageStateService.t('daysShort') as unknown as string[];
+    const months = this.languageStateService.t('monthsLong') as unknown as string[];
 
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
+    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
   }
 
   get coverageSummary(): string {
@@ -1380,10 +1399,15 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       0
     );
 
-    const dayText = daysCount === 1 ? 'day' : 'days';
-    const mealText = mealsCount === 1 ? 'meal' : 'meals';
+    const dayText = daysCount === 1
+      ? this.languageStateService.t('groceryListDetails.day')
+      : this.languageStateService.t('groceryListDetails.days');
 
-    return `Covers planned meals · ${daysCount} ${dayText} · ${mealsCount} ${mealText}`;
+    const mealText = mealsCount === 1
+      ? this.languageStateService.t('groceryListDetails.meal')
+      : this.languageStateService.t('groceryListDetails.meals');
+
+    return `${this.languageStateService.t('groceryListDetails.coverageSummary')} · ${daysCount} ${dayText} · ${mealsCount} ${mealText}`;
   }
 
   isMeasurementStyleItem(name: string): boolean {
@@ -1435,7 +1459,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         );
 
         if (!updateSuccess) {
-          this.error = 'Could not update grocery item.';
+          this.error = this.languageStateService.t('groceryListDetails.updateItemError');
           this.cdr.detectChanges();
           return;
         }
@@ -1445,7 +1469,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         );
 
         if (!deleteSuccess) {
-          this.error = 'Could not delete grocery item.';
+          this.error = this.languageStateService.t('groceryListDetails.deleteItemError');
           this.cdr.detectChanges();
           return;
         }
@@ -1458,7 +1482,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         );
 
         if (!updateSuccess) {
-          this.error = 'Could not update grocery item.';
+          this.error = this.languageStateService.t('groceryListDetails.updateItemError');
           this.cdr.detectChanges();
           return;
         }
@@ -1472,7 +1496,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       );
 
       if (!updateSuccess) {
-        this.error = 'Could not update grocery item.';
+        this.error = this.languageStateService.t('groceryListDetails.updateItemError');
         this.cdr.detectChanges();
         return;
       }
@@ -1703,7 +1727,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       );
 
       if (!updateSuccess) {
-        this.error = 'Could not update grocery item.';
+        this.error = this.languageStateService.t('groceryListDetails.updateItemError');
         this.cdr.detectChanges();
         return { handled: true };
       }
@@ -1742,7 +1766,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       );
 
       if (!updateSuccess) {
-        this.error = 'Could not update grocery item.';
+        this.error = this.languageStateService.t('groceryListDetails.updateItemError');
         this.cdr.detectChanges();
         return { handled: true };
       }
@@ -1770,7 +1794,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       );
 
       if (!updateSuccess) {
-        this.error = 'Could not update grocery item.';
+        this.error = this.languageStateService.t('groceryListDetails.updateItemError');
         this.cdr.detectChanges();
         return { handled: true };
       }
@@ -1840,13 +1864,36 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     style: 'cup' | 'tbsp' | 'tsp',
     ingredient: string
   ): string {
-    let styleLabel: string = style;
-
-    if (style === 'cup') {
-      styleLabel = count === 1 ? 'cup' : 'cups';
-    }
+    const styleLabel = formatMeasurementStyleDisplay(
+      style,
+      count,
+      this.languageStateService.getLanguage()
+    );
 
     return `${count} ${styleLabel} ${ingredient}`.trim();
+  }
+
+  getTranslatedStatus(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return this.languageStateService.t('groceryLists.statusActive');
+
+      case 'completed':
+        return this.languageStateService.t('groceryLists.statusCompleted');
+
+      case 'archived':
+        return this.languageStateService.t('groceryLists.statusArchived');
+
+      default:
+        return status;
+    }
+  }
+
+  getDisplayItemName(name: string): string {
+    return formatLocalizedIngredientDisplay(
+      name,
+      this.languageStateService.getLanguage()
+    );
   }
 
   ngOnDestroy(): void {

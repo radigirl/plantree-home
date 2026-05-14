@@ -50,6 +50,8 @@ export function normalizeMeasurementStyle(
       'с. л',
       'супена лъжица',
       'супени лъжици',
+      'лъжица',
+      'лъжици',
     ].includes(token)
   ) {
     return 'tbsp';
@@ -66,6 +68,10 @@ export function normalizeMeasurementStyle(
       'ч. л',
       'чаена лъжичка',
       'чаени лъжички',
+      'чаена лъжица',
+      'чаени лъжици',
+      'лъжичка',
+      'лъжички',
     ].includes(token)
   ) {
     return 'tsp';
@@ -180,4 +186,49 @@ export function parseMeasurementStyleIngredient(
 
 export function isMeasurementStyleIngredient(input: string): boolean {
   return !!parseMeasurementStyleIngredient(input);
+}
+
+export function formatMeasurementStyleDisplay(
+  style: 'cup' | 'tbsp' | 'tsp',
+  count: number,
+  language: string
+): string {
+  const isBg = language === 'bg';
+
+  if (style === 'cup') {
+    if (isBg) {
+      return count === 1 ? 'чаша' : 'чаши';
+    }
+
+    return count === 1 ? 'cup' : 'cups';
+  }
+
+  if (style === 'tbsp') {
+    return isBg ? 'с.л.' : 'tbsp';
+  }
+
+  if (style === 'tsp') {
+    return isBg ? 'ч.л.' : 'tsp';
+  }
+
+  return style;
+}
+
+export function formatLocalizedIngredientDisplay(
+  input: string,
+  language: string
+): string {
+  const parsed = parseMeasurementStyleIngredient(input);
+
+  if (!parsed) {
+    return input;
+  }
+
+  const styleLabel = formatMeasurementStyleDisplay(
+    parsed.style,
+    parsed.count,
+    language
+  );
+
+  return `${parsed.count} ${styleLabel} ${parsed.ingredient}`.trim();
 }

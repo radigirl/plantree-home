@@ -13,11 +13,15 @@ import { PantryItemSheetComponent, PantryItemSheetValue } from '../../shared/com
 import { Router } from '@angular/router';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../services/language.state.service';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 @Component({
   selector: 'app-pantry',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent, ConfirmationDialogComponent, SnackbarComponent],
+  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent, ConfirmationDialogComponent, SnackbarComponent, TranslatePipe],
+
   templateUrl: './pantry.component.html',
   styleUrl: './pantry.component.scss',
 })
@@ -48,6 +52,8 @@ export class PantryComponent implements OnInit, OnDestroy {
 
   pantrySearchQuery = '';
 
+  private pantryChannel: RealtimeChannel | null = null;
+
 
   private destroy$ = new Subject<void>();
 
@@ -55,7 +61,8 @@ export class PantryComponent implements OnInit, OnDestroy {
     private pantryService: PantryService,
     private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private languageStateService: LanguageStateService
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -72,6 +79,8 @@ export class PantryComponent implements OnInit, OnDestroy {
         if (!space) {
           this.pantryItems = [];
           this.alwaysPresentItems = [];
+          this.pantryChannel?.unsubscribe();
+          this.pantryChannel = null;
           this.isLoading = false;
           this.cdr.detectChanges();
           return;
@@ -80,6 +89,7 @@ export class PantryComponent implements OnInit, OnDestroy {
         try {
           await this.loadPantryItems();
           await this.loadAlwaysPresentItems();
+          this.subscribeToPantryItems();
         } finally {
           this.isLoading = false;
           this.cdr.detectChanges();
@@ -107,7 +117,7 @@ export class PantryComponent implements OnInit, OnDestroy {
       this.pantryItems = await this.pantryService.getPantryItems();
     } catch (error) {
       console.error('Error loading pantry items:', error);
-      this.error = 'Could not load pantry items.';
+      this.error = this.languageStateService.t('pantry.loadError');
     }
   }
 
@@ -141,15 +151,15 @@ export class PantryComponent implements OnInit, OnDestroy {
     );
   }
 
- get recentItems(): PantryItem[] {
-  return this.filterItems(
-    [...this.pantryItems].sort((a, b) => {
-      const aTime = new Date(a.created_at).getTime();
-      const bTime = new Date(b.created_at).getTime();
-      return bTime - aTime;
-    })
-  );
-}
+  get recentItems(): PantryItem[] {
+    return this.filterItems(
+      [...this.pantryItems].sort((a, b) => {
+        const aTime = new Date(a.created_at).getTime();
+        const bTime = new Date(b.created_at).getTime();
+        return bTime - aTime;
+      })
+    );
+  }
 
   async loadAlwaysPresentItems(): Promise<void> {
     try {
@@ -164,7 +174,7 @@ export class PantryComponent implements OnInit, OnDestroy {
         await this.pantryService.getAlwaysPresentItems(spaceId);
     } catch (error) {
       console.error('Error loading always present items:', error);
-      this.error = 'Could not load always present items.';
+      this.error = this.languageStateService.t('pantry.loadAlwaysPresentError');
     }
   }
 
@@ -177,7 +187,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     );
 
     if (!success) {
-      this.error = 'Could not update pantry quantity.';
+      this.error = this.languageStateService.t('pantry.updateQuantityError');
       this.cdr.detectChanges();
       return;
     }
@@ -193,7 +203,7 @@ export class PantryComponent implements OnInit, OnDestroy {
       const success = await this.pantryService.deletePantryItem(item.id);
 
       if (!success) {
-        this.error = 'Could not delete pantry item.';
+        this.error = this.languageStateService.t('pantry.deleteError');
         this.lastRemovedPantryItem = null;
         this.cdr.detectChanges();
         return;
@@ -203,9 +213,15 @@ export class PantryComponent implements OnInit, OnDestroy {
         (currentItem) => currentItem.id !== item.id
       );
 
-      this.showToast(`Removed "${item.name}"`, 'Undo', () => {
-        this.undoLastRemovedItem();
-      });
+      this.showToast(
+        this.languageStateService
+          .t('pantry.removedToast')
+          .replace('{{name}}', item.name),
+        this.languageStateService.t('common.undo'),
+        () => {
+          this.undoLastRemovedItem();
+        }
+      );
 
       this.cdr.detectChanges();
       return;
@@ -219,7 +235,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     );
 
     if (!success) {
-      this.error = 'Could not update pantry quantity.';
+      this.error = this.languageStateService.t('pantry.updateQuantityError');
       this.cdr.detectChanges();
       return;
     }
@@ -250,7 +266,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     const success = await this.pantryService.deletePantryItem(item.id);
 
     if (!success) {
-      this.error = 'Could not delete pantry item.';
+      this.error = this.languageStateService.t('pantry.deleteError');
       this.cdr.detectChanges();
       return;
     }
@@ -264,7 +280,11 @@ export class PantryComponent implements OnInit, OnDestroy {
 
 
     this.lastRemovedPantryItem = null;
-    this.showToast(`Removed "${item.name}"`);
+    this.showToast(
+      this.languageStateService
+        .t('pantry.removedToast')
+        .replace('{{name}}', item.name)
+    );
 
     this.cdr.detectChanges();
   }
@@ -288,10 +308,10 @@ export class PantryComponent implements OnInit, OnDestroy {
   }
 
   setMode(mode: 'all' | 'expiry' | 'recent'): void {
-  this.mode = mode;
-  this.pantrySearchQuery = '';
-  this.cdr.detectChanges();
-}
+    this.mode = mode;
+    this.pantrySearchQuery = '';
+    this.cdr.detectChanges();
+  }
 
   toggleAlwaysPresent(): void {
     this.isAlwaysPresentExpanded = !this.isAlwaysPresentExpanded;
@@ -329,7 +349,7 @@ export class PantryComponent implements OnInit, OnDestroy {
       });
 
       if (!created) {
-        this.error = 'Could not create pantry item.';
+        this.error = this.languageStateService.t('pantry.createError');
         this.cdr.detectChanges();
         return;
       }
@@ -337,7 +357,11 @@ export class PantryComponent implements OnInit, OnDestroy {
       await this.loadPantryItems();
       this.closePantrySheet();
       this.lastRemovedPantryItem = null;
-      this.showToast(`Added "${value.name}"`);
+      this.showToast(
+        this.languageStateService
+          .t('pantry.addedToast')
+          .replace('{{name}}', value.name)
+      );
       return;
     }
 
@@ -355,7 +379,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     });
 
     if (!success) {
-      this.error = 'Could not update pantry item.';
+      this.error = this.languageStateService.t('pantry.updateError');
       this.cdr.detectChanges();
       return;
     }
@@ -363,7 +387,11 @@ export class PantryComponent implements OnInit, OnDestroy {
     await this.loadPantryItems();
     this.closePantrySheet();
     this.lastRemovedPantryItem = null;
-    this.showToast(`Updated "${value.name}"`);
+    this.showToast(
+      this.languageStateService
+        .t('pantry.updatedToast')
+        .replace('{{name}}', value.name)
+    );
   }
 
   async addAlwaysPresentItem(): Promise<void> {
@@ -375,7 +403,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     const created = await this.pantryService.addAlwaysPresentItem(trimmedName);
 
     if (!created) {
-      this.error = 'Could not add always present item.';
+      this.error = this.languageStateService.t('pantry.addAlwaysPresentError');
       this.cdr.detectChanges();
       return;
     }
@@ -390,7 +418,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     const success = await this.pantryService.deleteAlwaysPresentItem(item.id);
 
     if (!success) {
-      this.error = 'Could not delete always present item.';
+      this.error = this.languageStateService.t('pantry.deleteAlwaysPresentError');
       this.cdr.detectChanges();
       return;
     }
@@ -444,14 +472,18 @@ export class PantryComponent implements OnInit, OnDestroy {
     });
 
     if (!restored) {
-      this.error = 'Could not restore pantry item.';
+      this.error = this.languageStateService.t('pantry.restoreError');
       this.cdr.detectChanges();
       return;
     }
 
     await this.loadPantryItems();
     this.lastRemovedPantryItem = null;
-    this.showToast(`Restored "${item.name}"`);
+    this.showToast(
+      this.languageStateService
+        .t('pantry.restoredToast')
+        .replace('{{name}}', item.name)
+    );
   }
 
   private clearToast(): void {
@@ -482,10 +514,40 @@ export class PantryComponent implements OnInit, OnDestroy {
     );
   }
 
+  private subscribeToPantryItems(): void {
+    this.pantryChannel?.unsubscribe();
+
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return;
+    }
+
+    this.pantryChannel = this.pantryService.supabase
+      .channel(`pantry-items-${spaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pantry_items',
+          filter: `space_id=eq.${spaceId}`,
+        },
+        async () => {
+          this.pantryItems = await this.pantryService.getPantryItems();
+          this.cdr.detectChanges();
+        }
+      )
+      .subscribe();
+  }
+
   ngOnDestroy(): void {
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout);
     }
+
+    this.pantryChannel?.unsubscribe();
+    this.pantryChannel = null;
 
     this.destroy$.next();
     this.destroy$.complete();

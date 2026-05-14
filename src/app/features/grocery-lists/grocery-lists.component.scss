@@ -21,10 +21,15 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
+  min-height: 0;
 }
 
 .lists-results-scroll {
   min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .lists-loading {
@@ -328,14 +333,26 @@
 
 .lists-empty {
   margin: 0;
-  padding: 18px 14px;
-  border-radius: 18px;
+  padding: 22px 18px;
+  border-radius: 24px;
   background: $card-primary-bg;
   border: $card-primary-border;
+  box-shadow: $card-primary-shadow;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: $color-text-muted;
+}
+
+.lists-empty-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .add-lists-button--inline {
@@ -428,12 +445,7 @@
     margin-top: -15px;
     width: calc(100% + 16px);
 
-    height: calc(
-      100dvh
-      - 64px
-      - #{$layout-bottom-nav-height}
-      - env(safe-area-inset-bottom) - 10px
-    );
+    height: calc(100dvh - 64px - #{$layout-bottom-nav-height} - env(safe-area-inset-bottom) - 10px);
 
     min-height: 0;
     overflow: hidden;
@@ -443,6 +455,7 @@
   .lists-content {
     display: flex;
     flex-direction: column;
+    flex: 1;
     height: 100%;
     min-height: 0;
     overflow: hidden;
@@ -537,12 +550,7 @@
   }
 
   .lists-page {
-    height: calc(
-      100dvh
-      - 68px
-      - #{$layout-bottom-nav-height}
-      - env(safe-area-inset-bottom) - 25px
-    );
+    height: calc(100dvh - 68px - #{$layout-bottom-nav-height} - env(safe-area-inset-bottom) - 25px);
     min-height: 0;
     overflow: hidden;
   }
@@ -550,6 +558,7 @@
   .lists-content {
     display: flex;
     flex-direction: column;
+    flex: 1;
     height: 100%;
     min-height: 0;
     overflow: hidden;
@@ -605,6 +614,7 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    height: 100%;
     min-height: 0;
     overflow: hidden;
   }

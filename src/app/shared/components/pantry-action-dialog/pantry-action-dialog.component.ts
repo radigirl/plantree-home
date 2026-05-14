@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 export type PantryDialogAction = 'move' | 'skip' | 'archive' | 'cancel';
 
 @Component({
   selector: 'app-pantry-action-dialog',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   templateUrl: './pantry-action-dialog.component.html',
   styleUrls: ['./pantry-action-dialog.component.scss'],
 })

@@ -6,12 +6,12 @@
   <div *ngIf="!isLoading" class="lists-content">
     <div class="page-header-row">
       <div class="page-header">
-        <h1 class="page-title">Grocery Lists</h1>
-        <p class="page-subtitle">Create, manage and track your lists</p>
+        <h1 class="page-title">{{ 'groceryLists.title' | translate }}</h1>
+        <p class="page-subtitle">{{ 'groceryLists.subtitle' | translate }}</p>
       </div>
 
       <button type="button" class="action-pill action-pill--primary" (click)="openCreateDialog()">
-        + Add
+        {{ 'groceryLists.add' | translate }}
       </button>
     </div>
 
@@ -33,19 +33,20 @@
 
               <div class="list-meta">
                 <span class="list-status-chip" [ngClass]="'list-status--' + list.status.toLowerCase()">
-                  {{ list.status }}
+                  {{ getTranslatedStatus(list.status) }}
                 </span>
               </div>
             </div>
 
             <div class="list-right-actions" (click)="$event.stopPropagation()">
-              <button type="button" class="list-indicator pin-btn" (click)="onTogglePin(list)" aria-label="Toggle pin">
+              <button type="button" class="list-indicator pin-btn" (click)="onTogglePin(list)"
+                [attr.aria-label]="'groceryLists.togglePin' | translate">
                 <i-feather name="star" [class.pinned]="list.is_pinned"></i-feather>
               </button>
 
               <div class="list-menu-wrapper">
                 <button type="button" class="list-menu-button" (click)="toggleActionsMenu($event, list)"
-                  aria-label="Open list actions">
+                  [attr.aria-label]="'groceryLists.openActions' | translate">
                   ⋯
                 </button>
 
@@ -65,7 +66,8 @@
       </div>
 
       <p *ngIf="archivedCount > 0" class="archived-toggle" (click)="showArchived = !showArchived">
-        {{ showArchived ? 'Hide archived lists' : 'Archived lists (' + archivedCount + ')' }}
+        {{ showArchived ? ('groceryLists.hideArchived' | translate) : (('groceryLists.archivedLists' | translate) + ' ('
+        + archivedCount + ')') }}
       </p>
 
       <div *ngIf="showArchived && archivedCount > 0" class="lists-list archived-lists">
@@ -83,19 +85,20 @@
 
               <div class="list-meta">
                 <span class="meal-info-chip list-status" [ngClass]="'list-status--' + list.status.toLowerCase()">
-                  {{ list.status }}
+                  {{ getTranslatedStatus(list.status) }}
                 </span>
               </div>
             </div>
 
             <div class="list-right-actions" (click)="$event.stopPropagation()">
-              <button type="button" class="list-indicator pin-btn" (click)="onTogglePin(list)" aria-label="Toggle pin">
+              <button type="button" class="list-indicator pin-btn" (click)="onTogglePin(list)"
+                [attr.aria-label]="'groceryLists.togglePin' | translate">
                 <i-feather name="star" [class.pinned]="list.is_pinned"></i-feather>
               </button>
 
               <div class="list-menu-wrapper">
                 <button type="button" class="list-menu-button" (click)="toggleActionsMenu($event, list)"
-                  aria-label="Open list actions">
+                  [attr.aria-label]="'groceryLists.openActions' | translate">
                   ⋯
                 </button>
 
@@ -114,9 +117,11 @@
         </div>
       </div>
     </div>
-
+    
     <ng-template #empty>
-      <p class="lists-empty">No grocery lists yet.</p>
+      <div class="lists-empty-wrap">
+        <p class="lists-empty">{{ 'groceryLists.noLists' | translate }}</p>
+      </div>
     </ng-template>
   </div>
 </section>
@@ -135,17 +140,19 @@
 
 <div class="modal-overlay modal-overlay--form" *ngIf="isCreateDialogOpen" (click)="closeCreateDialog()">
   <div class="modal-shell modal-shell--form" (click)="$event.stopPropagation()">
-    <app-edit-text-dialog [title]="'Add list'" [label]="'List name'" [value]="createListName"
-      [placeholder]="'Enter list name'" [confirmLabel]="'Save'" [cancelLabel]="'Cancel'"
-      (valueChange)="createListName = $event" (confirm)="confirmCreateList()"
-      (cancel)="closeCreateDialog()"></app-edit-text-dialog>
+    <app-edit-text-dialog [title]="'groceryLists.addListTitle' | translate"
+      [label]="'groceryLists.listName' | translate" [value]="createListName"
+      [placeholder]="'groceryLists.listNamePlaceholder' | translate" [confirmLabel]="'mealDialog.save' | translate"
+      [cancelLabel]="'common.cancel' | translate" (valueChange)="createListName = $event"
+      (confirm)="confirmCreateList()" (cancel)="closeCreateDialog()"></app-edit-text-dialog>
   </div>
 </div>
 
 <div class="modal-overlay modal-overlay--form" *ngIf="isEditDialogOpen" (click)="closeEditDialog()">
   <div class="modal-shell modal-shell--form" (click)="$event.stopPropagation()">
-    <app-edit-text-dialog [title]="'Edit list'" [subtitle]="''" [label]="'List name'" [value]="editListName"
-      [placeholder]="'Enter list name'" [confirmLabel]="'Save'" [cancelLabel]="'Cancel'"
+    <app-edit-text-dialog [title]="'groceryLists.editListTitle' | translate"
+      [label]="'groceryLists.listName' | translate" [placeholder]="'groceryLists.listNamePlaceholder' | translate"
+      [confirmLabel]="'mealDialog.save' | translate" [cancelLabel]="'common.cancel' | translate"
       (valueChange)="editListName = $event" (confirm)="confirmEditList()"
       (cancel)="closeEditDialog()"></app-edit-text-dialog>
   </div>
@@ -153,10 +160,10 @@
 
 <div class="modal-overlay" *ngIf="isDeleteDialogOpen" (click)="closeDeleteDialog()">
   <div class="modal-shell" (click)="$event.stopPropagation()">
-    <app-confirmation-dialog [title]="'Delete list?'"
-      [message]="'Are you sure you want to delete &quot;' + (listPendingDelete?.name || '') + '&quot;?'"
-      [confirmLabel]="'Delete'" [cancelLabel]="'Cancel'" (confirm)="confirmDeleteList()"
-      (cancel)="closeDeleteDialog()"></app-confirmation-dialog>
+    <app-confirmation-dialog [title]="'groceryLists.deleteTitle' | translate"
+      [message]="('groceryLists.deleteMessagePrefix' | translate) + ' ' + (listPendingDelete?.name || '') + '?'"
+      [confirmLabel]="'groceryLists.delete' | translate" [cancelLabel]="'common.cancel' | translate"
+      (confirm)="confirmDeleteList()" (cancel)="closeDeleteDialog()"></app-confirmation-dialog>
   </div>
 </div>
 

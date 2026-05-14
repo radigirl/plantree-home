@@ -14,6 +14,8 @@ import { PantryItem } from '../../../models/pantry-item.model';
 import { CalendarDays, LucideAngularModule } from 'lucide-angular';
 import { ToggleSwitchComponent } from '../toggle-switch/toggle-switch.component';
 import { CalendarPickerComponent } from '../calendar-picker/calendar-picker.component';
+import { TranslatePipe } from '../../pipes/translate.pipe';
+import { LanguageStateService } from '../../../services/language.state.service';
 
 export interface PantryItemSheetValue {
   name: string;
@@ -27,7 +29,7 @@ export interface PantryItemSheetValue {
 @Component({
   selector: 'app-pantry-item-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, ToggleSwitchComponent, CalendarPickerComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ToggleSwitchComponent, CalendarPickerComponent, TranslatePipe],
   templateUrl: './pantry-item-sheet.component.html',
   styleUrls: ['./pantry-item-sheet.component.scss'],
 })
@@ -56,18 +58,26 @@ export class PantryItemSheetComponent implements OnChanges {
 
   readonly calendarIcon = CalendarDays;
 
- constructor(private cdr: ChangeDetectorRef, private ngZone : NgZone) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone,
+    private languageStateService: LanguageStateService
+  ) { }
 
   get isDesktop(): boolean {
     return window.innerWidth >= this.DESKTOP_BREAKPOINT;
   }
 
   get title(): string {
-    return this.mode === 'add' ? 'Add pantry item' : 'Edit pantry item';
+    return this.mode === 'add'
+      ? this.languageStateService.t('pantrySheet.addTitle')
+      : this.languageStateService.t('pantrySheet.editTitle');
   }
 
   get submitLabel(): string {
-    return this.mode === 'add' ? 'Add' : 'Save';
+    return this.mode === 'add'
+      ? this.languageStateService.t('common.add')
+      : this.languageStateService.t('mealDialog.save');
   }
 
   get createdAtLabel(): string {
@@ -81,33 +91,35 @@ export class PantryItemSheetComponent implements OnChanges {
 
   get sizePlaceholder(): string {
     if (!this.sizeUnit) {
-      return '—'; // neutral state
+      return '—';
     }
+
+    const examplePrefix = this.languageStateService.t('measurementSheet.examplePrefix');
 
     if (this.sizeUnit === 'g' || this.sizeUnit === 'ml') {
-      return 'e.g. 500';
+      return `${examplePrefix} 500`;
     }
 
-    return 'e.g. 1';
+    return `${examplePrefix} 1`;
   }
 
   onTypeChange(value: string): void {
-  if (value !== 'countable' && value !== 'measured') {
-    return;
+    if (value !== 'countable' && value !== 'measured') {
+      return;
+    }
+
+    const previousType = this.type;
+    this.type = value;
+
+    // When switching from measured -> countable,
+    // clear measured-only values so they don't stay in the form.
+    if (previousType === 'measured' && this.type === 'countable') {
+      this.sizeUnit = '';
+      this.sizeAmount = null;
+    }
+
+    this.updateSizeUnitError();
   }
-
-  const previousType = this.type;
-  this.type = value;
-
-  // When switching from measured -> countable,
-  // clear measured-only values so they don't stay in the form.
-  if (previousType === 'measured' && this.type === 'countable') {
-    this.sizeUnit = '';
-    this.sizeAmount = null;
-  }
-
-  this.updateSizeUnitError();
-}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] || changes['mode'] || changes['item']) {
@@ -140,26 +152,26 @@ export class PantryItemSheetComponent implements OnChanges {
 
     if (this.type === 'measured') {
       if (!hasSize && !hasUnit) {
-        this.errorMessage = 'Please select a unit and enter a size';
+        this.errorMessage = this.languageStateService.t('pantrySheet.selectUnitAndSize');
         return;
       }
       if (!hasUnit) {
-        this.errorMessage = 'Please select a unit';
+        this.errorMessage = this.languageStateService.t('pantrySheet.selectUnitError');
         return;
       }
       if (!hasSize) {
-        this.errorMessage = 'Please enter a size';
+        this.errorMessage = this.languageStateService.t('pantrySheet.enterSizeError');
         return;
       }
       this.errorMessage = '';
       return;
     }
     if (hasSize && !hasUnit) {
-      this.errorMessage = 'Please select a unit';
+      this.errorMessage = this.languageStateService.t('pantrySheet.selectUnitError');
       return;
     }
     if (!hasSize && hasUnit) {
-      this.errorMessage = 'Please enter a size';
+      this.errorMessage = this.languageStateService.t('pantrySheet.enterSizeError');
       return;
     }
     this.errorMessage = '';
@@ -170,7 +182,9 @@ export class PantryItemSheetComponent implements OnChanges {
       this.nameErrorMessage = '';
       return;
     }
-    this.nameErrorMessage = this.name.trim() ? '' : 'Please enter a name';
+    this.nameErrorMessage = this.name.trim()
+      ? ''
+      : this.languageStateService.t('pantrySheet.enterNameError');
   }
 
   save(): void {
@@ -244,78 +258,78 @@ export class PantryItemSheetComponent implements OnChanges {
 
 
   // calendar
-openCalendar(): void {
-  if (this.isCalendarOpen) {
-    return;
+  openCalendar(): void {
+    if (this.isCalendarOpen) {
+      return;
+    }
+
+    this.isCalendarOpen = true;
+    this.selectedCalendarDates = [
+      this.expiryDate || this.formatDateForInput(this.getTodayAtStart())
+    ];
+    document.body.style.overflow = 'hidden';
   }
 
-  this.isCalendarOpen = true;
-  this.selectedCalendarDates = [
-    this.expiryDate || this.formatDateForInput(this.getTodayAtStart())
-  ];
-  document.body.style.overflow = 'hidden';
-}
-
-closeCalendar(): void {
-  this.isClosingCalendar = true;
-  this.isCalendarOpen = false;
-  this.selectedCalendarDates = [];
-  document.body.style.overflow = '';
-
-  setTimeout(() => {
-    this.isClosingCalendar = false;
-  }, 220);
-}
-
-onCalendarDatesChange(dates: string[]): void {
-  this.selectedCalendarDates = dates;
-}
-
-async confirmCalendarDates(dates: string[]): Promise<void> {
-  if (!dates.length) {
-    return;
-  }
-
-  this.expiryDate = dates[0];
-
-  // let the selected state be visible briefly
-  await new Promise((resolve) => setTimeout(resolve, 160));
-
-  this.ngZone.run(() => {
+  closeCalendar(): void {
+    this.isClosingCalendar = true;
     this.isCalendarOpen = false;
     this.selectedCalendarDates = [];
     document.body.style.overflow = '';
-    this.cdr.detectChanges();
-  });
-}
 
-private getTodayAtStart(): Date {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today;
-}
-
-private formatDateForInput(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-formatDateForDisplay(dateStr: string | null): string {
-  if (!dateStr) return '';
-  const [year, month, day] = dateStr.split('-');
-  if (!year || !month || !day) return '';
-  return `${day}-${month}-${year}`;
-}
-
-
-
-onCalendarBackdropClick(event: MouseEvent): void {
-  if (event.target === event.currentTarget) {
-    this.closeCalendar();
+    setTimeout(() => {
+      this.isClosingCalendar = false;
+    }, 220);
   }
-}
+
+  onCalendarDatesChange(dates: string[]): void {
+    this.selectedCalendarDates = dates;
+  }
+
+  async confirmCalendarDates(dates: string[]): Promise<void> {
+    if (!dates.length) {
+      return;
+    }
+
+    this.expiryDate = dates[0];
+
+    // let the selected state be visible briefly
+    await new Promise((resolve) => setTimeout(resolve, 160));
+
+    this.ngZone.run(() => {
+      this.isCalendarOpen = false;
+      this.selectedCalendarDates = [];
+      document.body.style.overflow = '';
+      this.cdr.detectChanges();
+    });
+  }
+
+  private getTodayAtStart(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  }
+
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  formatDateForDisplay(dateStr: string | null): string {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    if (!year || !month || !day) return '';
+    return `${day}-${month}-${year}`;
+  }
+
+
+
+  onCalendarBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) {
+      this.closeCalendar();
+    }
+  }
 
 
 

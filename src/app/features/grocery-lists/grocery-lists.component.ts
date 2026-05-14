@@ -27,6 +27,8 @@ import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.com
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { EditTextDialogComponent } from '../../shared/components/edit-text-dialog/edit-text-dialog.component';
 import { classifyPantryMoveItems } from '../../shared/utils/pantry-review.util';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+import { LanguageStateService } from '../../services/language.state.service';
 
 
 @Component({
@@ -42,6 +44,7 @@ import { classifyPantryMoveItems } from '../../shared/utils/pantry-review.util';
     SnackbarComponent,
     ConfirmationDialogComponent,
     EditTextDialogComponent,
+    TranslatePipe
   ],
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
@@ -93,6 +96,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private pantryService: PantryService,
+    private languageStateService: LanguageStateService,
   ) { }
 
   @HostListener('document:click')
@@ -190,7 +194,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       await this.loadPantryCounts();
     } catch (error) {
       console.error('Error loading grocery lists:', error);
-      this.error = 'Could not load grocery lists.';
+      this.error = this.languageStateService.t('groceryLists.loadError');
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -232,7 +236,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     );
 
     if (!created) {
-      this.error = 'Could not create grocery list.';
+      this.error = this.languageStateService.t('groceryLists.createError');
       this.cdr.detectChanges();
       return;
     }
@@ -275,11 +279,11 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       actions.push(
         {
           id: 'edit',
-          label: 'Edit',
+          label: this.languageStateService.t('groceryLists.edit'),
         },
         {
           id: 'complete',
-          label: 'Complete list',
+          label: this.languageStateService.t('groceryLists.completeList'),
         }
       );
     }
@@ -287,7 +291,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     if (list.status === 'completed') {
       actions.push({
         id: 'reuse',
-        label: 'Reuse list',
+        label: this.languageStateService.t('groceryLists.reuseList'),
       });
 
       const pendingPantryItems = this.getPendingPantryItemsCount(list);
@@ -295,26 +299,30 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       if (pendingPantryItems > 0) {
         actions.push({
           id: 'add-to-pantry',
-          label: `Move ${pendingPantryItems} ${pendingPantryItems === 1 ? 'item' : 'items'} to pantry`,
+          label: pendingPantryItems === 1
+            ? this.languageStateService.t('groceryLists.moveOneItemToPantry')
+            : this.languageStateService
+              .t('groceryLists.moveItemsToPantry')
+              .replace('{{count}}', String(pendingPantryItems)),
         });
       }
 
       actions.push({
         id: 'archive',
-        label: 'Archive',
+        label: this.languageStateService.t('groceryLists.archive'),
       });
     }
 
     if (list.status === 'archived') {
       actions.push({
         id: 'reuse',
-        label: 'Reuse list',
+        label: this.languageStateService.t('groceryLists.reuseList'),
       });
     }
 
     actions.push({
       id: 'delete',
-      label: 'Delete',
+      label: this.languageStateService.t('groceryLists.delete'),
     });
 
     return actions;
@@ -351,7 +359,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     );
 
     if (!success) {
-      this.error = 'Could not update grocery list.';
+      this.error = this.languageStateService.t('groceryLists.updateError');
       this.cdr.detectChanges();
       return;
     }
@@ -392,7 +400,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     const success = await this.groceryService.deleteGroceryList(list.id);
 
     if (!success) {
-      this.error = 'Could not delete grocery list.';
+      this.error = this.languageStateService.t('groceryLists.deleteError');
       this.closeDeleteDialog();
       this.cdr.detectChanges();
       return;
@@ -411,7 +419,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     }
 
     this.closeDeleteDialog();
-    this.showToast('List deleted');
+    this.showToast(this.languageStateService.t('groceryLists.listDeleted'));
     this.cdr.detectChanges();
   }
 
@@ -437,7 +445,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     );
 
     if (!success) {
-      this.error = 'Could not update pinned state.';
+      this.error = this.languageStateService.t('groceryLists.pinError');
       this.cdr.detectChanges();
       return;
     }
@@ -489,7 +497,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         );
 
         if (!newList) {
-          this.error = 'Could not reuse list.';
+          this.error = this.languageStateService.t('groceryLists.reuseError');
           this.cdr.detectChanges();
           return;
         }
@@ -587,8 +595,12 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.pendingPantryAction = 'complete';
     this.pendingPantryList = list;
 
-    this.pantryDialogTitle = 'Move to pantry?';
-    this.pantryDialogMessage = `This list has ${pending} bought ${pending === 1 ? 'item' : 'items'} that can be moved to pantry.`;
+    this.pantryDialogTitle = this.languageStateService.t('groceryLists.moveToPantryTitle');
+    this.pantryDialogMessage = pending === 1
+      ? this.languageStateService.t('groceryLists.completePantryMessageOne')
+      : this.languageStateService
+        .t('groceryLists.completePantryMessageMany')
+        .replace('{{count}}', String(pending));
     this.pantryDialogShowSkip = true;
     this.pantryDialogShowArchive = false;
 
@@ -601,8 +613,12 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.pendingPantryAction = 'archive';
     this.pendingPantryList = list;
 
-    this.pantryDialogTitle = 'Before archiving';
-    this.pantryDialogMessage = `This list still has ${pending} ${pending === 1 ? 'item' : 'items'} that can be moved to pantry.`;
+    this.pantryDialogTitle = this.languageStateService.t('groceryLists.beforeArchivingTitle');
+    this.pantryDialogMessage = pending === 1
+      ? this.languageStateService.t('groceryLists.archivePantryMessageOne')
+      : this.languageStateService
+        .t('groceryLists.archivePantryMessageMany')
+        .replace('{{count}}', String(pending));
     this.pantryDialogShowSkip = false;
     this.pantryDialogShowArchive = true;
 
@@ -627,7 +643,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     const success = await this.groceryService.completeGroceryList(list.id);
 
     if (!success) {
-      this.error = 'Could not complete list.';
+      this.error = this.languageStateService.t('groceryLists.completeError');
       this.cdr.detectChanges();
       return;
     }
@@ -639,7 +655,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       if (allowUndo) {
         this.showCompletedUndoToast(list);
       } else {
-        this.showToast('List marked as completed');
+        this.showToast(this.languageStateService.t('groceryLists.listCompleted'));
       }
     }
 
@@ -657,13 +673,13 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     );
 
     if (!success) {
-      this.error = 'Could not archive list.';
+      this.error = this.languageStateService.t('groceryLists.archiveError');
       this.cdr.detectChanges();
       return;
     }
 
     if (showToast) {
-      this.showToast('List archived');
+      this.showToast(this.languageStateService.t('groceryLists.listArchived'));
     }
 
     this.openMenuListId = null;
@@ -689,7 +705,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       return itemsToMove.length;
     } catch (error) {
       console.error('Move to pantry failed:', error);
-      this.error = 'Could not move items to pantry.';
+      this.error = this.languageStateService.t('groceryLists.moveError');
       this.cdr.detectChanges();
       return 0;
     }
@@ -746,7 +762,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     );
 
     if (!success) {
-      this.error = 'Could not undo completed list.';
+      this.error = this.languageStateService.t('groceryLists.undoError');
       this.clearToastState();
       this.cdr.detectChanges();
       return;
@@ -804,24 +820,30 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   showMovedToPantryToast(count: number): void {
     this.showToast(
       count === 1
-        ? '1 item moved to pantry'
-        : `${count} items moved to pantry`
+        ? this.languageStateService.t('groceryLists.movedOneToPantry')
+        : this.languageStateService
+          .t('groceryLists.movedManyToPantry')
+          .replace('{{count}}', String(count))
     );
   }
 
   showMovedToPantryAndCompletedToast(count: number): void {
     this.showToast(
       count === 1
-        ? '1 item moved to pantry and list completed'
-        : `${count} items moved to pantry and list completed`
+        ? this.languageStateService.t('groceryLists.movedOneCompleted')
+        : this.languageStateService
+          .t('groceryLists.movedManyCompleted')
+          .replace('{{count}}', String(count))
     );
   }
 
   showMovedToPantryAndArchivedToast(count: number): void {
     this.showToast(
       count === 1
-        ? '1 item moved to pantry and list archived'
-        : `${count} items moved to pantry and list archived`
+        ? this.languageStateService.t('groceryLists.movedOneArchived')
+        : this.languageStateService
+          .t('groceryLists.movedManyArchived')
+          .replace('{{count}}', String(count))
     );
   }
 
@@ -840,7 +862,10 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   showCompletedUndoToast(list: GroceryList): void {
     this.undoCompletedList = list;
     this.toastActionType = 'undo-complete';
-    this.showToast('List marked as completed', 'Undo');
+    this.showToast(
+      this.languageStateService.t('groceryLists.listCompleted'),
+      this.languageStateService.t('groceryLists.undo')
+    );
   }
 
   getGeneratedListCoverageSummary(list: GroceryList): string | null {
@@ -860,18 +885,34 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     }
 
     if (uniqueNames.length === 1) {
-      return `Covers: ${uniqueNames[0]}`;
+      return `${this.languageStateService.t('groceryLists.covers')} ${uniqueNames[0]}`;
     }
 
     if (uniqueNames.length === 2) {
-      return `Covers: ${uniqueNames[0]}, ${uniqueNames[1]}`;
+      return `${this.languageStateService.t('groceryLists.covers')} ${uniqueNames[0]}, ${uniqueNames[1]}`;
     }
 
-    return `Covers: ${uniqueNames[0]}, ${uniqueNames[1]} +${uniqueNames.length - 2} more`;
+    return `${this.languageStateService.t('groceryLists.covers')} ${uniqueNames[0]}, ${uniqueNames[1]} +${uniqueNames.length - 2} ${this.languageStateService.t('groceryLists.more')}`;
   }
 
   hasGeneratedListCoverage(list: GroceryList): boolean {
     return !!this.getGeneratedListCoverageSummary(list);
+  }
+
+  getTranslatedStatus(status: string): string {
+    switch (status) {
+      case 'active':
+        return this.languageStateService.t('common.active');
+
+      case 'completed':
+        return this.languageStateService.t('common.completed');
+
+      case 'archived':
+        return this.languageStateService.t('common.archived');
+
+      default:
+        return status;
+    }
   }
 
   ngOnDestroy(): void {

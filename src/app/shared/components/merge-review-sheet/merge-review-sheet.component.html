@@ -6,10 +6,8 @@
 
       <div class="merge-sheet">
         <div class="merge-sheet__header">
-          <h3>Merge similar ingredients?</h3>
-          <p>
-            We found items that look similar. You can merge them or skip and keep everything separate.
-          </p>
+          <h3>{{ 'mergeReview.title' | translate }}</h3>
+          <p>{{ 'mergeReview.description' | translate }}</p>
         </div>
 
         <div class="merge-sheet__list">
@@ -25,7 +23,7 @@
                 </div>
 
                 <div class="merge-item__hint">
-                  Countable entries will be merged as {{c.pluralText}}
+                  {{ ('mergeReview.hint' | translate).replace('{{name}}', c.pluralText) }}
                 </div>
               </div>
             </label>
@@ -35,16 +33,16 @@
         <div class="merge-sheet__footer">
           <label class="merge-sheet__remember">
             <input type="checkbox" [(ngModel)]="remember" class="merge-sheet__checkbox" />
-            <span>Remember for future</span>
+            <span>{{ 'mergeReview.remember' | translate }}</span>
           </label>
 
           <div class="merge-sheet__actions">
             <button class="btn-secondary" (click)="onSkip()">
-              Skip merging
+              {{ 'mergeReview.skip' | translate }}
             </button>
 
             <button class="btn-primary" [disabled]="!hasSelected" (click)="onApply()">
-              Merge selected
+              {{ 'mergeReview.merge' | translate }}
             </button>
           </div>
         </div>

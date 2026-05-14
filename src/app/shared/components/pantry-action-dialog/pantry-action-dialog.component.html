@@ -17,7 +17,7 @@
       class="btn-secondary"
       (click)="onCancel()"
     >
-      Cancel
+      {{ 'common.cancel' | translate }}
     </button>
 
     <!-- Optional Skip -->
@@ -27,7 +27,7 @@
       class="btn-secondary"
       (click)="onSkip()"
     >
-      Skip
+      {{ 'measurementSheet.skip' | translate }}
     </button>
 
     <!-- Optional Archive -->
@@ -37,7 +37,7 @@
       class="btn-secondary"
       (click)="onArchive()"
     >
-      Archive anyway
+      {{ 'pantryAction.archiveAnyway' | translate }}
     </button>
 
     <!-- Primary -->
@@ -46,7 +46,7 @@
       class="btn-primary"
       (click)="onMove()"
     >
-      Move to pantry
+      {{ 'pantryAction.moveToPantry' | translate }}
     </button>
 
   </div>

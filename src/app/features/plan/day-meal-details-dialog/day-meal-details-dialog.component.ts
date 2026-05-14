@@ -5,6 +5,7 @@ import { LucideAngularModule, Clock3, UserRound } from 'lucide-angular';
 import { PlannedMeal } from '../../../models/planned-meal.model';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { LanguageStateService } from '../../../services/language.state.service';
+import { formatLocalizedIngredientDisplay } from '../../../shared/utils/measurement-style.util';
 
 @Component({
   selector: 'app-day-meal-details-dialog',
@@ -70,4 +71,11 @@ export class DayMealDetailsDialogComponent {
         return '';
     }
   }
+
+  getDisplayIngredientName(ingredient: string): string {
+  return formatLocalizedIngredientDisplay(
+    ingredient,
+    this.languageStateService.getLanguage()
+  );
+}
 }

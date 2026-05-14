@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
 export interface MergeCandidate {
   singularItems: string[];
@@ -18,7 +19,7 @@ export interface MergeApplyValue {
 @Component({
   selector: 'app-merge-review-sheet',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipe],
   templateUrl: './merge-review-sheet.component.html',
   styleUrls: ['./merge-review-sheet.component.scss'],
 })
@@ -30,7 +31,7 @@ export class MergeReviewSheetComponent {
   @Output() skipped = new EventEmitter<void>();
 
   selectedMap: Record<number, boolean> = {};
-  remember = true;
+  remember = false;
 
   ngOnInit(): void {
     this.candidates.forEach((_, index) => {

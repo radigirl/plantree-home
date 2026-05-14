@@ -7,6 +7,7 @@ import { convertToBaseUnit, formatAmountForDisplay } from './unit.util';
 import type { MergeCandidate } from '../components/merge-review-sheet/merge-review-sheet.component';
 import { parseMeasurementStyleIngredient } from './measurement-style.util';
 
+
 // -----------------------------
 // Merge candidate detection
 // -----------------------------
@@ -21,6 +22,10 @@ export function detectPossibleMergeCandidatesFromRawIngredients(
     .filter(Boolean);
 
   for (const itemB of normalizedRaw) {
+    if (parseMeasurementStyleIngredient(itemB)) {
+      continue;
+    }
+
     const parsedB = parseLeadingNumberIngredient(itemB);
 
     if (!parsedB || parsedB.amount <= 1 || parsedB.unit) continue;
@@ -28,6 +33,10 @@ export function detectPossibleMergeCandidatesFromRawIngredients(
     const pluralText = parsedB.name.trim().toLowerCase();
     const singularMatches = normalizedRaw.filter((itemA) => {
       if (itemA === itemB) return false;
+
+      if (parseMeasurementStyleIngredient(itemA)) {
+        return false;
+      }
 
       const parsedA = parseLeadingNumberIngredient(itemA);
 
@@ -184,6 +193,11 @@ export function getWordBigrams(word: string): string[] {
 
 export function getMergeableRawIngredientInfo(raw: string) {
   const normalized = normalizeIngredientKey(raw);
+
+  if (parseMeasurementStyleIngredient(normalized)) {
+    return null;
+  }
+
   const parsed = parseLeadingNumberIngredient(normalized);
 
   if (parsed && parsed.unit) return null;
