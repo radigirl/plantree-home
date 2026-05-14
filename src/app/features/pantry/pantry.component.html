@@ -119,7 +119,8 @@
 
           <!-- ALL MODE -->
           <div *ngIf="mode === 'all'" class="pantry-items-table">
-            <div class="pantry-item-row pantry-item-row--all" *ngFor="let item of allItems" [attr.data-pantry-item-id]="item.id">
+            <div class="pantry-item-row pantry-item-row--all" *ngFor="let item of allItems"
+              [attr.data-pantry-item-id]="item.id">
               <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
                 {{ getDisplayName(item) }}
               </button>
@@ -157,7 +158,8 @@
 
           <!-- EXPIRY MODE -->
           <div *ngIf="mode === 'expiry'" class="pantry-items-table">
-            <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of expiryItems" [attr.data-pantry-item-id]="item.id">
+            <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of expiryItems"
+              [attr.data-pantry-item-id]="item.id">
               <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
                 {{ getDisplayName(item) }}
               </button>
@@ -197,7 +199,8 @@
 
           <!-- RECENT MODE -->
           <div *ngIf="mode === 'recent'" class="pantry-items-table">
-            <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of recentItems" [attr.data-pantry-item-id]="item.id">
+            <div class="pantry-item-row pantry-item-row--dated" *ngFor="let item of recentItems"
+              [attr.data-pantry-item-id]="item.id">
               <button type="button" class="pantry-item-name" (click)="onEditItem(item)">
                 {{ getDisplayName(item) }}
               </button>
@@ -250,6 +253,16 @@
 <app-pantry-item-sheet [isOpen]="isPantrySheetOpen" [mode]="pantrySheetMode" [item]="selectedPantryItem"
   (closed)="closePantrySheet()" (saved)="savePantryItem($event)">
 </app-pantry-item-sheet>
+
+<div class="sheet-overlay" *ngIf="isMergeSheetOpen">
+  <div class="sheet-shell">
+    <div class="sheet-handle"></div>
+
+    <app-merge-review-sheet [candidates]="mergeSheetData?.candidates || []" (dismissed)="onMergeCancel()"
+      (skipped)="onMergeSkip()" (mergeApplied)="onMergeApply($event)">
+    </app-merge-review-sheet>
+  </div>
+</div>
 
 <div *ngIf="isDeleteDialogOpen" class="pantry-confirmation-backdrop" (click)="cancelDeleteItem()">
   <div class="pantry-confirmation-dialog-wrap" (click)="$event.stopPropagation()">

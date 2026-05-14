@@ -16,11 +16,22 @@ import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.com
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import { LanguageStateService } from '../../services/language.state.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import {
+  MergeReviewSheetComponent,
+  MergeCandidate,
+  MergeApplyValue,
+} from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
+
+import {
+  detectPossibleMergeCandidatesFromRawIngredients,
+} from '../../shared/utils/ingredient-merge.util';
+
+import { IngredientRulesService } from '../../services/ingredient-rules.service';
 
 @Component({
   selector: 'app-pantry',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent, ConfirmationDialogComponent, SnackbarComponent, TranslatePipe],
+  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent, ConfirmationDialogComponent, SnackbarComponent, TranslatePipe, MergeReviewSheetComponent],
 
   templateUrl: './pantry.component.html',
   styleUrl: './pantry.component.scss',
@@ -39,6 +50,16 @@ export class PantryComponent implements OnInit, OnDestroy {
   pantrySheetMode: 'add' | 'edit' = 'add';
   selectedPantryItem: PantryItem | null = null;
 
+  isMergeSheetOpen = false;
+
+  mergeSheetData: {
+    rawIngredients: string[];
+    newItem: string;
+    candidates: MergeCandidate[];
+  } | null = null;
+
+  private pendingPantryValue: PantryItemSheetValue | null = null;
+  private pendingEditPantryItemId: string | null = null;
 
   toastMessage: string | null = null;
   toastActionLabel: string | null = null;
@@ -51,7 +72,8 @@ export class PantryComponent implements OnInit, OnDestroy {
   itemPendingDelete: PantryItem | null = null;
 
   pantrySearchQuery = '';
-  private suppressNextRealtimeReveal = false;
+
+  private rememberedWordRules: any[] = [];
   private pantryChannel: RealtimeChannel | null = null;
 
   private destroy$ = new Subject<void>();
@@ -61,6 +83,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     private spaceStateService: SpaceStateService,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    private ingredientRulesService: IngredientRulesService,
     private languageStateService: LanguageStateService
   ) { }
 
@@ -88,6 +111,7 @@ export class PantryComponent implements OnInit, OnDestroy {
         try {
           await this.loadPantryItems();
           await this.loadAlwaysPresentItems();
+          await this.loadRememberedWordRules();
           this.subscribeToPantryItems();
         } finally {
           this.isLoading = false;
@@ -179,9 +203,6 @@ export class PantryComponent implements OnInit, OnDestroy {
 
   async incrementItem(item: PantryItem): Promise<void> {
     const nextAmount = item.amount + 1;
-
-    this.suppressNextRealtimeReveal = true;
-
     const success = await this.pantryService.updatePantryItemAmount(
       item.id,
       nextAmount
@@ -200,9 +221,6 @@ export class PantryComponent implements OnInit, OnDestroy {
   async decrementItem(item: PantryItem): Promise<void> {
     if (item.amount <= 1) {
       this.lastRemovedPantryItem = { ...item };
-
-      this.suppressNextRealtimeReveal = true;
-
       const success = await this.pantryService.deletePantryItem(item.id);
 
       if (!success) {
@@ -231,8 +249,6 @@ export class PantryComponent implements OnInit, OnDestroy {
     }
 
     const nextAmount = item.amount - 1;
-
-    this.suppressNextRealtimeReveal = true;
 
     const success = await this.pantryService.updatePantryItemAmount(
       item.id,
@@ -267,8 +283,6 @@ export class PantryComponent implements OnInit, OnDestroy {
     }
 
     const item = this.itemPendingDelete;
-
-    this.suppressNextRealtimeReveal = true;
 
     const success = await this.pantryService.deletePantryItem(item.id);
 
@@ -342,10 +356,241 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  private async applyRememberedPantryMergeIfPossible(
+    value: PantryItemSheetValue,
+    matchingCandidates: MergeCandidate[]
+  ): Promise<boolean> {
+    const rememberedCandidate = matchingCandidates.find((candidate) =>
+      this.isMergeCandidateRemembered(candidate)
+    );
+
+    if (!rememberedCandidate) {
+      return false;
+    }
+
+    const singularName = rememberedCandidate.singularText.trim().toLowerCase();
+    const pluralName = rememberedCandidate.pluralText.trim().toLowerCase();
+
+    const singularItems = this.pantryItems.filter((item) =>
+      item.unit !== 'measured' &&
+      !item.size_amount &&
+      !item.size_unit &&
+      item.name.trim().toLowerCase() === singularName
+    );
+
+    const targetPluralItem = this.pantryItems.find((item) =>
+      item.unit !== 'measured' &&
+      !item.size_amount &&
+      !item.size_unit &&
+      item.name.trim().toLowerCase() === pluralName
+    );
+
+    const incomingAmount = Number(value.amount ?? 1);
+    const singularAmount = singularItems.reduce(
+      (sum, item) => sum + Number(item.amount ?? 1),
+      0
+    );
+
+    const totalAmount =
+      Number(targetPluralItem?.amount ?? 0) + incomingAmount + singularAmount;
+
+    let affectedItem: PantryItem | null = null;
+
+    if (targetPluralItem) {
+      const success = await this.pantryService.updatePantryItemAmount(
+        targetPluralItem.id,
+        totalAmount
+      );
+
+      if (!success) {
+        this.error = this.languageStateService.t('pantry.updateQuantityError');
+        this.cdr.detectChanges();
+        return true;
+      }
+
+      affectedItem = targetPluralItem;
+    } else {
+      affectedItem = await this.pantryService.createPantryItem({
+        name: pluralName,
+        amount: totalAmount,
+        unit: 'item',
+        size_amount: null,
+        size_unit: null,
+        expiry_date: value.expiry_date,
+      });
+
+      if (!affectedItem) {
+        this.error = this.languageStateService.t('pantry.createError');
+        this.cdr.detectChanges();
+        return true;
+      }
+    }
+
+    for (const item of singularItems) {
+      await this.pantryService.deletePantryItem(item.id);
+    }
+
+    await this.loadPantryItems();
+    this.revealPantryItem(affectedItem.id);
+    this.closePantrySheet();
+    this.lastRemovedPantryItem = null;
+
+    this.showToast(
+      this.languageStateService
+        .t('pantry.addedToast')
+        .replace('{{name}}', value.name)
+    );
+
+    return true;
+  }
+
+  private async applyRememberedPantryMergeForEditIfPossible(
+    itemId: string,
+    value: PantryItemSheetValue,
+    matchingCandidates: MergeCandidate[]
+  ): Promise<boolean> {
+    const rememberedCandidate = matchingCandidates.find((candidate) =>
+      this.isMergeCandidateRemembered(candidate)
+    );
+
+    if (!rememberedCandidate) {
+      return false;
+    }
+
+    if (
+      value.unit === 'measured' ||
+      value.size_amount ||
+      value.size_unit
+    ) {
+      return false;
+    }
+
+    const singularName = rememberedCandidate.singularText.trim().toLowerCase();
+    const pluralName = rememberedCandidate.pluralText.trim().toLowerCase();
+
+    const singularItems = this.pantryItems.filter((item) =>
+      item.id !== itemId &&
+      item.unit !== 'measured' &&
+      !item.size_amount &&
+      !item.size_unit &&
+      item.name.trim().toLowerCase() === singularName
+    );
+
+    const targetPluralItem = this.pantryItems.find((item) =>
+      item.id !== itemId &&
+      item.unit !== 'measured' &&
+      !item.size_amount &&
+      !item.size_unit &&
+      item.name.trim().toLowerCase() === pluralName
+    );
+
+    const incomingAmount = Number(value.amount ?? 1);
+    const singularAmount = singularItems.reduce(
+      (sum, item) => sum + Number(item.amount ?? 1),
+      0
+    );
+
+    const totalAmount =
+      Number(targetPluralItem?.amount ?? 0) + incomingAmount + singularAmount;
+
+    let affectedItem: PantryItem | null = null;
+
+    if (targetPluralItem) {
+      const success = await this.pantryService.updatePantryItemAmount(
+        targetPluralItem.id,
+        totalAmount
+      );
+
+      if (!success) {
+        this.error = this.languageStateService.t('pantry.updateQuantityError');
+        this.cdr.detectChanges();
+        return true;
+      }
+
+      await this.pantryService.deletePantryItem(itemId);
+      affectedItem = targetPluralItem;
+    } else {
+      affectedItem = await this.pantryService.updatePantryItem(itemId, {
+        name: pluralName,
+        amount: totalAmount,
+        unit: 'item',
+        size_amount: null,
+        size_unit: null,
+        expiry_date: value.expiry_date,
+      });
+
+      if (!affectedItem) {
+        this.error = this.languageStateService.t('pantry.updateError');
+        this.cdr.detectChanges();
+        return true;
+      }
+    }
+
+    for (const item of singularItems) {
+      await this.pantryService.deletePantryItem(item.id);
+    }
+
+    await this.loadPantryItems();
+    this.revealPantryItem(affectedItem.id);
+    this.closePantrySheet();
+    this.lastRemovedPantryItem = null;
+
+    this.showToast(
+      this.languageStateService
+        .t('pantry.updatedToast')
+        .replace('{{name}}', value.name)
+    );
+
+    return true;
+  }
+
   async savePantryItem(value: PantryItemSheetValue): Promise<void> {
     this.error = '';
 
     if (this.pantrySheetMode === 'add') {
+      const rawIngredients =
+        this.buildPantryMergeRawIngredients(value);
+
+      const candidates =
+        detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+
+      if (candidates.length > 0) {
+        const matchingCandidates = candidates.filter((candidate) => {
+          const lowerName = value.name.trim().toLowerCase();
+
+          return (
+            candidate.pluralText.toLowerCase() === lowerName ||
+            candidate.singularText.toLowerCase() === lowerName
+          );
+        });
+
+        const unrememberedCandidates = matchingCandidates.filter(
+          (candidate) => !this.isMergeCandidateRemembered(candidate)
+        );
+
+        const didApplyRememberedMerge =
+          await this.applyRememberedPantryMergeIfPossible(value, matchingCandidates);
+
+        if (didApplyRememberedMerge) {
+          return;
+        }
+
+        if (unrememberedCandidates.length > 0) {
+          this.pendingPantryValue = value;
+          this.pendingEditPantryItemId = null;
+
+          this.mergeSheetData = {
+            rawIngredients,
+            newItem: value.name,
+            candidates: unrememberedCandidates,
+          };
+
+          this.isMergeSheetOpen = true;
+          this.cdr.detectChanges();
+          return;
+        }
+      }
+
       const created = await this.pantryService.createPantryItem({
         name: value.name,
         amount: value.amount,
@@ -362,6 +607,7 @@ export class PantryComponent implements OnInit, OnDestroy {
       }
 
       await this.loadPantryItems();
+      this.revealPantryItem(created.id);
       this.closePantrySheet();
       this.lastRemovedPantryItem = null;
       this.showToast(
@@ -376,7 +622,53 @@ export class PantryComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const success = await this.pantryService.updatePantryItem(this.selectedPantryItem.id, {
+    const rawIngredients =
+      this.buildPantryMergeRawIngredients(value);
+
+    const candidates =
+      detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+
+    if (candidates.length > 0) {
+      const matchingCandidates = candidates.filter((candidate) => {
+        const lowerName = value.name.trim().toLowerCase();
+
+        return (
+          candidate.pluralText.toLowerCase() === lowerName ||
+          candidate.singularText.toLowerCase() === lowerName
+        );
+      });
+
+      const didApplyRememberedEditMerge =
+        await this.applyRememberedPantryMergeForEditIfPossible(
+          this.selectedPantryItem.id,
+          value,
+          matchingCandidates
+        );
+
+      if (didApplyRememberedEditMerge) {
+        return;
+      }
+      const unrememberedCandidates = matchingCandidates.filter(
+        (candidate) => !this.isMergeCandidateRemembered(candidate)
+      );
+
+      if (unrememberedCandidates.length > 0) {
+        this.pendingPantryValue = value;
+        this.pendingEditPantryItemId = this.selectedPantryItem.id;
+
+        this.mergeSheetData = {
+          rawIngredients,
+          newItem: value.name,
+          candidates: unrememberedCandidates,
+        };
+
+        this.isMergeSheetOpen = true;
+        this.cdr.detectChanges();
+        return;
+      }
+    }
+
+    const updatedItem = await this.pantryService.updatePantryItem(this.selectedPantryItem.id, {
       name: value.name,
       amount: value.amount,
       unit: value.unit,
@@ -385,13 +677,14 @@ export class PantryComponent implements OnInit, OnDestroy {
       expiry_date: value.expiry_date,
     });
 
-    if (!success) {
+    if (!updatedItem) {
       this.error = this.languageStateService.t('pantry.updateError');
       this.cdr.detectChanges();
       return;
     }
 
     await this.loadPantryItems();
+    this.revealPantryItem(updatedItem.id);
     this.closePantrySheet();
     this.lastRemovedPantryItem = null;
     this.showToast(
@@ -511,6 +804,38 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  private buildPantryMergeRawIngredients(
+    incomingValue?: PantryItemSheetValue
+  ): string[] {
+    const raw = this.pantryItems
+      .filter((item) => item.unit !== 'measured')
+      .filter((item) => !item.size_amount && !item.size_unit)
+      .map((item) => {
+        const amount = Number(item.amount ?? 1);
+
+        return amount > 1
+          ? `${amount} ${item.name}`
+          : item.name;
+      });
+
+    if (
+      incomingValue &&
+      incomingValue.unit !== 'measured' &&
+      !incomingValue.size_amount &&
+      !incomingValue.size_unit
+    ) {
+      const amount = Number(incomingValue.amount ?? 1);
+
+      raw.push(
+        amount > 1
+          ? `${amount} ${incomingValue.name}`
+          : incomingValue.name
+      );
+    }
+
+    return raw;
+  }
+
   private filterItems(items: PantryItem[]): PantryItem[] {
     const query = this.pantrySearchQuery.trim().toLowerCase();
 
@@ -520,6 +845,7 @@ export class PantryComponent implements OnInit, OnDestroy {
       this.getDisplayName(item).toLowerCase().includes(query)
     );
   }
+
 
   private subscribeToPantryItems(): void {
     this.pantryChannel?.unsubscribe();
@@ -540,24 +866,10 @@ export class PantryComponent implements OnInit, OnDestroy {
           table: 'pantry_items',
           filter: `space_id=eq.${spaceId}`,
         },
-        async (payload) => {
-          const changedItemId =
-            payload.eventType === 'DELETE'
-              ? null
-              : (payload.new as PantryItem | null)?.id ?? null;
-
+        async () => {
           setTimeout(async () => {
             this.pantryItems = await this.pantryService.getPantryItems();
             this.cdr.detectChanges();
-
-            if (this.suppressNextRealtimeReveal) {
-              this.suppressNextRealtimeReveal = false;
-              return;
-            }
-
-            if (changedItemId) {
-              this.revealPantryItem(changedItemId);
-            }
           }, 120);
         }
       )
@@ -599,6 +911,282 @@ export class PantryComponent implements OnInit, OnDestroy {
 
     setTimeout(tryReveal, 80);
   }
+
+  async onMergeCancel(): Promise<void> {
+    this.isMergeSheetOpen = false;
+    this.mergeSheetData = null;
+    this.pendingPantryValue = null;
+    this.pendingEditPantryItemId = null;
+    this.cdr.detectChanges();
+  }
+
+  async onMergeSkip(): Promise<void> {
+    const value = this.pendingPantryValue;
+    const editItemId = this.pendingEditPantryItemId;
+
+    this.isMergeSheetOpen = false;
+    this.mergeSheetData = null;
+    this.pendingPantryValue = null;
+    this.pendingEditPantryItemId = null;
+
+    if (!value) {
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (editItemId) {
+      const updatedItem = await this.pantryService.updatePantryItem(editItemId, {
+        name: value.name,
+        amount: value.amount,
+        unit: value.unit,
+        size_amount: value.size_amount,
+        size_unit: value.size_unit,
+        expiry_date: value.expiry_date,
+      });
+
+      if (!updatedItem) {
+        this.error = this.languageStateService.t('pantry.updateError');
+        this.cdr.detectChanges();
+        return;
+      }
+
+      await this.loadPantryItems();
+      this.revealPantryItem(updatedItem.id);
+      this.closePantrySheet();
+
+      this.showToast(
+        this.languageStateService
+          .t('pantry.updatedToast')
+          .replace('{{name}}', value.name)
+      );
+
+      return;
+    }
+
+    const created = await this.pantryService.createPantryItem({
+      name: value.name,
+      amount: value.amount,
+      unit: value.unit,
+      size_amount: value.size_amount,
+      size_unit: value.size_unit,
+      expiry_date: value.expiry_date,
+    });
+
+    if (!created) {
+      this.error = this.languageStateService.t('pantry.createError');
+      this.cdr.detectChanges();
+      return;
+    }
+
+    await this.loadPantryItems();
+    this.revealPantryItem(created.id);
+    this.closePantrySheet();
+
+    this.showToast(
+      this.languageStateService
+        .t('pantry.addedToast')
+        .replace('{{name}}', value.name)
+    );
+  }
+
+  async onMergeApply(value: MergeApplyValue): Promise<void> {
+    if (!this.mergeSheetData || !this.pendingPantryValue) {
+      return;
+    }
+
+    const { selectedCandidates, remember } = value;
+
+    if (remember && selectedCandidates.length) {
+      await this.saveRememberedWordRules(selectedCandidates);
+    }
+
+    this.isMergeSheetOpen = false;
+
+    if (!selectedCandidates.length) {
+      await this.onMergeSkip();
+      return;
+    }
+
+    let revealTargetId: string | null = null;
+
+    for (const candidate of selectedCandidates) {
+      const targetId = await this.applySingleMergeCandidateToPantry(
+        candidate,
+        this.pendingPantryValue,
+        this.pendingEditPantryItemId
+      );
+
+      if (!revealTargetId && targetId) {
+        revealTargetId = targetId;
+      }
+    }
+
+    this.showToast(
+      this.languageStateService
+        .t(this.pendingEditPantryItemId ? 'pantry.updatedToast' : 'pantry.addedToast')
+        .replace('{{name}}', this.pendingPantryValue?.name ?? '')
+    );
+
+    this.mergeSheetData = null;
+    this.pendingPantryValue = null;
+    this.pendingEditPantryItemId = null;
+
+    await this.loadPantryItems();
+
+    if (revealTargetId) {
+      this.revealPantryItem(revealTargetId);
+    }
+
+    this.closePantrySheet();
+  }
+
+  private async saveRememberedWordRules(
+    candidates: MergeCandidate[]
+  ): Promise<void> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId || !candidates.length) {
+      return;
+    }
+
+    await this.ingredientRulesService.saveWordRules(
+      candidates.map((candidate) => ({
+        spaceId,
+        singularText: candidate.singularText,
+        pluralText: candidate.pluralText,
+      }))
+    );
+
+    this.rememberedWordRules =
+      await this.ingredientRulesService.getWordRules(spaceId);
+  }
+
+  private async applySingleMergeCandidateToPantry(
+    candidate: MergeCandidate,
+    pendingValue: PantryItemSheetValue,
+    pendingEditItemId: string | null
+  ): Promise<string | null> {
+    const singularName = candidate.singularText.trim().toLowerCase();
+    const pluralName = candidate.pluralText.trim().toLowerCase();
+
+    const matchingItems = this.pantryItems.filter((item) => {
+      if (pendingEditItemId && item.id === pendingEditItemId) {
+        return false;
+      }
+
+      return (
+        item.unit !== 'measured' &&
+        !item.size_amount &&
+        !item.size_unit &&
+        (
+          item.name.trim().toLowerCase() === singularName ||
+          item.name.trim().toLowerCase() === pluralName
+        )
+      );
+    });
+
+    const incomingAmount = Number(pendingValue.amount ?? 1);
+
+    const existingAmount = matchingItems.reduce(
+      (sum, item) => sum + Number(item.amount ?? 1),
+      0
+    );
+
+    const totalAmount = existingAmount + incomingAmount;
+
+    const targetPluralItem =
+      matchingItems.find((item) => item.name.trim().toLowerCase() === pluralName) ??
+      null;
+
+    let affectedItem: PantryItem | null = null;
+
+    if (targetPluralItem) {
+      const success = await this.pantryService.updatePantryItemAmount(
+        targetPluralItem.id,
+        totalAmount
+      );
+
+      if (!success) {
+        this.error = this.languageStateService.t('pantry.updateQuantityError');
+        this.cdr.detectChanges();
+        return null;
+      }
+
+      affectedItem = targetPluralItem;
+    } else if (pendingEditItemId) {
+      affectedItem = await this.pantryService.updatePantryItem(pendingEditItemId, {
+        name: pluralName,
+        amount: totalAmount,
+        unit: 'item',
+        size_amount: null,
+        size_unit: null,
+        expiry_date: pendingValue.expiry_date,
+      });
+
+      if (!affectedItem) {
+        this.error = this.languageStateService.t('pantry.updateError');
+        this.cdr.detectChanges();
+        return null;
+      }
+    } else {
+      affectedItem = await this.pantryService.createPantryItem({
+        name: pluralName,
+        amount: totalAmount,
+        unit: 'item',
+        size_amount: null,
+        size_unit: null,
+        expiry_date: pendingValue.expiry_date,
+      });
+
+      if (!affectedItem) {
+        this.error = this.languageStateService.t('pantry.createError');
+        this.cdr.detectChanges();
+        return null;
+      }
+    }
+
+    for (const item of matchingItems) {
+      if (item.id !== affectedItem.id) {
+        await this.pantryService.deletePantryItem(item.id);
+      }
+    }
+
+    if (pendingEditItemId && pendingEditItemId !== affectedItem.id) {
+      await this.pantryService.deletePantryItem(pendingEditItemId);
+    }
+
+    return affectedItem.id;
+  }
+
+  private async loadRememberedWordRules(): Promise<void> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+    if (!spaceId) {
+      this.rememberedWordRules = [];
+      return;
+    }
+    this.rememberedWordRules =
+      await this.ingredientRulesService.getWordRules(spaceId);
+  }
+
+  private isMergeCandidateRemembered(candidate: MergeCandidate): boolean {
+    const singular = candidate.singularText.trim().toLowerCase();
+    const plural = candidate.pluralText.trim().toLowerCase();
+
+    return this.rememberedWordRules.some((rule: any) => {
+      const ruleSingular =
+        (rule.singular_text ?? rule.singularText ?? rule.singular ?? '')
+          .trim()
+          .toLowerCase();
+
+      const rulePlural =
+        (rule.plural_text ?? rule.pluralText ?? rule.plural ?? rule.canonical_text ?? rule.canonicalText ?? '')
+          .trim()
+          .toLowerCase();
+
+      return ruleSingular === singular && rulePlural === plural;
+    });
+  }
+
 
   ngOnDestroy(): void {
     if (this.toastTimeout) {

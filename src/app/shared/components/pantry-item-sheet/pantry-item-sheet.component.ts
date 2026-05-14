@@ -121,6 +121,16 @@ export class PantryItemSheetComponent implements OnChanges {
     this.updateSizeUnitError();
   }
 
+  onSizeUnitChange(value: string): void {
+    this.sizeUnit = value;
+
+    if (!value) {
+      this.sizeAmount = null;
+    }
+
+    this.updateSizeUnitError();
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] || changes['mode'] || changes['item']) {
       this.patchFormFromInputs();

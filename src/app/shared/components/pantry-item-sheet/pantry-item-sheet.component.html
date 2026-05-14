@@ -45,12 +45,12 @@
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
               <label class="pantry-item-sheet__label">{{ 'pantrySheet.unit' | translate }}</label>
-              <div class="select-wrapper">
-                <select class="input-field" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
-                  <option value="">{{ 'pantrySheet.noUnit' | translate }}</option>
-                  <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
-                </select>
-              </div>
+
+              <select class="input-field" [(ngModel)]="sizeUnit"
+                (ngModelChange)="onSizeUnitChange($event)">
+                <option value="">{{ 'pantrySheet.noUnit' | translate }}</option>
+                <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+              </select>
             </div>
 
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
@@ -66,12 +66,12 @@
           <div class="pantry-item-sheet__row">
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
               <label class="pantry-item-sheet__label">{{ 'pantrySheet.unit' | translate }}</label>
-              <div class="select-wrapper">
-                <select class="input-field" [(ngModel)]="sizeUnit" (ngModelChange)="updateSizeUnitError()">
-                  <option value="">{{ 'pantrySheet.selectUnit' | translate }}</option>
-                  <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
-                </select>
-              </div>
+
+              <select class="input-field" [(ngModel)]="sizeUnit"
+                (ngModelChange)="onSizeUnitChange($event)">
+                <option value="">{{ 'pantrySheet.selectUnit' | translate }}</option>
+                <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
+              </select>
             </div>
           </div>
 

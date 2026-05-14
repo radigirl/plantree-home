@@ -244,12 +244,12 @@ export class PantryService {
       size_unit: string | null;
       expiry_date: string | null;
     }
-  ): Promise<boolean> {
+  ): Promise<PantryItem | null> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = payload.name.trim();
 
     if (!trimmedName || !spaceId) {
-      return false;
+      return null;
     }
 
     const normalizedName = this.normalizeName(trimmedName);
@@ -267,7 +267,7 @@ export class PantryService {
 
     if (fetchError) {
       console.error('Error checking pantry item during update:', fetchError);
-      return false;
+      return null;
     }
 
     if (normalizedUnit === 'measured') {
@@ -278,7 +278,7 @@ export class PantryService {
       );
 
       if (!incomingConverted) {
-        return false;
+        return null;
       }
 
       const measuredMatch = (existingItems ?? []).find((item) => {
@@ -311,7 +311,7 @@ export class PantryService {
         );
 
         if (!existingConverted) {
-          return false;
+          return null;
         }
 
         const totalBaseAmount =
@@ -322,7 +322,7 @@ export class PantryService {
           incomingConverted.unit
         );
 
-        const { error: updateError } = await this.supabase
+        const { data: updatedItem, error: updateError } = await this.supabase
           .from('pantry_items')
           .update({
             size_amount: formatted.amount,
@@ -330,11 +330,13 @@ export class PantryService {
             updated_at: new Date().toISOString(),
           })
           .eq('id', measuredMatch.id)
-          .eq('space_id', spaceId);
+          .eq('space_id', spaceId)
+          .select()
+          .single();
 
         if (updateError) {
           console.error('Error merging measured pantry item during update:', updateError);
-          return false;
+          return null;
         }
 
         const { error: deleteError } = await this.supabase
@@ -345,10 +347,10 @@ export class PantryService {
 
         if (deleteError) {
           console.error('Error deleting merged pantry item during update:', deleteError);
-          return false;
+          return null;
         }
 
-        return true;
+        return updatedItem as PantryItem;
       }
 
       const formatted = formatAmountForDisplay(
@@ -356,7 +358,7 @@ export class PantryService {
         incomingConverted.unit
       );
 
-      const { error } = await this.supabase
+      const { data: updatedItem, error } = await this.supabase
         .from('pantry_items')
         .update({
           name: trimmedName,
@@ -369,14 +371,16 @@ export class PantryService {
           updated_at: new Date().toISOString(),
         })
         .eq('id', itemId)
-        .eq('space_id', spaceId);
+        .eq('space_id', spaceId)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error updating measured pantry item:', error);
-        return false;
+        return null;
       }
 
-      return true;
+      return updatedItem as PantryItem;
     }
 
     const exactMatch = (existingItems ?? []).find((item) => {
@@ -391,18 +395,20 @@ export class PantryService {
     });
 
     if (exactMatch) {
-      const { error: updateError } = await this.supabase
+      const { data: updatedItem, error: updateError } = await this.supabase
         .from('pantry_items')
         .update({
           amount: exactMatch.amount + payload.amount,
           updated_at: new Date().toISOString(),
         })
         .eq('id', exactMatch.id)
-        .eq('space_id', spaceId);
+        .eq('space_id', spaceId)
+        .select()
+        .single();
 
       if (updateError) {
         console.error('Error merging countable pantry item during update:', updateError);
-        return false;
+        return null;
       }
 
       const { error: deleteError } = await this.supabase
@@ -413,13 +419,13 @@ export class PantryService {
 
       if (deleteError) {
         console.error('Error deleting merged countable pantry item during update:', deleteError);
-        return false;
+        return null;
       }
 
-      return true;
+      return updatedItem as PantryItem;
     }
 
-    const { error } = await this.supabase
+    const { data: updatedItem, error } = await this.supabase
       .from('pantry_items')
       .update({
         name: trimmedName,
@@ -432,14 +438,16 @@ export class PantryService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', itemId)
-      .eq('space_id', spaceId);
+      .eq('space_id', spaceId)
+      .select()
+      .single();
 
     if (error) {
       console.error('Error updating pantry item:', error);
-      return false;
+      return null;
     }
 
-    return true;
+    return updatedItem as PantryItem;
   }
 
   async updatePantryItemAmount(

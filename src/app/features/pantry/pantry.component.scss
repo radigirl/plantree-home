@@ -386,6 +386,12 @@
   transform: scale(0.98);
 }
 
+.pantry-amount-pill:focus,
+.pantry-amount-pill:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .pantry-amount-pill__action {
   width: 18px;
   height: 18px;
@@ -432,7 +438,14 @@
 }
 
 .pantry-stepper-button:active {
-  transform: scale(0.94);
+  transform: none;
+}
+
+.pantry-stepper-button:focus,
+.pantry-stepper-button:focus-visible {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
 }
 
 .pantry-item-date {
@@ -481,6 +494,13 @@
 
 .pantry-icon-button:active {
   transform: scale(0.94);
+}
+
+.pantry-icon-button:focus,
+.pantry-icon-button:focus-visible {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
 }
 
 .pantry-item-row--no-expiry {
@@ -561,6 +581,29 @@
   display: block;
   height: 1px;
   background: transparent;
+}
+
+.pantry-amount-pill,
+.pantry-stepper-button,
+.pantry-icon-button {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  box-shadow: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.pantry-amount-pill:focus,
+.pantry-amount-pill:focus-visible,
+.pantry-amount-pill:active,
+.pantry-stepper-button:focus,
+.pantry-stepper-button:focus-visible,
+.pantry-stepper-button:active,
+.pantry-icon-button:focus,
+.pantry-icon-button:focus-visible,
+.pantry-icon-button:active {
+  outline: none;
+  box-shadow: none;
 }
 
 @include mobile {
