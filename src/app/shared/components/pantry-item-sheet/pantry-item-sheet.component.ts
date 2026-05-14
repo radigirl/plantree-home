@@ -268,17 +268,19 @@ export class PantryItemSheetComponent implements OnChanges {
 
 
   // calendar
-  openCalendar(): void {
-    if (this.isCalendarOpen) {
-      return;
-    }
-
-    this.isCalendarOpen = true;
-    this.selectedCalendarDates = [
-      this.expiryDate || this.formatDateForInput(this.getTodayAtStart())
-    ];
-    document.body.style.overflow = 'hidden';
+ openCalendar(): void {
+  if (this.isCalendarOpen) {
+    return;
   }
+
+  this.isCalendarOpen = true;
+
+  this.selectedCalendarDates = this.expiryDate
+    ? [this.expiryDate]
+    : [];
+
+  document.body.style.overflow = 'hidden';
+}
 
   closeCalendar(): void {
     this.isClosingCalendar = true;
@@ -303,7 +305,7 @@ export class PantryItemSheetComponent implements OnChanges {
     this.expiryDate = dates[0];
 
     // let the selected state be visible briefly
-    await new Promise((resolve) => setTimeout(resolve, 160));
+    await new Promise((resolve) => setTimeout(resolve, 260));
 
     this.ngZone.run(() => {
       this.isCalendarOpen = false;

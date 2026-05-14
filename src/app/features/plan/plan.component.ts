@@ -677,7 +677,7 @@ export class PlanComponent implements OnInit, OnDestroy {
 
   openCalendar(): void {
     this.isCalendarOpen = true;
-    this.selectedCalendarDates = [this.formatDateForInput(new Date())];
+    this.selectedCalendarDates = [];
     document.body.style.overflow = 'hidden';
   }
 
@@ -700,7 +700,7 @@ export class PlanComponent implements OnInit, OnDestroy {
     const pickedWeekStart = this.getStartOfWeek(pickedDate);
 
     // let the selected state be visible briefly
-    await new Promise((resolve) => setTimeout(resolve, 160));
+    await new Promise((resolve) => setTimeout(resolve, 260));
 
     this.closeCalendar();
 
