@@ -46,8 +46,7 @@
             <div class="pantry-item-sheet__field pantry-item-sheet__field--left">
               <label class="pantry-item-sheet__label">{{ 'pantrySheet.unit' | translate }}</label>
 
-              <select class="input-field" [(ngModel)]="sizeUnit"
-                (ngModelChange)="onSizeUnitChange($event)">
+              <select class="input-field" [(ngModel)]="sizeUnit" (ngModelChange)="onSizeUnitChange($event)">
                 <option value="">{{ 'pantrySheet.noUnit' | translate }}</option>
                 <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
               </select>
@@ -67,8 +66,7 @@
             <div class="pantry-item-sheet__field pantry-item-sheet__field--right">
               <label class="pantry-item-sheet__label">{{ 'pantrySheet.unit' | translate }}</label>
 
-              <select class="input-field" [(ngModel)]="sizeUnit"
-                (ngModelChange)="onSizeUnitChange($event)">
+              <select class="input-field" [(ngModel)]="sizeUnit" (ngModelChange)="onSizeUnitChange($event)">
                 <option value="">{{ 'pantrySheet.selectUnit' | translate }}</option>
                 <option *ngFor="let u of unitOptions" [value]="u">{{ u }}</option>
               </select>
@@ -91,13 +89,22 @@
 
         <!-- Expiry -->
         <div class="pantry-item-sheet__field">
-          <label class="pantry-item-sheet__label">{{ 'pantrySheet.expiryDate' | translate }}</label>
+          <label class="pantry-item-sheet__label">
+            {{ 'pantrySheet.expiryDate' | translate }}
+          </label>
+
           <div class="pantry-item-sheet__date-input">
             <input type="text" class="input-field input-field--date" [value]="formatDateForDisplay(expiryDate)"
               placeholder="dd-mm-yyyy" readonly (click)="openCalendar()" />
 
+            <button *ngIf="expiryDate" type="button" class="pantry-item-sheet__clear-date-button"
+              (click)="expiryDate = null; $event.stopPropagation()" aria-label="Clear expiry date">
+              ×
+            </button>
+
             <button type="button" class="pantry-item-sheet__date-button" (click)="openCalendar()"
               [attr.aria-label]="'pantrySheet.openCalendar' | translate">
+
               <lucide-icon [img]="calendarIcon"></lucide-icon>
             </button>
           </div>

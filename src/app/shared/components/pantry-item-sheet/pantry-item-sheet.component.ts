@@ -268,19 +268,19 @@ export class PantryItemSheetComponent implements OnChanges {
 
 
   // calendar
- openCalendar(): void {
-  if (this.isCalendarOpen) {
-    return;
+  openCalendar(): void {
+    if (this.isCalendarOpen) {
+      return;
+    }
+
+    this.isCalendarOpen = true;
+
+    this.selectedCalendarDates = this.expiryDate
+      ? [this.expiryDate]
+      : [];
+
+    document.body.style.overflow = 'hidden';
   }
-
-  this.isCalendarOpen = true;
-
-  this.selectedCalendarDates = this.expiryDate
-    ? [this.expiryDate]
-    : [];
-
-  document.body.style.overflow = 'hidden';
-}
 
   closeCalendar(): void {
     this.isClosingCalendar = true;
@@ -295,6 +295,10 @@ export class PantryItemSheetComponent implements OnChanges {
 
   onCalendarDatesChange(dates: string[]): void {
     this.selectedCalendarDates = dates;
+
+    if (dates.length) {
+      void this.confirmCalendarDates(dates);
+    }
   }
 
   async confirmCalendarDates(dates: string[]): Promise<void> {
