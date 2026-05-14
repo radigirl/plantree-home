@@ -308,6 +308,14 @@
   grid-template-columns: minmax(0, 1fr) auto 62px 28px;
 }
 
+.pantry-item-row--reveal {
+  outline: 2px solid rgba(92, 143, 134, 0.8);
+  outline-offset: 2px;
+  background: rgba(92, 143, 134, 0.08);
+  box-shadow: 0 0 0 2px rgba(92, 143, 134, 0.18);
+  transition: all 0.2s ease;
+}
+
 .pantry-item-name {
   min-width: 0;
   padding: 0;

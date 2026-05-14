@@ -51,9 +51,8 @@ export class PantryComponent implements OnInit, OnDestroy {
   itemPendingDelete: PantryItem | null = null;
 
   pantrySearchQuery = '';
-
+  private suppressNextRealtimeReveal = false;
   private pantryChannel: RealtimeChannel | null = null;
-
 
   private destroy$ = new Subject<void>();
 
@@ -181,6 +180,8 @@ export class PantryComponent implements OnInit, OnDestroy {
   async incrementItem(item: PantryItem): Promise<void> {
     const nextAmount = item.amount + 1;
 
+    this.suppressNextRealtimeReveal = true;
+
     const success = await this.pantryService.updatePantryItemAmount(
       item.id,
       nextAmount
@@ -199,6 +200,8 @@ export class PantryComponent implements OnInit, OnDestroy {
   async decrementItem(item: PantryItem): Promise<void> {
     if (item.amount <= 1) {
       this.lastRemovedPantryItem = { ...item };
+
+      this.suppressNextRealtimeReveal = true;
 
       const success = await this.pantryService.deletePantryItem(item.id);
 
@@ -228,6 +231,8 @@ export class PantryComponent implements OnInit, OnDestroy {
     }
 
     const nextAmount = item.amount - 1;
+
+    this.suppressNextRealtimeReveal = true;
 
     const success = await this.pantryService.updatePantryItemAmount(
       item.id,
@@ -262,6 +267,8 @@ export class PantryComponent implements OnInit, OnDestroy {
     }
 
     const item = this.itemPendingDelete;
+
+    this.suppressNextRealtimeReveal = true;
 
     const success = await this.pantryService.deletePantryItem(item.id);
 
@@ -533,12 +540,64 @@ export class PantryComponent implements OnInit, OnDestroy {
           table: 'pantry_items',
           filter: `space_id=eq.${spaceId}`,
         },
-        async () => {
-          this.pantryItems = await this.pantryService.getPantryItems();
-          this.cdr.detectChanges();
+        async (payload) => {
+          const changedItemId =
+            payload.eventType === 'DELETE'
+              ? null
+              : (payload.new as PantryItem | null)?.id ?? null;
+
+          setTimeout(async () => {
+            this.pantryItems = await this.pantryService.getPantryItems();
+            this.cdr.detectChanges();
+
+            if (this.suppressNextRealtimeReveal) {
+              this.suppressNextRealtimeReveal = false;
+              return;
+            }
+
+            if (changedItemId) {
+              this.revealPantryItem(changedItemId);
+            }
+          }, 120);
         }
       )
       .subscribe();
+  }
+
+  private revealPantryItem(itemId: string): void {
+    let attempts = 0;
+    const maxAttempts = 12;
+
+    const tryReveal = () => {
+      const row = document.querySelector(
+        `[data-pantry-item-id="${itemId}"]`
+      ) as HTMLElement | null;
+
+      if (!row) {
+        attempts += 1;
+
+        if (attempts < maxAttempts) {
+          setTimeout(tryReveal, 80);
+        }
+
+        return;
+      }
+
+      row.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+
+      row.classList.remove('pantry-item-row--reveal');
+      void row.offsetWidth;
+      row.classList.add('pantry-item-row--reveal');
+
+      setTimeout(() => {
+        row.classList.remove('pantry-item-row--reveal');
+      }, 1400);
+    };
+
+    setTimeout(tryReveal, 80);
   }
 
   ngOnDestroy(): void {
