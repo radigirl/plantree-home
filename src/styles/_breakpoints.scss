@@ -12,7 +12,7 @@ $bp-mobile: 767px;
 $bp-tablet: 768px;
 
 // Desktop
-$bp-desktop: 1024px;
+$bp-desktop: 1200px;
 $bp-desktop-xl: 1440px;
 
 
@@ -35,14 +35,14 @@ $bp-desktop-xl: 1440px;
   }
 }
 
-// Tablet only: 768 → 1023
+// Tablet only: 768 → 1199
 @mixin tablet {
   @media (min-width: $bp-tablet) and (max-width: $bp-desktop - 1) {
     @content;
   }
 }
 
-// Desktop only: 1024+
+// Desktop only: 1200+
 @mixin desktop {
   @media (min-width: $bp-desktop) {
     @content;
@@ -67,7 +67,7 @@ $bp-desktop-xl: 1440px;
   }
 }
 
-// Desktop and up (>=1024)
+// Desktop and up (>=1200)
 @mixin desktop-up {
   @media (min-width: $bp-desktop) {
     @content;
