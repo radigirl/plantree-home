@@ -68,7 +68,8 @@
                   {{ 'meals.createFromThis' | translate }}
                 </button>
 
-                <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); openAddToPlanFlow(meal)">
+                <button type="button" class="meal-menu-item"
+                  (click)="$event.stopPropagation(); openAddToPlanFlow(meal)">
                   {{ 'meals.addToPlan' | translate }}
                 </button>
 
@@ -158,7 +159,7 @@
   </div>
 </div>
 
-<app-responsive-action-menu *ngIf="isMobileViewport() && selectedMealForActions && mealActionSheetMode !== 'pickDate'"
+<app-responsive-action-menu *ngIf="isMobileViewport() && selectedMealForActions && mealActionSheetMode === 'actions'"
   [isOpen]="!!openMealMenuId"
   [title]="mealActionSheetMode === 'actions' ? selectedMealForActions.name : ('meals.addToPlan' | translate)"
   [subtitle]="mealActionSheetMode === 'actions'
@@ -167,12 +168,8 @@
   [actions]="mealActionSheetMode === 'actions' ? mealActions : addToPlanActions" (closed)="closeMealMenu()"
   (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
 
-<div class="desktop-add-to-plan-overlay"
-  *ngIf="!isMobileViewport() && selectedMealForActions && mealActionSheetMode === 'addToPlan'"
-  (click)="closeMealMenu()">
+<div class="desktop-add-to-plan-overlay" *ngIf="selectedMealForActions && mealActionSheetMode === 'addToPlan'" (click)="closeMealMenu()">
   <div class="desktop-add-to-plan-modal" (click)="$event.stopPropagation()">
-    <div class="desktop-add-to-plan-handle"></div>
-
     <div class="desktop-add-to-plan-header">
       <img [src]="selectedMealForActions.image_url || 'assets/meals/default-meal.png'"
         [alt]="selectedMealForActions.name" />
@@ -207,13 +204,13 @@
     <div class="calendar-picker-sheet__mode-toggle">
       <button type="button" class="calendar-picker-sheet__mode-btn"
         [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'single'"
-        (click)="calendarSelectionMode = 'single'; selectedPlanDates = []">
+        (click)="setCalendarSelectionMode('single')">
         {{ 'meals.singleDay' | translate }}
       </button>
 
       <button type="button" class="calendar-picker-sheet__mode-btn"
         [class.calendar-picker-sheet__mode-btn--active]="calendarSelectionMode === 'multiple'"
-        (click)="calendarSelectionMode = 'multiple'; selectedPlanDates = []">
+        (click)="setCalendarSelectionMode('multiple')">
         {{ 'meals.multipleDays' | translate }}
       </button>
     </div>

@@ -554,41 +554,41 @@
   position: fixed;
   inset: 0;
   z-index: 1300;
-
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-
-  padding: 24px;
+  padding: 0;
   box-sizing: border-box;
-
   background: rgba(0, 0, 0, 0.32);
 }
 
 .desktop-add-to-plan-modal {
-  width: min(420px, 100%);
-  padding: 20px;
-  border-radius: 28px;
+  width: 100%;
+  max-width: 560px;
+  padding: 14px 16px 16px;
+  border-radius: 24px 24px 0 0;
   background: $color-surface-soft;
-  box-shadow: 0 18px 44px rgba(46, 58, 50, 0.18);
+  box-shadow: 0 -8px 24px rgba(46, 58, 50, 0.12);
   box-sizing: border-box;
 }
 
-.desktop-add-to-plan-handle {
+.desktop-add-to-plan-modal::before {
+  content: '';
+  display: block;
   width: 44px;
   height: 5px;
   border-radius: 999px;
-  background: rgba($color-primary, 0.22);
-  margin: 0 auto 16px;
+  background: rgba(112, 133, 127, 0.34);
+  margin: 10px auto 6px;
 }
 
 .desktop-add-to-plan-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding-bottom: 14px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(207, 222, 215, 0.7);
+  padding: 14px 18px 16px;
+  margin: 0 -16px 0;
+  border-bottom: 1px solid rgba(207, 222, 215, 0.6);
 
   img {
     width: 52px;
@@ -614,19 +614,20 @@
 
 .desktop-add-to-plan-item {
   width: 100%;
-  min-height: 48px;
+  min-height: 56px;
   padding: 0 14px;
   border: none;
-  border-radius: 14px;
+  border-radius: 16px;
   background: transparent;
   text-align: left;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
   color: $color-primary-dark;
   cursor: pointer;
+  transition: background-color 0.18s ease;
 
   &:hover {
-    background: rgba($color-primary-light, 0.72);
+    background: rgba(231, 242, 236, 0.72);
   }
 }
 
@@ -771,10 +772,6 @@
     max-height: calc(100dvh - 24px);
     padding-bottom: 16px;
   }
-
-  .calendar-picker-sheet__handle {
-    display: none;
-  }
 }
 
 @include desktop {
@@ -838,7 +835,35 @@
     display: none;
   }
 
+  .calendar-picker-sheet-overlay {
+    align-items: center;
+    padding: 32px;
+    box-sizing: border-box;
+  }
+
+  .calendar-picker-sheet {
+    border-radius: 28px;
+    max-height: calc(100dvh - 64px);
+  }
+
   .calendar-picker-sheet__handle {
     display: none;
   }
+
+  .desktop-add-to-plan-overlay {
+    align-items: center;
+    padding: 32px;
+  }
+
+.desktop-add-to-plan-modal {
+  width: min(420px, 100%);
+  padding: 22px;
+  border-radius: 28px;
+  box-shadow: 0 18px 44px rgba(46, 58, 50, 0.18);
+}
+
+.desktop-add-to-plan-modal::before {
+  display: none;
+}
+
 }

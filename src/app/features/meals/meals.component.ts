@@ -392,23 +392,26 @@ export class MealsComponent implements OnInit, OnDestroy {
   }
 
   onCalendarDatesChange(dates: string[]): void {
-    this.selectedPlanDates = dates;
+    this.selectedPlanDates = [...dates];
+    this.cdr.detectChanges();
   }
 
-  openPickDateMode(): void {
-    this.mealActionSheetMode = 'pickDate';
-    this.resetCalendarSelection();
-  }
+ openPickDateMode(): void {
+  this.mealActionSheetMode = 'pickDate';
+  this.resetCalendarSelection();
+  this.cdr.detectChanges();
+}
 
   async confirmPickedDates(dates: string[]): Promise<void> {
-    const finalDates = dates.length ? dates : this.selectedPlanDates;
-
+    if (this.isAddToPlanLoading) {
+      return;
+    }
+    const finalDates = dates?.length ? [...dates] : [...this.selectedPlanDates];
     if (!this.selectedMealForActions || !finalDates.length) {
       return;
     }
-
     const meal = this.selectedMealForActions;
-
+    this.isAddToPlanLoading = true;
     try {
       for (const date of finalDates) {
         await this.mealPlanService.createPlannedMealFromExistingMeal(
@@ -417,8 +420,6 @@ export class MealsComponent implements OnInit, OnDestroy {
           date
         );
       }
-
-      this.resetCalendarSelection();
       this.closeMealMenu();
       this.showToast(
         finalDates.length === 1
@@ -435,6 +436,9 @@ export class MealsComponent implements OnInit, OnDestroy {
       console.error(error);
       this.closeMealMenu();
       this.showToast(this.languageStateService.t('meals.failedToAdd'));
+    } finally {
+      this.isAddToPlanLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
@@ -523,6 +527,20 @@ export class MealsComponent implements OnInit, OnDestroy {
       console.error('Error saving meal:', error);
     }
   }
+
+  setCalendarSelectionMode(mode: 'single' | 'multiple'): void {
+    this.calendarSelectionMode = mode;
+    this.selectedPlanDates = [];
+    this.cdr.detectChanges();
+  }
+
+  onResponsiveMenuClosed(): void {
+  if (this.mealActionSheetMode !== 'actions') {
+    return;
+  }
+
+  this.closeMealMenu();
+}
 
   closeMealDialog(): void {
     this.isMealDialogOpen = false;
