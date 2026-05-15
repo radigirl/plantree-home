@@ -12,8 +12,8 @@ $bp-mobile: 767px;
 $bp-tablet: 768px;
 
 // Desktop
-$bp-desktop: 1200px;
-$bp-desktop-xl: 1440px;
+$bp-desktop: 1366px;
+$bp-desktop-xl: 1600px;
 
 
 // =====================================
@@ -34,22 +34,22 @@ $bp-desktop-xl: 1440px;
   }
 }
 
-// Tablet only: 768 → 1199
+// Tablet only: 768 → 1365
 @mixin tablet {
   @media (min-width: $bp-tablet) and (max-width: $bp-desktop - 1) {
     @content;
   }
 }
 
-// Desktop only: real desktop/laptop, not touch tablets
+// Desktop only: 1366+
 @mixin desktop {
-  @media (min-width: $bp-desktop) and (hover: hover) and (pointer: fine) {
+  @media (min-width: $bp-desktop) {
     @content;
   }
 }
 
 @mixin desktop-xl {
-  @media (min-width: $bp-desktop-xl) and (hover: hover) and (pointer: fine) {
+  @media (min-width: $bp-desktop-xl) {
     @content;
   }
 }
@@ -66,9 +66,9 @@ $bp-desktop-xl: 1440px;
   }
 }
 
-// Desktop and up (>=1200)
+// Desktop and up (>=1366)
 @mixin desktop-up {
-  @media (min-width: $bp-desktop) and (hover: hover) and (pointer: fine) {
+  @media (min-width: $bp-desktop) {
     @content;
   }
 }
