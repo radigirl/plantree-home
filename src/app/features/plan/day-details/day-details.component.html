@@ -87,7 +87,7 @@
               </p>
 
               <div class="meal-cook-row">
-                <span class="meal-cook-label">{{ 'home.cookLabel' | translate }}</span>
+                <span class="meal-cook-label">{{ 'home.cookLabel' | translate }}:</span>
                 <img *ngIf="meal.cook" [src]="meal.cook.avatar_url || 'assets/avatars/unassigned.png'"
                   class="meal-cook-avatar" [alt]="meal.cook.name || ('home.cookAvatarAlt' | translate)" />
 

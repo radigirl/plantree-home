@@ -5,6 +5,7 @@ import {
   Input,
   Output,
   OnChanges,
+  OnDestroy,
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -48,10 +49,16 @@ export class MealDialogComponent implements OnChanges {
   constructor(private cdr: ChangeDetectorRef) { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen'] && !this.isOpen) {
-      this.isSaving = false;
-      return;
+    if (changes['isOpen']) {
+      if (this.isOpen) {
+        this.lockBodyScroll();
+      } else {
+        this.unlockBodyScroll();
+        this.isSaving = false;
+        return;
+      }
     }
+
     if (!this.isOpen) {
       return;
     }
@@ -138,5 +145,17 @@ export class MealDialogComponent implements OnChanges {
       imageFile: this.selectedImageFile,
       mode: this.mode,
     });
+  }
+
+  private lockBodyScroll(): void {
+    document.body.style.overflow = 'hidden';
+  }
+
+  private unlockBodyScroll(): void {
+    document.body.style.overflow = '';
+  }
+
+  ngOnDestroy(): void {
+    this.unlockBodyScroll();
   }
 }

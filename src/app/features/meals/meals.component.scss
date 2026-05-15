@@ -670,7 +670,7 @@
 @include desktop {
   .meals-page {
     width: min(1100px, calc(100vw - 300px));
-    height: calc(100vh - #{$layout-header-height-desktop} - 70px);
+    height: calc(100vh - #{$layout-header-height-desktop} - 86px);
     margin: 16px auto 0;
     overflow: hidden;
   }
@@ -718,13 +718,6 @@
     overflow-y: auto;
     min-height: 0;
     padding-bottom: 32px;
-  }
-
-  .meals-results-scroll {
-    overflow-y: auto;
-    min-height: 0;
-    padding-bottom: 32px;
-
     scrollbar-width: none;
     -ms-overflow-style: none;
   }

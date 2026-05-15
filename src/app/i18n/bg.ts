@@ -52,7 +52,7 @@ export const bg = {
     findNextMeal: 'Намери следващото си ястие',
     whatsForToday: 'Какво ще готвим днес?',
     noMealPlanned: 'Няма планирани ястия',
-    cookLabel: 'Готвач:',
+    cookLabel: 'Готвач',
     unassigned: 'Не е избран',
     weekPlan: 'Седмичен план',
     plannedOne: 'планирано',

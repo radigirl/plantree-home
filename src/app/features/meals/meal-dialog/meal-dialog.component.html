@@ -1,34 +1,26 @@
 <div class="meal-dialog-overlay" *ngIf="isOpen" (click)="onOverlayClick()">
   <div class="meal-dialog" (click)="$event.stopPropagation()">
 
+    <h3 class="meal-dialog__title">
+      {{ mode === 'edit'
+      ? ('mealDialog.editTitle' | translate)
+      : ('mealDialog.createTitle' | translate) }}
+    </h3>
+
     <div class="meal-dialog__content">
-      <h3 class="meal-dialog__title">
-        {{ mode === 'edit'
-          ? ('mealDialog.editTitle' | translate)
-          : ('mealDialog.createTitle' | translate) }}
-      </h3>
 
       <!-- Meal name -->
       <div class="meal-field">
         <label for="dialogMealName">{{ 'mealDialog.mealName' | translate }}</label>
-        <input
-          id="dialogMealName"
-          type="text"
-          [(ngModel)]="mealName"
-          [placeholder]="'mealDialog.mealNamePlaceholder' | translate"
-        />
+        <input id="dialogMealName" type="text" [(ngModel)]="mealName"
+          [placeholder]="'mealDialog.mealNamePlaceholder' | translate" />
       </div>
 
       <!-- Prep time -->
       <div class="meal-field">
         <label for="prepTime">{{ 'mealDialog.prepTime' | translate }}</label>
-        <input
-          id="prepTime"
-          type="number"
-          min="0"
-          [(ngModel)]="prepTime"
-          [placeholder]="'mealDialog.optional' | translate"
-        />
+        <input id="prepTime" type="number" min="0" [(ngModel)]="prepTime"
+          [placeholder]="'mealDialog.optional' | translate" />
       </div>
 
       <!-- Ingredients -->
@@ -47,22 +39,15 @@
           {{ 'mealDialog.quantityTip' | translate }}
         </div>
 
-        <textarea
-          [(ngModel)]="ingredientsText"
-          [placeholder]="'mealDialog.ingredientsPlaceholder' | translate"
-          rows="4"
-        ></textarea>
+        <textarea [(ngModel)]="ingredientsText" [placeholder]="'mealDialog.ingredientsPlaceholder' | translate"
+          rows="4"></textarea>
       </div>
 
       <!-- Instructions -->
       <div class="meal-field">
         <label for="instructions">{{ 'mealDialog.instructions' | translate }}</label>
-        <textarea
-          id="instructions"
-          [(ngModel)]="instructions"
-          rows="4"
-          [placeholder]="'mealDialog.instructionsPlaceholder' | translate"
-        ></textarea>
+        <textarea id="instructions" [(ngModel)]="instructions" rows="4"
+          [placeholder]="'mealDialog.instructionsPlaceholder' | translate"></textarea>
       </div>
 
       <!-- Image -->
@@ -87,21 +72,13 @@
                 {{ selectedImageFile?.name || imageName || ('mealDialog.noFileChosen' | translate) }}
               </span>
 
-              <input
-                type="file"
-                accept="image/*"
-                class="meal-image-upload__input"
-                (change)="onMealImageSelected($event)"
-              />
+              <input type="file" accept="image/*" class="meal-image-upload__input"
+                (change)="onMealImageSelected($event)" />
             </label>
 
             <!-- Remove -->
-            <button
-              *ngIf="selectedImagePreview"
-              type="button"
-              class="meal-image-remove"
-              (click)="removeSelectedMealImage()"
-            >
+            <button *ngIf="selectedImagePreview" type="button" class="meal-image-remove"
+              (click)="removeSelectedMealImage()">
               ✕ {{ 'common.remove' | translate }}
             </button>
           </div>
@@ -117,10 +94,10 @@
 
       <button type="button" class="btn-primary" [disabled]="isSaving" (click)="onSave()">
         {{ isSaving
-          ? ('mealDialog.saving' | translate)
-          : (mode === 'edit'
-              ? ('mealDialog.update' | translate)
-              : ('mealDialog.save' | translate)) }}
+        ? ('mealDialog.saving' | translate)
+        : (mode === 'edit'
+        ? ('mealDialog.update' | translate)
+        : ('mealDialog.save' | translate)) }}
       </button>
     </div>
 

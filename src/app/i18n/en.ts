@@ -52,7 +52,7 @@ export const en = {
     findNextMeal: 'Find your next meal',
     whatsForToday: 'What’s for today?',
     noMealPlanned: 'No meals planned yet',
-    cookLabel: 'Cook:',
+    cookLabel: 'Cook',
     unassigned: 'Unassigned',
     weekPlan: 'Week Plan',
     plannedOne: 'planned',

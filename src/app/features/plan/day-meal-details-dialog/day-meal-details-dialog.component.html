@@ -17,7 +17,7 @@
         <div class="day-meal-details-dialog-info">
 
           <div class="day-meal-details-dialog-cook-row">
-            <span class="day-meal-details-dialog-cook-label">{{ 'home.cookLabel' | translate }}</span>
+            <span class="day-meal-details-dialog-cook-label">{{ 'home.cookLabel' | translate }}:</span>
 
             <img *ngIf="meal.cook" [src]="meal.cook.avatar_url || 'assets/avatars/unassigned.png'"
               class="day-meal-details-dialog-cook-avatar" [alt]="meal.cook.name || ('home.cookAvatarAlt' | translate)" />
