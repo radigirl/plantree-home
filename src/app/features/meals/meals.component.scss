@@ -452,10 +452,31 @@
 .calendar-picker-sheet {
   width: 100%;
   max-width: 560px;
-  padding: 14px 16px 20px;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 16px;
   border-radius: 24px 24px 0 0;
   background: rgba(255, 252, 247, 0.98);
   box-shadow: 0 -8px 24px rgba(46, 58, 50, 0.12);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba($color-primary, 0.22) transparent;
+  box-sizing: border-box;
+}
+
+.calendar-picker-sheet::-webkit-scrollbar {
+  width: 4px;
+}
+
+.calendar-picker-sheet::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.calendar-picker-sheet::-webkit-scrollbar-thumb {
+  background: rgba($color-primary, 0.22);
+  border-radius: 999px;
 }
 
 .calendar-picker-sheet__handle {
@@ -529,6 +550,86 @@
   box-sizing: border-box;
 }
 
+.desktop-add-to-plan-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  box-sizing: border-box;
+
+  background: rgba(0, 0, 0, 0.32);
+}
+
+.desktop-add-to-plan-modal {
+  width: min(420px, 100%);
+  padding: 20px;
+  border-radius: 28px;
+  background: $color-surface-soft;
+  box-shadow: 0 18px 44px rgba(46, 58, 50, 0.18);
+  box-sizing: border-box;
+}
+
+.desktop-add-to-plan-handle {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba($color-primary, 0.22);
+  margin: 0 auto 16px;
+}
+
+.desktop-add-to-plan-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(207, 222, 215, 0.7);
+
+  img {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $color-primary-dark;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 0.84rem;
+    color: $color-text-muted;
+  }
+}
+
+.desktop-add-to-plan-item {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $color-primary-dark;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($color-primary-light, 0.72);
+  }
+}
+
 @include mobile {
   .meals-page {
     gap: 10px;
@@ -543,7 +644,7 @@
     gap: 8px;
   }
 
-   .page-subtitle {
+  .page-subtitle {
     font-size: 0.9rem;
     line-height: 1.15;
     letter-spacing: -0.02em;
@@ -665,6 +766,15 @@
     margin: 0 -24px -6px;
     padding: 10px 24px 12px;
   }
+
+  .calendar-picker-sheet {
+    max-height: calc(100dvh - 24px);
+    padding-bottom: 16px;
+  }
+
+  .calendar-picker-sheet__handle {
+    display: none;
+  }
 }
 
 @include desktop {
@@ -725,6 +835,10 @@
   .meals-results-scroll::-webkit-scrollbar {
     width: 0;
     height: 0;
+    display: none;
+  }
+
+  .calendar-picker-sheet__handle {
     display: none;
   }
 }

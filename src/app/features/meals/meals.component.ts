@@ -1,7 +1,6 @@
 import {
   ChangeDetectorRef,
   Component,
-  HostListener,
   OnDestroy,
   OnInit,
 } from '@angular/core';
@@ -91,21 +90,6 @@ export class MealsComponent implements OnInit, OnDestroy {
     private mealPlanService: MealPlanService,
     private languageStateService: LanguageStateService
   ) { }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement | null;
-
-    if (!target) {
-      return;
-    }
-
-    const clickedInsideMenu = target.closest('.meal-menu-wrapper');
-
-    if (!clickedInsideMenu && !this.isMobileViewport()) {
-      this.closeMealMenu();
-    }
-  }
 
   async ngOnInit(): Promise<void> {
     this.memberStateService.currentMember$
@@ -222,6 +206,23 @@ export class MealsComponent implements OnInit, OnDestroy {
     this.mealActionSheetMode = 'actions';
   }
 
+  openAddToPlanFlow(meal: Meal): void {
+    this.selectedMealForActions = meal;
+    this.mealActionSheetMode = 'addToPlan';
+
+    if (this.isMobileViewport()) {
+      this.openMealMenuId = meal.id;
+    } else {
+      this.openMealMenuId = null;
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  closeMealDropdownOnly(): void {
+    this.openMealMenuId = null;
+  }
+
   closeMealMenu(): void {
     this.openMealMenuId = null;
     this.selectedMealForActions = null;
@@ -250,7 +251,7 @@ export class MealsComponent implements OnInit, OnDestroy {
         break;
 
       case 'add-to-plan':
-        this.mealActionSheetMode = 'addToPlan';
+        this.openAddToPlanFlow(meal);
         break;
 
       case 'add-today':
@@ -263,6 +264,7 @@ export class MealsComponent implements OnInit, OnDestroy {
 
       case 'pick-date':
         this.openPickDateMode();
+        this.cdr.detectChanges();
         break;
 
       case 'remove':
@@ -317,7 +319,7 @@ export class MealsComponent implements OnInit, OnDestroy {
     ];
   }
 
-  private async handleAddToPlanSelection(
+  async handleAddToPlanSelection(
     action: 'today' | 'tomorrow'
   ): Promise<void> {
     if (!this.selectedMealForActions || this.isAddToPlanLoading) return;
@@ -399,14 +401,16 @@ export class MealsComponent implements OnInit, OnDestroy {
   }
 
   async confirmPickedDates(dates: string[]): Promise<void> {
-    if (!this.selectedMealForActions || !dates.length) {
+    const finalDates = dates.length ? dates : this.selectedPlanDates;
+
+    if (!this.selectedMealForActions || !finalDates.length) {
       return;
     }
 
     const meal = this.selectedMealForActions;
 
     try {
-      for (const date of dates) {
+      for (const date of finalDates) {
         await this.mealPlanService.createPlannedMealFromExistingMeal(
           meal.id,
           null,
@@ -417,15 +421,15 @@ export class MealsComponent implements OnInit, OnDestroy {
       this.resetCalendarSelection();
       this.closeMealMenu();
       this.showToast(
-        dates.length === 1
+        finalDates.length === 1
           ? this.languageStateService
             .t('meals.addedToDayToast')
             .replace('{{name}}', meal.name)
-            .replace('{{day}}', this.formatToastDayLabel(dates[0]))
+            .replace('{{day}}', this.formatToastDayLabel(finalDates[0]))
           : this.languageStateService
             .t('meals.addedToMultipleDaysToast')
             .replace('{{name}}', meal.name)
-            .replace('{{count}}', String(dates.length))
+            .replace('{{count}}', String(finalDates.length))
       );
     } catch (error) {
       console.error(error);

@@ -68,8 +68,7 @@
                   {{ 'meals.createFromThis' | translate }}
                 </button>
 
-                <button type="button" class="meal-menu-item"
-                  (click)="$event.stopPropagation(); selectedMealForActions = meal; mealActionSheetMode = 'addToPlan'; openMealMenuId = meal.id">
+                <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); openAddToPlanFlow(meal)">
                   {{ 'meals.addToPlan' | translate }}
                 </button>
 
@@ -112,8 +111,7 @@
                 {{ 'meals.createFromThis' | translate }}
               </button>
 
-              <button type="button" class="meal-menu-item"
-                (click)="$event.stopPropagation(); closeMealMenu(); selectedMealForActions = meal; mealActionSheetMode = 'addToPlan'; openMealMenuId = meal.id">
+              <button type="button" class="meal-menu-item" (click)="$event.stopPropagation(); openAddToPlanFlow(meal)">
                 {{ 'meals.addToPlan' | translate }}
               </button>
 
@@ -168,6 +166,38 @@
     : selectedMealForActions.name" [image]="selectedMealForActions.image_url || 'assets/meals/default-meal.png'"
   [actions]="mealActionSheetMode === 'actions' ? mealActions : addToPlanActions" (closed)="closeMealMenu()"
   (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
+
+<div class="desktop-add-to-plan-overlay"
+  *ngIf="!isMobileViewport() && selectedMealForActions && mealActionSheetMode === 'addToPlan'"
+  (click)="closeMealMenu()">
+  <div class="desktop-add-to-plan-modal" (click)="$event.stopPropagation()">
+    <div class="desktop-add-to-plan-handle"></div>
+
+    <div class="desktop-add-to-plan-header">
+      <img [src]="selectedMealForActions.image_url || 'assets/meals/default-meal.png'"
+        [alt]="selectedMealForActions.name" />
+
+      <div>
+        <h3>{{ 'meals.addToPlan' | translate }}</h3>
+        <p>{{ selectedMealForActions.name }}</p>
+      </div>
+    </div>
+
+    <button type="button" class="desktop-add-to-plan-item"
+      (click)="$event.stopPropagation(); handleAddToPlanSelection('today')">
+      {{ 'common.today' | translate }}
+    </button>
+
+    <button type="button" class="desktop-add-to-plan-item"
+      (click)="$event.stopPropagation(); handleAddToPlanSelection('tomorrow')">
+      {{ 'common.tomorrow' | translate }}
+    </button>
+
+    <button type="button" class="desktop-add-to-plan-item" (click)="$event.stopPropagation(); openPickDateMode()">
+      {{ 'common.pickDate' | translate }}
+    </button>
+  </div>
+</div>
 
 <div class="calendar-picker-sheet-overlay" *ngIf="selectedMealForActions && mealActionSheetMode === 'pickDate'"
   (click)="closeMealMenu()">
