@@ -99,7 +99,8 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
   snackbarMessage = '';
   snackbarVisible = false;
-  private snackbarTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  private hasFinishedInitialLoad = false;
 
   private destroy$ = new Subject<void>();
 
@@ -133,6 +134,14 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     this.date = this.route.snapshot.paramMap.get('date');
 
+    const initialParams = this.route.snapshot.queryParamMap;
+    const initialSource = initialParams.get('source');
+    const shouldOpenAddFormOnLoad = initialParams.get('add') === 'true';
+
+    if (initialSource === 'home' || initialSource === 'plan') {
+      this.entrySource = initialSource;
+    }
+
     await this.loadMembers();
 
     if (!this.date) {
@@ -154,6 +163,10 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
           return;
         }
 
+        if (!this.hasFinishedInitialLoad) {
+          return;
+        }
+
         this.isFormOpen = false;
         this.openMealMenuId = null;
         this.selectedMealForActions = null;
@@ -161,7 +174,8 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
         await this.loadMealsForDate(this.date);
       });
 
-    await this.loadMealsForDate(this.date);
+    await this.loadMealsForDate(this.date, shouldOpenAddFormOnLoad);
+    this.hasFinishedInitialLoad = true;
 
     this.route.queryParamMap
       .pipe(takeUntil(this.destroy$))
@@ -170,13 +184,6 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
 
         if (source === 'home' || source === 'plan') {
           this.entrySource = source;
-        }
-
-        const shouldOpenAddForm = params.get('add') === 'true';
-
-        if (shouldOpenAddForm && !this.isPastDate() && !this.isFormOpen) {
-          await this.startAddMeal();
-          this.cdr.detectChanges();
         }
       });
   }
@@ -199,13 +206,18 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadMealsForDate(date: string): Promise<void> {
+  async loadMealsForDate(date: string, openAddFormAfterLoad = false): Promise<void> {
     this.isLoading = true;
     this.openMealMenuId = null;
+    this.cdr.detectChanges();
 
     try {
       this.meals = await this.mealPlanService.getMealsForDate(date);
       await this.loadCoverageForMeals();
+
+      if (openAddFormAfterLoad && !this.isPastDate()) {
+        await this.startAddMeal();
+      }
     } catch (error) {
       console.error('Error loading meals for selected day:', error);
       this.meals = [];
@@ -573,16 +585,7 @@ export class DayDetailsComponent implements OnInit, OnDestroy {
     if (!this.date || this.isPastDate()) {
       return;
     }
-
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        add: 'true',
-        source: 'day',
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+    this.startAddMeal();
   }
 
   private getAddSource(): string | null {
