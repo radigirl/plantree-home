@@ -16,7 +16,6 @@ $bp-desktop: 1200px;
 $bp-desktop-xl: 1440px;
 
 
-
 // =====================================
 // Mixins
 // =====================================
@@ -42,15 +41,15 @@ $bp-desktop-xl: 1440px;
   }
 }
 
-// Desktop only: 1200+
+// Desktop only: real desktop/laptop, not touch tablets
 @mixin desktop {
-  @media (min-width: $bp-desktop) {
+  @media (min-width: $bp-desktop) and (hover: hover) and (pointer: fine) {
     @content;
   }
 }
 
 @mixin desktop-xl {
-  @media (min-width: $bp-desktop-xl) {
+  @media (min-width: $bp-desktop-xl) and (hover: hover) and (pointer: fine) {
     @content;
   }
 }
@@ -69,7 +68,7 @@ $bp-desktop-xl: 1440px;
 
 // Desktop and up (>=1200)
 @mixin desktop-up {
-  @media (min-width: $bp-desktop) {
+  @media (min-width: $bp-desktop) and (hover: hover) and (pointer: fine) {
     @content;
   }
 }
