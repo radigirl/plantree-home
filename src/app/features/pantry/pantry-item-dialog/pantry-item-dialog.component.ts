@@ -12,12 +12,12 @@ import {
 import { FormsModule } from '@angular/forms';
 import { PantryItem } from '../../../models/pantry-item.model';
 import { CalendarDays, LucideAngularModule } from 'lucide-angular';
-import { ToggleSwitchComponent } from '../toggle-switch/toggle-switch.component';
-import { CalendarPickerComponent } from '../calendar-picker/calendar-picker.component';
-import { TranslatePipe } from '../../pipes/translate.pipe';
 import { LanguageStateService } from '../../../services/language.state.service';
+import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
+import { CalendarPickerComponent } from '../../../shared/components/calendar-picker/calendar-picker.component';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
-export interface PantryItemSheetValue {
+export interface PantryItemDialogValue {
   name: string;
   amount: number;
   unit: 'item' | 'measured';
@@ -27,13 +27,13 @@ export interface PantryItemSheetValue {
 }
 
 @Component({
-  selector: 'app-pantry-item-sheet',
+  selector: 'app-pantry-item-dialog',
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule, ToggleSwitchComponent, CalendarPickerComponent, TranslatePipe],
-  templateUrl: './pantry-item-sheet.component.html',
-  styleUrls: ['./pantry-item-sheet.component.scss'],
+  templateUrl: './pantry-item-dialog.component.html',
+  styleUrls: ['./pantry-item-dialog.component.scss'],
 })
-export class PantryItemSheetComponent implements OnChanges {
+export class PantryItemDialogComponent implements OnChanges {
   private readonly DESKTOP_BREAKPOINT = 1024;
 
   @Input() isOpen = false;
@@ -41,7 +41,7 @@ export class PantryItemSheetComponent implements OnChanges {
   @Input() item: PantryItem | null = null;
 
   @Output() closed = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<PantryItemSheetValue>();
+  @Output() saved = new EventEmitter<PantryItemDialogValue>();
 
   name = '';
   amount = 1;
@@ -202,6 +202,7 @@ export class PantryItemSheetComponent implements OnChanges {
 
     this.updateNameError();
     this.updateSizeUnitError();
+    this.cdr.detectChanges();
 
     if (this.nameErrorMessage || this.errorMessage) {
       return;

@@ -65,10 +65,10 @@
         </div>
       </div>
 
-      <p *ngIf="archivedCount > 0" class="archived-toggle" (click)="showArchived = !showArchived">
+      <button *ngIf="archivedCount > 0" type="button" class="archived-toggle" (click)="showArchived = !showArchived">
         {{ showArchived ? ('groceryLists.hideArchived' | translate) : (('groceryLists.archivedLists' | translate) + ' ('
         + archivedCount + ')') }}
-      </p>
+      </button>
 
       <div *ngIf="showArchived && archivedCount > 0" class="lists-list archived-lists">
         <div class="list-card" [class.list-card--menu-open]="openMenuListId === list.id"
@@ -84,7 +84,7 @@
               </p>
 
               <div class="list-meta">
-                <span class="meal-info-chip list-status" [ngClass]="'list-status--' + list.status.toLowerCase()">
+                <span class="list-status-chip" [ngClass]="'list-status--' + list.status.toLowerCase()">
                   {{ getTranslatedStatus(list.status) }}
                 </span>
               </div>
@@ -117,7 +117,7 @@
         </div>
       </div>
     </div>
-    
+
     <ng-template #empty>
       <div class="lists-empty-wrap">
         <p class="lists-empty">{{ 'groceryLists.noLists' | translate }}</p>

@@ -476,47 +476,55 @@ export class PantryService {
 
   async deletePantryItem(itemId: string): Promise<boolean> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
-
     if (!spaceId) {
       return false;
     }
-
     const { error } = await this.supabase
       .from('pantry_items')
       .delete()
       .eq('id', itemId)
       .eq('space_id', spaceId);
-
     if (error) {
       console.error('Error deleting pantry item:', error);
       return false;
     }
+    return true;
+  }
 
+  async deletePantryItems(itemIds: string[]): Promise<boolean> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+    if (!spaceId || itemIds.length === 0) {
+      return false;
+    }
+    const { error } = await this.supabase
+      .from('pantry_items')
+      .delete()
+      .eq('space_id', spaceId)
+      .in('id', itemIds);
+    if (error) {
+      console.error('Error deleting pantry items:', error);
+      return false;
+    }
     return true;
   }
 
   async addOrIncrementPantryItem(name: string): Promise<PantryItem | null> {
     const spaceId = this.spaceStateService.getCurrentSpace()?.id;
     const trimmedName = name.trim();
-
     if (!trimmedName || !spaceId) {
       return null;
     }
-
     const normalizedName = this.normalizeName(trimmedName);
-
     const { data: existing, error: fetchError } = await this.supabase
       .from('pantry_items')
       .select('*')
       .eq('normalized_name', normalizedName)
       .eq('space_id', spaceId)
       .maybeSingle();
-
     if (fetchError) {
       console.error('Error checking existing pantry item:', fetchError);
       return null;
     }
-
     if (existing) {
       const { data, error } = await this.supabase
         .from('pantry_items')
@@ -533,10 +541,8 @@ export class PantryService {
         console.error('Error incrementing pantry item:', error);
         return null;
       }
-
       return data as PantryItem;
     }
-
     const { data, error } = await this.supabase
       .from('pantry_items')
       .insert([
@@ -552,12 +558,10 @@ export class PantryService {
       ])
       .select()
       .single();
-
     if (error) {
       console.error('Error creating pantry item:', error);
       return null;
     }
-
     return data as PantryItem;
   }
 

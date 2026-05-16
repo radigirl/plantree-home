@@ -14,7 +14,7 @@ export interface ResponsiveActionMenuItem {
   styleUrls: ['./responsive-action-menu.scss'],
 })
 export class ResponsiveActionMenuComponent {
-  private readonly DESKTOP_BREAKPOINT = 1024;
+  private readonly DESKTOP_BREAKPOINT = 1200;
 
   @Input() isOpen = false;
   @Input() title = '';

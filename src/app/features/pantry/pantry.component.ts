@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeatherModule } from 'angular-feather';
 import { PageLoadingComponent } from '../../shared/components/page-loading/page-loading.component';
@@ -9,7 +9,10 @@ import { Subject } from 'rxjs';
 import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 import { SpaceStateService } from '../../services/space.state.service';
 import { AlwaysPresentPantryItem } from '../../models/always-present-pantry-item.model';
-import { PantryItemSheetComponent, PantryItemSheetValue } from '../../shared/components/pantry-item-sheet/pantry-item-sheet.component';
+import {
+  PantryItemDialogComponent,
+  PantryItemDialogValue,
+} from './pantry-item-dialog/pantry-item-dialog.component';
 import { Router } from '@angular/router';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
@@ -27,11 +30,15 @@ import {
 } from '../../shared/utils/ingredient-merge.util';
 
 import { IngredientRulesService } from '../../services/ingredient-rules.service';
+import {
+  ResponsiveActionMenuComponent,
+  ResponsiveActionMenuItem,
+} from '../../shared/components/responsive-action-menu/responsive-action-menu';
 
 @Component({
   selector: 'app-pantry',
   standalone: true,
-  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemSheetComponent, ConfirmationDialogComponent, SnackbarComponent, TranslatePipe, MergeReviewSheetComponent],
+  imports: [CommonModule, FormsModule, PageLoadingComponent, FeatherModule, PantryItemDialogComponent, ConfirmationDialogComponent, SnackbarComponent, TranslatePipe, MergeReviewSheetComponent, ResponsiveActionMenuComponent],
 
   templateUrl: './pantry.component.html',
   styleUrl: './pantry.component.scss',
@@ -58,7 +65,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     candidates: MergeCandidate[];
   } | null = null;
 
-  private pendingPantryValue: PantryItemSheetValue | null = null;
+  private pendingPantryValue: PantryItemDialogValue | null = null;
   private pendingEditPantryItemId: string | null = null;
 
   toastMessage: string | null = null;
@@ -76,6 +83,12 @@ export class PantryComponent implements OnInit, OnDestroy {
   private rememberedWordRules: any[] = [];
   private pantryChannel: RealtimeChannel | null = null;
 
+  isCleanSheetOpen = false;
+  isCleanConfirmOpen = false;
+  selectedCleanAction: string | null = null;
+  cleanConfirmTitle = '';
+  cleanConfirmMessage = '';
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -87,6 +100,11 @@ export class PantryComponent implements OnInit, OnDestroy {
     private languageStateService: LanguageStateService
   ) { }
 
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.isCleanSheetOpen = false;
+  }
+
   async ngOnInit(): Promise<void> {
     this.spaceStateService.currentSpace$
       .pipe(
@@ -97,7 +115,6 @@ export class PantryComponent implements OnInit, OnDestroy {
         this.resetPantryViewState();
         this.isLoading = true;
         this.error = '';
-
         if (!space) {
           this.pantryItems = [];
           this.alwaysPresentItems = [];
@@ -107,7 +124,6 @@ export class PantryComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
           return;
         }
-
         try {
           await this.loadPantryItems();
           await this.loadAlwaysPresentItems();
@@ -126,10 +142,8 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.isAlwaysPresentExpanded = false;
     this.isAddingAlwaysPresent = false;
     this.newAlwaysPresentName = '';
-
     this.isDeleteDialogOpen = false;
     this.itemPendingDelete = null;
-
     this.isPantrySheetOpen = false;
     this.pantrySheetMode = 'add';
     this.selectedPantryItem = null;
@@ -146,15 +160,12 @@ export class PantryComponent implements OnInit, OnDestroy {
 
   getDisplayName(item: PantryItem): string {
     const name = item.name ?? '';
-
     if (item.unit === 'measured') {
       return name;
     }
-
     if (item.size_amount && item.size_unit) {
       return `${name} ${item.size_amount}${item.size_unit}`;
     }
-
     return name;
   }
 
@@ -187,12 +198,10 @@ export class PantryComponent implements OnInit, OnDestroy {
   async loadAlwaysPresentItems(): Promise<void> {
     try {
       const spaceId = this.spaceStateService.getCurrentSpace()?.id;
-
       if (!spaceId) {
         this.alwaysPresentItems = [];
         return;
       }
-
       this.alwaysPresentItems =
         await this.pantryService.getAlwaysPresentItems(spaceId);
     } catch (error) {
@@ -324,8 +333,123 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  onCleanPantry(): void {
-    console.log('Clean pantry');
+  onCleanPantry(event?: Event): void {
+    event?.stopPropagation();
+    this.isCleanSheetOpen = !this.isCleanSheetOpen;
+    this.cdr.detectChanges();
+  }
+
+  isMobileViewport(): boolean {
+    return window.innerWidth < 1200;
+  }
+
+  closeCleanSheet(): void {
+    this.isCleanSheetOpen = false;
+    this.cdr.detectChanges();
+  }
+
+  onCleanActionSelected(actionId: string): void {
+    this.selectedCleanAction = actionId;
+    this.isCleanSheetOpen = false;
+
+    const count = this.getCleanCandidateCount(actionId);
+
+    if (count === 0) {
+      this.selectedCleanAction = null;
+      this.isCleanConfirmOpen = false;
+      this.showToast(this.languageStateService.t('pantry.cleanNothingToRemove'));
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.cleanConfirmTitle = this.languageStateService.t('pantry.cleanConfirmTitle');
+    this.cleanConfirmMessage =
+      count === 1
+        ? this.languageStateService.t('pantry.cleanConfirmMessageOne')
+        : this.languageStateService
+          .t('pantry.cleanConfirmMessageMany')
+          .replace('{{count}}', String(count));
+    this.isCleanConfirmOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelCleanConfirm(): void {
+    this.isCleanConfirmOpen = false;
+    this.selectedCleanAction = null;
+    this.cleanConfirmTitle = '';
+    this.cleanConfirmMessage = '';
+    this.cdr.detectChanges();
+  }
+
+  async confirmCleanPantry(): Promise<void> {
+    if (!this.selectedCleanAction) {
+      this.cancelCleanConfirm();
+      return;
+    }
+    const items = this.getCleanCandidates(this.selectedCleanAction);
+    const itemIds = items.map((item) => item.id);
+    if (!itemIds.length) {
+      this.cancelCleanConfirm();
+      return;
+    }
+    const success = await this.pantryService.deletePantryItems(itemIds);
+    if (!success) {
+      this.error = this.languageStateService.t('pantry.deleteError');
+      this.cancelCleanConfirm();
+      this.cdr.detectChanges();
+      return;
+    }
+    await this.loadPantryItems();
+    this.showToast(
+      this.languageStateService
+        .t(items.length === 1 ? 'pantry.cleanRemovedOne' : 'pantry.cleanRemovedMany')
+        .replace('{{count}}', String(items.length))
+    );
+    this.cancelCleanConfirm();
+    this.cdr.detectChanges();
+  }
+
+  private getCleanCandidateCount(actionId: string): number {
+    return this.getCleanCandidates(actionId).length;
+  }
+
+  private getCleanCandidates(actionId: string): PantryItem[] {
+    const now = new Date();
+
+    if (actionId === 'expired') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return this.pantryItems.filter((item) => {
+        if (!item.expiry_date) return false;
+
+        const expiry = new Date(item.expiry_date);
+        expiry.setHours(0, 0, 0, 0);
+
+        return expiry < today;
+      });
+    }
+
+    const daysMap: Record<string, number> = {
+      'added-1-day': 1,
+      'added-7-days': 7,
+      'added-30-days': 30,
+    };
+
+    const days = daysMap[actionId];
+
+    if (!days) {
+      return [];
+    }
+
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - days);
+
+    return this.pantryItems.filter((item) => {
+      if (!item.created_at) return false;
+
+      return new Date(item.created_at) >= cutoff;
+    });
   }
 
   setMode(mode: 'all' | 'expiry' | 'recent'): void {
@@ -357,7 +481,7 @@ export class PantryComponent implements OnInit, OnDestroy {
   }
 
   private async applyRememberedPantryMergeIfPossible(
-    value: PantryItemSheetValue,
+    value: PantryItemDialogValue,
     matchingCandidates: MergeCandidate[]
   ): Promise<boolean> {
     const rememberedCandidate = matchingCandidates.find((candidate) =>
@@ -446,7 +570,7 @@ export class PantryComponent implements OnInit, OnDestroy {
 
   private async applyRememberedPantryMergeForEditIfPossible(
     itemId: string,
-    value: PantryItemSheetValue,
+    value: PantryItemDialogValue,
     matchingCandidates: MergeCandidate[]
   ): Promise<boolean> {
     const rememberedCandidate = matchingCandidates.find((candidate) =>
@@ -544,7 +668,7 @@ export class PantryComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  async savePantryItem(value: PantryItemSheetValue): Promise<void> {
+  async savePantryItem(value: PantryItemDialogValue): Promise<void> {
     this.error = '';
 
     if (this.pantrySheetMode === 'add') {
@@ -805,7 +929,7 @@ export class PantryComponent implements OnInit, OnDestroy {
   }
 
   private buildPantryMergeRawIngredients(
-    incomingValue?: PantryItemSheetValue
+    incomingValue?: PantryItemDialogValue
   ): string[] {
     const raw = this.pantryItems
       .filter((item) => item.unit !== 'measured')
@@ -1063,7 +1187,7 @@ export class PantryComponent implements OnInit, OnDestroy {
 
   private async applySingleMergeCandidateToPantry(
     candidate: MergeCandidate,
-    pendingValue: PantryItemSheetValue,
+    pendingValue: PantryItemDialogValue,
     pendingEditItemId: string | null
   ): Promise<string | null> {
     const singularName = candidate.singularText.trim().toLowerCase();
@@ -1187,6 +1311,26 @@ export class PantryComponent implements OnInit, OnDestroy {
     });
   }
 
+  get cleanActions(): ResponsiveActionMenuItem[] {
+    return [
+      {
+        id: 'expired',
+        label: this.languageStateService.t('pantry.cleanExpired'),
+      },
+      {
+        id: 'added-1-day',
+        label: this.languageStateService.t('pantry.cleanAddedLastDay'),
+      },
+      {
+        id: 'added-7-days',
+        label: this.languageStateService.t('pantry.cleanAddedLast7Days'),
+      },
+      {
+        id: 'added-30-days',
+        label: this.languageStateService.t('pantry.cleanAddedLast30Days'),
+      },
+    ];
+  }
 
   ngOnDestroy(): void {
     if (this.toastTimeout) {

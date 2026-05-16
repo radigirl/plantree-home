@@ -1876,13 +1876,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   getTranslatedStatus(status: string): string {
     switch (status.toLowerCase()) {
       case 'active':
-        return this.languageStateService.t('groceryLists.statusActive');
+        return this.languageStateService.t('common.active');
 
       case 'completed':
-        return this.languageStateService.t('groceryLists.statusCompleted');
+        return this.languageStateService.t('common.completed');
 
       case 'archived':
-        return this.languageStateService.t('groceryLists.statusArchived');
+        return this.languageStateService.t('common.archived');
 
       default:
         return status;

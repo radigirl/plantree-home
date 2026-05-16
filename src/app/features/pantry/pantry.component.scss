@@ -606,6 +606,30 @@
   box-shadow: none;
 }
 
+.pantry-clean-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.pantry-clean-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  min-width: 220px;
+  padding: 12px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pantry-clean-dropdown .dropdown-list-item {
+  justify-content: flex-start;
+  text-align: left;
+  white-space: nowrap;
+}
+
 @include mobile {
   .pantry-page {
     gap: 7px;

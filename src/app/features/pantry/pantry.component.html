@@ -52,9 +52,18 @@
             </button>
           </div>
 
-          <button type="button" class="pantry-clean-trigger" (click)="onCleanPantry()">
-            {{ 'pantry.clean' | translate }} ▾
-          </button>
+          <div class="pantry-clean-wrapper" (click)="$event.stopPropagation()">
+            <button type="button" class="pantry-clean-trigger" (click)="onCleanPantry($event)">
+              {{ 'pantry.clean' | translate }} ▾
+            </button>
+
+            <div *ngIf="isCleanSheetOpen && !isMobileViewport()" class="pantry-clean-dropdown dropdown-list-surface">
+              <button *ngFor="let action of cleanActions" type="button" class="dropdown-list-item"
+                (click)="onCleanActionSelected(action.id)">
+                {{ action.label }}
+              </button>
+            </div>
+          </div>
         </div>
 
 
@@ -250,9 +259,23 @@
   </ng-container>
 </section>
 
-<app-pantry-item-sheet [isOpen]="isPantrySheetOpen" [mode]="pantrySheetMode" [item]="selectedPantryItem"
+<app-pantry-item-dialog [isOpen]="isPantrySheetOpen" [mode]="pantrySheetMode" [item]="selectedPantryItem"
   (closed)="closePantrySheet()" (saved)="savePantryItem($event)">
-</app-pantry-item-sheet>
+</app-pantry-item-dialog>
+
+<app-responsive-action-menu [isOpen]="isCleanSheetOpen" [title]="'pantry.cleanTitle' | translate"
+  [subtitle]="'pantry.cleanSubtitle' | translate" [actions]="cleanActions" (closed)="closeCleanSheet()"
+  (actionSelected)="onCleanActionSelected($event)">
+</app-responsive-action-menu>
+
+<div *ngIf="isCleanConfirmOpen" class="pantry-confirmation-backdrop" (click)="cancelCleanConfirm()">
+  <div class="pantry-confirmation-dialog-wrap" (click)="$event.stopPropagation()">
+    <app-confirmation-dialog [title]="cleanConfirmTitle" [message]="cleanConfirmMessage"
+      [confirmLabel]="'pantry.cleanConfirmButton' | translate" [cancelLabel]="'common.cancel' | translate"
+      (cancel)="cancelCleanConfirm()" (confirm)="confirmCleanPantry()">
+    </app-confirmation-dialog>
+  </div>
+</div>
 
 <div class="sheet-overlay" *ngIf="isMergeSheetOpen">
   <div class="sheet-shell">
