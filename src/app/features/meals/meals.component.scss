@@ -776,6 +776,17 @@
     max-height: calc(100dvh - 24px);
     padding-bottom: 16px;
   }
+
+   .desktop-add-to-plan-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .desktop-add-to-plan-modal {
+    width: 100%;
+    max-width: none;
+    border-radius: 28px 28px 0 0;
+  }
 }
 
 @include desktop {
