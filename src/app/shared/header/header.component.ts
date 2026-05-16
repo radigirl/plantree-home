@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Member } from '../../models/member.model';
@@ -45,10 +45,21 @@ export class HeaderComponent implements OnInit {
 
   isManageSpacesDialogOpen = false;
 
+  readonly maxVisibleSpaces = 4;
+
+  get visibleSpaces(): Space[] {
+    return this.spaces.slice(0, this.maxVisibleSpaces);
+  }
+
+  get hasMoreSpaces(): boolean {
+    return this.spaces.length > this.maxVisibleSpaces;
+  }
+
   constructor(
     private supabaseService: SupabaseService,
     private memberStateService: MemberStateService,
-    private spaceStateService: SpaceStateService
+    private spaceStateService: SpaceStateService,
+    private cdr: ChangeDetectorRef
   ) {
     this.currentMember$ = this.memberStateService.currentMember$;
     this.currentSpace$ = this.spaceStateService.currentSpace$;
@@ -56,7 +67,7 @@ export class HeaderComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.members = await this.supabaseService.getMembers();
-    this.spaces = await this.supabaseService.getSpaces();
+    this.spaces = await this.spaceStateService.getSpaces();
 
     const currentMember = this.memberStateService.getCurrentMember();
     if (!currentMember && this.members.length > 0) {
@@ -114,14 +125,28 @@ export class HeaderComponent implements OnInit {
     this.selectedSpaceForEdit = null;
   }
 
-  onSpaceDialogSave(name: string): void {
-    console.log('Space dialog save:', {
-      mode: this.spaceDialogMode,
-      name,
-      space: this.selectedSpaceForEdit,
-    });
-
+  async onSpaceDialogSave(name: string): Promise<void> {
+    const mode = this.spaceDialogMode;
+    const selectedSpace = this.selectedSpaceForEdit;
     this.closeSpaceDialog();
+    if (mode === 'add') {
+      const created = await this.spaceStateService.createSpace(name);
+      if (created) {
+        this.spaces = [...this.spaces, created];
+      }
+      return;
+    }
+    if (mode === 'edit' && selectedSpace) {
+      const updated = await this.spaceStateService.updateSpaceName(
+        selectedSpace.id,
+        name
+      );
+      if (updated) {
+        this.spaces = this.spaces.map((space) =>
+          space.id === updated.id ? updated : space
+        );
+      }
+    }
   }
 
   openManageSpacesDialog(): void {
@@ -139,6 +164,7 @@ export class HeaderComponent implements OnInit {
     this.spaceDialogInitialName = '';
     this.selectedSpaceForEdit = null;
     this.isSpaceDialogOpen = true;
+    this.cdr.detectChanges();
   }
 
   onManageEditSpace(space: Space): void {
@@ -146,6 +172,7 @@ export class HeaderComponent implements OnInit {
     this.spaceDialogInitialName = space.name;
     this.selectedSpaceForEdit = space;
     this.isSpaceDialogOpen = true;
+    this.cdr.detectChanges();
   }
 
   onManageDeleteSpace(space: Space): void {

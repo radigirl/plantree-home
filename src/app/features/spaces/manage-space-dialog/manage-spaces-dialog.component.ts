@@ -16,7 +16,7 @@ export class ManageSpacesDialogComponent {
   @Input() spaces: Space[] = [];
   @Input() currentSpaceId: string | null = null;
   @Input() isSpaceDialogOpen = false;
-  
+
 
   @Output() closed = new EventEmitter<void>();
   @Output() addSpace = new EventEmitter<void>();
@@ -29,5 +29,15 @@ export class ManageSpacesDialogComponent {
 
   close(): void {
     this.closed.emit();
+  }
+
+  onEditSpace(space: Space, event: MouseEvent): void {
+    event.stopPropagation();
+    this.editSpace.emit(space);
+  }
+
+  onDeleteSpace(space: Space, event: MouseEvent): void {
+    event.stopPropagation();
+    this.deleteSpace.emit(space);
   }
 }

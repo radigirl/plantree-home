@@ -460,5 +460,6 @@ export const bg = {
     name: 'Име на място',
     namePlaceholder: 'Въведи име на място',
     current: 'Текущо',
+    viewAllSpaces: 'Виж всички места',
   },
 };

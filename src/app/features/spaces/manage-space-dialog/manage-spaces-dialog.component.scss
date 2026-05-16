@@ -60,7 +60,24 @@
   max-height: 220px;
   border-radius: 18px;
   background: transparent;
-  border: 1px solid rgba($color-primary-dark, 0.0);
+  border: 1px solid rgba($color-primary-dark, 0.06);
+  border-left: none;
+  border-right: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba($color-primary, 0.22) transparent;
+}
+
+.manage-spaces-dialog__list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.manage-spaces-dialog__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.manage-spaces-dialog__list::-webkit-scrollbar-thumb {
+  background: rgba($color-primary, 0.22);
+  border-radius: 999px;
 }
 
 .manage-spaces-dialog__row {
@@ -70,12 +87,9 @@
   justify-content: space-between;
   gap: 8px;
   padding: 0 10px 0 14px;
-  border-radius: 0;
+  border-radius: 14px;
   background: transparent;
-}
-
-.manage-spaces-dialog__row+.manage-spaces-dialog__row {
-  border-top: 1px solid rgba($color-primary-dark, 0.08);
+  border: 1px solid rgba($color-primary-dark, 0.06);
 }
 
 .manage-spaces-dialog__row--active {

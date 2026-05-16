@@ -42,6 +42,37 @@ export class SupabaseService {
     return (data ?? []) as Space[];
   }
 
+  async createSpace(name: string): Promise<Space | null> {
+  const { data, error } = await this.supabase
+    .from('spaces')
+    .insert({ name })
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error creating space:', error);
+    return null;
+  }
+
+  return data as Space;
+}
+
+async updateSpaceName(spaceId: string, name: string): Promise<Space | null> {
+  const { data, error } = await this.supabase
+    .from('spaces')
+    .update({ name })
+    .eq('id', spaceId)
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error updating space:', error);
+    return null;
+  }
+
+  return data as Space;
+}
+
   async uploadMealImage(file: File, fileName: string): Promise<string> {
     const path = `meals/${fileName}`;
 

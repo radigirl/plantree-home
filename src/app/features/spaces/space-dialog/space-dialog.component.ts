@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
@@ -20,6 +20,8 @@ export class SpaceDialogComponent implements OnChanges {
 
   name = '';
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] || changes['initialName'] || changes['mode']) {
       this.name = this.initialName ?? '';
@@ -31,10 +33,14 @@ export class SpaceDialogComponent implements OnChanges {
   }
 
   save(): void {
-    const trimmedName = this.name.trim();
-    if (!trimmedName) {
-      return;
-    }
-    this.saved.emit(trimmedName);
+  const trimmedName = this.name.trim();
+
+  console.log('SPACE DIALOG SAVE CLICKED', trimmedName);
+
+  if (!trimmedName) {
+    return;
   }
+
+  this.saved.emit(trimmedName);
+}
 }

@@ -1,6 +1,7 @@
 <ng-container *ngIf="isOpen">
   <div class="manage-spaces-backdrop" (click)="close()">
-    <div class="manage-spaces-dialog" [class.manage-spaces-dialog--background]="isSpaceDialogOpen" (click)="$event.stopPropagation()">
+    <div class="manage-spaces-dialog" [class.manage-spaces-dialog--background]="isSpaceDialogOpen"
+      (click)="$event.stopPropagation()">
       <div class="manage-spaces-dialog__header">
         <div>
           <h3 class="manage-spaces-dialog__title">
@@ -23,12 +24,12 @@
             </lucide-icon>
           </div>
           <div class="manage-spaces-dialog__actions">
-            <button type="button" class="manage-spaces-dialog__icon-action" (click)="editSpace.emit(space)"
+            <button type="button" class="manage-spaces-dialog__icon-action" (click)="onEditSpace(space, $event)"
               [attr.aria-label]="'common.edit' | translate">
               <lucide-icon [img]="editIcon" [size]="17"></lucide-icon>
             </button>
 
-            <button type="button" class="manage-spaces-dialog__icon-action" (click)="deleteSpace.emit(space)"
+            <button type="button" class="manage-spaces-dialog__icon-action" (click)="onDeleteSpace(space, $event)"
               [attr.aria-label]="'common.delete' | translate">
               <lucide-icon [img]="deleteIcon" [size]="17"></lucide-icon>
             </button>
@@ -38,7 +39,8 @@
       </div>
 
       <div class="manage-spaces-dialog__footer">
-        <button type="button" class="action-pill action-pill--primary manage-spaces-dialog__add" (click)="addSpace.emit()">
+        <button type="button" class="action-pill action-pill--primary manage-spaces-dialog__add"
+          (click)="addSpace.emit()">
           + {{ 'common.add' | translate }}
         </button>
       </div>

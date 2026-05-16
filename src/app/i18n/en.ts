@@ -460,5 +460,6 @@ export const en = {
     name: 'Space name',
     namePlaceholder: 'Enter space name',
     current: 'Current',
+    viewAllSpaces: 'View all spaces',
   },
 };

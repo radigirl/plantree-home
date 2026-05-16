@@ -19,11 +19,13 @@
       </button>
 
       <div class="space-menu" *ngIf="isSpaceMenuOpen">
-        <button type="button" class="space-menu-item" *ngFor="let space of spaces" (click)="selectSpace(space)"
+        <button type="button" class="space-menu-item" *ngFor="let space of visibleSpaces" (click)="selectSpace(space)"
           [class.is-active]="space.id === currentSpace.id">
           <span>{{ space.name }}</span>
-
           <lucide-icon *ngIf="space.id === currentSpace.id" class="space-check" [img]="checkIcon"></lucide-icon>
+        </button>
+        <button *ngIf="hasMoreSpaces" type="button" class="space-menu-item view-all-item" (click)="openManageSpacesDialog()">
+          {{ 'spaces.viewAllSpaces' | translate }}
         </button>
 
         <div class="space-divider"></div>
