@@ -318,9 +318,7 @@ export class PlanComponent implements OnInit, OnDestroy {
 
     const isBg = this.languageStateService.getLanguage() === 'bg';
 
-    const monthNames = isBg
-      ? ['Ян', 'Фев', 'Март', 'Апр', 'Май', 'Юни', 'Юли', 'Авг', 'Сеп', 'Окт', 'Ное', 'Дек']
-      : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = this.languageStateService.t('monthsShort') as unknown as string[];
 
     const startMonth = monthNames[start.getMonth()];
     const endMonth = monthNames[end.getMonth()];

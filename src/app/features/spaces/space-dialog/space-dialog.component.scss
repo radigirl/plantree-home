@@ -1,0 +1,42 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/components/buttons' as *;
+@use '../../../../styles/components/inputs' as *;
+
+.space-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.space-dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 22px;
+  border-radius: 28px;
+  background: $color-surface-soft;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+}
+
+.space-dialog__title {
+  margin: 0 0 18px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.space-dialog__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $color-text-muted;
+}
+
+.space-dialog__actions {
+  margin-top: 20px;
+}

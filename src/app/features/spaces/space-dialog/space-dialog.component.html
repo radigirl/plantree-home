@@ -1,0 +1,30 @@
+<ng-container *ngIf="isOpen">
+  <div class="space-dialog-backdrop" (click)="close()">
+    <div class="space-dialog" (click)="$event.stopPropagation()">
+      <h3 class="space-dialog__title">
+        {{ mode === 'add' ? ('spaces.addTitle' | translate) : ('spaces.editTitle' | translate) }}
+      </h3>
+
+      <label class="space-dialog__label">
+        {{ 'spaces.name' | translate }}
+      </label>
+
+      <input
+        type="text"
+        class="input-field"
+        [(ngModel)]="name"
+        [placeholder]="'spaces.namePlaceholder' | translate"
+      />
+
+      <div class="button-row space-dialog__actions">
+        <button type="button" class="btn-secondary" (click)="close()">
+          {{ 'common.cancel' | translate }}
+        </button>
+
+        <button type="button" class="btn-primary" (click)="save()">
+          {{ 'mealDialog.save' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>

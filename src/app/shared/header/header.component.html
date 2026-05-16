@@ -29,15 +29,26 @@
         <div class="space-divider"></div>
 
         <button class="space-menu-item add-item" (click)="onAddSpace()">
-          + Add space
+          + {{ 'spaces.addSpace' | translate }}
         </button>
       </div>
     </div>
 
     <div class="member-switcher">
       <app-avatar-menu [members]="members" [currentMember]="currentMember$ | async" [closeSignal]="avatarCloseSignal"
-        (menuOpened)="onAvatarMenuOpened()" (memberSelected)="selectMember($event)">
+        (menuOpened)="onAvatarMenuOpened()" (memberSelected)="selectMember($event)"
+        (manageSpacesClicked)="openManageSpacesDialog()">
       </app-avatar-menu>
     </div>
   </div>
 </header>
+
+<app-manage-spaces-dialog [isOpen]="isManageSpacesDialogOpen" [spaces]="spaces"
+  [currentSpaceId]="(currentSpace$ | async)?.id || null" [isSpaceDialogOpen]="isSpaceDialogOpen"
+  (closed)="closeManageSpacesDialog()" (addSpace)="onManageAddSpace()" (editSpace)="onManageEditSpace($event)"
+  (deleteSpace)="onManageDeleteSpace($event)">
+</app-manage-spaces-dialog>
+
+<app-space-dialog [isOpen]="isSpaceDialogOpen" [mode]="spaceDialogMode" [initialName]="spaceDialogInitialName"
+  (closed)="closeSpaceDialog()" (saved)="onSpaceDialogSave($event)">
+</app-space-dialog>

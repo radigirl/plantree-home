@@ -20,6 +20,8 @@ export const bg = {
     active: 'Активен',
     completed: 'Завършен',
     archived: 'Архивиран',
+    edit: 'Редактирай',
+    delete: 'Изтрий',
   },
   menu: {
     member: 'Член',
@@ -104,6 +106,7 @@ export const bg = {
     'Ноември',
     'Декември',
   ],
+  monthsShort: ['Ян', 'Фев', 'Март', 'Апр', 'Май', 'Юни', 'Юли', 'Авг', 'Сеп', 'Окт', 'Ное', 'Дек'],
   meals: {
     title: 'Моите ястия',
     subtitle: 'Създавай, организирай, планирай',
@@ -447,5 +450,15 @@ export const bg = {
     selectUnitError: 'Избери мерна единица',
     enterSizeError: 'Въведи размер',
     enterNameError: 'Въведи име',
-  }
+  },
+  spaces: {
+    addSpace: 'Добави място',
+    addTitle: 'Добави място',
+    editTitle: 'Редактирай място',
+    manageTitle: 'Управление на места',
+    manageSubtitle: 'Създавай, редактирай и премахвай места',
+    name: 'Име на място',
+    namePlaceholder: 'Въведи име на място',
+    current: 'Текущо',
+  },
 };

@@ -452,6 +452,17 @@ export class PantryComponent implements OnInit, OnDestroy {
     });
   }
 
+  formatPantryDate(value?: string | null): string {
+    if (!value) return '';
+    const date =
+      value.length <= 10
+        ? new Date(`${value}T12:00:00`)
+        : new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const monthNames = this.languageStateService.t('monthsShort') as unknown as string[];
+    return `${String(date.getDate()).padStart(2, '0')} ${monthNames[date.getMonth()]}`;
+  }
+
   setMode(mode: 'all' | 'expiry' | 'recent'): void {
     this.mode = mode;
     this.pantrySearchQuery = '';

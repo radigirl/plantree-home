@@ -20,6 +20,8 @@ export const en = {
     active: 'Active',
     completed: 'Completed',
     archived: 'Archived',
+    edit: 'Edit',
+    delete: 'Delete',
   },
   menu: {
     member: 'Member',
@@ -104,6 +106,7 @@ export const en = {
     'November',
     'December',
   ],
+  monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   meals: {
     title: 'My Meals',
     subtitle: 'Create, manage, and add to your plan',
@@ -447,5 +450,15 @@ export const en = {
     selectUnitError: 'Please select a unit',
     enterSizeError: 'Please enter a size',
     enterNameError: 'Please enter a name',
-  }
+  },
+  spaces: {
+    addSpace: 'Add space',
+    addTitle: 'Add space',
+    editTitle: 'Edit space',
+    manageTitle: 'Manage spaces',
+    manageSubtitle: 'Create, edit, and remove spaces',
+    name: 'Space name',
+    namePlaceholder: 'Enter space name',
+    current: 'Current',
+  },
 };

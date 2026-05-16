@@ -196,7 +196,7 @@
                 </ng-template>
               </div>
               <div class="pantry-item-date">
-                {{ item.expiry_date | date:'dd MMM' }}
+                {{ formatPantryDate(item.expiry_date) }}
               </div>
               <div class="pantry-item-actions">
                 <button type="button" class="pantry-icon-button pantry-icon-button--danger" (click)="deleteItem(item)">
@@ -238,7 +238,7 @@
               </div>
 
               <div class="pantry-item-date">
-                {{ item.created_at | date:'dd MMM' }}
+                {{ formatPantryDate(item.created_at) }}
               </div>
 
               <div class="pantry-item-actions">

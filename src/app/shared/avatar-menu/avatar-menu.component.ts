@@ -55,6 +55,8 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   @Output() memberSelected = new EventEmitter<Member>();
   @Output() menuOpened = new EventEmitter<void>();
 
+  @Output() manageSpacesClicked = new EventEmitter<void>();
+
   readonly chefHatIcon = ChefHat;
   readonly myMealsIcon = Utensils;
   readonly statsIcon = Trophy;
@@ -118,16 +120,12 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   toggleSection(section: Exclude<OpenMenuSection, null>): void {
     if (this.openSection === section) {
       this.openSection = null;
-
       if (section === 'settings') {
         this.isAccountSectionOpen = false;
       }
-
       return;
     }
-
     this.openSection = section;
-
     if (section !== 'settings') {
       this.isAccountSectionOpen = false;
     }
@@ -181,8 +179,14 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   onSettingsAction(action: string): void {
-    console.log('Settings action clicked:', action);
+  if (action === 'spaces') {
+    this.manageSpacesClicked.emit();
+    this.closeMenu();
+    return;
   }
+
+  console.log('Settings action clicked:', action);
+}
 
   onAccountAction(action: string): void {
     console.log('Account action:', action);

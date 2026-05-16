@@ -1,0 +1,47 @@
+<ng-container *ngIf="isOpen">
+  <div class="manage-spaces-backdrop" (click)="close()">
+    <div class="manage-spaces-dialog" [class.manage-spaces-dialog--background]="isSpaceDialogOpen" (click)="$event.stopPropagation()">
+      <div class="manage-spaces-dialog__header">
+        <div>
+          <h3 class="manage-spaces-dialog__title">
+            {{ 'spaces.manageTitle' | translate }}
+          </h3>
+
+          <p class="manage-spaces-dialog__subtitle">
+            {{ 'spaces.manageSubtitle' | translate }}
+          </p>
+        </div>
+      </div>
+
+      <div class="manage-spaces-dialog__list">
+        <div class="manage-spaces-dialog__row" [class.manage-spaces-dialog__row--active]="space.id === currentSpaceId"
+          *ngFor="let space of spaces">
+          <div class="manage-spaces-dialog__main">
+            <span class="manage-spaces-dialog__name">{{ space.name }}</span>
+            <lucide-icon *ngIf="space.id === currentSpaceId" class="manage-spaces-dialog__check" [img]="checkIcon"
+              [size]="22">
+            </lucide-icon>
+          </div>
+          <div class="manage-spaces-dialog__actions">
+            <button type="button" class="manage-spaces-dialog__icon-action" (click)="editSpace.emit(space)"
+              [attr.aria-label]="'common.edit' | translate">
+              <lucide-icon [img]="editIcon" [size]="17"></lucide-icon>
+            </button>
+
+            <button type="button" class="manage-spaces-dialog__icon-action" (click)="deleteSpace.emit(space)"
+              [attr.aria-label]="'common.delete' | translate">
+              <lucide-icon [img]="deleteIcon" [size]="17"></lucide-icon>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="manage-spaces-dialog__footer">
+        <button type="button" class="action-pill action-pill--primary manage-spaces-dialog__add" (click)="addSpace.emit()">
+          + {{ 'common.add' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>
