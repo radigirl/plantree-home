@@ -462,4 +462,26 @@ export const en = {
     current: 'Current',
     viewAllSpaces: 'View all spaces',
   },
+  settings: {
+    title: 'Settings',
+    subtitle: 'Manage your preferences and app settings',
+    general: 'General',
+    management: 'Management',
+    account: 'Account',
+    members: 'Members',
+    spaces: 'Spaces',
+    meals: 'Meals',
+    rules: 'Rules',
+    editProfile: 'Edit profile',
+    deleteAccount: 'Delete account',
+    spacesSubtitle: 'Manage your spaces and space data',
+  },
+  about: {
+    title: 'About',
+    subtitle: 'Learn more about Plantree',
+  },
+  notifications: {
+    title: 'Notifications',
+    subtitle: 'View reminders, updates, and app activity',
+  },
 };

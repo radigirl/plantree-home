@@ -462,4 +462,26 @@ export const bg = {
     current: 'Текущо',
     viewAllSpaces: 'Виж всички места',
   },
+  settings: {
+    title: 'Настройки',
+    subtitle: 'Управлявай предпочитанията и настройките на приложението',
+    general: 'Общи',
+    management: 'Управление',
+    account: 'Акаунт',
+    members: 'Членове',
+    spaces: 'Места',
+    meals: 'Ястия',
+    rules: 'Правила',
+    editProfile: 'Редактирай профил',
+    deleteAccount: 'Изтрий акаунт',
+    spacesSubtitle: 'Управлявай местата и данните към тях',
+  },
+  about: {
+    title: 'За приложението',
+    subtitle: 'Научи повече за Plantree',
+  },
+  notifications: {
+    title: 'Известия',
+    subtitle: 'Преглеждай напомняния, актуализации и активност',
+  },
 };

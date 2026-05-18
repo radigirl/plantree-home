@@ -25,8 +25,7 @@ import {
   Check,
   UserRound,
   LucideAngularModule,
-  ChevronDown,
-  UserPlus,
+  ChevronDown
 } from 'lucide-angular';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -55,8 +54,6 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   @Output() memberSelected = new EventEmitter<Member>();
   @Output() menuOpened = new EventEmitter<void>();
 
-  @Output() manageSpacesClicked = new EventEmitter<void>();
-
   readonly chefHatIcon = ChefHat;
   readonly myMealsIcon = Utensils;
   readonly statsIcon = Trophy;
@@ -70,7 +67,6 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   readonly chevronDownIcon = ChevronDown;
   readonly checkIcon = Check;
   readonly userIcon = UserRound;
-  readonly userPlusIcon = UserPlus;
 
   isOpen = false;
   openSection: OpenMenuSection = null;
@@ -81,10 +77,6 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
     { code: 'en', label: 'English' },
     { code: 'bg', label: 'Български' },
   ];
-
-  t = (key: string): string => this.languageStateService.t(key);
-
-  isAccountSectionOpen = false;
 
   private destroy$ = new Subject<void>();
 
@@ -114,50 +106,39 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   closeMenu(): void {
     this.isOpen = false;
     this.openSection = null;
-    this.isAccountSectionOpen = false;
   }
 
   toggleSection(section: Exclude<OpenMenuSection, null>): void {
     if (this.openSection === section) {
       this.openSection = null;
-      if (section === 'settings') {
-        this.isAccountSectionOpen = false;
-      }
       return;
     }
     this.openSection = section;
-    if (section !== 'settings') {
-      this.isAccountSectionOpen = false;
-    }
-  }
-
-  toggleAccountSection(): void {
-    this.isAccountSectionOpen = !this.isAccountSectionOpen;
   }
 
   selectMember(member: Member): void {
-  if (member.id === this.currentMember?.id) {
-    this.closeMenu();
-    return;
-  }
+    if (member.id === this.currentMember?.id) {
+      this.closeMenu();
+      return;
+    }
 
-  this.memberSelected.emit(member);
-  this.closeMenu();
-}
+    this.memberSelected.emit(member);
+    this.closeMenu();
+  }
 
   async selectLanguage(language: AppLanguage): Promise<void> {
-  if (language === this.currentLanguage) {
-    this.closeMenu();
-    return;
-  }
+    if (language === this.currentLanguage) {
+      this.closeMenu();
+      return;
+    }
 
-  try {
-    await this.memberStateService.setCurrentMemberLanguage(language);
-    this.closeMenu();
-  } catch (error) {
-    console.error('Failed to save selected language', error);
+    try {
+      await this.memberStateService.setCurrentMemberLanguage(language);
+      this.closeMenu();
+    } catch (error) {
+      console.error('Failed to save selected language', error);
+    }
   }
-}
 
   navigateTo(path: string): void {
     this.router.navigate([path]);
@@ -178,18 +159,19 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
     console.log('Add member clicked');
   }
 
-  onSettingsAction(action: string): void {
-  if (action === 'spaces') {
-    this.manageSpacesClicked.emit();
+  onCurrentMemberClick(): void {
+    console.log('Current member/profile clicked:', this.currentMember);
     this.closeMenu();
-    return;
   }
 
-  console.log('Settings action clicked:', action);
-}
+  onSettingsAction(action: 'members' | 'spaces' | 'meals' | 'rules'): void {
+    console.log('Settings action clicked:', action);
+    this.closeMenu();
+  }
 
-  onAccountAction(action: string): void {
-    console.log('Account action:', action);
+  onAccountAction(action: 'edit-profile' | 'delete-account'): void {
+    console.log('Account action clicked:', action);
+    this.closeMenu();
   }
 
   ngOnChanges(changes: SimpleChanges): void {

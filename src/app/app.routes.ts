@@ -8,7 +8,6 @@ import { GroceryListDetailsComponent } from './features/grocery-lists/grocery-li
 import { MealsComponent } from './features/meals/meals.component';
 import { CookFromPantryComponent } from './features/cook-from-pantry/cook-from-pantry.component';
 import { WeekStatsComponent } from './features/week-stats/week-stats.component';
-import { SettingsComponent } from './features/settings/settings.component';
 import { AboutComponent } from './features/about/about.component';
 import { NotificationsComponent } from './features/notifications/notifications.component';
 
@@ -24,7 +23,6 @@ export const routes: Routes = [
   { path: 'grocery-lists/:id', component: GroceryListDetailsComponent },
   { path: 'meals', component: MealsComponent },
   { path: 'week-stats', component: WeekStatsComponent },
-  { path: 'settings', component: SettingsComponent },
   { path: 'about', component: AboutComponent },
   { path: 'notifications', component: NotificationsComponent },
 ];

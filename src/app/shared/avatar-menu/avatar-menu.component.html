@@ -12,7 +12,7 @@
   </button>
 
   <div class="avatar-menu" *ngIf="isOpen">
-    <div class="current-member-row">
+    <div class="current-member-row" (click)="onCurrentMemberClick()">
       <div class="current-member-avatar">
         <ng-container *ngIf="currentMember?.avatar_url; else currentMemberFallbackIcon">
           <img [src]="currentMember?.avatar_url" [alt]="currentMember?.name || ('menu.currentMember' | translate)"
@@ -31,6 +31,8 @@
         <div class="current-member-label">{{ 'menu.currentMember' | translate }}</div>
       </div>
     </div>
+
+    <div class="menu-divider"></div>
 
     <button type="button" class="menu-item" (click)="toggleSection('members')">
       <span class="menu-item-left">
@@ -98,8 +100,6 @@
       </span>
     </button>
 
-    <div class="menu-divider"></div>
-
     <button type="button" class="menu-item" (click)="toggleSection('language')">
       <span class="menu-item-left">
         <lucide-icon [img]="globeIcon" [size]="18"></lucide-icon>
@@ -119,46 +119,53 @@
       </button>
     </div>
 
+    <div class="menu-divider"></div>
+
     <button type="button" class="menu-item" (click)="toggleSection('settings')">
       <span class="menu-item-left">
         <lucide-icon [img]="settingsIcon" [size]="18"></lucide-icon>
         <span>{{ 'menu.settings' | translate }}</span>
       </span>
 
-      <lucide-icon class="menu-chevron"
-        [img]="openSection === 'settings' ? chevronDownIcon : chevronRightIcon"></lucide-icon>
+      <lucide-icon class="menu-chevron" [img]="openSection === 'settings' ? chevronDownIcon : chevronRightIcon">
+      </lucide-icon>
     </button>
 
     <div class="collapsible-list" *ngIf="openSection === 'settings'">
       <button type="button" class="select-menu-item nested-menu-item" (click)="onSettingsAction('members')">
-        {{ 'menu.manageMembers' | translate }}
+        {{ 'settings.members' | translate }}
       </button>
 
       <button type="button" class="select-menu-item nested-menu-item" (click)="onSettingsAction('spaces')">
-        {{ 'menu.manageSpaces' | translate }}
+        {{ 'settings.spaces' | translate }}
       </button>
 
       <button type="button" class="select-menu-item nested-menu-item" (click)="onSettingsAction('meals')">
-        {{ 'menu.manageMeals' | translate }}
+        {{ 'settings.meals' | translate }}
       </button>
 
-      <button type="button" class="select-menu-item nested-menu-item account-toggle" (click)="toggleAccountSection()">
-        <span>{{ 'menu.account' | translate }}</span>
-
-        <lucide-icon class="menu-chevron"
-          [img]="isAccountSectionOpen ? chevronDownIcon : chevronRightIcon"></lucide-icon>
+      <button type="button" class="select-menu-item nested-menu-item" (click)="onSettingsAction('rules')">
+        {{ 'settings.rules' | translate }}
       </button>
     </div>
 
-    <div class="collapsible-list account-submenu" *ngIf="isAccountSectionOpen">
-      <button type="button" class="select-menu-item nested-menu-item nested-menu-item--deep"
-        (click)="onAccountAction('edit-profile')">
-        {{ 'menu.editProfile' | translate }}
+    <button type="button" class="menu-item" (click)="toggleSection('account')">
+      <span class="menu-item-left">
+        <lucide-icon [img]="userIcon" [size]="18"></lucide-icon>
+        <span>{{ 'settings.account' | translate }}</span>
+      </span>
+
+      <lucide-icon class="menu-chevron" [img]="openSection === 'account' ? chevronDownIcon : chevronRightIcon">
+      </lucide-icon>
+    </button>
+
+    <div class="collapsible-list" *ngIf="openSection === 'account'">
+      <button type="button" class="select-menu-item nested-menu-item" (click)="onAccountAction('edit-profile')">
+        {{ 'settings.editProfile' | translate }}
       </button>
 
-      <button type="button" class="select-menu-item nested-menu-item nested-menu-item--deep danger-action"
-        (click)="onAccountAction('delete-account')">
-        {{ 'menu.deleteAccount' | translate }}
+      <button type="button" class="select-menu-item nested-menu-item" (click)="onAccountAction('delete-account')">
+        {{ 'settings.deleteAccount' | translate }}
       </button>
     </div>
 
