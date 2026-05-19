@@ -45,15 +45,16 @@ export class HeaderComponent implements OnInit {
 
   isManageSpacesDialogOpen = false;
 
-  readonly maxVisibleSpaces = 4;
-
-  get visibleSpaces(): Space[] {
-    return this.spaces.slice(0, this.maxVisibleSpaces);
+  get orderedSpaces(): Space[] {
+  const currentSpace = this.spaceStateService.getCurrentSpace();
+  if (!currentSpace) {
+    return this.spaces;
   }
-
-  get hasMoreSpaces(): boolean {
-    return this.spaces.length > this.maxVisibleSpaces;
-  }
+  return [
+    currentSpace,
+    ...this.spaces.filter((space) => space.id !== currentSpace.id),
+  ];
+}
 
   constructor(
     private supabaseService: SupabaseService,
