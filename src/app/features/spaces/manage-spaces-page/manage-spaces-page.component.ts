@@ -7,11 +7,18 @@ import { Space } from '../../../models/space.model';
 import { SpaceStateService } from '../../../services/space.state.service';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { SpaceDialogComponent } from '../space-dialog/space-dialog.component';
+import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 
 @Component({
   selector: 'app-manage-spaces-page',
   standalone: true,
-  imports: [CommonModule, TranslatePipe, LucideAngularModule, SpaceDialogComponent],
+  imports: [
+    CommonModule,
+    TranslatePipe,
+    LucideAngularModule,
+    SpaceDialogComponent,
+    ConfirmationDialogComponent,
+  ],
   templateUrl: './manage-spaces-page.component.html',
   styleUrl: './manage-spaces-page.component.scss',
 })
@@ -23,6 +30,7 @@ export class ManageSpacesPageComponent implements OnInit {
   spaceDialogMode: 'add' | 'edit' = 'add';
   spaceDialogInitialName = '';
   selectedSpaceForEdit: Space | null = null;
+  spaceConfirmMode: 'reset' | 'delete' | null = null;
 
   readonly checkIcon = Check;
 
@@ -80,5 +88,31 @@ export class ManageSpacesPageComponent implements OnInit {
         name
       );
     }
+  }
+
+  onResetSpaceFromDialog(): void {
+    this.spaceConfirmMode = 'reset';
+  }
+
+  onDeleteSpaceFromDialog(): void {
+    this.spaceConfirmMode = 'delete';
+  }
+
+  cancelSpaceConfirm(): void {
+    this.spaceConfirmMode = null;
+  }
+
+  confirmResetSpace(): void {
+    console.log('Confirm reset space:', this.selectedSpaceForEdit);
+
+    this.spaceConfirmMode = null;
+    this.closeSpaceDialog();
+  }
+
+  confirmDeleteSpace(): void {
+    console.log('Confirm delete space:', this.selectedSpaceForEdit);
+
+    this.spaceConfirmMode = null;
+    this.closeSpaceDialog();
   }
 }

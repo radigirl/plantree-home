@@ -457,10 +457,12 @@ export const bg = {
     editTitle: 'Редактирай място',
     manageTitle: 'Управление на места',
     manageSubtitle: 'Създавай, редактирай и премахвай места',
-    name: 'Име на място',
+    name: 'Име',
     namePlaceholder: 'Въведи име на място',
     current: 'Текущо',
     viewAllSpaces: 'Виж всички места',
+    resetSpace: 'Изчисти данните',
+    deleteSpace: 'Изтрий мястото',
   },
   settings: {
     title: 'Настройки',

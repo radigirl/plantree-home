@@ -38,5 +38,70 @@
 }
 
 .space-dialog__actions {
-  margin-top: 20px;
+  margin-top: 22px;
+}
+
+.space-dialog__danger-zone {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba($color-primary-dark, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.space-dialog__danger-action {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba($color-primary-dark, 0.1);
+  border-radius: 999px;
+  background: rgba($color-primary, 0.04);
+  color: rgba($color-primary-dark, 0.82);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover {
+    background: rgba($color-primary, 0.07);
+    border-color: rgba($color-primary-dark, 0.16);
+    color: $color-primary-dark;
+  }
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+    background: rgba($color-primary, 0.04);
+  }
+}
+
+.space-dialog__danger-action--delete {
+  background: transparent;
+  border-color: rgba($color-primary-dark, 0.12);
+  color: rgba($color-primary-dark, 0.72);
+
+  &:hover {
+    background: rgba($color-primary-dark, 0.04);
+    color: $color-primary-dark;
+  }
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+  }
 }

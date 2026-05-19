@@ -9,12 +9,19 @@
         {{ 'spaces.name' | translate }}
       </label>
 
-      <input
-        type="text"
-        class="input-field"
-        [(ngModel)]="name"
-        [placeholder]="'spaces.namePlaceholder' | translate"
-      />
+      <input type="text" class="input-field" [(ngModel)]="name" [placeholder]="'spaces.namePlaceholder' | translate" />
+
+
+      <div *ngIf="mode === 'edit'" class="space-dialog__danger-zone">
+        <button type="button" class="space-dialog__danger-action" (click)="onResetSpace()">
+          {{ 'spaces.resetSpace' | translate }}
+        </button>
+
+        <button *ngIf="spacesCount > 1" type="button"
+          class="space-dialog__danger-action space-dialog__danger-action--delete" (click)="onDeleteSpace()">
+          {{ 'spaces.deleteSpace' | translate }}
+        </button>
+      </div>
 
       <div class="button-row space-dialog__actions">
         <button type="button" class="btn-secondary" (click)="close()">
@@ -25,6 +32,7 @@
           {{ 'mealDialog.save' | translate }}
         </button>
       </div>
+
     </div>
   </div>
-</ng-container> 
+</ng-container>

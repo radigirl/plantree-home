@@ -104,6 +104,22 @@
   }
 }
 
+.space-confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.space-confirmation-dialog-wrap {
+  width: 100%;
+  max-width: 420px;
+}
+
 @include mobile {
   .manage-spaces-page {
     gap: 12px;

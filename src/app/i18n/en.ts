@@ -457,10 +457,12 @@ export const en = {
     editTitle: 'Edit space',
     manageTitle: 'Manage spaces',
     manageSubtitle: 'Create, edit, and remove spaces',
-    name: 'Space name',
+    name: 'Name',
     namePlaceholder: 'Enter space name',
     current: 'Current',
     viewAllSpaces: 'View all spaces',
+    resetSpace: 'Reset space',
+    deleteSpace: 'Delete space'
   },
   settings: {
     title: 'Settings',
