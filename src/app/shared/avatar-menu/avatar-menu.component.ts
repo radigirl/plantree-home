@@ -37,7 +37,7 @@ import {
 import { MemberStateService } from '../../services/member.state.service';
 import { TranslatePipe } from '../pipes/translate.pipe';
 
-type OpenMenuSection = 'members' | 'language' | 'settings' | 'account' | null;
+type OpenMenuSection = 'language' | 'settings' | 'account' | null;
 
 @Component({
   selector: 'app-avatar-menu',
