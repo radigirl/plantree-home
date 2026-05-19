@@ -1,0 +1,39 @@
+<section class="manage-spaces-page">
+  <div class="page-header-row">
+    <div class="page-header">
+      <h1 class="page-title">
+        {{ 'settings.spaces' | translate }}
+      </h1>
+
+      <p class="page-subtitle">
+        {{ 'settings.spacesSubtitle' | translate }}
+      </p>
+    </div>
+
+    <button type="button" class="action-pill action-pill--primary" (click)="onAddSpace()">
+      + {{ 'common.add' | translate }}
+    </button>
+  </div>
+
+  <div class="manage-spaces-content" *ngIf="currentSpace$ | async as currentSpace">
+    <div class="manage-spaces-row" *ngFor="let space of spaces"
+      [class.manage-spaces-row--active]="space.id === currentSpace.id" (click)="onEditSpace(space)">
+      <div class="manage-spaces-row__main">
+        <span class="manage-spaces-row__name">{{ space.name }}</span>
+
+        <lucide-icon *ngIf="space.id === currentSpace.id" class="manage-spaces-row__check" [img]="checkIcon"
+          [size]="20">
+        </lucide-icon>
+      </div>
+
+      <button type="button" class="manage-spaces-row__remove" (click)="onDeleteSpace(space); $event.stopPropagation()"
+        [attr.aria-label]="'common.delete' | translate">
+        ×
+      </button>
+    </div>
+  </div>
+</section>
+
+<app-space-dialog [isOpen]="isSpaceDialogOpen" [mode]="spaceDialogMode" [initialName]="spaceDialogInitialName"
+  (closed)="closeSpaceDialog()" (saved)="onSpaceDialogSave($event)">
+</app-space-dialog>

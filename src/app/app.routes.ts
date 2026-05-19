@@ -10,6 +10,7 @@ import { CookFromPantryComponent } from './features/cook-from-pantry/cook-from-p
 import { WeekStatsComponent } from './features/week-stats/week-stats.component';
 import { AboutComponent } from './features/about/about.component';
 import { NotificationsComponent } from './features/notifications/notifications.component';
+import { ManageSpacesPageComponent } from './features/spaces/manage-spaces-page/manage-spaces-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -25,4 +26,5 @@ export const routes: Routes = [
   { path: 'week-stats', component: WeekStatsComponent },
   { path: 'about', component: AboutComponent },
   { path: 'notifications', component: NotificationsComponent },
+  { path: 'settings/spaces', component: ManageSpacesPageComponent}
 ];

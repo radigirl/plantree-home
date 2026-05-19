@@ -165,8 +165,25 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   onSettingsAction(action: 'members' | 'spaces' | 'meals' | 'rules'): void {
-    console.log('Settings action clicked:', action);
     this.closeMenu();
+
+    switch (action) {
+      case 'spaces':
+        this.router.navigate(['/settings/spaces']);
+        break;
+
+      case 'members':
+        this.router.navigate(['/settings/members']);
+        break;
+
+      case 'meals':
+        this.router.navigate(['/settings/meals']);
+        break;
+
+      case 'rules':
+        this.router.navigate(['/settings/rules']);
+        break;
+    }
   }
 
   onAccountAction(action: 'edit-profile' | 'delete-account'): void {

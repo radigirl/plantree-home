@@ -1,0 +1,117 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
+@use '../../../../styles/components/page-headings' as *;
+@use '../../../../styles/components/buttons' as *;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.manage-spaces-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.manage-spaces-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.manage-spaces-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.manage-spaces-row {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 2px 0 0;
+  border-bottom: 1px solid rgba($color-primary-dark, 0.08);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+  }
+}
+
+.manage-spaces-row--active {
+  background: transparent;
+}
+
+.manage-spaces-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.manage-spaces-row__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: $color-primary-dark;
+}
+
+.manage-spaces-row__check {
+  flex-shrink: 0;
+  color: rgba($color-primary-dark, 0.58);
+  transform: translateY(2px);
+}
+
+.manage-spaces-row__remove {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba($color-primary-dark, 0.48);
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover,
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+    color: rgba($color-primary-dark, 0.58);
+  }
+}
+
+@include mobile {
+  .manage-spaces-page {
+    gap: 12px;
+    margin-left: -8px;
+    margin-right: -8px;
+    margin-top: -15px;
+    width: calc(100% + 16px);
+    min-height: 0;
+    padding: 0;
+  }
+}

@@ -11,7 +11,6 @@ import { SpaceStateService } from '../../services/space.state.service';
 import { AvatarMenuComponent } from '../avatar-menu/avatar-menu.component';
 import { Check, LucideAngularModule } from 'lucide-angular';
 import { SpaceDialogComponent } from '../../features/spaces/space-dialog/space-dialog.component';
-import { ManageSpacesDialogComponent } from '../../features/spaces/manage-space-dialog/manage-spaces-dialog.component';
 import { TranslatePipe } from '../pipes/translate.pipe';
 
 @Component({
@@ -22,8 +21,7 @@ import { TranslatePipe } from '../pipes/translate.pipe';
     AvatarMenuComponent,
     LucideAngularModule,
     TranslatePipe,
-    SpaceDialogComponent,
-    ManageSpacesDialogComponent,
+    SpaceDialogComponent
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -39,22 +37,18 @@ export class HeaderComponent implements OnInit {
   avatarCloseSignal = 0;
 
   isSpaceDialogOpen = false;
-  spaceDialogMode: 'add' | 'edit' = 'add';
   spaceDialogInitialName = '';
-  selectedSpaceForEdit: Space | null = null;
-
-  isManageSpacesDialogOpen = false;
 
   get orderedSpaces(): Space[] {
-  const currentSpace = this.spaceStateService.getCurrentSpace();
-  if (!currentSpace) {
-    return this.spaces;
+    const currentSpace = this.spaceStateService.getCurrentSpace();
+    if (!currentSpace) {
+      return this.spaces;
+    }
+    return [
+      currentSpace,
+      ...this.spaces.filter((space) => space.id !== currentSpace.id),
+    ];
   }
-  return [
-    currentSpace,
-    ...this.spaces.filter((space) => space.id !== currentSpace.id),
-  ];
-}
 
   constructor(
     private supabaseService: SupabaseService,
@@ -68,7 +62,12 @@ export class HeaderComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.members = await this.supabaseService.getMembers();
-    this.spaces = await this.spaceStateService.getSpaces();
+    await this.spaceStateService.loadSpaces();
+
+    this.spaceStateService.spaces$.subscribe((spaces) => {
+      this.spaces = spaces;
+      this.cdr.detectChanges();
+    });
 
     const currentMember = this.memberStateService.getCurrentMember();
     if (!currentMember && this.members.length > 0) {
@@ -114,70 +113,18 @@ export class HeaderComponent implements OnInit {
 
   onAddSpace(): void {
     this.isSpaceMenuOpen = false;
-    this.spaceDialogMode = 'add';
     this.spaceDialogInitialName = '';
-    this.selectedSpaceForEdit = null;
     this.isSpaceDialogOpen = true;
   }
 
   closeSpaceDialog(): void {
     this.isSpaceDialogOpen = false;
     this.spaceDialogInitialName = '';
-    this.selectedSpaceForEdit = null;
   }
 
   async onSpaceDialogSave(name: string): Promise<void> {
-    const mode = this.spaceDialogMode;
-    const selectedSpace = this.selectedSpaceForEdit;
     this.closeSpaceDialog();
-    if (mode === 'add') {
-      const created = await this.spaceStateService.createSpace(name);
-      if (created) {
-        this.spaces = [...this.spaces, created];
-      }
-      return;
-    }
-    if (mode === 'edit' && selectedSpace) {
-      const updated = await this.spaceStateService.updateSpaceName(
-        selectedSpace.id,
-        name
-      );
-      if (updated) {
-        this.spaces = this.spaces.map((space) =>
-          space.id === updated.id ? updated : space
-        );
-      }
-    }
-  }
-
-  openManageSpacesDialog(): void {
-    this.isSpaceMenuOpen = false;
-    this.avatarCloseSignal++;
-    this.isManageSpacesDialogOpen = true;
-  }
-
-  closeManageSpacesDialog(): void {
-    this.isManageSpacesDialogOpen = false;
-  }
-
-  onManageAddSpace(): void {
-    this.spaceDialogMode = 'add';
-    this.spaceDialogInitialName = '';
-    this.selectedSpaceForEdit = null;
-    this.isSpaceDialogOpen = true;
-    this.cdr.detectChanges();
-  }
-
-  onManageEditSpace(space: Space): void {
-    this.spaceDialogMode = 'edit';
-    this.spaceDialogInitialName = space.name;
-    this.selectedSpaceForEdit = space;
-    this.isSpaceDialogOpen = true;
-    this.cdr.detectChanges();
-  }
-
-  onManageDeleteSpace(space: Space): void {
-    console.log('Delete space clicked:', space);
+    await this.spaceStateService.createSpace(name);
   }
 
 }
