@@ -53,6 +53,7 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
 
   @Output() memberSelected = new EventEmitter<Member>();
   @Output() menuOpened = new EventEmitter<void>();
+  @Output() addMemberClicked = new EventEmitter<void>();
 
   readonly chefHatIcon = ChefHat;
   readonly myMealsIcon = Utensils;
@@ -156,7 +157,8 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   onAddMember(): void {
-    console.log('Add member clicked');
+    this.addMemberClicked.emit();
+    this.closeMenu();
   }
 
   onCurrentMemberClick(): void {

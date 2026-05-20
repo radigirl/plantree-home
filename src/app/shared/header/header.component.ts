@@ -12,6 +12,7 @@ import { AvatarMenuComponent } from '../avatar-menu/avatar-menu.component';
 import { Check, LucideAngularModule } from 'lucide-angular';
 import { SpaceDialogComponent } from '../../features/spaces/space-dialog/space-dialog.component';
 import { TranslatePipe } from '../pipes/translate.pipe';
+import { MemberDialogComponent, MemberDialogSaveValue } from '../../features/members/member-dialog/member-dialog.component';
 
 @Component({
   selector: 'app-header',
@@ -21,7 +22,8 @@ import { TranslatePipe } from '../pipes/translate.pipe';
     AvatarMenuComponent,
     LucideAngularModule,
     TranslatePipe,
-    SpaceDialogComponent
+    SpaceDialogComponent,
+    MemberDialogComponent,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -38,6 +40,10 @@ export class HeaderComponent implements OnInit {
 
   isSpaceDialogOpen = false;
   spaceDialogInitialName = '';
+
+  isMemberDialogOpen = false;
+  memberDialogInitialName = '';
+  memberDialogInitialAvatarUrl: string | null = null;
 
   get orderedSpaces(): Space[] {
     const currentSpace = this.spaceStateService.getCurrentSpace();
@@ -61,8 +67,13 @@ export class HeaderComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.members = await this.supabaseService.getMembers();
+    await this.memberStateService.loadMembers();
     await this.spaceStateService.loadSpaces();
+
+    this.memberStateService.members$.subscribe((members) => {
+      this.members = members;
+      this.cdr.detectChanges();
+    });
 
     this.spaceStateService.spaces$.subscribe((spaces) => {
       this.spaces = spaces;
@@ -76,7 +87,7 @@ export class HeaderComponent implements OnInit {
 
     const currentSpace = this.spaceStateService.getCurrentSpace();
     if (!currentSpace && this.spaces.length > 0) {
-      this.spaceStateService.setCurrentSpace(this.spaces[1]); // TODO: handle this better when auth is implemented
+      this.spaceStateService.setCurrentSpace(this.spaces[0]); // TODO: handle this better when auth is implemented
     }
   }
 
@@ -125,6 +136,32 @@ export class HeaderComponent implements OnInit {
   async onSpaceDialogSave(name: string): Promise<void> {
     this.closeSpaceDialog();
     await this.spaceStateService.createSpace(name);
+  }
+
+  onAddMemberFromMenu(): void {
+    this.memberDialogInitialName = '';
+    this.memberDialogInitialAvatarUrl = null;
+    this.isMemberDialogOpen = true;
+  }
+
+  closeMemberDialog(): void {
+    this.isMemberDialogOpen = false;
+    this.memberDialogInitialName = '';
+    this.memberDialogInitialAvatarUrl = null;
+  }
+
+  async onMemberDialogSave(value: MemberDialogSaveValue): Promise<void> {
+    const created = await this.memberStateService.createMember(
+      value.name,
+      value.avatarFile
+    );
+    if (!created) {
+      console.error('Could not create member');
+      return;
+    }
+    await this.memberStateService.loadMembers();
+    this.closeMemberDialog();
+    this.cdr.detectChanges();
   }
 
 }

@@ -1,0 +1,126 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/components/buttons' as *;
+@use '../../../../styles/components/page-headings' as *;
+@use '../../../../styles/breakpoints' as *;
+
+
+.manage-members-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.manage-members-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.manage-members-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+  padding: 6px 2px;
+  border-bottom: 1px solid rgba($color-primary-dark, 0.08);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+  }
+}
+
+.manage-members-row__main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.manage-members-row__avatar {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba($color-primary-dark, 0.06);
+  color: rgba($color-primary-dark, 0.78);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.manage-members-row__name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: $color-primary-dark;
+}
+
+.manage-members-row__check {
+  color: $color-primary;
+  flex: 0 0 auto;
+}
+
+.manage-members-row__remove {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba($color-primary-dark, 0.55);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($color-primary-dark, 0.05);
+    color: $color-primary-dark;
+  }
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+.member-confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.member-confirmation-dialog-wrap {
+  width: 100%;
+  max-width: 420px;
+}
+
+@include mobile {
+  .manage-members-page {
+    gap: 12px;
+    margin-left: -8px;
+    margin-right: -8px;
+    margin-top: -15px;
+    width: calc(100% + 16px);
+    min-height: 0;
+    padding: 0;
+  }
+}

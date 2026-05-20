@@ -45,7 +45,8 @@
 
     <div class="member-switcher">
       <app-avatar-menu [members]="members" [currentMember]="currentMember$ | async" [closeSignal]="avatarCloseSignal"
-        (menuOpened)="onAvatarMenuOpened()" (memberSelected)="selectMember($event)">
+        (menuOpened)="onAvatarMenuOpened()" (memberSelected)="selectMember($event)"
+        (addMemberClicked)="onAddMemberFromMenu()">
       </app-avatar-menu>
     </div>
   </div>
@@ -54,3 +55,8 @@
 <app-space-dialog [isOpen]="isSpaceDialogOpen" mode="add" [initialName]="spaceDialogInitialName"
   (closed)="closeSpaceDialog()" (saved)="onSpaceDialogSave($event)">
 </app-space-dialog>
+
+<app-member-dialog [isOpen]="isMemberDialogOpen" mode="add" [initialName]="memberDialogInitialName"
+  [initialAvatarUrl]="memberDialogInitialAvatarUrl" [membersCount]="members.length" (closed)="closeMemberDialog()"
+  (saved)="onMemberDialogSave($event)">
+</app-member-dialog>

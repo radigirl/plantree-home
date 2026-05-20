@@ -69,25 +69,36 @@
 }
 
 .avatar-menu::-webkit-scrollbar {
-  display: none;
+    display: none;
 }
 
 .member-switcher {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 4px 4px 2px;
-    margin: 0;
-    scrollbar-width: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 4px 2px 8px;
+  margin: 0;
+}
 
-    &::-webkit-scrollbar {
-        display: none;
-    }
+.member-switcher__scroll {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  flex: 0 1 204px;
+  max-width: 204px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-right: 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .member-switcher__item {
     position: relative;
-    flex: 0 0 auto;
+    flex: 0 0 52px;
     width: 52px;
     border: 0;
     background: transparent;
@@ -99,16 +110,22 @@
     cursor: pointer;
 }
 
+.member-switcher__item--add {
+  flex: 0 0 48px;
+  width: 48px;
+}
+
 .member-switcher__avatar {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     border-radius: 999px;
-    background: rgba($color-primary, 0.08);
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba($color-primary-dark, 0.06);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    color: $color-primary-dark;
+    color: rgba($color-primary-dark, 0.78);
 }
 
 .member-switcher__avatar img {
@@ -118,7 +135,7 @@
 }
 
 .member-switcher__name {
-    max-width: 52px;
+    max-width: 60px;
     font-size: 10.5px;
     color: $color-text-muted;
     overflow: hidden;
@@ -132,13 +149,19 @@
 }
 
 .member-switcher__item.is-active .member-switcher__avatar {
-    background: rgba($color-primary, 0.14);
-    box-shadow: 0 0 0 2px rgba($color-primary, 0.18);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba($color-primary, 0.55);
+    box-shadow:
+        0 0 0 3px rgba($color-primary, 0.12),
+        0 6px 14px rgba($color-primary-dark, 0.12);
 }
 
 .member-switcher__avatar--add {
-    font-size: 22px;
-    font-weight: 500;
+    background: rgba($color-primary, 0.12);
+    border-color: rgba($color-primary-dark, 0.08);
+    color: $color-primary-dark;
+    font-size: 21px;
+    font-weight: 700;
 }
 
 .menu-divider {

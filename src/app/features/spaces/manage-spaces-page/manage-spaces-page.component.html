@@ -41,15 +41,18 @@
 
 <div *ngIf="spaceConfirmMode" class="space-confirmation-backdrop" (click)="cancelSpaceConfirm()">
   <div class="space-confirmation-dialog-wrap" (click)="$event.stopPropagation()">
-    <app-confirmation-dialog
-      [title]="spaceConfirmMode === 'reset' ? 'Изчисти данните?' : 'Изтрий мястото?'"
-      [message]="spaceConfirmMode === 'reset'
-        ? 'Това ще премахне данните за това място, но ще запази самото място.'
-        : 'Това ще изтрие мястото и свързаните с него данни. Запазените ястия няма да бъдат изтрити.'"
-      [confirmLabel]="spaceConfirmMode === 'reset' ? 'Изчисти' : 'Изтрий'"
-      [cancelLabel]="'common.cancel' | translate"
-      (cancel)="cancelSpaceConfirm()"
-      (confirm)="spaceConfirmMode === 'reset' ? confirmResetSpace() : confirmDeleteSpace()">
-    </app-confirmation-dialog>
+    <div class="manage-spaces-confirmation">
+      <app-confirmation-dialog [title]="spaceConfirmMode === 'reset'
+  ? ('spaces.resetConfirmTitle' | translate)
+  : ('spaces.deleteConfirmTitle' | translate)" [confirmLabel]="spaceConfirmMode === 'reset'
+  ? ('spaces.resetConfirmButton' | translate)
+  : ('spaces.deleteConfirmButton' | translate)" [message]="getSpaceConfirmMessage()"
+        [cancelLabel]="'common.cancel' | translate" (cancel)="cancelSpaceConfirm()"
+        (confirm)="spaceConfirmMode === 'reset' ? confirmResetSpace() : confirmDeleteSpace()">
+      </app-confirmation-dialog>
+    </div>
   </div>
 </div>
+
+<app-snackbar [message]="toastMessage" [isVisible]="isToastVisible">
+</app-snackbar>

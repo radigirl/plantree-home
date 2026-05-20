@@ -120,6 +120,15 @@
   max-width: 420px;
 }
 
+.manage-spaces-confirmation {
+  ::ng-deep .confirmation-dialog {
+    min-height: 320px;
+    padding-top: 32px;
+    padding-bottom: 32px;
+    justify-content: space-between;
+  }
+}
+
 @include mobile {
   .manage-spaces-page {
     gap: 12px;

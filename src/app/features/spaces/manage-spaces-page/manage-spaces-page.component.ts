@@ -8,6 +8,8 @@ import { SpaceStateService } from '../../../services/space.state.service';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { SpaceDialogComponent } from '../space-dialog/space-dialog.component';
 import { ConfirmationDialogComponent } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SnackbarComponent } from '../../../shared/components/snackbar/snackbar.component';
+import { LanguageStateService } from '../../../services/language.state.service';
 
 @Component({
   selector: 'app-manage-spaces-page',
@@ -18,6 +20,7 @@ import { ConfirmationDialogComponent } from '../../../shared/components/confirma
     LucideAngularModule,
     SpaceDialogComponent,
     ConfirmationDialogComponent,
+    SnackbarComponent
   ],
   templateUrl: './manage-spaces-page.component.html',
   styleUrl: './manage-spaces-page.component.scss',
@@ -31,11 +34,16 @@ export class ManageSpacesPageComponent implements OnInit {
   spaceDialogInitialName = '';
   selectedSpaceForEdit: Space | null = null;
   spaceConfirmMode: 'reset' | 'delete' | null = null;
+  toastMessage = '';
+  isToastVisible = false;
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+
 
   readonly checkIcon = Check;
 
   constructor(
     private spaceStateService: SpaceStateService,
+    private languageStateService: LanguageStateService,
     private cdr: ChangeDetectorRef
   ) {
     this.currentSpace$ = this.spaceStateService.currentSpace$;
@@ -65,7 +73,8 @@ export class ManageSpacesPageComponent implements OnInit {
   }
 
   onDeleteSpace(space: Space): void {
-    console.log('Delete space clicked:', space);
+    this.selectedSpaceForEdit = space;
+    this.spaceConfirmMode = 'delete';
   }
 
   closeSpaceDialog(): void {
@@ -102,17 +111,80 @@ export class ManageSpacesPageComponent implements OnInit {
     this.spaceConfirmMode = null;
   }
 
-  confirmResetSpace(): void {
-    console.log('Confirm reset space:', this.selectedSpaceForEdit);
+  async confirmResetSpace(): Promise<void> {
+    const space = this.selectedSpaceForEdit;
+
+    if (!space) {
+      return;
+    }
+
+    const success = await this.spaceStateService.resetSpace(space.id);
+
+    if (!success) {
+      console.error('Could not reset space');
+      this.spaceConfirmMode = null;
+      return;
+    }
 
     this.spaceConfirmMode = null;
     this.closeSpaceDialog();
+
+    this.showToast(
+      this.languageStateService.t('spaces.spaceResetToast')
+    );
   }
 
-  confirmDeleteSpace(): void {
-    console.log('Confirm delete space:', this.selectedSpaceForEdit);
+  async confirmDeleteSpace(): Promise<void> {
+    const space = this.selectedSpaceForEdit;
+
+    if (!space) {
+      return;
+    }
+
+    const result = await this.spaceStateService.deleteSpace(space.id);
+
+    if (!result.success) {
+      console.error('Could not delete space');
+      this.spaceConfirmMode = null;
+      return;
+    }
 
     this.spaceConfirmMode = null;
     this.closeSpaceDialog();
+
+    if (result.switchedToSpace) {
+      this.showToast(
+        `${this.languageStateService.t('spaces.spaceDeletedToast')} · ${this.languageStateService.t('spaces.switchedTo')} ${result.switchedToSpace.name}`
+      );
+    } else {
+      this.showToast(
+        this.languageStateService.t('spaces.spaceDeletedToast')
+      );
+    }
+  }
+
+  showToast(message: string): void {
+    this.toastMessage = message;
+    this.isToastVisible = true;
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+
+    this.toastTimeout = setTimeout(() => {
+      this.isToastVisible = false;
+      this.toastMessage = '';
+      this.cdr.detectChanges();
+    }, 3000);
+
+    this.cdr.detectChanges();
+  }
+
+  getSpaceConfirmMessage(): string {
+    const key = this.spaceConfirmMode === 'reset'
+      ? 'spaces.resetConfirmMessage'
+      : 'spaces.deleteConfirmMessage';
+
+    return this.languageStateService.t(key).replace(/\\n/g, '\n');
   }
 }

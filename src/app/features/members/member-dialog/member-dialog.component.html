@@ -1,0 +1,65 @@
+<ng-container *ngIf="isOpen">
+  <div class="member-dialog-backdrop" (click)="close()">
+    <div class="member-dialog" (click)="$event.stopPropagation()">
+      <h3 class="member-dialog__title">
+        {{ mode === 'add' ? ('members.addTitle' | translate) : ('members.editTitle' | translate) }}
+      </h3>
+
+      <label class="member-dialog__label">
+        {{ 'members.name' | translate }}
+      </label>
+
+      <input type="text" class="input-field" [(ngModel)]="name" [placeholder]="'members.namePlaceholder' | translate" />
+
+      <div class="member-dialog__avatar-block">
+        <label class="member-dialog__label">
+          {{ 'members.avatar' | translate }}
+        </label>
+
+        <div class="member-dialog__avatar-row">
+          <div class="member-dialog__avatar-preview">
+            <img *ngIf="selectedAvatarPreview; else avatarFallback" [src]="selectedAvatarPreview"
+              [alt]="name || ('members.avatarPreview' | translate)" />
+
+            <ng-template #avatarFallback>
+              <lucide-icon [img]="userIcon" [size]="22"></lucide-icon>
+            </ng-template>
+          </div>
+
+          <div class="member-dialog__avatar-actions">
+            <label for="memberAvatarInput" class="member-dialog__upload">
+              {{ selectedAvatarPreview ? ('members.changePhoto' | translate) : ('members.choosePhoto' | translate) }}
+            </label>
+
+            <input id="memberAvatarInput" class="member-dialog__file-input" type="file" accept="image/*"
+              (change)="onAvatarSelected($event)" />
+
+            <button type="button" class="member-dialog__remove-photo"
+              [class.member-dialog__remove-photo--hidden]="!selectedAvatarPreview" (click)="removeSelectedAvatar()">
+              ✕ {{ 'common.remove' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="mode === 'edit'" class="member-dialog__danger-zone">
+        <button *ngIf="membersCount > 1" type="button"
+          class="member-dialog__danger-action member-dialog__danger-action--delete" (click)="onDeleteMember()">
+          {{ 'members.deleteMember' | translate }}
+        </button>
+      </div>
+
+      <div class="button-row member-dialog__actions">
+        <button type="button" class="btn-secondary" (click)="close()" [disabled]="isSaving">
+          {{ 'common.cancel' | translate }}
+        </button>
+
+        <button type="button" class="btn-primary" [disabled]="isSaving" (click)="save()">
+          {{ isSaving
+          ? ('mealDialog.saving' | translate)
+          : ('mealDialog.save' | translate) }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>

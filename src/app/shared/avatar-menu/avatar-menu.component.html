@@ -14,18 +14,22 @@
   <div class="avatar-menu" *ngIf="isOpen">
 
     <div class="member-switcher member-switcher--top">
-      <button type="button" class="member-switcher__item" *ngFor="let member of members"
-        [class.is-active]="member.id === currentMember?.id" (click)="selectMember(member)">
-        <span class="member-switcher__avatar">
-          <ng-container *ngIf="member.avatar_url; else memberFallbackIcon">
-            <img [src]="member.avatar_url" [alt]="member.name" (error)="member.avatar_url = undefined" />
-          </ng-container>
-          <ng-template #memberFallbackIcon>
-            <lucide-icon [img]="userIcon" [size]="16"></lucide-icon>
-          </ng-template>
-        </span>
-        <span class="member-switcher__name">{{ member.name }}</span>
-      </button>
+      <div class="member-switcher__scroll">
+        <button type="button" class="member-switcher__item" *ngFor="let member of members"
+          [class.is-active]="member.id === currentMember?.id" (click)="selectMember(member)">
+          <span class="member-switcher__avatar">
+            <ng-container *ngIf="member.avatar_url; else memberFallbackIcon">
+              <img [src]="member.avatar_url" [alt]="member.name" (error)="member.avatar_url = undefined" />
+            </ng-container>
+
+            <ng-template #memberFallbackIcon>
+              <lucide-icon [img]="userIcon" [size]="16"></lucide-icon>
+            </ng-template>
+          </span>
+
+          <span class="member-switcher__name">{{ member.name }}</span>
+        </button>
+      </div>
 
       <button type="button" class="member-switcher__item member-switcher__item--add" (click)="onAddMember()"
         [attr.aria-label]="'menu.addMember' | translate">
@@ -33,7 +37,6 @@
         <span class="member-switcher__name">{{ 'common.add' | translate }}</span>
       </button>
     </div>
-
 
     <div class="menu-divider"></div>
 
