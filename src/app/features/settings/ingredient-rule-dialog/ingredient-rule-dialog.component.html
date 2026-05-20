@@ -1,0 +1,78 @@
+<ng-container *ngIf="isOpen">
+  <div class="ingredient-rule-dialog-backdrop" (click)="close()">
+    <div class="ingredient-rule-dialog" (click)="$event.stopPropagation()">
+      <h3 class="ingredient-rule-dialog__title">
+        {{ mode === 'add'
+        ? ('ingredientRulesPage.addRule' | translate)
+        : ('ingredientRulesPage.editRule' | translate) }}
+      </h3>
+
+      <ng-container *ngIf="type === 'word'; else measurementForm">
+        <label class="ingredient-rule-dialog__label">
+          {{ 'ingredientRulesPage.singularName' | translate }}
+        </label>
+
+        <input type="text" class="input-field" [(ngModel)]="singularText"
+          [placeholder]="'ingredientRulesPage.singularPlaceholder' | translate" />
+
+        <label class="ingredient-rule-dialog__label">
+          {{ 'ingredientRulesPage.pluralName' | translate }}
+        </label>
+
+        <input type="text" class="input-field" [(ngModel)]="pluralText"
+          [placeholder]="'ingredientRulesPage.pluralPlaceholder' | translate" />
+      </ng-container>
+
+      <ng-template #measurementForm>
+        <label class="ingredient-rule-dialog__label">
+          {{ 'ingredientRulesPage.ingredientName' | translate }}
+        </label>
+
+        <input type="text" class="input-field" [(ngModel)]="ingredientName"
+          [placeholder]="'ingredientRulesPage.ingredientPlaceholder' | translate" />
+
+        <label class="ingredient-rule-dialog__label">
+          {{ 'ingredientRulesPage.measurementStyle' | translate }}
+        </label>
+
+        <select class="input-field" [(ngModel)]="measurementStyle">
+          <option *ngFor="let option of measurementStyleOptions" [value]="option.value">
+            {{ option.labelKey | translate }}
+          </option>
+        </select>
+
+        <label class="ingredient-rule-dialog__label">
+          {{ 'ingredientRulesPage.convertedAmount' | translate }}
+        </label>
+
+        <input type="number" class="input-field" [(ngModel)]="convertedAmount" placeholder="120" />
+
+        <label class="ingredient-rule-dialog__label">
+          {{ 'ingredientRulesPage.convertedUnit' | translate }}
+        </label>
+
+        <select class="input-field" [(ngModel)]="convertedUnit">
+          <option *ngFor="let option of convertedUnitOptions" [value]="option.value">
+            {{ option.labelKey | translate }}
+          </option>
+        </select>
+      </ng-template>
+
+      <div *ngIf="mode === 'edit'" class="ingredient-rule-dialog__danger-zone">
+        <button type="button" class="ingredient-rule-dialog__danger-action" (click)="onDelete()">
+          {{ 'common.delete' | translate }}
+        </button>
+      </div>
+
+      <div class="button-row ingredient-rule-dialog__actions">
+        <button type="button" class="btn-secondary" (click)="close()">
+          {{ 'common.cancel' | translate }}
+        </button>
+
+        <button type="button" class="btn-primary" (click)="save()">
+          {{ 'mealDialog.save' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-container>

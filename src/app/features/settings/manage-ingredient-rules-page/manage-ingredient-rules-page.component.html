@@ -14,33 +14,36 @@
   <!-- Word rules -->
   <div class="rules-section">
     <div class="rules-section__header">
-      <div>
-        <h2>
-          {{ 'ingredientRulesPage.wordRulesTitle' | translate }}
-        </h2>
+      <button type="button" class="rules-section__toggle" (click)="toggleWordRules()">
+        <span class="rules-section__chevron">
+          {{ isWordRulesExpanded ? '▾' : '▸' }}
+        </span>
 
-        <p>
-          {{ 'ingredientRulesPage.wordRulesSubtitle' | translate }}
-        </p>
-      </div>
+        <span>
+          <h2>{{ 'ingredientRulesPage.wordRulesTitle' | translate }}</h2>
+          <p>{{ 'ingredientRulesPage.wordRulesSubtitle' | translate }}</p>
+        </span>
+      </button>
 
       <button type="button" class="action-pill action-pill--primary" (click)="onAddWordRule()">
         + {{ 'common.add' | translate }}
       </button>
     </div>
 
-    <div class="rules-list">
+    <div class="rules-list" *ngIf="isWordRulesExpanded">
       <div class="rules-row" *ngFor="let rule of wordRules" (click)="onEditWordRule(rule)">
-
         <div class="rules-row__main">
           <span class="rules-row__title">
-            {{ rule.singular }}
+            {{ rule.singular_text }}
           </span>
-
           <span class="rules-row__meta">
-            → {{ rule.plural }}
+            → {{ rule.plural_text }}
           </span>
         </div>
+        <button type="button" class="rules-row__delete" (click)="onDeleteWordRule(rule, $event)"
+          [attr.aria-label]="'common.delete' | translate">
+          ×
+        </button>
       </div>
     </div>
   </div>
@@ -48,34 +51,49 @@
   <!-- Measurement rules -->
   <div class="rules-section">
     <div class="rules-section__header">
-      <div>
-        <h2>
-          {{ 'ingredientRulesPage.measurementRulesTitle' | translate }}
-        </h2>
+      <button type="button" class="rules-section__toggle" (click)="toggleMeasurementRules()">
+        <span class="rules-section__chevron">
+          {{ isMeasurementRulesExpanded ? '▾' : '▸' }}
+        </span>
 
-        <p>
-          {{ 'ingredientRulesPage.measurementRulesSubtitle' | translate }}
-        </p>
-      </div>
+        <span>
+          <h2>{{ 'ingredientRulesPage.measurementRulesTitle' | translate }}</h2>
+          <p>{{ 'ingredientRulesPage.measurementRulesSubtitle' | translate }}</p>
+        </span>
+      </button>
 
       <button type="button" class="action-pill action-pill--primary" (click)="onAddMeasurementRule()">
         + {{ 'common.add' | translate }}
       </button>
     </div>
 
-    <div class="rules-list">
+    <div class="rules-list" *ngIf="isMeasurementRulesExpanded">
       <div class="rules-row" *ngFor="let rule of measurementRules" (click)="onEditMeasurementRule(rule)">
-
         <div class="rules-row__main">
           <span class="rules-row__title">
-            {{ rule.ingredient }}
+            {{ rule.ingredient_name }}
           </span>
 
           <span class="rules-row__meta">
             {{ formatMeasurementRule(rule) }}
           </span>
         </div>
+
+        <button type="button" class="rules-row__delete" (click)="onDeleteMeasurementRule(rule, $event)"
+          [attr.aria-label]="'common.delete' | translate">
+          ×
+        </button>
       </div>
     </div>
   </div>
 </section>
+
+<app-ingredient-rule-dialog [isOpen]="isRuleDialogOpen" [mode]="ruleDialogMode" [type]="ruleDialogType"
+  [initialSingularText]="selectedWordRule?.singular_text || ''"
+  [initialPluralText]="selectedWordRule?.plural_text || ''"
+  [initialIngredientName]="selectedMeasurementRule?.ingredient_name || ''"
+  [initialMeasurementStyle]="selectedMeasurementRule?.measurement_style || 'cup'"
+  [initialConvertedAmount]="selectedMeasurementRule?.converted_amount || null"
+  [initialConvertedUnit]="selectedMeasurementRule?.converted_unit || 'g'" (closed)="closeRuleDialog()"
+  (saved)="onRuleDialogSave($event)" (deleteRule)="onRuleDialogDelete()">
+</app-ingredient-rule-dialog>

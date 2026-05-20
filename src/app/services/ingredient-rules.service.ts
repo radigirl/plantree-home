@@ -2,9 +2,12 @@ import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 
 export interface IngredientWordRule {
+  id?: string;
   space_id: string;
   singular_text: string;
   plural_text: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface MeasurementRulePayload {
