@@ -4,7 +4,7 @@
       <h2 class="measurement-sheet__title">{{ 'measurementSheet.title' | translate }}</h2>
 
       <p class="measurement-sheet__item" *ngIf="itemName">
-       {{ 'measurementSheet.forItem' | translate }} <strong>{{ itemName }}</strong>
+       {{ 'measurementSheet.forItem' | translate }} <strong>{{ displayItemName }}</strong>
       </p>
 
       <p class="measurement-sheet__info">

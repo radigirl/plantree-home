@@ -380,6 +380,9 @@ export const en = {
     convertToVolume: 'Example: convert to ml or l',
     convertToWeight: 'Example: convert to g or kg',
     examplePrefix: 'e.g.',
+    cupSingular: 'cup',
+    tbspSingular: 'tbsp',
+    tspSingular: 'tsp',
   },
   pantry: {
     title: 'Pantry',
@@ -482,10 +485,12 @@ export const en = {
     members: 'Members',
     spaces: 'Spaces',
     meals: 'Meals',
-    rules: 'Rules',
+    rules: 'Ingredient Rules',
     editProfile: 'Edit profile',
     deleteAccount: 'Delete account',
     spacesSubtitle: 'Manage your spaces and space data',
+    ingredientRules: 'Ingredient Rules',
+    ingredientRulesSubtitle: 'Manage how Plantree matches and converts ingredients',
   },
   about: {
     title: 'About',
@@ -514,5 +519,11 @@ export const en = {
     memberDeletedToast: 'Member deleted',
     switchedTo: 'Switched to',
     lastMemberDeleteNote: 'There must be at least one member in the household. Add another member before deleting this one.'
+  },
+  ingredientRulesPage: {
+    wordRulesTitle: 'Name rules',
+    wordRulesSubtitle: 'Singular / plural recognition.',
+    measurementRulesTitle: 'Measurement rules',
+    measurementRulesSubtitle: 'Convert cups, tbsp, tsp to g / ml.',
   },
 };

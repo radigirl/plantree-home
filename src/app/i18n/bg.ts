@@ -380,6 +380,9 @@ export const bg = {
     convertToVolume: 'Пример: преобразувай в ml или l',
     convertToWeight: 'Пример: преобразувай в g или kg',
     examplePrefix: 'напр.',
+    cupSingular: 'чаша',
+    tbspSingular: 'с.л.',
+    tspSingular: 'ч.л.',
   },
   pantry: {
     title: 'Продукти',
@@ -482,10 +485,12 @@ export const bg = {
     members: 'Членове',
     spaces: 'Места',
     meals: 'Ястия',
-    rules: 'Правила',
+    rules: 'Правила за продукти',
     editProfile: 'Редактирай профил',
     deleteAccount: 'Изтрий акаунт',
     spacesSubtitle: 'Управлявай местата и данните към тях',
+    ingredientRules: 'Правила за продукти',
+    ingredientRulesSubtitle: 'Управлявай как Plantree разпознава и преобразува продуктите',
   },
   about: {
     title: 'За приложението',
@@ -514,5 +519,11 @@ export const bg = {
     memberDeletedToast: 'Членът е изтрит',
     switchedTo: 'Switched to',
     lastMemberDeleteNote: 'Трябва да има поне един член в домакинството. Добави нов член, след което можеш да изтриеш този.'
+  },
+  ingredientRulesPage: {
+    wordRulesTitle: 'Правила за имена',
+    wordRulesSubtitle: 'Разпознаване на ед. ч. / мн. ч.',
+    measurementRulesTitle: 'Правила за мерки',
+    measurementRulesSubtitle: 'Преобразуване на чаши, с.л., ч.л. в g / ml.',
   },
 };

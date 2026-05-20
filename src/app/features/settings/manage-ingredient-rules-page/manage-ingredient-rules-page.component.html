@@ -1,0 +1,81 @@
+<section class="manage-ingredient-rules-page">
+  <div class="page-header-row">
+    <div class="page-header">
+      <h1 class="page-title">
+        {{ 'settings.ingredientRules' | translate }}
+      </h1>
+
+      <p class="page-subtitle">
+        {{ 'settings.ingredientRulesSubtitle' | translate }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Word rules -->
+  <div class="rules-section">
+    <div class="rules-section__header">
+      <div>
+        <h2>
+          {{ 'ingredientRulesPage.wordRulesTitle' | translate }}
+        </h2>
+
+        <p>
+          {{ 'ingredientRulesPage.wordRulesSubtitle' | translate }}
+        </p>
+      </div>
+
+      <button type="button" class="action-pill action-pill--primary" (click)="onAddWordRule()">
+        + {{ 'common.add' | translate }}
+      </button>
+    </div>
+
+    <div class="rules-list">
+      <div class="rules-row" *ngFor="let rule of wordRules" (click)="onEditWordRule(rule)">
+
+        <div class="rules-row__main">
+          <span class="rules-row__title">
+            {{ rule.singular }}
+          </span>
+
+          <span class="rules-row__meta">
+            → {{ rule.plural }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Measurement rules -->
+  <div class="rules-section">
+    <div class="rules-section__header">
+      <div>
+        <h2>
+          {{ 'ingredientRulesPage.measurementRulesTitle' | translate }}
+        </h2>
+
+        <p>
+          {{ 'ingredientRulesPage.measurementRulesSubtitle' | translate }}
+        </p>
+      </div>
+
+      <button type="button" class="action-pill action-pill--primary" (click)="onAddMeasurementRule()">
+        + {{ 'common.add' | translate }}
+      </button>
+    </div>
+
+    <div class="rules-list">
+      <div class="rules-row" *ngFor="let rule of measurementRules" (click)="onEditMeasurementRule(rule)">
+
+        <div class="rules-row__main">
+          <span class="rules-row__title">
+            {{ rule.ingredient }}
+          </span>
+
+          <span class="rules-row__meta">
+            {{ formatMeasurementRule(rule) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

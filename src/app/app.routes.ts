@@ -12,6 +12,7 @@ import { AboutComponent } from './features/about/about.component';
 import { NotificationsComponent } from './features/notifications/notifications.component';
 import { ManageSpacesPageComponent } from './features/spaces/manage-spaces-page/manage-spaces-page.component';
 import { ManageMembersPageComponent } from './features/members/manage-members-page/manage-members-page.component';
+import { ManageIngredientRulesPageComponent } from './features/settings/manage-ingredient-rules-page/manage-ingredient-rules-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -27,6 +28,7 @@ export const routes: Routes = [
   { path: 'week-stats', component: WeekStatsComponent },
   { path: 'about', component: AboutComponent },
   { path: 'notifications', component: NotificationsComponent },
-  { path: 'settings/spaces', component: ManageSpacesPageComponent},
-  { path: 'settings/members', component: ManageMembersPageComponent}
+  { path: 'settings/spaces', component: ManageSpacesPageComponent },
+  { path: 'settings/members', component: ManageMembersPageComponent },
+  { path: 'settings/ingredient-rules', component: ManageIngredientRulesPageComponent }
 ];

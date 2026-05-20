@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { parseMeasurementStyleIngredient } from '../../../../shared/utils/measurement-style.util';
 import { TranslatePipe } from '../../../../shared/pipes/translate.pipe';
 import { LanguageStateService } from '../../../../services/language.state.service';
+import {
+  parseMeasurementStyleIngredient,
+  formatLocalizedIngredientDisplay,
+} from '../../../../shared/utils/measurement-style.util';
 
 export interface MeasurementConversionValue {
   amount: number;
@@ -57,7 +60,7 @@ export class MeasurementConversionSheetComponent {
     const style = this.parsedStyle?.style;
 
     if (style === 'cup') {
-      return this.getExampleForSource('1 cup', {
+      return this.getExampleForSource(this.getSourceLabel('cup'), {
         g: '120 g',
         kg: '0.12 kg',
         ml: '240 ml',
@@ -66,7 +69,7 @@ export class MeasurementConversionSheetComponent {
     }
 
     if (style === 'tbsp') {
-      return this.getExampleForSource('1 tbsp', {
+      return this.getExampleForSource(this.getSourceLabel('tbsp'), {
         g: '12 g',
         kg: '0.012 kg',
         ml: '15 ml',
@@ -118,7 +121,11 @@ export class MeasurementConversionSheetComponent {
       });
     }
 
-    return this.unit === 'ml' || this.unit === 'l' ? 'e.g. 240' : 'e.g. 120';
+    const prefix = this.languageStateService.t('measurementSheet.examplePrefix');
+
+    return this.unit === 'ml' || this.unit === 'l'
+      ? `${prefix} 240`
+      : `${prefix} 120`;
   }
 
   private getPlaceholderForValues(values: {
@@ -187,5 +194,20 @@ export class MeasurementConversionSheetComponent {
       default:
         return `${example}: ${sourceLabel} → ${values.g}`;
     }
+  }
+
+  private getSourceLabel(style: 'cup' | 'tbsp' | 'tsp'): string {
+    const unitLabel = this.languageStateService.t(
+      `measurementSheet.${style}Singular`
+    );
+
+    return `1 ${unitLabel}`;
+  }
+
+  get displayItemName(): string {
+    return formatLocalizedIngredientDisplay(
+      this.itemName,
+      this.languageStateService.getLanguage()
+    );
   }
 }

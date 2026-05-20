@@ -183,7 +183,7 @@ export class AvatarMenuComponent implements OnInit, OnDestroy, OnChanges {
         break;
 
       case 'rules':
-        this.router.navigate(['/settings/rules']);
+        this.router.navigate(['/settings/ingredient-rules']);
         break;
     }
   }

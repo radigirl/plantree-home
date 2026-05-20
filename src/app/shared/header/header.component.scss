@@ -92,13 +92,12 @@
   font-size: 12px;
   font-weight: 600;
   color: $color-primary-dark;
-  line-height: 1;
   text-align: right;
   cursor: pointer;
   transition: opacity 0.2s ease;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.35;
+  overflow: visible;
 }
 
 .space-trigger:hover {
@@ -106,10 +105,13 @@
 }
 
 .space-label {
+  display: inline-block;
   min-width: 0;
+  max-width: 145px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.35;
 }
 
 .chevron {
@@ -168,6 +170,7 @@
   color: rgba(58, 116, 108, 0.8);
   transform: none;
 }
+
 .account-circle:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
