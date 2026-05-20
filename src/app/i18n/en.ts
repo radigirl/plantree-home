@@ -512,5 +512,7 @@ export const en = {
     memberCreatedToast: 'Member created',
     memberUpdatedToast: 'Member updated',
     memberDeletedToast: 'Member deleted',
+    switchedTo: 'Switched to',
+    lastMemberDeleteNote: 'There must be at least one member in the household. Add another member before deleting this one.'
   },
 };

@@ -170,3 +170,11 @@
   opacity: 0.72;
   pointer-events: none;
 }
+
+.member-dialog__last-note {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: rgba($color-primary-dark, 0.68);
+  text-align: center;
+}

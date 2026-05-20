@@ -251,7 +251,8 @@ export class GroceryService {
   async createGroceryItem(
     listId: string,
     name: string,
-    addedByMemberId: number
+    addedByMemberId: number | null,
+    addedByMemberName?: string | null
   ): Promise<any | null> {
     const trimmedName = name.trim();
 
@@ -267,6 +268,7 @@ export class GroceryService {
           name: trimmedName,
           status: 'needed',
           added_by_member_id: addedByMemberId,
+          added_by_member_name: addedByMemberName ?? null,
         },
       ])
       .select()
@@ -283,18 +285,21 @@ export class GroceryService {
   async updateGroceryItemStatus(
     itemId: string,
     status: 'needed' | 'bought',
-    boughtByMemberId?: number
+    boughtByMemberId?: number | null,
+    boughtByMemberName?: string | null
   ): Promise<boolean> {
     const payload =
       status === 'bought'
         ? {
           status,
           bought_by_member_id: boughtByMemberId ?? null,
+          bought_by_member_name: boughtByMemberName ?? null,
           bought_at: new Date().toISOString(),
         }
         : {
           status,
           bought_by_member_id: null,
+          bought_by_member_name: null,
           bought_at: null,
         };
 

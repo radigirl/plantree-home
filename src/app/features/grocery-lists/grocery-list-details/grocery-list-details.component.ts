@@ -315,37 +315,28 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   async addItem(): Promise<void> {
     if (this.isReadOnly) return;
-
     const originalTrimmedName = this.newItemName.trim();
     if (!originalTrimmedName || !this.groceryList) {
       return;
     }
-
     const measurementConvertedName =
       this.applyRememberedMeasurementRuleToInput(originalTrimmedName);
-
     const trimmedName = measurementConvertedName ?? originalTrimmedName;
-
     const handledByRememberedWordRule = await this.applyRememberedWordRuleForAdd(trimmedName);
     if (handledByRememberedWordRule) {
       return;
     }
-
     const rawIngredients = [
       ...this.groceryItems.map(i => i.name),
       trimmedName
     ];
-
     const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
     const normalizedNewItem = normalizeIngredientKey(trimmedName).toLowerCase();
-
     const relevantCandidates = candidates.filter((c: MergeCandidate) =>
       c.singularItems.includes(normalizedNewItem) ||
       c.pluralItem === normalizedNewItem
     );
-
     const unresolvedCandidates = await this.filterRememberedCandidates(relevantCandidates);
-
     if (unresolvedCandidates.length > 0) {
       await this.openMergeSheet({
         rawIngredients,
@@ -354,15 +345,13 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       });
       return;
     }
-
     const currentMember = this.memberStateService.getCurrentMember();
-    const addedByMemberId = currentMember?.id ?? 1;
-
+    const addedByMemberId = currentMember?.id ?? null;
+    const addedByMemberName = currentMember?.name ?? null;
     const measuredMatch = this.groceryItems.find((item) => {
       const parsed = parseLeadingNumberIngredient(
         normalizeIngredientKey(item.name)
       );
-
       return (
         parsed &&
         parsed.unit &&
@@ -370,25 +359,21 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         normalizeIngredientKey(trimmedName)
       );
     });
-
     if (measuredMatch) {
       const mergedName = this.buildMergeResult(
         measuredMatch.name,
         trimmedName
       );
-
       if (mergedName) {
         const success = await this.groceryService.updateGroceryItemName(
           measuredMatch.id,
           mergedName
         );
-
         if (!success) {
           this.error = this.languageStateService.t('groceryListDetails.updateItemError');
           this.cdr.detectChanges();
           return;
         }
-
         this.newItemName = '';
         this.pendingRevealItemId = measuredMatch.id;
         return;
@@ -398,29 +383,25 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     for (const item of this.groceryItems) {
       const mergedName = this.buildMergeResult(item.name, trimmedName);
       if (!mergedName) continue;
-
       const success = await this.groceryService.updateGroceryItemName(
         item.id,
         mergedName
       );
-
       if (!success) {
         this.error = this.languageStateService.t('groceryListDetails.updateItemError');
         this.cdr.detectChanges();
         return;
       }
-
       this.newItemName = '';
       this.pendingRevealItemId = item.id;
       return;
     }
-
     const created = await this.groceryService.createGroceryItem(
       this.groceryList.id,
       trimmedName,
-      addedByMemberId
+      addedByMemberId,
+      addedByMemberName
     );
-
     if (!created) {
       this.error = this.languageStateService.t('groceryListDetails.addItemError');
       this.cdr.detectChanges();
@@ -780,12 +761,14 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     if (!trimmedName || !this.groceryList) return;
 
     const currentMember = this.memberStateService.getCurrentMember();
-    const addedByMemberId = currentMember?.id ?? 1;
+    const addedByMemberId = currentMember?.id ?? null;
+    const addedByMemberName = currentMember?.name ?? null;
 
     const created = await this.groceryService.createGroceryItem(
       this.groceryList.id,
       trimmedName,
-      addedByMemberId
+      addedByMemberId,
+      addedByMemberName
     );
 
     if (!created) return;
@@ -802,7 +785,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
     const nextStatus = item.status === 'bought' ? 'needed' : 'bought';
     const currentMember = this.memberStateService.getCurrentMember();
-    const boughtByMemberId = currentMember?.id ?? 1;
+    const boughtByMemberId = currentMember?.id ?? null;
+    const boughtByMemberName = currentMember?.name ?? null;
 
     // optimistic UI update
     const previousStatus = item.status;
@@ -824,7 +808,8 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     const updated = await this.groceryService.updateGroceryItemStatus(
       item.id,
       nextStatus,
-      boughtByMemberId
+      boughtByMemberId,
+      boughtByMemberName
     );
 
     if (!updated || !this.groceryList) {
@@ -1098,13 +1083,21 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   getItemMetaParts(item: any) {
     const currentMember = this.memberStateService.getCurrentMember();
-
     const isAddedByYou = currentMember?.id === item.addedBy?.id;
     const isBoughtByYou = currentMember?.id === item.boughtBy?.id;
 
     return {
-      addedByName: item.addedBy?.name || this.languageStateService.t('groceryListDetails.someone'),
-      boughtByName: item.boughtBy?.name || this.languageStateService.t('groceryListDetails.someone'),
+      addedByName:
+        item.addedBy?.name ||
+        item.added_by_member_name ||
+        item.addedByMemberName ||
+        this.languageStateService.t('groceryListDetails.someone'),
+
+      boughtByName:
+        item.boughtBy?.name ||
+        item.bought_by_member_name ||
+        item.boughtByMemberName ||
+        this.languageStateService.t('groceryListDetails.someone'),
       isAddedByYou,
       isBoughtByYou,
       isBought: item.status === 'bought',

@@ -73,30 +73,6 @@
   flex: 0 0 auto;
 }
 
-.manage-members-row__remove {
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: rgba($color-primary-dark, 0.55);
-  font-size: 1.35rem;
-  line-height: 1;
-  cursor: pointer;
-
-  &:hover {
-    background: rgba($color-primary-dark, 0.05);
-    color: $color-primary-dark;
-  }
-
-  &:focus,
-  &:focus-visible,
-  &:active {
-    outline: none;
-    box-shadow: none;
-  }
-}
-
 .member-confirmation-backdrop {
   position: fixed;
   inset: 0;

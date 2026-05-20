@@ -512,5 +512,7 @@ export const bg = {
     memberCreatedToast: 'Членът е добавен',
     memberUpdatedToast: 'Членът е обновен',
     memberDeletedToast: 'Членът е изтрит',
+    switchedTo: 'Switched to',
+    lastMemberDeleteNote: 'Трябва да има поне един член в домакинството. Добави нов член, след което можеш да изтриеш този.'
   },
 };

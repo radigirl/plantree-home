@@ -78,32 +78,6 @@
   transform: translateY(2px);
 }
 
-.manage-spaces-row__remove {
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba($color-primary-dark, 0.48);
-  font-size: 1.15rem;
-  line-height: 1;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-
-  &:hover,
-  &:focus,
-  &:focus-visible,
-  &:active {
-    outline: none;
-    box-shadow: none;
-    background: transparent;
-    color: rgba($color-primary-dark, 0.58);
-  }
-}
-
 .space-confirmation-backdrop {
   position: fixed;
   inset: 0;

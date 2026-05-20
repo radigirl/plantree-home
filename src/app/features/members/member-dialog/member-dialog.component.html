@@ -43,10 +43,16 @@
       </div>
 
       <div *ngIf="mode === 'edit'" class="member-dialog__danger-zone">
-        <button *ngIf="membersCount > 1" type="button"
+        <button *ngIf="membersCount > 1; else lastMemberNote" type="button"
           class="member-dialog__danger-action member-dialog__danger-action--delete" (click)="onDeleteMember()">
           {{ 'members.deleteMember' | translate }}
         </button>
+
+        <ng-template #lastMemberNote>
+          <p class="member-dialog__last-note">
+            {{ 'members.lastMemberDeleteNote' | translate }}
+          </p>
+        </ng-template>
       </div>
 
       <div class="button-row member-dialog__actions">

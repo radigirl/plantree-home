@@ -72,7 +72,7 @@ export class MemberStateService {
   private async uploadMemberAvatar(file: File): Promise<string | null> {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-    const filePath = `member-avatars/${fileName}`;
+    const filePath = `members/${fileName}`;
 
     const { error } = await this.supabaseService.supabase.storage
       .from('member-avatars')
@@ -91,6 +91,29 @@ export class MemberStateService {
       .getPublicUrl(filePath);
 
     return data.publicUrl;
+  }
+
+  private async deleteMemberAvatarByUrl(avatarUrl?: string | null): Promise<void> {
+    if (!avatarUrl) {
+      return;
+    }
+
+    const marker = '/storage/v1/object/public/member-avatars/';
+    const path = avatarUrl.includes(marker)
+      ? avatarUrl.split(marker)[1]
+      : null;
+
+    if (!path) {
+      return;
+    }
+
+    const { error } = await this.supabaseService.supabase.storage
+      .from('member-avatars')
+      .remove([path]);
+
+    if (error) {
+      console.error('Error deleting member avatar:', error);
+    }
   }
 
   async createMember(
@@ -142,6 +165,10 @@ export class MemberStateService {
       return null;
     }
 
+    const currentMemberRecord = this.getCurrentMembers().find(
+      (member) => member.id === memberId
+    );
+
     const payload: {
       name: string;
       avatar_url?: string | null;
@@ -152,8 +179,10 @@ export class MemberStateService {
     if (removeAvatar) {
       payload.avatar_url = null;
     }
+
     if (avatarFile) {
       const avatarUrl = await this.uploadMemberAvatar(avatarFile);
+
       if (avatarUrl) {
         payload.avatar_url = avatarUrl;
       }
@@ -171,6 +200,16 @@ export class MemberStateService {
       return null;
     }
 
+    const oldAvatarUrl = currentMemberRecord?.avatar_url;
+    const newAvatarUrl = (data as Member).avatar_url;
+
+    if (
+      oldAvatarUrl &&
+      (removeAvatar || (avatarFile && oldAvatarUrl !== newAvatarUrl))
+    ) {
+      await this.deleteMemberAvatarByUrl(oldAvatarUrl);
+    }
+
     await this.loadMembers();
 
     if (this.getCurrentMember()?.id === memberId) {
@@ -186,4 +225,49 @@ export class MemberStateService {
     const lang: AppLanguage = member.preferred_language || 'en';
     this.languageStateService.setLanguage(lang);
   }
+
+  async deleteMember(member: Member): Promise<{
+    success: boolean;
+    switchedToMember: Member | null;
+  }> {
+    const currentMember = this.getCurrentMember();
+    const wasCurrentMember = currentMember?.id === member.id;
+
+    await this.deleteMemberAvatarByUrl(member.avatar_url);
+
+    const { error } = await this.supabaseService.supabase.rpc(
+      'delete_member',
+      { target_member_id: member.id }
+    );
+
+    if (error) {
+      console.error('Error deleting member:', error);
+
+      return {
+        success: false,
+        switchedToMember: null,
+      };
+    }
+
+    await this.loadMembers();
+
+    if (!wasCurrentMember) {
+      return {
+        success: true,
+        switchedToMember: null,
+      };
+    }
+
+    const nextMember = this.getCurrentMembers()[0] ?? null;
+
+    if (nextMember) {
+      this.setCurrentMember(nextMember);
+    }
+
+    return {
+      success: true,
+      switchedToMember: nextMember,
+    };
+  }
+
 }

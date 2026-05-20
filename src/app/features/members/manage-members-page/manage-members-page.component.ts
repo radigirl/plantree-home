@@ -131,11 +131,6 @@ export class ManageMembersPageComponent implements OnInit {
     }
   }
 
-  onDeleteMember(member: Member): void {
-    this.selectedMemberForEdit = member;
-    this.isDeleteConfirmOpen = true;
-  }
-
   onDeleteMemberFromDialog(): void {
     this.isDeleteConfirmOpen = true;
   }
@@ -146,13 +141,25 @@ export class ManageMembersPageComponent implements OnInit {
 
   async confirmDeleteMember(): Promise<void> {
     const member = this.selectedMemberForEdit;
+
     if (!member) {
       return;
     }
-    console.log('Confirm delete member:', member);
+    const result = await this.memberStateService.deleteMember(member);
+    if (!result.success) {
+      console.error('Could not delete member');
+      this.isDeleteConfirmOpen = false;
+      return;
+    }
     this.isDeleteConfirmOpen = false;
     this.closeMemberDialog();
-    this.showToast(this.languageStateService.t('members.memberDeletedToast'));
+    if (result.switchedToMember) {
+      this.showToast(
+        `${this.languageStateService.t('members.memberDeletedToast')} · ${this.languageStateService.t('members.switchedTo')} ${result.switchedToMember.name}`
+      );
+    } else {
+      this.showToast(this.languageStateService.t('members.memberDeletedToast'));
+    }
   }
 
   showToast(message: string): void {

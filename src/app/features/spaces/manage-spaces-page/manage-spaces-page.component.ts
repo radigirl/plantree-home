@@ -72,11 +72,6 @@ export class ManageSpacesPageComponent implements OnInit {
     this.isSpaceDialogOpen = true;
   }
 
-  onDeleteSpace(space: Space): void {
-    this.selectedSpaceForEdit = space;
-    this.spaceConfirmMode = 'delete';
-  }
-
   closeSpaceDialog(): void {
     this.isSpaceDialogOpen = false;
     this.spaceDialogInitialName = '';
