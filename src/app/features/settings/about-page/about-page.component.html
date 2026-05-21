@@ -1,0 +1,85 @@
+<section class="about-page">
+  <div class="page-header-row">
+    <div class="page-header">
+      <h1 class="page-title">
+        {{ 'about.title' | translate }}
+      </h1>
+
+      <p class="page-subtitle">
+        {{ 'about.subtitle' | translate }}
+      </p>
+    </div>
+  </div>
+
+  <div class="about-content-scroll">
+
+    <div class="about-hero">
+      <img src="assets/logo.png" alt="Plantree" class="about-hero__logo" />
+      <div>
+        <h2>Plantree</h2>
+        <p>{{ 'about.tagline' | translate }}</p>
+      </div>
+    </div>
+    <div class="about-card">
+      <p>
+        {{ 'about.description' | translate }}
+      </p>
+    </div>
+
+    <div class="about-list">
+      <div class="about-row">
+        <span class="about-row__icon">
+          <lucide-icon [img]="planIcon" [size]="22"></lucide-icon>
+        </span>
+        <div>
+          <h3>{{ 'about.benefitPlanningTitle' | translate }}</h3>
+          <p>{{ 'about.benefitPlanningText' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="about-row">
+        <span class="about-row__icon">
+          <lucide-icon [img]="listsIcon" [size]="22"></lucide-icon>
+        </span>
+        <div>
+          <h3>{{ 'about.benefitListsTitle' | translate }}</h3>
+          <p>{{ 'about.benefitListsText' | translate }}</p>
+        </div>
+      </div>
+
+      <div class="about-row">
+        <span class="about-row__icon">
+          <lucide-icon [img]="pantryIcon" [size]="22"></lucide-icon>
+        </span>
+        <div>
+          <h3>{{ 'about.benefitWasteTitle' | translate }}</h3>
+          <p>{{ 'about.benefitWasteText' | translate }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-footer-links">
+
+      <button type="button" class="about-footer-link">
+        <lucide-icon [img]="privacyIcon" [size]="14"></lucide-icon>
+        <span>{{ 'about.privacyPolicy' | translate }}</span>
+      </button>
+
+      <button type="button" class="about-footer-link">
+        <lucide-icon [img]="termsIcon" [size]="14"></lucide-icon>
+        <span>{{ 'about.terms' | translate }}</span>
+      </button>
+
+      <button type="button" class="about-footer-link">
+        <lucide-icon [img]="contactIcon" [size]="14"></lucide-icon>
+        <span>{{ 'about.contact' | translate }}</span>
+      </button>
+
+      <p class="about-footer-copy">
+        {{ 'about.copyright' | translate }}
+      </p>
+
+    </div>
+
+  </div>
+</section>

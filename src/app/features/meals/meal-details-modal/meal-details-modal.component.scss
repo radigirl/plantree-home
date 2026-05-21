@@ -94,10 +94,12 @@
 }
 
 .meal-info {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
+  position: sticky;
+  top: -20px;
+  z-index: 6;
+  margin: -20px -20px 0;
+  padding: 20px 20px 12px;
+  background: rgba(251, 248, 241, 0.98);
 }
 
 .meal-title-block {

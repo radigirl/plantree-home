@@ -492,10 +492,6 @@ export const en = {
     ingredientRules: 'Ingredient Rules',
     ingredientRulesSubtitle: 'Manage how Plantree matches and converts ingredients',
   },
-  about: {
-    title: 'About',
-    subtitle: 'Learn more about Plantree',
-  },
   notifications: {
     title: 'Notifications',
     subtitle: 'View reminders, updates, and app activity',
@@ -556,5 +552,21 @@ export const en = {
     warning: 'Deleting a meal removes it from all members and from past and future meal plans.',
     confirmTitle: 'Delete meal permanently?',
     confirmMessage: 'This meal will be removed from all members and all planned days. Its image will also be deleted. This cannot be undone.',
+  },
+  about: {
+    title: 'About',
+    subtitle: 'A little about Plantree.',
+    tagline: 'From plan to pantry',
+    description: 'Plantree helps families plan meals, create grocery lists, and keep pantry items organized together.',
+    benefitPlanningTitle: 'Easier weekly planning',
+    benefitPlanningText: 'Organize your meals throughout the week.',
+    benefitListsTitle: 'Fewer forgotten groceries',
+    benefitListsText: 'Turn meals into organized shopping lists.',
+    benefitWasteTitle: 'Less food waste',
+    benefitWasteText: 'Keep track of what you already have at home.',
+    privacyPolicy: 'Privacy Policy',
+    terms: 'Terms of Use',
+    contact: 'Contact Support',
+    copyright: '© 2026 Plantree',
   },
 };

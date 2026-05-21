@@ -19,7 +19,8 @@
     <button type="button" class="delete-meals-row" *ngFor="let meal of meals" (click)="onMealClick(meal)">
 
       <div class="delete-meals-row__image">
-        <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name">
+        <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name"
+          (error)="meal.image_url = undefined">
       </div>
 
       <div class="delete-meals-row__content">

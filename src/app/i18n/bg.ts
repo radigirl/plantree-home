@@ -492,10 +492,6 @@ export const bg = {
     ingredientRules: 'Правила за продукти',
     ingredientRulesSubtitle: 'Управлявай как Plantree разпознава и преобразува продуктите',
   },
-  about: {
-    title: 'За приложението',
-    subtitle: 'Научи повече за Plantree',
-  },
   notifications: {
     title: 'Известия',
     subtitle: 'Преглеждай напомняния, актуализации и активност',
@@ -556,5 +552,21 @@ export const bg = {
     warning: 'Изтриването премахва ястието от всички членове и от минали и бъдещи планове.',
     confirmTitle: 'Да изтрия ли ястието завинаги?',
     confirmMessage: 'Ястието ще бъде премахнато от всички членове и всички планирани дни. Снимката му също ще бъде изтрита. Действието не може да бъде отменено.',
+  },
+  about: {
+    title: 'Относно',
+    subtitle: 'Малко повече за Plantree.',
+    tagline: 'From plan to pantry',
+    description: 'Plantree помага на семействата да планират ястия, да създават списъци за пазаруване и да подреждат продуктите у дома.',
+    benefitPlanningTitle: 'По-лесно седмично планиране',
+    benefitPlanningText: 'Организирай храненията си през седмицата.',
+    benefitListsTitle: 'По-малко забравени покупки',
+    benefitListsText: 'Превръщай ястията в подредени списъци за пазаруване.',
+    benefitWasteTitle: 'По-малко изхвърлена храна',
+    benefitWasteText: 'Следи какво вече имаш у дома.',
+    privacyPolicy: 'Политика за поверителност',
+    terms: 'Общи условия',
+    contact: 'Контакт',
+    copyright: '© 2026 Plantree',
   },
 };
