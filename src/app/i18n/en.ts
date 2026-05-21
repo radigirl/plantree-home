@@ -484,7 +484,7 @@ export const en = {
     account: 'Account',
     members: 'Members',
     spaces: 'Spaces',
-    meals: 'Meals',
+    deleteMeals: 'Delete Meals',
     rules: 'Ingredient Rules',
     editProfile: 'Edit profile',
     deleteAccount: 'Delete account',
@@ -549,5 +549,12 @@ export const en = {
     overrideConfirmMessage: 'A rule for this already exists. Do you want to replace it?',
     overrideConfirmButton: 'Replace',
     ruleUpdated: 'Rule updated',
+  },
+  deleteMeals: {
+    title: 'Delete Meals',
+    subtitle: 'Permanently remove meals from Plantree.',
+    warning: 'Deleting a meal removes it from all members and from past and future meal plans.',
+    confirmTitle: 'Delete meal permanently?',
+    confirmMessage: 'This meal will be removed from all members and all planned days. Its image will also be deleted. This cannot be undone.',
   },
 };

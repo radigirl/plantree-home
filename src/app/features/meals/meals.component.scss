@@ -318,7 +318,6 @@
   gap: 2px;
   min-width: 0;
   flex: 1;
-  gap: 0;
 }
 
 .meal-search-result__title {
@@ -333,9 +332,10 @@
 }
 
 .meal-search-result__meta {
-  font-size: 0.82rem;
-  color: rgba($color-text-muted, 0.75);
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .meal-search-result__menu-wrapper {
@@ -701,7 +701,7 @@
   }
 
   .meal-search-result__meta {
-    font-size: 11px;
+    gap: 5px;
   }
 
   .meal-search-result__menu {
@@ -777,7 +777,7 @@
     padding-bottom: 16px;
   }
 
-   .desktop-add-to-plan-overlay {
+  .desktop-add-to-plan-overlay {
     align-items: flex-end;
     padding: 0;
   }

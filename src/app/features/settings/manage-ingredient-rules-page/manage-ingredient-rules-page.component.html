@@ -100,12 +100,12 @@
 
 <div *ngIf="ruleConfirm" class="rule-confirmation-backdrop" (click)="cancelRuleConfirm()">
   <div class="rule-confirmation-dialog-wrap" (click)="$event.stopPropagation()">
-    <app-confirmation-dialog [title]="ruleConfirm?.action === 'override'
+    <app-confirmation-dialog [title]="ruleConfirm.action === 'override'
     ? ('ingredientRulesPage.overrideConfirmTitle' | translate)
-    : ('ingredientRulesPage.deleteConfirmTitle' | translate)" [message]="ruleConfirm?.action === 'override'
+    : ('ingredientRulesPage.deleteConfirmTitle' | translate)" [message]="ruleConfirm.action === 'override'
     ? ('ingredientRulesPage.overrideConfirmMessage' | translate)
     : ('ingredientRulesPage.deleteConfirmMessage' | translate)" [cancelLabel]="'common.cancel' | translate"
-      [confirmLabel]="ruleConfirm?.action === 'override'
+      [confirmLabel]="ruleConfirm.action === 'override'
     ? ('ingredientRulesPage.overrideConfirmButton' | translate)
     : ('common.delete' | translate)" (cancel)="cancelRuleConfirm()" (confirm)="confirmRuleAction()">
     </app-confirmation-dialog>

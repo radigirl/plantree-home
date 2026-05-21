@@ -44,9 +44,23 @@
                 {{ meal.name }}
               </span>
 
-              <span class="meal-time" *ngIf="meal.prepTime != null">
-                {{ meal.prepTime }} min
-              </span>
+              <div class="meal-search-result__meta">
+                <span class="meal-time" *ngIf="meal.prepTime != null">
+                  <lucide-icon [img]="clock3Icon" [size]="12" [strokeWidth]="1.5" class="meal-time-icon">
+                  </lucide-icon>
+
+                  {{ meal.prepTime }} min
+                </span>
+
+                <span class="meal-info-chip" *ngIf="meal.ingredients?.length as ingredientsCount">
+                  {{ ingredientsCount }}
+                  {{
+                  ingredientsCount === 1
+                  ? ('meals.ingredient' | translate)
+                  : ('meals.ingredients' | translate)
+                  }}
+                </span>
+              </div>
             </div>
 
             <div class="meal-search-result__menu-wrapper" (click)="$event.stopPropagation()">
@@ -168,7 +182,8 @@
   [actions]="mealActionSheetMode === 'actions' ? mealActions : addToPlanActions" (closed)="closeMealMenu()"
   (actionSelected)="onMealActionSelected($event)"></app-responsive-action-menu>
 
-<div class="desktop-add-to-plan-overlay" *ngIf="selectedMealForActions && mealActionSheetMode === 'addToPlan'" (click)="closeMealMenu()">
+<div class="desktop-add-to-plan-overlay" *ngIf="selectedMealForActions && mealActionSheetMode === 'addToPlan'"
+  (click)="closeMealMenu()">
   <div class="desktop-add-to-plan-modal" (click)="$event.stopPropagation()">
     <div class="desktop-add-to-plan-header">
       <img [src]="selectedMealForActions.image_url || 'assets/meals/default-meal.png'"

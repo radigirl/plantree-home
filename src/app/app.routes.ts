@@ -13,6 +13,7 @@ import { NotificationsComponent } from './features/notifications/notifications.c
 import { ManageSpacesPageComponent } from './features/spaces/manage-spaces-page/manage-spaces-page.component';
 import { ManageMembersPageComponent } from './features/members/manage-members-page/manage-members-page.component';
 import { ManageIngredientRulesPageComponent } from './features/settings/manage-ingredient-rules-page/manage-ingredient-rules-page.component';
+import { DeleteMealsPageComponent } from './features/settings/delete-meals-page/delete-meals-page.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -30,5 +31,6 @@ export const routes: Routes = [
   { path: 'notifications', component: NotificationsComponent },
   { path: 'settings/spaces', component: ManageSpacesPageComponent },
   { path: 'settings/members', component: ManageMembersPageComponent },
-  { path: 'settings/ingredient-rules', component: ManageIngredientRulesPageComponent }
+  { path: 'settings/ingredient-rules', component: ManageIngredientRulesPageComponent },
+  { path: 'settings/delete-meals', component: DeleteMealsPageComponent }
 ];

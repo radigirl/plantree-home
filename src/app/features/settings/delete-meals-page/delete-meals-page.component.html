@@ -1,0 +1,62 @@
+<section class="delete-meals-page">
+  <div class="page-header-row">
+    <div class="page-header">
+      <h1 class="page-title">
+        {{ 'deleteMeals.title' | translate }}
+      </h1>
+
+      <p class="page-subtitle">
+        {{ 'deleteMeals.subtitle' | translate }}
+      </p>
+    </div>
+  </div>
+
+  <div class="delete-meals-warning">
+    {{ 'deleteMeals.warning' | translate }}
+  </div>
+
+  <div class="delete-meals-list">
+    <button type="button" class="delete-meals-row" *ngFor="let meal of meals" (click)="onMealClick(meal)">
+
+      <div class="delete-meals-row__image">
+        <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name">
+      </div>
+
+      <div class="delete-meals-row__content">
+        <span class="delete-meals-row__name">
+          {{ meal.name }}
+        </span>
+
+        <div class="delete-meals-row__meta">
+          <span class="meal-time" *ngIf="meal.prepTime != null">
+            <lucide-icon [img]="clock3Icon" [size]="12" [strokeWidth]="1.5" class="meal-time-icon">
+            </lucide-icon>
+
+            {{ meal.prepTime }} min
+          </span>
+
+          <span class="meal-info-chip" *ngIf="meal.ingredients?.length as ingredientsCount">
+            {{ ingredientsCount }}
+            {{
+            ingredientsCount === 1
+            ? ('meals.ingredient' | translate)
+            : ('meals.ingredients' | translate)
+            }}
+          </span>
+        </div>
+      </div>
+    </button>
+  </div>
+</section>
+
+<div *ngIf="selectedMeal" class="delete-meals-confirmation-backdrop" (click)="cancelDelete()">
+  <div class="delete-meals-confirmation-wrap" (click)="$event.stopPropagation()">
+    <app-confirmation-dialog [title]="'deleteMeals.confirmTitle' | translate"
+      [message]="'deleteMeals.confirmMessage' | translate" [cancelLabel]="'common.cancel' | translate"
+      [confirmLabel]="'common.delete' | translate" (cancel)="cancelDelete()" (confirm)="confirmDelete()">
+    </app-confirmation-dialog>
+  </div>
+</div>
+
+<app-snackbar [message]="toastMessage" [isVisible]="isToastVisible">
+</app-snackbar>
