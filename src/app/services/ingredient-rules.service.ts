@@ -33,7 +33,7 @@ export interface MeasurementRuleRow {
   providedIn: 'root',
 })
 export class IngredientRulesService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private supabaseService: SupabaseService) { }
 
   private get supabase() {
     return this.supabaseService.supabase;
@@ -76,72 +76,102 @@ export class IngredientRulesService {
     const { data, error } = await this.supabase
       .from('ingredient_word_rules')
       .select('*')
-      .eq('space_id', spaceId);
+      .eq('space_id', spaceId)
+      .order('singular_text', { ascending: true });
 
     if (error) {
       console.error('Error loading ingredient word rules:', error);
       return [];
     }
 
-    return data ?? [];
+    return (data ?? []) as IngredientWordRule[];
   }
 
   async saveMeasurementRule(rule: MeasurementRulePayload): Promise<void> {
-  const { error } = await this.supabase
-    .from('ingredient_measurement_rules')
-    .upsert(
-      {
-        space_id: rule.spaceId,
-        ingredient_name: rule.ingredientName,
-        measurement_style: rule.measurementStyle,
-        converted_amount: rule.convertedAmount,
-        converted_unit: rule.convertedUnit,
-      },
-      {
-        onConflict: 'space_id,ingredient_name,measurement_style',
-      }
-    );
+    const { error } = await this.supabase
+      .from('ingredient_measurement_rules')
+      .upsert(
+        {
+          space_id: rule.spaceId,
+          ingredient_name: rule.ingredientName,
+          measurement_style: rule.measurementStyle,
+          converted_amount: rule.convertedAmount,
+          converted_unit: rule.convertedUnit,
+        },
+        {
+          onConflict: 'space_id,ingredient_name,measurement_style',
+        }
+      );
 
-  if (error) {
-    console.error('Error saving measurement rule:', error);
-    throw error;
-  }
-}
-
-async getMeasurementRules(spaceId: string): Promise<MeasurementRuleRow[]> {
-  const { data, error } = await this.supabase
-    .from('ingredient_measurement_rules')
-    .select('*')
-    .eq('space_id', spaceId)
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.error('Error loading measurement rules:', error);
-    return [];
+    if (error) {
+      console.error('Error saving measurement rule:', error);
+      throw error;
+    }
   }
 
-  return (data ?? []) as MeasurementRuleRow[];
-}
+  async getMeasurementRules(spaceId: string): Promise<MeasurementRuleRow[]> {
+    const { data, error } = await this.supabase
+      .from('ingredient_measurement_rules')
+      .select('*')
+      .eq('space_id', spaceId)
+      .order('ingredient_name', { ascending: true })
+      .order('measurement_style', { ascending: true });
 
-async getMeasurementRule(
-  spaceId: string,
-  ingredientName: string,
-  measurementStyle: string
-): Promise<MeasurementRuleRow | null> {
-  const { data, error } = await this.supabase
-    .from('ingredient_measurement_rules')
-    .select('*')
-    .eq('space_id', spaceId)
-    .eq('ingredient_name', ingredientName)
-    .eq('measurement_style', measurementStyle)
-    .maybeSingle();
+    if (error) {
+      console.error('Error loading measurement rules:', error);
+      return [];
+    }
 
-  if (error) {
-    console.error('Error loading measurement rule:', error);
-    return null;
+    return (data ?? []) as MeasurementRuleRow[];
   }
 
-  return (data as MeasurementRuleRow | null) ?? null;
-}
+  async getMeasurementRule(
+    spaceId: string,
+    ingredientName: string,
+    measurementStyle: string
+  ): Promise<MeasurementRuleRow | null> {
+    const { data, error } = await this.supabase
+      .from('ingredient_measurement_rules')
+      .select('*')
+      .eq('space_id', spaceId)
+      .eq('ingredient_name', ingredientName)
+      .eq('measurement_style', measurementStyle)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error loading measurement rule:', error);
+      return null;
+    }
+
+    return (data as MeasurementRuleRow | null) ?? null;
+  }
+
+  async deleteWordRule(ruleId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('ingredient_word_rules')
+      .delete()
+      .eq('id', ruleId);
+
+    if (error) {
+      console.error('Error deleting word rule:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async deleteMeasurementRule(ruleId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('ingredient_measurement_rules')
+      .delete()
+      .eq('id', ruleId);
+
+    if (error) {
+      console.error('Error deleting measurement rule:', error);
+      return false;
+    }
+
+    return true;
+  }
 
 }

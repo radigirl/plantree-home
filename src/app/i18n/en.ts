@@ -541,5 +541,13 @@ export const en = {
     measurementTsp: 'Tsp',
     unitGram: 'g',
     unitMilliliter: 'ml',
+    ruleSaved: 'Rule saved',
+    ruleDeleted: 'Rule deleted',
+    deleteConfirmTitle: 'Delete rule?',
+    deleteConfirmMessage: 'This rule will be removed.',
+    overrideConfirmTitle: 'Replace existing rule?',
+    overrideConfirmMessage: 'A rule for this already exists. Do you want to replace it?',
+    overrideConfirmButton: 'Replace',
+    ruleUpdated: 'Rule updated',
   },
 };

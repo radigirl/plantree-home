@@ -74,3 +74,10 @@
 .ingredient-rule-dialog__actions {
   margin-top: 22px;
 }
+
+.ingredient-rule-dialog__hint {
+  margin: 8px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  color: rgba($color-primary-dark, 0.62);
+}

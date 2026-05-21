@@ -541,5 +541,13 @@ export const bg = {
     measurementTsp: 'ч.л.',
     unitGram: 'g',
     unitMilliliter: 'ml',
+    ruleSaved: 'Правилото е запазено',
+    ruleDeleted: 'Правилото е изтрито',
+    deleteConfirmTitle: 'Да изтрия ли правилото?',
+    deleteConfirmMessage: 'Това правило ще бъде премахнато.',
+    overrideConfirmTitle: 'Да заменя ли съществуващото правило?',
+    overrideConfirmMessage: 'Вече има правило за това. Искаш ли да го замениш?',
+    overrideConfirmButton: 'Замени',
+    ruleUpdated: 'Правилото е обновено',
   },
 };

@@ -97,3 +97,20 @@
   [initialConvertedUnit]="selectedMeasurementRule?.converted_unit || 'g'" (closed)="closeRuleDialog()"
   (saved)="onRuleDialogSave($event)" (deleteRule)="onRuleDialogDelete()">
 </app-ingredient-rule-dialog>
+
+<div *ngIf="ruleConfirm" class="rule-confirmation-backdrop" (click)="cancelRuleConfirm()">
+  <div class="rule-confirmation-dialog-wrap" (click)="$event.stopPropagation()">
+    <app-confirmation-dialog [title]="ruleConfirm?.action === 'override'
+    ? ('ingredientRulesPage.overrideConfirmTitle' | translate)
+    : ('ingredientRulesPage.deleteConfirmTitle' | translate)" [message]="ruleConfirm?.action === 'override'
+    ? ('ingredientRulesPage.overrideConfirmMessage' | translate)
+    : ('ingredientRulesPage.deleteConfirmMessage' | translate)" [cancelLabel]="'common.cancel' | translate"
+      [confirmLabel]="ruleConfirm?.action === 'override'
+    ? ('ingredientRulesPage.overrideConfirmButton' | translate)
+    : ('common.delete' | translate)" (cancel)="cancelRuleConfirm()" (confirm)="confirmRuleAction()">
+    </app-confirmation-dialog>
+  </div>
+</div>
+
+<app-snackbar [message]="toastMessage" [isVisible]="isToastVisible">
+</app-snackbar>

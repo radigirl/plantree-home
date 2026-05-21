@@ -133,6 +133,22 @@
   }
 }
 
+.rule-confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.rule-confirmation-dialog-wrap {
+  width: 100%;
+  max-width: 420px;
+}
+
 @include mobile {
   .manage-ingredient-rules-page {
     gap: 16px;
