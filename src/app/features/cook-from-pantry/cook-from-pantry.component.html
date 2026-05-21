@@ -39,11 +39,11 @@
 
   <!-- LIST -->
   <div class="cook-from-pantry-list" *ngIf="emptyState === 'none' && sortedMeals.length > 0">
-    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals"
-      (click)="openInfoSheet($event, meal)">
+    <article class="cook-from-pantry-card" *ngFor="let meal of sortedMeals" (click)="openInfoSheet($event, meal)">
       <!-- IMAGE -->
       <div class="cook-from-pantry-card__image">
-        <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+        <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name"
+          (error)="meal.image_url = undefined" />
       </div>
 
       <!-- CONTENT -->
@@ -106,19 +106,17 @@
     <app-toggle-switch [options]="[
   { label: ('meals.singleDay' | translate), value: 'single' },
   { label: ('meals.multipleDays' | translate), value: 'multiple' }
-]" [value]="calendarSelectionMode" (valueChange)="setCalendarSelectionMode($event === 'multiple' ? 'multiple' : 'single')">
+]" [value]="calendarSelectionMode"
+      (valueChange)="setCalendarSelectionMode($event === 'multiple' ? 'multiple' : 'single')">
     </app-toggle-switch>
 
-    <app-calendar-picker
-      [title]="getAddToPlanTitle(selectedMeal.name)"
-      [selectionMode]="calendarSelectionMode" [selectedDates]="selectedPlanDates" [disablePastDates]="true"
-      [showFooterActions]="true" (selectedDatesChange)="onCalendarDatesChange($event)"
-      (confirm)="confirmPickedDates($event)" (cancel)="closePickDate()">
+    <app-calendar-picker [title]="getAddToPlanTitle(selectedMeal.name)" [selectionMode]="calendarSelectionMode"
+      [selectedDates]="selectedPlanDates" [disablePastDates]="true" [showFooterActions]="true"
+      (selectedDatesChange)="onCalendarDatesChange($event)" (confirm)="confirmPickedDates($event)"
+      (cancel)="closePickDate()">
     </app-calendar-picker>
   </div>
 </div>
 
-<app-snackbar
-  [isVisible]="!!toastMessage"
-  [message]="toastMessage || ''">
+<app-snackbar [isVisible]="!!toastMessage" [message]="toastMessage || ''">
 </app-snackbar>

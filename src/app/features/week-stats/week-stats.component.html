@@ -38,7 +38,7 @@
           <p class="hero-meta">
             <ng-container *ngIf="isTie; else singleWinnerMeta">
               {{ winnerCount }}
-             {{ winnerCount === 1 ? ('weekStats.mealEach' | translate) : ('weekStats.mealsEach' | translate) }}
+              {{ winnerCount === 1 ? ('weekStats.mealEach' | translate) : ('weekStats.mealsEach' | translate) }}
             </ng-container>
             <ng-template #singleWinnerMeta>
               {{ winnerCount }}
@@ -52,7 +52,7 @@
           <h3 class="section-title hero-title">
             <lucide-icon [img]="emptyChefIcon" [size]="16" class="hero-title-icon"></lucide-icon>
 
-           {{ 'weekStats.chefOfTheWeek' | translate }}
+            {{ 'weekStats.chefOfTheWeek' | translate }}
           </h3>
 
           <h2 class="hero-name">
@@ -107,7 +107,8 @@
         </p>
 
         <div class="meal-row meal-row--rich" *ngFor="let meal of cookedMeals">
-          <img class="meal-thumb" [src]="meal.imageUrl || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+          <img class="meal-thumb" [src]="meal.imageUrl || 'assets/meals/default-meal.png'" [alt]="meal.name"
+            (error)="meal.imageUrl = undefined" />
 
           <div class="meal-row-main">
             <span class="meal-name">{{ meal.name }}</span>
@@ -124,7 +125,8 @@
                 </span>
               </ng-template>
 
-              {{ meal.cook ? (('weekStats.cookedBy' | translate) + ' ' + meal.cook) : ('weekStats.noCookAssigned' | translate) }}
+              {{ meal.cook ? (('weekStats.cookedBy' | translate) + ' ' + meal.cook) : ('weekStats.noCookAssigned' |
+              translate) }}
             </span>
           </div>
         </div>

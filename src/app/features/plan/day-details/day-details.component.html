@@ -124,7 +124,7 @@
 
           <div class="meal-image">
             <img [src]="meal.meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img"
-              [alt]="meal.meal.name || ('home.mealImageAlt' | translate)" />
+              [alt]="meal.meal.name || ('home.mealImageAlt' | translate)" (error)="meal.meal.image_url = undefined" />
           </div>
         </div>
       </div>

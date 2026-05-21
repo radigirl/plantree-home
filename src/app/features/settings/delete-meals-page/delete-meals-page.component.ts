@@ -41,12 +41,15 @@ export class DeleteMealsPageComponent {
   }
 
   async loadMeals(): Promise<void> {
-    try {
-      this.meals = await this.mealsService.getAllMeals();
-    } catch (error) {
-      console.error('Error loading meals:', error);
-    }
+  try {
+    this.meals = await this.mealsService.getAllMeals();
+  } catch (error) {
+    console.error('Error loading meals:', error);
+    this.meals = [];
+  } finally {
+    this.cdr.detectChanges();
   }
+}
 
   onMealClick(meal: Meal): void {
     this.selectedMeal = meal;

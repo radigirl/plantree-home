@@ -35,7 +35,8 @@
         <button type="button" class="meal-search-result" *ngFor="let meal of filteredMeals; trackBy: trackByMealId"
           (click)="openSearchMealDetails(meal)">
           <div class="meal-search-result__image">
-            <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name" />
+            <img [src]="meal.image_url || 'assets/meals/default-meal.png'" [alt]="meal.name"
+              (error)="meal.image_url = undefined" />
           </div>
 
           <div class="meal-search-result__content">
@@ -163,7 +164,8 @@
             </div>
 
             <div class="meal-image">
-              <img [src]="meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name" />
+              <img [src]="meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name"
+                (error)="meal.image_url = undefined" />
             </div>
           </div>
         </div>
@@ -187,8 +189,7 @@
   <div class="desktop-add-to-plan-modal" (click)="$event.stopPropagation()">
     <div class="desktop-add-to-plan-header">
       <img [src]="selectedMealForActions.image_url || 'assets/meals/default-meal.png'"
-        [alt]="selectedMealForActions.name" />
-
+        [alt]="selectedMealForActions.name" (error)="selectedMealForActions.image_url = undefined" />
       <div>
         <h3>{{ 'meals.addToPlan' | translate }}</h3>
         <p>{{ selectedMealForActions.name }}</p>

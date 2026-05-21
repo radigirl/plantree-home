@@ -44,6 +44,20 @@
   background: transparent;
   cursor: pointer;
   text-align: left;
+
+  appearance: none;
+  font: inherit;
+
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+  }
 }
 
 .delete-meals-row:last-child {
@@ -116,6 +130,9 @@
 .delete-meals-confirmation-wrap {
   width: 100%;
   max-width: 420px;
+
+  -webkit-tap-highlight-color: transparent;
+  transform: translateZ(0);
 }
 
 @include mobile {

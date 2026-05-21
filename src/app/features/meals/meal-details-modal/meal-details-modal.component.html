@@ -33,14 +33,15 @@
         </div>
 
         <div class="meal-image">
-          <img [src]="meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name" />
+          <img [src]="meal.image_url || 'assets/meals/default-meal.png'" class="meal-image-img" [alt]="meal.name"
+            (error)="meal.image_url = undefined" />
         </div>
       </div>
 
       <div class="meal-expanded">
         <div class="meal-expanded-content">
           <p class="meal-ingredients-empty" *ngIf="!meal.ingredients?.length && !meal.instructions">
-           {{ 'mealDetails.noDetails' | translate }}
+            {{ 'mealDetails.noDetails' | translate }}
           </p>
 
           <ng-container *ngIf="meal.ingredients?.length || meal.instructions">
@@ -49,7 +50,7 @@
 
               <ul class="meal-ingredients-list" *ngIf="meal.ingredients?.length">
                 <li *ngFor="let ingredient of meal.ingredients">
-                 {{ getDisplayIngredientName(ingredient) }}
+                  {{ getDisplayIngredientName(ingredient) }}
                 </li>
               </ul>
 
