@@ -261,6 +261,12 @@
   color: #c85050;
 }
 
+.missing-amount {
+  color: rgba(0, 0, 0, 0.42);
+  font-size: 12px;
+  font-weight: 500;
+}
+
 @include mobile {
   .cook-from-pantry-page {
     margin-left: -8px;

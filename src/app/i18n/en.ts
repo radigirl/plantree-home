@@ -240,8 +240,9 @@ export const en = {
     singleDay: 'Single day',
     multipleDays: 'Multiple days',
     addMealToPlan: 'Add "{{name}}" to plan',
-    addToPlanPrefix: 'Добави',
-    addToPlanSuffix: 'към плана',
+    addToPlanPrefix: 'Add',
+    addToPlanSuffix: 'to plan',
+    youHave: 'you have',
   },
   weekStats: {
     title: 'Week Stats',

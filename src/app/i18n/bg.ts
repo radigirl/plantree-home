@@ -240,8 +240,9 @@ export const bg = {
     singleDay: 'Един ден',
     multipleDays: 'Няколко дни',
     addMealToPlan: 'Добави „{{name}}“ към плана',
-    addToPlanPrefix: 'Add',
-    addToPlanSuffix: 'to plan',
+     addToPlanPrefix: 'Добави',
+    addToPlanSuffix: 'към плана',
+    youHave: 'имаш',
   },
   weekStats: {
     title: 'Седмична статистика',

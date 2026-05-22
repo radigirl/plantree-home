@@ -39,6 +39,8 @@ import {
 } from '../../services/ingredient-rules.service';
 import { normalizeIngredientKey } from '../../shared/utils/ingredient.util';
 import { Clock3, LucideAngularModule } from 'lucide-angular';
+import { parseLeadingNumberIngredient } from '../../shared/utils/ingredient.util';
+import { convertToBaseUnit, normalizeUnit } from '../../shared/utils/unit.util';
 
 type EmptyState =
   | 'none'
@@ -206,19 +208,21 @@ export class CookFromPantryComponent
         let realMatchedCount = 0;
 
         normalizedIngredients.forEach((ingredient) => {
-          const isRealMatch = pantryItems.some((item) =>
-            this.isIngredientNameMatch(item.name || item.normalized_name || '', ingredient)
+          const hasEnoughRealMatch = pantryItems.some((item) =>
+            this.isIngredientNameMatch(item.name || item.normalized_name || '', ingredient) &&
+            this.isIngredientEnough(ingredient, item)
           );
 
-          const isAlwaysMatch = alwaysPresentItems.some((item) =>
-            this.isIngredientNameMatch(item.name || item.normalized_name || '', ingredient)
+          const hasEnoughAlwaysMatch = alwaysPresentItems.some((item) =>
+            this.isIngredientNameMatch(item.name || item.normalized_name || '', ingredient) &&
+            this.isIngredientEnough(ingredient, item)
           );
 
-          if (isRealMatch || isAlwaysMatch) {
+          if (hasEnoughRealMatch || hasEnoughAlwaysMatch) {
             matchedCount++;
           }
 
-          if (isRealMatch) {
+          if (hasEnoughRealMatch) {
             realMatchedCount++;
           }
         });
@@ -279,10 +283,111 @@ export class CookFromPantryComponent
     return this.matchesWordRule(a, b) || isIngredientMatch(a, b);
   }
 
-  isIngredientAvailable(ingredient: string): boolean {
-    return this.availableItems.some((item) =>
-      this.isIngredientNameMatch(item.name || item.normalized_name || '', ingredient)
+  private isIngredientEnough(
+    ingredient: string,
+    item: PantryItem | AlwaysPresentPantryItem
+  ): boolean {
+    const recipeParsed = parseLeadingNumberIngredient(ingredient);
+    // Recipe has no quantity → name match is enough
+    if (!recipeParsed) {
+      return true;
+    }
+    // Pantry has no useful quantity → name match is enough
+    const itemAmount = 'amount' in item ? item.amount ?? null : null;
+    const itemUnit = 'unit' in item ? item.unit ?? null : null;
+    const itemSizeAmount = 'size_amount' in item ? item.size_amount ?? null : null;
+    const itemSizeUnit = 'size_unit' in item ? item.size_unit ?? null : null;
+    if (!itemAmount) {
+      return true;
+    }
+    // Count comparison: 6 яйца vs pantry яйце amount 1
+    if (!recipeParsed.unit && itemUnit === 'item') {
+      return itemAmount >= recipeParsed.amount;
+    }
+    // Measured comparison: 300 г брашно vs pantry брашно 500 г
+    if (recipeParsed.unit && itemSizeAmount && itemSizeUnit) {
+      const recipeBase = convertToBaseUnit(recipeParsed.amount, recipeParsed.unit);
+      const pantryUnit = normalizeUnit(itemSizeUnit);
+      const pantryBase = pantryUnit
+        ? convertToBaseUnit(itemAmount * itemSizeAmount, pantryUnit)
+        : null;
+      if (!recipeBase || !pantryBase || recipeBase.unit !== pantryBase.unit) {
+        return true;
+      }
+      return pantryBase.amount >= recipeBase.amount;
+    }
+    // If we cannot compare safely → assume available
+    return true;
+  }
+
+  getAvailableAmountText(
+    ingredient: string
+  ): string | null {
+    const recipeParsed = parseLeadingNumberIngredient(ingredient);
+
+    if (!recipeParsed) {
+      return null;
+    }
+    const matchedItem = this.availableItems.find((item) => {
+      const itemName = item.name || item.normalized_name || '';
+
+      return this.isIngredientNameMatch(itemName, ingredient);
+    });
+
+    if (!matchedItem) {
+      return null;
+    }
+    const itemAmount =
+      'amount' in matchedItem ? matchedItem.amount ?? null : null;
+
+    const itemUnit =
+      'unit' in matchedItem ? matchedItem.unit ?? null : null;
+
+    const itemSizeAmount =
+      'size_amount' in matchedItem
+        ? matchedItem.size_amount ?? null
+        : null;
+
+    const itemSizeUnit =
+      'size_unit' in matchedItem
+        ? matchedItem.size_unit ?? null
+        : null;
+
+    if (!itemAmount) {
+      return null;
+    }
+    // Count items
+    if (!recipeParsed.unit && itemUnit === 'item') {
+      return `${itemAmount}`;
+    }
+    // Measured items
+    if (recipeParsed.unit && itemSizeAmount && itemSizeUnit) {
+      const total = itemAmount * itemSizeAmount;
+      return `${total} ${itemSizeUnit}`;
+    }
+    return null;
+  }
+
+  isIngredientInsufficient(ingredient: string): boolean {
+    const hasNameMatch = this.availableItems.some((item) =>
+      this.isIngredientNameMatch(
+        item.name || item.normalized_name || '',
+        ingredient
+      )
     );
+
+    return hasNameMatch && !this.isIngredientAvailable(ingredient);
+  }
+
+  isIngredientAvailable(ingredient: string): boolean {
+    return this.availableItems.some((item) => {
+      const itemName = item.name || item.normalized_name || '';
+
+      return (
+        this.isIngredientNameMatch(itemName, ingredient) &&
+        this.isIngredientEnough(ingredient, item)
+      );
+    });
   }
 
   openAddMenu(meal: CookFromPantryMeal): void {
