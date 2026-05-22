@@ -849,6 +849,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       amount: parsed.amount,
       unit: parsed.unit,
       pantryName: parsed.name,
+      sizeAmount: null,
+      sizeUnit: null,
     };
   }
 

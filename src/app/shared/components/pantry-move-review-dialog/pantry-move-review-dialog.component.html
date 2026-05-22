@@ -19,36 +19,72 @@
           <button type="button" class="pantry-review-row__preview" (click)="toggleRow(row)">
             {{ getPreviewText(row) }}
           </button>
+
+          <div class="pantry-review-row__mode-toggle" *ngIf="isRowExpanded(row)">
+            <button type="button" [class.is-active]="getRowMode(row) === 'measured'">
+              {{ 'pantryMoveReview.modeMeasured' | translate }}
+            </button>
+
+            <button type="button" [class.is-active]="getRowMode(row) === 'countable'">
+              {{ 'pantryMoveReview.modeCountable' | translate }}
+            </button>
+
+            <button type="button" [class.is-active]="getRowMode(row) === 'simple'">
+              —
+            </button>
+          </div>
         </div>
 
         <div class="pantry-review-row__editor" *ngIf="isRowExpanded(row)">
-          <div class="pantry-review-row__quantity">
-            <input type="text" [ngModel]="row.amount ?? '?'"
-              (ngModelChange)="row.amount = $event === '?' || $event === '' ? null : +$event" placeholder="?" />
+          <div class="pantry-review-row__fields">
 
-            <select *ngIf="row.moveAs === 'measured'" [(ngModel)]="row.unit">
-              <option value="g">g</option>
-              <option value="kg">kg</option>
-              <option value="ml">ml</option>
-              <option value="l">l</option>
-            </select>
+            <!-- measured -->
+            <ng-container *ngIf="getRowMode(row) === 'measured'">
 
-            <select *ngIf="row.moveAs === 'countable'" [(ngModel)]="row.unit">
-              <option [ngValue]="null">-</option>
-            </select>
+              <div class="pantry-review-row__quantity">
+                <input type="text" [(ngModel)]="row.amount"
+                  [placeholder]="'pantryMoveReview.amountPlaceholder' | translate" />
+
+                <select [(ngModel)]="row.unit">
+                  <option value="g">g</option>
+                  <option value="kg">kg</option>
+                  <option value="ml">ml</option>
+                  <option value="l">l</option>
+                </select>
+              </div>
+
+              <input type="text" [(ngModel)]="row.pantryName"
+                [placeholder]="'pantryMoveReview.namePlaceholder' | translate" />
+            </ng-container>
+
+            <!-- countable -->
+            <ng-container *ngIf="getRowMode(row) === 'countable'">
+
+              <input type="text" [(ngModel)]="row.amount"
+                [placeholder]="'pantryMoveReview.countPlaceholder' | translate" />
+
+              <input type="text" [(ngModel)]="row.sizeAmount"
+                [placeholder]="'pantryMoveReview.sizePlaceholder' | translate" />
+
+              <select required [(ngModel)]="row.sizeUnit">
+                <option [ngValue]="null">
+                  {{ 'pantryMoveReview.unitPlaceholder' | translate }}
+                </option>
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+                <option value="ml">ml</option>
+                <option value="l">l</option>
+              </select>
+
+              <input type="text" [(ngModel)]="row.pantryName" placeholder="име" />
+            </ng-container>
+
+            <!-- simple -->
+            <ng-container *ngIf="getRowMode(row) === 'simple'">
+              <input type="text" [(ngModel)]="row.pantryName" placeholder="име" />
+            </ng-container>
+
           </div>
-
-          <input type="text" [(ngModel)]="row.pantryName" placeholder="Name" />
-
-          <select [(ngModel)]="row.moveAs">
-            <option value="countable">
-              {{ 'pantryMoveReview.countableOrNameShort' | translate }}
-            </option>
-
-            <option value="measured">
-              {{ 'pantryMoveReview.measuredShort' | translate }}
-            </option>
-          </select>
         </div>
       </div>
     </div>

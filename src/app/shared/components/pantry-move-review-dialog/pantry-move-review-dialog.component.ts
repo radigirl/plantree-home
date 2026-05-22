@@ -13,6 +13,8 @@ export interface PantryMoveReviewRow {
   amount: number | null;
   unit: string | null;
   pantryName: string;
+  sizeAmount: number | null;
+  sizeUnit: string | null;
 }
 
 @Component({
@@ -51,6 +53,14 @@ export class PantryMoveReviewDialogComponent {
     }
 
     return `${row.amount} ${name}`;
+  }
+
+  getRowMode(row: PantryMoveReviewRow): 'measured' | 'countable' | 'simple' {
+    if (row.moveAs === 'measured') {
+      return 'measured';
+    }
+
+    return row.amount == null ? 'simple' : 'countable';
   }
 
   onClose(): void {

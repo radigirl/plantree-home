@@ -584,5 +584,12 @@ export const bg = {
     countableOrNameShort: 'бр./-',
     measuredShort: 'мер.',
     tapToEdit: 'Докосни ред, за да го коригираш.',
+    modeMeasured: 'мер.',
+    modeCountable: 'бр.',
+    amountPlaceholder: 'кол.',
+    countPlaceholder: 'бр.',
+    sizePlaceholder: 'р-р',
+    unitPlaceholder: 'ед.',
+    namePlaceholder: 'име',
   },
 };

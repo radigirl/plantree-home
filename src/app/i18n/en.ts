@@ -583,5 +583,12 @@ export const en = {
     countableOrNameShort: 'pcs./-',
     measuredShort: 'meas.',
     tapToEdit: 'Tap a row to edit it.',
+    modeMeasured: 'meas.',
+    modeCountable: 'pcs',
+    amountPlaceholder: 'qty',
+    countPlaceholder: 'pcs',
+    sizePlaceholder: 'size',
+    unitPlaceholder: 'unit',
+    namePlaceholder: 'name',
   },
 };
