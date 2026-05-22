@@ -2,6 +2,7 @@
 @use '../../../styles/breakpoints' as *;
 @use '../../../styles/components/page-headings' as *;
 @use '../../../styles/components/buttons' as *;
+@use '../../../styles/components/chips' as *;
 
 :host {
   display: block;
@@ -114,6 +115,52 @@
   flex-shrink: 0;
   font-size: 0.9rem;
   color: #6f6f6f;
+}
+
+.cook-from-pantry-card__meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.cook-from-pantry-card__meta-row .meal-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba($color-primary, 0.06);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba($color-primary-dark, 0.78);
+}
+
+.cook-from-pantry-card__meta-row .meal-info-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba($color-primary, 0.14);
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1;
+ color: rgba($color-primary-dark, 0.82);
+}
+
+.cook-from-pantry-card__meta-row .meal-time-icon {
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.cook-from-pantry-card__meta-row .meal-time-icon {
+  color: currentColor;
+  flex-shrink: 0;
 }
 
 .cook-from-pantry-card * {

@@ -57,6 +57,24 @@
             {{ meal.matchedCount }}/{{ meal.totalCount }}
           </div>
         </div>
+        <div class="cook-from-pantry-card__meta-row">
+          <span class="meal-time" *ngIf="meal.prepTime != null">
+            <lucide-icon [img]="clock3Icon" [size]="12" [strokeWidth]="1.5" class="meal-time-icon">
+            </lucide-icon>
+
+            {{ meal.prepTime }} min
+          </span>
+
+          <span class="meal-info-chip" *ngIf="meal.ingredients?.length as ingredientsCount">
+            {{ ingredientsCount }}
+            {{
+            ingredientsCount === 1
+            ? ('meals.ingredient' | translate)
+            : ('meals.ingredients' | translate)
+            }}
+          </span>
+        </div>
+
       </div>
     </article>
   </div>

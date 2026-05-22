@@ -33,6 +33,12 @@ import { LanguageStateService } from '../../services/language.state.service';
 import { ToggleSwitchComponent } from '../../shared/components/toggle-switch/toggle-switch.component';
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 import { formatLocalizedIngredientDisplay } from '../../shared/utils/measurement-style.util';
+import {
+  IngredientRulesService,
+  IngredientWordRule,
+} from '../../services/ingredient-rules.service';
+import { normalizeIngredientKey } from '../../shared/utils/ingredient.util';
+import { Clock3, LucideAngularModule } from 'lucide-angular';
 
 type EmptyState =
   | 'none'
@@ -57,6 +63,7 @@ interface CookFromPantryMeal extends Meal {
     TranslatePipe,
     ToggleSwitchComponent,
     SnackbarComponent,
+    LucideAngularModule,
   ],
   templateUrl: './cook-from-pantry.component.html',
   styleUrl: './cook-from-pantry.component.scss',
@@ -65,17 +72,15 @@ export class CookFromPantryComponent
   implements OnInit, OnDestroy {
   isLoading = true;
   emptyState: EmptyState = 'none';
-
   sortedMeals: CookFromPantryMeal[] = [];
-
   private destroy$ = new Subject<void>();
-
   isActionMenuOpen = false;
   selectedMeal: CookFromPantryMeal | null = null;
-
   selectedMealForInfo: CookFromPantryMeal | null = null;
-
   availableItems: (PantryItem | AlwaysPresentPantryItem)[] = [];
+  wordRules: IngredientWordRule[] = [];
+
+  readonly clock3Icon = Clock3;
 
   get actionMenuItems(): ResponsiveActionMenuItem[] {
     return [
@@ -86,11 +91,9 @@ export class CookFromPantryComponent
   }
 
   isAddToPlanLoading = false;
-
   isPickDateOpen = false;
   calendarSelectionMode: 'single' | 'multiple' = 'single';
   selectedPlanDates: string[] = [];
-
   toastMessage: string | null = null;
   toastTimeout: any = null;
 
@@ -102,6 +105,7 @@ export class CookFromPantryComponent
     private mealPlanService: MealPlanService,
     private memberStateService: MemberStateService,
     private languageStateService: LanguageStateService,
+    private ingredientRulesService: IngredientRulesService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -134,16 +138,18 @@ export class CookFromPantryComponent
         return;
       }
 
-      const [allMeals, pantryItems, alwaysPresentItems] =
+      const [allMeals, pantryItems, alwaysPresentItems, wordRules] =
         await Promise.all([
           this.mealsService.getAllMeals(),
           this.pantryService.getPantryItems(),
           this.pantryService.getAlwaysPresentItems(spaceId),
+          this.ingredientRulesService.getWordRules(spaceId),
         ]);
+
+      this.wordRules = wordRules;
 
       const availableItems = [...pantryItems, ...alwaysPresentItems];
       this.availableItems = availableItems;
-
       const hasMeals = allMeals.length > 0;
       const hasPantry = availableItems.length > 0;
 
@@ -157,7 +163,8 @@ export class CookFromPantryComponent
         this.sortedMeals = this.buildSortedMeals(
           allMeals,
           pantryItems,
-          alwaysPresentItems
+          alwaysPresentItems,
+          wordRules
         );
       }
     } catch (error) {
@@ -176,8 +183,11 @@ export class CookFromPantryComponent
   private buildSortedMeals(
     meals: Meal[],
     pantryItems: PantryItem[],
-    alwaysPresentItems: AlwaysPresentPantryItem[]
+    alwaysPresentItems: AlwaysPresentPantryItem[],
+    wordRules: IngredientWordRule[]
   ): CookFromPantryMeal[] {
+    this.wordRules = wordRules;
+
     return meals
       .map((meal) => {
         const normalizedIngredients = (meal.ingredients ?? [])
@@ -197,11 +207,11 @@ export class CookFromPantryComponent
 
         normalizedIngredients.forEach((ingredient) => {
           const isRealMatch = pantryItems.some((item) =>
-            isIngredientMatch(item.normalized_name || '', ingredient)
+            this.isIngredientNameMatch(item.name || item.normalized_name || '', ingredient)
           );
 
           const isAlwaysMatch = alwaysPresentItems.some((item) =>
-            isIngredientMatch(item.normalized_name || '', ingredient)
+            this.isIngredientNameMatch(item.name || item.normalized_name || '', ingredient)
           );
 
           if (isRealMatch || isAlwaysMatch) {
@@ -229,9 +239,49 @@ export class CookFromPantryComponent
       .sort((a, b) => b.score - a.score);
   }
 
+  private normalizeRuleText(value: string): string {
+    return normalizeIngredientKey(value);
+  }
+
+  private stripLeadingAmount(value: string): string {
+    return this.normalizeRuleText(value)
+      .replace(/^\d+([.,]\d+)?\s*/, '')
+      .replace(/^(г|гр|kg|кг|ml|мл|l|л)\s+/i, '')
+      .trim();
+  }
+
+  private toRuleComparable(value: string): string {
+    return this.stripLeadingAmount(value)
+      .normalize('NFKC')
+      .replace(/\u00A0/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private matchesWordRule(a: string, b: string): boolean {
+    const left = this.toRuleComparable(a);
+    const right = this.toRuleComparable(b);
+
+    return this.wordRules.some((rule) => {
+      const singular = this.toRuleComparable(rule.singular_text);
+      const plural = this.toRuleComparable(rule.plural_text);
+
+      return (
+        (left === singular && right === plural) ||
+        (left === plural && right === singular) ||
+        (left === singular && right === singular) ||
+        (left === plural && right === plural)
+      );
+    });
+  }
+
+  private isIngredientNameMatch(a: string, b: string): boolean {
+    return this.matchesWordRule(a, b) || isIngredientMatch(a, b);
+  }
+
   isIngredientAvailable(ingredient: string): boolean {
     return this.availableItems.some((item) =>
-      isIngredientMatch(item.normalized_name || '', ingredient)
+      this.isIngredientNameMatch(item.name || item.normalized_name || '', ingredient)
     );
   }
 
