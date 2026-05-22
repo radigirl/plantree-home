@@ -138,6 +138,10 @@
   </div>
 </div>
 
+<app-pantry-move-review-dialog [isOpen]="isPantryReviewDialogOpen" [rows]="pantryReviewRows"
+  (closed)="closePantryReviewDialog()" (confirmed)="onPantryReviewConfirmed($event)">
+</app-pantry-move-review-dialog>
+
 <div class="modal-overlay modal-overlay--form" *ngIf="isCreateDialogOpen" (click)="closeCreateDialog()">
   <div class="modal-shell modal-shell--form" (click)="$event.stopPropagation()">
     <app-edit-text-dialog [title]="'groceryLists.addListTitle' | translate"

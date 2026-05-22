@@ -26,9 +26,17 @@ import { PantryActionDialogComponent } from '../../shared/components/pantry-acti
 import { SnackbarComponent } from '../../shared/components/snackbar/snackbar.component';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { EditTextDialogComponent } from '../../shared/components/edit-text-dialog/edit-text-dialog.component';
-import { classifyPantryMoveItems } from '../../shared/utils/pantry-review.util';
 import { TranslatePipe } from '../../shared/pipes/translate.pipe';
 import { LanguageStateService } from '../../services/language.state.service';
+import {
+  PantryMoveReviewDialogComponent,
+  PantryMoveReviewRow,
+} from '../../shared/components/pantry-move-review-dialog/pantry-move-review-dialog.component';
+import {
+  normalizeIngredientKey,
+  parseLeadingNumberIngredient,
+} from '../../shared/utils/ingredient.util';
+import { parseMeasurementStyleIngredient } from '../../shared/utils/measurement-style.util';
 
 
 @Component({
@@ -44,7 +52,8 @@ import { LanguageStateService } from '../../services/language.state.service';
     SnackbarComponent,
     ConfirmationDialogComponent,
     EditTextDialogComponent,
-    TranslatePipe
+    TranslatePipe,
+    PantryMoveReviewDialogComponent
   ],
   templateUrl: './grocery-lists.component.html',
   styleUrls: ['./grocery-lists.component.scss'],
@@ -85,6 +94,9 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
   undoCompletedList: GroceryList | null = null;
   toastActionType: 'undo-complete' | null = null;
+
+  isPantryReviewDialogOpen = false;
+  pantryReviewRows: PantryMoveReviewRow[] = [];
 
   private listsChannel: RealtimeChannel | null = null;
   private destroy$ = new Subject<void>();
@@ -473,24 +485,19 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
       case 'complete': {
         const pending = this.getPendingPantryItemsCount(list);
-
         if (pending > 0) {
           this.openPantryDialogForComplete(list);
           return;
         }
-
         await this.completeList(list, true, true);
         return;
       }
 
       case 'reuse': {
         this.openMenuListId = null;
-
         const currentMember = this.memberStateService.getCurrentMember();
         const createdMemberId = currentMember?.id ?? 1;
-
         const newListName = this.getNextReuseName(list.name);
-
         const newList = await this.groceryService.createGroceryList(
           newListName,
           createdMemberId
@@ -535,16 +542,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
       case 'add-to-pantry': {
         this.openMenuListId = null;
-
-        const listItems = await this.groceryService.getPendingPantryItems(list.id);
-        const pantryItems = await this.pantryService.getPantryItems();
-
-        const reviewResult = classifyPantryMoveItems(listItems, pantryItems);
-
-        console.log('PENDING LIST ITEMS:', listItems);
-        console.log('PANTRY ITEMS:', pantryItems);
-        console.log('PANTRY REVIEW RESULT:', reviewResult);
-
+        await this.openPantryMoveReviewDialog(list);
         return;
       }
     }
@@ -726,25 +724,46 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     if (pendingAction === 'complete') {
       if (action === 'move') {
-        const movedCount = await this.moveItemsToPantry(list);
-        await this.completeList(list, false);
+        this.pendingPantryList = list;
+        this.pendingPantryAction = pendingAction;
 
-        this.showMovedToPantryAndCompletedToast(movedCount);
-      } else if (action === 'skip') {
+        await this.openPantryMoveReviewDialog(list);
+        return;
+      }
+
+      if (action === 'skip') {
         await this.completeList(list, true, true);
       }
     }
 
     if (pendingAction === 'archive') {
       if (action === 'move') {
-        const movedCount = await this.moveItemsToPantry(list);
-        await this.archiveList(list, false);
+        this.pendingPantryList = list;
+        this.pendingPantryAction = pendingAction;
 
-        this.showMovedToPantryAndArchivedToast(movedCount);
-      } else if (action === 'archive') {
+        await this.openPantryMoveReviewDialog(list);
+        return;
+      }
+
+      if (action === 'archive') {
         await this.archiveList(list);
       }
     }
+  }
+
+  closePantryReviewDialog(): void {
+    this.isPantryReviewDialogOpen = false;
+    this.pantryReviewRows = [];
+    this.pendingPantryList = null;
+    this.pendingPantryAction = null;
+  }
+
+  onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): void {
+    console.log('PANTRY MOVE REVIEW SELECTED ROWS:', rows);
+    console.log('PENDING PANTRY LIST:', this.pendingPantryList);
+    console.log('PENDING PANTRY ACTION:', this.pendingPantryAction);
+
+    this.closePantryReviewDialog();
   }
 
   async undoCompleteList(): Promise<void> {
@@ -805,6 +824,77 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       this.toastTimeout = null;
       this.cdr.detectChanges();
     }, duration);
+  }
+
+  private async openPantryMoveReviewDialog(list: GroceryList): Promise<void> {
+    const listItems = await this.groceryService.getPendingPantryItems(list.id);
+    // const pantryItems = await this.pantryService.getPantryItems();
+    this.pantryReviewRows = this.buildPantryReviewRows(listItems);
+    this.isPantryReviewDialogOpen = true;
+    this.cdr.detectChanges();
+  }
+
+  private buildPantryReviewRows(listItems: any[]): PantryMoveReviewRow[] {
+    return listItems.map((item) => this.buildPantryMoveDefaultRow(item));
+  }
+
+  private buildPantryMoveDefaultRow(item: any): PantryMoveReviewRow {
+    const sourceName = item.name || '';
+    const parsed = this.parsePantryMoveSource(sourceName);
+    return {
+      id: item.id,
+      sourceName,
+      selected: true,
+      moveAs: parsed.moveAs,
+      amount: parsed.amount,
+      unit: parsed.unit,
+      pantryName: parsed.name,
+    };
+  }
+
+  private parsePantryMoveSource(value: string): {
+    moveAs: 'countable' | 'measured';
+    amount: number | null;
+    unit: string | null;
+    name: string;
+  } {
+    const normalized = normalizeIngredientKey(value);
+    const measurementStyle = parseMeasurementStyleIngredient(normalized);
+    if (measurementStyle) {
+      return {
+        moveAs: 'countable',
+        amount: null,
+        unit: null,
+        name: measurementStyle.ingredient,
+      };
+    }
+    const parsed = parseLeadingNumberIngredient(normalized);
+    if (parsed?.unit) {
+      return {
+        moveAs: 'measured',
+        amount: parsed.amount,
+        unit: parsed.unit,
+        name: parsed.name || parsed.suffix,
+      };
+    }
+    if (parsed) {
+      return {
+        moveAs: 'countable',
+        amount: parsed.amount,
+        unit: null,
+        name: parsed.name,
+      };
+    }
+    return {
+      moveAs: 'countable',
+      amount: null,
+      unit: null,
+      name: normalized,
+    };
+  }
+
+  private hasRecipeMeasurementStyle(value: string): boolean {
+    return /\b(ч\.л\.|с\.л\.|tsp|tbsp|cup|cups|чаша|чаши)\b/i.test(value);
   }
 
   async onToastAction(): Promise<void> {

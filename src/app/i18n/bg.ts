@@ -243,7 +243,7 @@ export const bg = {
     singleDay: 'Един ден',
     multipleDays: 'Няколко дни',
     addMealToPlan: 'Добави „{{name}}“ към плана',
-     addToPlanPrefix: 'Добави',
+    addToPlanPrefix: 'Добави',
     addToPlanSuffix: 'към плана',
     youHave: 'имаш',
   },
@@ -434,7 +434,7 @@ export const bg = {
   },
   pantryAction: {
     archiveAnyway: 'Архивирай въпреки това',
-    moveToPantry: 'Премести в „Продукти“',
+    moveToPantry: 'Премести',
   },
   pantrySheet: {
     name: 'Име',
@@ -572,5 +572,16 @@ export const bg = {
     terms: 'Общи условия',
     contact: 'Контакт',
     copyright: '© 2026 Plantree',
+  },
+  pantryMoveReview: {
+    title: 'Добави продукти',
+    description: 'Провери и коригирай продуктите според покупките си.',
+    cancel: 'Отказ',
+    newItem: 'Ще бъде добавено като нов продукт',
+    exactMatch: 'Ще се обедини с:',
+    possibleMatch: 'Възможно съвпадение:',
+    moveSelected: 'Премести',
+    countableOrNameShort: 'бр./-',
+    measuredShort: 'мер.',
   },
 };

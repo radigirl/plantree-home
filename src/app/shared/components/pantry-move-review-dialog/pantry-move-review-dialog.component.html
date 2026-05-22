@@ -1,0 +1,60 @@
+<div class="pantry-review-backdrop" *ngIf="isOpen" (click)="onClose()">
+  <div class="pantry-review-dialog" (click)="$event.stopPropagation()">
+    <div class="pantry-review-header">
+      <h2>{{ 'pantryMoveReview.title' | translate }}</h2>
+
+      <p>
+        {{ 'pantryMoveReview.description' | translate }}
+      </p>
+    </div>
+
+    <div class="pantry-review-list">
+      <div class="pantry-review-row" *ngFor="let row of rows">
+        <label class="pantry-review-row__label">
+          <input type="checkbox" class="pantry-review-checkbox" [(ngModel)]="row.selected" />
+          <div class="pantry-review-row__content">
+            <div class="pantry-review-row__editor">
+              <div class="pantry-review-row__quantity">
+                <input type="text" [ngModel]="row.amount ?? '?'"
+                  (ngModelChange)="row.amount = $event === '?' || $event === '' ? null : +$event" placeholder="?" />
+
+                <select *ngIf="row.moveAs === 'measured'" [(ngModel)]="row.unit">
+                  <option value="g">g</option>
+                  <option value="kg">kg</option>
+                  <option value="ml">ml</option>
+                  <option value="l">l</option>
+                </select>
+
+                <select *ngIf="row.moveAs === 'countable'" [(ngModel)]="row.unit">
+                  <option [ngValue]="null">-</option>
+                </select>
+              </div>
+
+              <input type="text" [(ngModel)]="row.pantryName" placeholder="Name" />
+
+              <select [(ngModel)]="row.moveAs">
+                <option value="countable">
+                  {{ 'pantryMoveReview.countableOrNameShort' | translate }}
+                </option>
+
+                <option value="measured">
+                  {{ 'pantryMoveReview.measuredShort' | translate }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="pantry-review-footer">
+      <button type="button" class="btn-secondary" (click)="onClose()">
+        {{ 'pantryMoveReview.cancel' | translate }}
+      </button>
+
+      <button type="button" class="btn-primary" [disabled]="selectedCount === 0" (click)="onConfirm()">
+        {{ 'pantryMoveReview.moveSelected' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
