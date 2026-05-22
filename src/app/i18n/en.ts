@@ -582,5 +582,6 @@ export const en = {
     moveSelected: 'Move',
     countableOrNameShort: 'pcs./-',
     measuredShort: 'meas.',
+    tapToEdit: 'Tap a row to edit it.',
   },
 };

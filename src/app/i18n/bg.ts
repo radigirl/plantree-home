@@ -583,5 +583,6 @@ export const bg = {
     moveSelected: 'Премести',
     countableOrNameShort: 'бр./-',
     measuredShort: 'мер.',
+    tapToEdit: 'Докосни ред, за да го коригираш.',
   },
 };

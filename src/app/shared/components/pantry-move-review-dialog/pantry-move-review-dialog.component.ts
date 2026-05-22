@@ -29,6 +29,30 @@ export class PantryMoveReviewDialogComponent {
   @Output() closed = new EventEmitter<void>();
   @Output() confirmed = new EventEmitter<PantryMoveReviewRow[]>();
 
+  expandedRowId: string | null = null;
+
+  toggleRow(row: PantryMoveReviewRow): void {
+    this.expandedRowId = this.expandedRowId === row.id ? null : row.id;
+  }
+
+  isRowExpanded(row: PantryMoveReviewRow): boolean {
+    return this.expandedRowId === row.id;
+  }
+
+  getPreviewText(row: PantryMoveReviewRow): string {
+    const name = row.pantryName?.trim() || row.sourceName;
+
+    if (row.amount === null || row.amount === undefined) {
+      return name;
+    }
+
+    if (row.moveAs === 'measured' && row.unit) {
+      return `${row.amount} ${row.unit} ${name}`;
+    }
+
+    return `${row.amount} ${name}`;
+  }
+
   onClose(): void {
     this.closed.emit();
   }
