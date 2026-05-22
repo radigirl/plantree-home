@@ -374,6 +374,10 @@ export class PlanComponent implements OnInit, OnDestroy {
     }
 
     const rawIngredients = this.getRawIngredientsFromSelectedMealIds(selectedMealIds);
+    if (!rawIngredients.length) {
+      this.showSnackbar(this.languageStateService.t('generateSheet.noIngredientsForList'));
+      return;
+    }
     const mergeCandidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
     const unresolvedCandidates = await this.filterRememberedMergeCandidates(mergeCandidates);
 
@@ -414,6 +418,11 @@ export class PlanComponent implements OnInit, OnDestroy {
     const rawIngredients = this.getRawIngredientsFromSelectedMealIds(
       selection.selectedMealIds
     );
+    if (!rawIngredients.length) {
+      this.isGenerateSheetOpen = false;
+      this.showSnackbar(this.languageStateService.t('generateSheet.noIngredientsForList'));
+      return;
+    }
     const mergeCandidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
     const unresolvedCandidates = await this.filterRememberedMergeCandidates(mergeCandidates);
 
@@ -740,6 +749,11 @@ export class PlanComponent implements OnInit, OnDestroy {
           meals: day.meals.map((meal) => {
             const plannedMealId = String(meal.id);
             const isCovered = this.isMealCovered(plannedMealId);
+            const hasIngredients =
+              Array.isArray(meal.meal?.ingredients) &&
+              meal.meal.ingredients.some((ingredient) =>
+                typeof ingredient === 'string' && ingredient.trim().length > 0
+              );
 
             return {
               id: plannedMealId,
@@ -748,6 +762,7 @@ export class PlanComponent implements OnInit, OnDestroy {
               coveredListName: isCovered
                 ? this.getMealCoverageListName(plannedMealId)
                 : null,
+              hasIngredients,
             };
           }),
         };
@@ -906,7 +921,8 @@ export class PlanComponent implements OnInit, OnDestroy {
     );
 
     if (!ingredients.length) {
-      console.warn('No ingredients found for selected meals');
+      this.isGeneratingList = false;
+      this.showSnackbar(this.languageStateService.t('generateSheet.noIngredientsForList'));
       return;
     }
 

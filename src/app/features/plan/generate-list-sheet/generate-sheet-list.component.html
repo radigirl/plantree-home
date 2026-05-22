@@ -60,7 +60,7 @@
                   <div class="generate-sheet__day-row">
                     <label class="generate-sheet__day-main">
                       <input type="checkbox" [checked]="day.checked"
-                        [disabled]="!day.meals.some(meal => !meal.isCovered)" (change)="toggleDay(day)" />
+                        [disabled]="!day.meals.some(meal => !isMealDisabled(meal))" (change)="toggleDay(day)" />
 
                       <span class="generate-sheet__day-text">
                         <span class="generate-sheet__day-label">
@@ -80,7 +80,7 @@
 
                   <div class="generate-sheet__meals" *ngIf="day.expanded">
                     <label class="generate-sheet__meal" *ngFor="let meal of day.meals">
-                      <input type="checkbox" [checked]="meal.checked" [disabled]="meal.isCovered"
+                      <input type="checkbox" [checked]="meal.checked" [disabled]="isMealDisabled(meal)"
                         (change)="toggleMeal(day, meal.id)" />
 
                       <span class="generate-sheet__meal-text">
@@ -88,6 +88,9 @@
 
                         <span *ngIf="meal.isCovered" class="generate-sheet__meal-covered">
                           {{ 'generateSheet.inList' | translate }} {{ meal.coveredListName }}
+                        </span>
+                        <span *ngIf="meal.hasIngredients === false" class="generate-sheet__meal-covered">
+                          {{ 'generateSheet.noIngredients' | translate }}
                         </span>
                       </span>
                     </label>
@@ -98,7 +101,7 @@
 
             <div class="generate-sheet__footer">
               <p *ngIf="selectedMealsCount === 0" class="generate-sheet__info">
-                {{ 'generateSheet.allMealsAlreadyCovered' | translate }}
+                {{ 'generateSheet.noAvailableMealsToGenerate' | translate }}
               </p>
 
               <p *ngIf="selectedMealsCount > 0 && coveredMealsCount > 0" class="generate-sheet__info">

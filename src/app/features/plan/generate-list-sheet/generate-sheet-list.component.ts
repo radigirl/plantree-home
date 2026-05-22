@@ -9,6 +9,7 @@ export interface GenerateListMealItem {
   checked?: boolean;
   isCovered: boolean;
   coveredListName: string | null;
+  hasIngredients?: boolean;
 }
 
 export interface GenerateListDayItem {
@@ -86,7 +87,7 @@ export class GenerateSheetListComponent implements OnChanges {
 
   get selectedMealsCount(): number {
     return this.dayStates.reduce((count, day) => {
-      return count + day.meals.filter((meal) => meal.checked && !meal.isCovered).length;
+      return count + day.meals.filter((meal) => meal.checked && !this.isMealDisabled(meal)).length;
     }, 0);
   }
 
@@ -98,6 +99,10 @@ export class GenerateSheetListComponent implements OnChanges {
 
   get allMealsCovered(): boolean {
     return this.selectedMealsCount === 0 && this.coveredMealsCount > 0;
+  }
+
+  isMealDisabled(meal: GenerateListMealItem): boolean {
+    return meal.isCovered || meal.hasIngredients === false;
   }
 
   openAdjust(): void {
@@ -123,7 +128,7 @@ export class GenerateSheetListComponent implements OnChanges {
 
     day.meals = day.meals.map((meal) => ({
       ...meal,
-      checked: meal.isCovered ? false : nextChecked,
+      checked: this.isMealDisabled(meal) ? false : nextChecked,
     }));
 
     day.checked = day.meals.some((meal) => meal.checked);
@@ -136,10 +141,10 @@ export class GenerateSheetListComponent implements OnChanges {
   toggleMeal(day: GenerateListDayState, mealId: string): void {
     const targetMeal = day.meals.find((meal) => meal.id === mealId);
 
-    // Guard: do nothing if covered
-    if (targetMeal?.isCovered) {
-      return;
-    }
+    // Guard: do nothing if covered or blank
+    if (!targetMeal || this.isMealDisabled(targetMeal)) {
+  return;
+}
 
     day.meals = day.meals.map((meal) =>
       meal.id === mealId ? { ...meal, checked: !meal.checked } : meal
@@ -150,12 +155,12 @@ export class GenerateSheetListComponent implements OnChanges {
 
   onGenerateSelected(): void {
     const selectedDayKeys = this.dayStates
-      .filter((day) => day.meals.some((meal) => meal.checked && !meal.isCovered))
+      .filter((day) => day.meals.some((meal) => meal.checked && !this.isMealDisabled(meal)))
       .map((day) => day.key);
 
     const selectedMealIds = this.dayStates.flatMap((day) =>
       day.meals
-        .filter((meal) => meal.checked && !meal.isCovered)
+        .filter((meal) => meal.checked && !this.isMealDisabled(meal))
         .map((meal) => meal.id)
     );
 
@@ -173,7 +178,7 @@ export class GenerateSheetListComponent implements OnChanges {
 
         const meals = (day.meals || []).map((meal) => ({
           ...meal,
-          checked: defaultSelected && !meal.isCovered,
+          checked: defaultSelected && !this.isMealDisabled(meal),
         }));
 
         return {
@@ -186,6 +191,6 @@ export class GenerateSheetListComponent implements OnChanges {
   }
 
   private hasCheckedMeals(day: GenerateListDayState): boolean {
-    return day.meals.some((meal) => meal.checked && !meal.isCovered);
+    return day.meals.some((meal) => meal.checked && !this.isMealDisabled(meal));
   }
 }
