@@ -33,7 +33,22 @@ export class PantryMoveReviewDialogComponent {
 
   expandedRowId: string | null = null;
 
+  invalidRowId: string | null = null;
+
   toggleRow(row: PantryMoveReviewRow): void {
+    if (
+      this.expandedRowId &&
+      this.expandedRowId !== row.id
+    ) {
+      const currentRow = this.rows.find((item) => item.id === this.expandedRowId);
+
+      if (currentRow && !this.isPackageValid(currentRow)) {
+        this.invalidRowId = currentRow.id;
+        return;
+      }
+    }
+
+    this.invalidRowId = null;
     this.expandedRowId = this.expandedRowId === row.id ? null : row.id;
   }
 
@@ -61,6 +76,22 @@ export class PantryMoveReviewDialogComponent {
     }
 
     return row.amount == null ? 'simple' : 'countable';
+  }
+
+  isPackageValid(row: PantryMoveReviewRow): boolean {
+    if (this.getRowMode(row) !== 'countable') {
+      return true;
+    }
+    const hasSize =
+      row.sizeAmount !== null &&
+      row.sizeAmount !== undefined &&
+      String(row.sizeAmount).trim() !== '';
+    const hasUnit = !!row.sizeUnit;
+    return hasSize === hasUnit;
+  }
+
+  shouldShowPackageValidation(row: PantryMoveReviewRow): boolean {
+    return this.invalidRowId === row.id && !this.isPackageValid(row);
   }
 
   onClose(): void {

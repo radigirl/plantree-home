@@ -575,7 +575,7 @@ export const bg = {
   },
   pantryMoveReview: {
     title: 'Добави продукти',
-    description: 'Провери и коригирай продуктите според покупките си.',
+    description: 'Можеш да коригираш продуктите според покупките си преди преместване.',
     cancel: 'Отказ',
     newItem: 'Ще бъде добавено като нов продукт',
     exactMatch: 'Ще се обедини с:',
@@ -591,5 +591,6 @@ export const bg = {
     sizePlaceholder: 'р-р',
     unitPlaceholder: 'ед.',
     namePlaceholder: 'име',
+    packageValidation: 'Попълни и размер, и единица — или остави и двете празни.',
   },
 };

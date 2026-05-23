@@ -85,6 +85,9 @@
             </ng-container>
 
           </div>
+          <p class="pantry-review-row__validation" *ngIf="shouldShowPackageValidation(row)">
+            {{ 'pantryMoveReview.packageValidation' | translate }}
+          </p>
         </div>
       </div>
     </div>

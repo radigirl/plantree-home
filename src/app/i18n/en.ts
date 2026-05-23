@@ -574,7 +574,7 @@ export const en = {
   },
   pantryMoveReview: {
     title: 'Add to Pantry',
-    description: 'Review and adjust products based on your shopping.',
+    description: 'You can adjust products based on your shopping before moving them to Pantry.',
     cancel: 'Cancel',
     newItem: 'Will be added as a new pantry item',
     exactMatch: 'Will merge with:',
@@ -590,5 +590,6 @@ export const en = {
     sizePlaceholder: 'size',
     unitPlaceholder: 'unit',
     namePlaceholder: 'name',
+    packageValidation: 'Fill both size and unit, or leave both empty.',
   },
 };
