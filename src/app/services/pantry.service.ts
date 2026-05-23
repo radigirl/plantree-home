@@ -9,12 +9,19 @@ import {
   normalizeUnit,
 } from '../shared/utils/unit.util';
 import { getIngredientSortKey } from '../shared/utils/ingredient-merge.util';
+import { IngredientRulesService } from './ingredient-rules.service';
+import { detectPossibleMergeCandidatesFromRawIngredients } from '../shared/utils/ingredient-merge.util';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class PantryService {
-  constructor(private supabaseService: SupabaseService, private spaceStateService: SpaceStateService) { }
+  constructor(
+    private supabaseService: SupabaseService,
+    private spaceStateService: SpaceStateService,
+    private ingredientRulesService: IngredientRulesService
+  ) { }
 
   get supabase() {
     return this.supabaseService.supabase;
@@ -565,6 +572,99 @@ export class PantryService {
     return data as PantryItem;
   }
 
+  async addFromMoveToPantry(payload: any): Promise<
+    | 'added'
+    | 'skipped_always_present'
+    | 'skipped_existing_inferred'
+    | 'failed'
+  > {
+    try {
+
+      const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+      const trimmedName = payload.name.trim();
+
+      if (!spaceId || !trimmedName) {
+        return 'failed';
+      }
+
+      const normalizedName = this.normalizeName(trimmedName);
+
+      const { data: alwaysPresent, error: alwaysPresentError } = await this.supabase
+        .from('always_present_items')
+        .select('id')
+        .eq('space_id', spaceId)
+        .eq('normalized_name', normalizedName)
+        .maybeSingle();
+
+      if (alwaysPresentError) {
+        console.error('Error checking always present item:', alwaysPresentError);
+        return 'failed';
+      }
+
+      if (alwaysPresent) {
+        return 'skipped_always_present';
+      }
+      const existingItems = await this.getPantryItems();
+
+      const normalizedPayloadName = normalizedName;
+
+      const existingMatch = existingItems.find((item) => {
+        const normalizedItemName = this.normalizeName(item.name);
+
+        if (normalizedItemName !== normalizedPayloadName) {
+          return false;
+        }
+
+        if (payload.unit === 'measured') {
+          return (
+            item.unit === 'measured' &&
+            item.size_unit === payload.size_unit
+          );
+        }
+
+        return (
+          item.unit === 'item' &&
+          (item.size_amount || null) === (payload.size_amount || null) &&
+          (item.size_unit || null) === (payload.size_unit || null)
+        );
+      });
+
+      const rememberedMerged =
+        await this.applyRememberedCountableWordMergeIfPossible({
+          name: payload.name,
+          amount: payload.amount,
+          unit: payload.unit,
+          size_amount: payload.size_amount,
+          size_unit: payload.size_unit,
+          expiry_date: payload.expiry_date,
+        });
+
+      if (rememberedMerged) {
+        return 'added';
+      }
+
+      if (payload.isInferredFromList) {
+        if (existingMatch) {
+          return 'skipped_existing_inferred';
+        }
+
+        await this.createPantryItem({
+          ...payload,
+          amount: 1,
+        });
+
+        return 'added';
+      }
+
+      await this.createPantryItem(payload);
+
+      return 'added';
+    } catch (error) {
+      console.error('addFromMoveToPantry failed:', error);
+      return 'failed';
+    }
+  }
+
   private sortPantryItems(items: PantryItem[]): PantryItem[] {
     return [...items].sort((a, b) => {
       const aKey = getIngredientSortKey(a.name);
@@ -671,4 +771,268 @@ export class PantryService {
 
     return true;
   }
+
+  async applyRememberedCountableWordMergeIfPossible(payload: {
+    name: string;
+    amount: number;
+    unit: string;
+    size_amount: number | null;
+    size_unit: string | null;
+    expiry_date: string | null;
+  }): Promise<PantryItem | null> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (
+      !spaceId ||
+      payload.unit === 'measured' ||
+      payload.size_amount ||
+      payload.size_unit
+    ) {
+      return null;
+    }
+
+    const pantryItems = await this.getPantryItems();
+
+    const rawIngredients = pantryItems
+      .filter((item) => item.unit !== 'measured')
+      .filter((item) => !item.size_amount && !item.size_unit)
+      .map((item) => {
+        const amount = Number(item.amount ?? 1);
+        return amount > 1 ? `${amount} ${item.name}` : item.name;
+      });
+
+    const incomingAmount = Number(payload.amount ?? 1);
+
+    rawIngredients.push(
+      incomingAmount > 1
+        ? `${incomingAmount} ${payload.name}`
+        : payload.name
+    );
+
+    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+
+    if (!candidates.length) {
+      return null;
+    }
+
+    const rules = await this.ingredientRulesService.getWordRules(spaceId);
+    const lowerName = payload.name.trim().toLowerCase();
+
+    const rememberedCandidate = candidates.find((candidate) => {
+      const singular = candidate.singularText.trim().toLowerCase();
+      const plural = candidate.pluralText.trim().toLowerCase();
+
+      const matchesIncoming =
+        singular === lowerName || plural === lowerName;
+
+      const isRemembered = rules.some((rule) => {
+        const ruleSingular = rule.singular_text.trim().toLowerCase();
+        const rulePlural = rule.plural_text.trim().toLowerCase();
+
+        return ruleSingular === singular && rulePlural === plural;
+      });
+
+      return matchesIncoming && isRemembered;
+    });
+
+    if (!rememberedCandidate) {
+      return null;
+    }
+
+    const singularName = rememberedCandidate.singularText.trim().toLowerCase();
+    const pluralName = rememberedCandidate.pluralText.trim().toLowerCase();
+
+    const matchingItems = pantryItems.filter((item) =>
+      item.unit !== 'measured' &&
+      !item.size_amount &&
+      !item.size_unit &&
+      (
+        item.name.trim().toLowerCase() === singularName ||
+        item.name.trim().toLowerCase() === pluralName
+      )
+    );
+
+    const existingAmount = matchingItems.reduce(
+      (sum, item) => sum + Number(item.amount ?? 1),
+      0
+    );
+
+    const totalAmount = existingAmount + incomingAmount;
+
+    const targetPluralItem =
+      matchingItems.find((item) => item.name.trim().toLowerCase() === pluralName) ??
+      null;
+
+    let affectedItem: PantryItem | null = null;
+
+    if (targetPluralItem) {
+      const success = await this.updatePantryItemAmount(
+        targetPluralItem.id,
+        totalAmount
+      );
+
+      if (!success) {
+        return null;
+      }
+
+      affectedItem = {
+        ...targetPluralItem,
+        amount: totalAmount,
+      };
+    } else {
+      affectedItem = await this.createPantryItem({
+        name: pluralName,
+        amount: totalAmount,
+        unit: 'item',
+        size_amount: null,
+        size_unit: null,
+        expiry_date: payload.expiry_date,
+      });
+    }
+
+    if (!affectedItem) {
+      return null;
+    }
+
+    for (const item of matchingItems) {
+      if (item.id !== affectedItem.id) {
+        await this.deletePantryItem(item.id);
+      }
+    }
+
+    return affectedItem;
+  }
+
+  async applyRememberedCountableWordMergeForEditIfPossible(
+    itemId: string,
+    payload: {
+      name: string;
+      amount: number;
+      unit: string;
+      size_amount: number | null;
+      size_unit: string | null;
+      expiry_date: string | null;
+    }
+  ): Promise<PantryItem | null> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (
+      !spaceId ||
+      payload.unit === 'measured' ||
+      payload.size_amount ||
+      payload.size_unit
+    ) {
+      return null;
+    }
+
+    const pantryItems = await this.getPantryItems();
+
+    const rawIngredients = pantryItems
+      .filter((item) => item.id !== itemId)
+      .filter((item) => item.unit !== 'measured')
+      .filter((item) => !item.size_amount && !item.size_unit)
+      .map((item) => {
+        const amount = Number(item.amount ?? 1);
+        return amount > 1 ? `${amount} ${item.name}` : item.name;
+      });
+
+    const incomingAmount = Number(payload.amount ?? 1);
+
+    rawIngredients.push(
+      incomingAmount > 1
+        ? `${incomingAmount} ${payload.name}`
+        : payload.name
+    );
+
+    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+    const rules = await this.ingredientRulesService.getWordRules(spaceId);
+    const lowerName = payload.name.trim().toLowerCase();
+
+    const rememberedCandidate = candidates.find((candidate) => {
+      const singular = candidate.singularText.trim().toLowerCase();
+      const plural = candidate.pluralText.trim().toLowerCase();
+
+      const matchesIncoming = singular === lowerName || plural === lowerName;
+
+      const isRemembered = rules.some((rule) => {
+        const ruleSingular = rule.singular_text.trim().toLowerCase();
+        const rulePlural = rule.plural_text.trim().toLowerCase();
+
+        return ruleSingular === singular && rulePlural === plural;
+      });
+
+      return matchesIncoming && isRemembered;
+    });
+
+    if (!rememberedCandidate) {
+      return null;
+    }
+
+    const singularName = rememberedCandidate.singularText.trim().toLowerCase();
+    const pluralName = rememberedCandidate.pluralText.trim().toLowerCase();
+
+    const matchingItems = pantryItems.filter((item) =>
+      item.id !== itemId &&
+      item.unit !== 'measured' &&
+      !item.size_amount &&
+      !item.size_unit &&
+      (
+        item.name.trim().toLowerCase() === singularName ||
+        item.name.trim().toLowerCase() === pluralName
+      )
+    );
+
+    const existingAmount = matchingItems.reduce(
+      (sum, item) => sum + Number(item.amount ?? 1),
+      0
+    );
+
+    const totalAmount = existingAmount + incomingAmount;
+
+    const targetPluralItem =
+      matchingItems.find((item) => item.name.trim().toLowerCase() === pluralName) ??
+      null;
+
+    let affectedItem: PantryItem | null = null;
+
+    if (targetPluralItem) {
+      const success = await this.updatePantryItemAmount(
+        targetPluralItem.id,
+        totalAmount
+      );
+
+      if (!success) {
+        return null;
+      }
+
+      await this.deletePantryItem(itemId);
+
+      affectedItem = {
+        ...targetPluralItem,
+        amount: totalAmount,
+      };
+    } else {
+      affectedItem = await this.updatePantryItem(itemId, {
+        name: pluralName,
+        amount: totalAmount,
+        unit: 'item',
+        size_amount: null,
+        size_unit: null,
+        expiry_date: payload.expiry_date,
+      });
+    }
+
+    if (!affectedItem) {
+      return null;
+    }
+
+    for (const item of matchingItems) {
+      if (item.id !== affectedItem.id) {
+        await this.deletePantryItem(item.id);
+      }
+    }
+
+    return affectedItem;
+  }
+
 }

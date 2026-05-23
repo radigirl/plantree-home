@@ -15,10 +15,11 @@ export interface PantryMoveReviewRow {
   pantryName: string;
   sizeAmount: number | null;
   sizeUnit: string | null;
-  reviewMode: 'measured' | 'countable' | 'simple';
+  reviewMode: 'measured' | 'countable';
   measuredAmount: number | null;
   measuredUnit: string | null;
   countAmount: number | null;
+  isInferredFromList: boolean;
 }
 
 @Component({
@@ -62,17 +63,13 @@ export class PantryMoveReviewDialogComponent {
 
   getPreviewText(row: PantryMoveReviewRow): string {
     const name = row.pantryName?.trim() || row.sourceName;
-    if (row.reviewMode === 'simple') {
-      return name;
-    }
     if (row.reviewMode === 'measured') {
       if (row.measuredAmount === null || row.measuredAmount === undefined) {
         return name;
       }
       return `${row.measuredAmount} ${row.measuredUnit || ''} ${name}`.trim();
     }
-    // countable
-    if (row.countAmount === null || row.countAmount === undefined) {
+    if (row.countAmount === null || row.countAmount === undefined || String(row.countAmount).trim() === '') {
       return name;
     }
     if (row.sizeAmount && row.sizeUnit) {
@@ -81,7 +78,7 @@ export class PantryMoveReviewDialogComponent {
     return `${row.countAmount} ${name}`;
   }
 
-  getRowMode(row: PantryMoveReviewRow): 'measured' | 'countable' | 'simple' {
+  getRowMode(row: PantryMoveReviewRow): 'measured' | 'countable' {
     return row.reviewMode;
   }
 
@@ -101,25 +98,20 @@ export class PantryMoveReviewDialogComponent {
     return this.invalidRowId === row.id && !this.isPackageValid(row);
   }
 
-  setRowMode(row: PantryMoveReviewRow, mode: 'measured' | 'countable' | 'simple'): void {
+  setRowMode(row: PantryMoveReviewRow, mode: 'measured' | 'countable'): void {
     row.reviewMode = mode;
-
     if (mode === 'measured') {
       row.moveAs = 'measured';
       row.amount = row.measuredAmount;
       row.unit = row.measuredUnit || 'g';
       return;
     }
-
-    if (mode === 'countable') {
-      row.moveAs = 'countable';
-      row.amount = row.countAmount;
-      row.unit = null;
-      return;
-    }
-
     row.moveAs = 'countable';
-    row.amount = null;
+    row.countAmount =
+      row.countAmount == null
+        ? 1
+        : row.countAmount;
+    row.amount = row.countAmount;
     row.unit = null;
   }
 

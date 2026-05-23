@@ -491,198 +491,32 @@ export class PantryComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  private async applyRememberedPantryMergeIfPossible(
-    value: PantryItemDialogValue,
-    matchingCandidates: MergeCandidate[]
-  ): Promise<boolean> {
-    const rememberedCandidate = matchingCandidates.find((candidate) =>
-      this.isMergeCandidateRemembered(candidate)
-    );
-
-    if (!rememberedCandidate) {
-      return false;
-    }
-
-    const singularName = rememberedCandidate.singularText.trim().toLowerCase();
-    const pluralName = rememberedCandidate.pluralText.trim().toLowerCase();
-
-    const singularItems = this.pantryItems.filter((item) =>
-      item.unit !== 'measured' &&
-      !item.size_amount &&
-      !item.size_unit &&
-      item.name.trim().toLowerCase() === singularName
-    );
-
-    const targetPluralItem = this.pantryItems.find((item) =>
-      item.unit !== 'measured' &&
-      !item.size_amount &&
-      !item.size_unit &&
-      item.name.trim().toLowerCase() === pluralName
-    );
-
-    const incomingAmount = Number(value.amount ?? 1);
-    const singularAmount = singularItems.reduce(
-      (sum, item) => sum + Number(item.amount ?? 1),
-      0
-    );
-
-    const totalAmount =
-      Number(targetPluralItem?.amount ?? 0) + incomingAmount + singularAmount;
-
-    let affectedItem: PantryItem | null = null;
-
-    if (targetPluralItem) {
-      const success = await this.pantryService.updatePantryItemAmount(
-        targetPluralItem.id,
-        totalAmount
-      );
-
-      if (!success) {
-        this.error = this.languageStateService.t('pantry.updateQuantityError');
-        this.cdr.detectChanges();
-        return true;
-      }
-
-      affectedItem = targetPluralItem;
-    } else {
-      affectedItem = await this.pantryService.createPantryItem({
-        name: pluralName,
-        amount: totalAmount,
-        unit: 'item',
-        size_amount: null,
-        size_unit: null,
-        expiry_date: value.expiry_date,
-      });
-
-      if (!affectedItem) {
-        this.error = this.languageStateService.t('pantry.createError');
-        this.cdr.detectChanges();
-        return true;
-      }
-    }
-
-    for (const item of singularItems) {
-      await this.pantryService.deletePantryItem(item.id);
-    }
-
-    await this.loadPantryItems();
-    this.revealPantryItem(affectedItem.id);
-    this.closePantrySheet();
-    this.lastRemovedPantryItem = null;
-
-    this.showToast(
-      this.languageStateService
-        .t('pantry.addedToast')
-        .replace('{{name}}', value.name)
-    );
-
-    return true;
-  }
-
-  private async applyRememberedPantryMergeForEditIfPossible(
-    itemId: string,
-    value: PantryItemDialogValue,
-    matchingCandidates: MergeCandidate[]
-  ): Promise<boolean> {
-    const rememberedCandidate = matchingCandidates.find((candidate) =>
-      this.isMergeCandidateRemembered(candidate)
-    );
-
-    if (!rememberedCandidate) {
-      return false;
-    }
-
-    if (
-      value.unit === 'measured' ||
-      value.size_amount ||
-      value.size_unit
-    ) {
-      return false;
-    }
-
-    const singularName = rememberedCandidate.singularText.trim().toLowerCase();
-    const pluralName = rememberedCandidate.pluralText.trim().toLowerCase();
-
-    const singularItems = this.pantryItems.filter((item) =>
-      item.id !== itemId &&
-      item.unit !== 'measured' &&
-      !item.size_amount &&
-      !item.size_unit &&
-      item.name.trim().toLowerCase() === singularName
-    );
-
-    const targetPluralItem = this.pantryItems.find((item) =>
-      item.id !== itemId &&
-      item.unit !== 'measured' &&
-      !item.size_amount &&
-      !item.size_unit &&
-      item.name.trim().toLowerCase() === pluralName
-    );
-
-    const incomingAmount = Number(value.amount ?? 1);
-    const singularAmount = singularItems.reduce(
-      (sum, item) => sum + Number(item.amount ?? 1),
-      0
-    );
-
-    const totalAmount =
-      Number(targetPluralItem?.amount ?? 0) + incomingAmount + singularAmount;
-
-    let affectedItem: PantryItem | null = null;
-
-    if (targetPluralItem) {
-      const success = await this.pantryService.updatePantryItemAmount(
-        targetPluralItem.id,
-        totalAmount
-      );
-
-      if (!success) {
-        this.error = this.languageStateService.t('pantry.updateQuantityError');
-        this.cdr.detectChanges();
-        return true;
-      }
-
-      await this.pantryService.deletePantryItem(itemId);
-      affectedItem = targetPluralItem;
-    } else {
-      affectedItem = await this.pantryService.updatePantryItem(itemId, {
-        name: pluralName,
-        amount: totalAmount,
-        unit: 'item',
-        size_amount: null,
-        size_unit: null,
-        expiry_date: value.expiry_date,
-      });
-
-      if (!affectedItem) {
-        this.error = this.languageStateService.t('pantry.updateError');
-        this.cdr.detectChanges();
-        return true;
-      }
-    }
-
-    for (const item of singularItems) {
-      await this.pantryService.deletePantryItem(item.id);
-    }
-
-    await this.loadPantryItems();
-    this.revealPantryItem(affectedItem.id);
-    this.closePantrySheet();
-    this.lastRemovedPantryItem = null;
-
-    this.showToast(
-      this.languageStateService
-        .t('pantry.updatedToast')
-        .replace('{{name}}', value.name)
-    );
-
-    return true;
-  }
-
   async savePantryItem(value: PantryItemDialogValue): Promise<void> {
     this.error = '';
 
     if (this.pantrySheetMode === 'add') {
+      const rememberedMerged =
+        await this.pantryService.applyRememberedCountableWordMergeIfPossible({
+          name: value.name,
+          amount: value.amount,
+          unit: value.unit,
+          size_amount: value.size_amount,
+          size_unit: value.size_unit,
+          expiry_date: value.expiry_date,
+        });
+
+      if (rememberedMerged) {
+        await this.loadPantryItems();
+        this.revealPantryItem(rememberedMerged.id);
+        this.closePantrySheet();
+        this.lastRemovedPantryItem = null;
+        this.showToast(
+          this.languageStateService
+            .t('pantry.addedToast')
+            .replace('{{name}}', value.name)
+        );
+        return;
+      }
       const rawIngredients =
         this.buildPantryMergeRawIngredients(value);
 
@@ -702,13 +536,6 @@ export class PantryComponent implements OnInit, OnDestroy {
         const unrememberedCandidates = matchingCandidates.filter(
           (candidate) => !this.isMergeCandidateRemembered(candidate)
         );
-
-        const didApplyRememberedMerge =
-          await this.applyRememberedPantryMergeIfPossible(value, matchingCandidates);
-
-        if (didApplyRememberedMerge) {
-          return;
-        }
 
         if (unrememberedCandidates.length > 0) {
           this.pendingPantryValue = value;
@@ -757,6 +584,34 @@ export class PantryComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const rememberedEditMerged =
+      await this.pantryService.applyRememberedCountableWordMergeForEditIfPossible(
+        this.selectedPantryItem.id,
+        {
+          name: value.name,
+          amount: value.amount,
+          unit: value.unit,
+          size_amount: value.size_amount,
+          size_unit: value.size_unit,
+          expiry_date: value.expiry_date,
+        }
+      );
+
+    if (rememberedEditMerged) {
+      await this.loadPantryItems();
+      this.revealPantryItem(rememberedEditMerged.id);
+      this.closePantrySheet();
+      this.lastRemovedPantryItem = null;
+
+      this.showToast(
+        this.languageStateService
+          .t('pantry.updatedToast')
+          .replace('{{name}}', value.name)
+      );
+
+      return;
+    }
+
     const rawIngredients =
       this.buildPantryMergeRawIngredients(value);
 
@@ -772,17 +627,6 @@ export class PantryComponent implements OnInit, OnDestroy {
           candidate.singularText.toLowerCase() === lowerName
         );
       });
-
-      const didApplyRememberedEditMerge =
-        await this.applyRememberedPantryMergeForEditIfPossible(
-          this.selectedPantryItem.id,
-          value,
-          matchingCandidates
-        );
-
-      if (didApplyRememberedEditMerge) {
-        return;
-      }
       const unrememberedCandidates = matchingCandidates.filter(
         (candidate) => !this.isMergeCandidateRemembered(candidate)
       );

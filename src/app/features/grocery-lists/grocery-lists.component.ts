@@ -98,6 +98,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   isPantryReviewDialogOpen = false;
   pantryReviewRows: PantryMoveReviewRow[] = [];
 
+  isMovingToPantry = false;
+
   private listsChannel: RealtimeChannel | null = null;
   private destroy$ = new Subject<void>();
 
@@ -685,28 +687,59 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  async moveItemsToPantry(list: GroceryList): Promise<number> {
-    try {
-      const items = await this.groceryService.getItemsByListId(list.id);
-      const itemsToMove = items.filter(
-        (item: any) => item.status === 'bought' && !item.moved_to_pantry
-      );
-      for (const item of itemsToMove) {
-        await this.pantryService.addOrIncrementPantryItem(item.name);
-        await this.groceryService.updateGroceryItemMovedToPantry(
-          item.id,
-          true
-        );
+  private async moveReviewedRowsToPantry(rows: PantryMoveReviewRow[]): Promise<{
+    added: number;
+    skippedAlwaysPresent: number;
+    skippedExistingInferred: number;
+    failed: number;
+  }> {
+    let added = 0;
+    let skippedAlwaysPresent = 0;
+    let skippedExistingInferred = 0;
+    let failed = 0;
+
+    for (const row of rows.filter((item) => item.selected)) {
+      const payload = this.buildPantryMovePayload(row);
+
+      if (!payload) {
+        failed++;
+        continue;
       }
-      await this.loadPantryCounts();
-      this.cdr.detectChanges();
-      return itemsToMove.length;
-    } catch (error) {
-      console.error('Move to pantry failed:', error);
-      this.error = this.languageStateService.t('groceryLists.moveError');
-      this.cdr.detectChanges();
-      return 0;
+
+      const result = await this.pantryService.addFromMoveToPantry({
+        ...payload,
+        isInferredFromList: row.isInferredFromList,
+      });
+
+      if (result === 'failed') {
+        failed++;
+        continue;
+      }
+
+      await this.groceryService.updateGroceryItemMovedToPantry(row.id, true);
+
+      if (result === 'added') {
+        added++;
+      }
+
+      if (result === 'skipped_always_present') {
+        skippedAlwaysPresent++;
+      }
+
+      if (result === 'skipped_existing_inferred') {
+        skippedExistingInferred++;
+      }
     }
+
+    await this.loadPantryCounts();
+    this.cdr.detectChanges();
+
+    return {
+      added,
+      skippedAlwaysPresent,
+      skippedExistingInferred,
+      failed,
+    };
   }
 
   async onPantryDialogAction(
@@ -758,8 +791,75 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.pendingPantryAction = null;
   }
 
-  onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): void {
-    this.closePantryReviewDialog();
+  async onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): Promise<void> {
+    if (this.isMovingToPantry) {
+      return;
+    }
+    this.isMovingToPantry = true;
+    const rowsToMove = rows.filter((row) => row.selected);
+    const pendingAction = this.pendingPantryAction;
+    const pendingList = this.pendingPantryList;
+    setTimeout(() => {
+      this.isPantryReviewDialogOpen = false;
+      this.cdr.detectChanges();
+    });
+    setTimeout(() => {
+      this.showToast(this.languageStateService.t('groceryLists.movingToPantry'));
+    });
+    try {
+      const result = await this.moveReviewedRowsToPantry(rowsToMove);
+      const movedCount =
+        result.added +
+        result.skippedExistingInferred;
+
+      const processedCount =
+        movedCount +
+        result.skippedAlwaysPresent;
+      if (pendingAction === 'complete' && pendingList) {
+        await this.completeList(pendingList, false, false);
+        if (processedCount > 0) {
+          setTimeout(() => {
+            this.showMovedToPantryAndCompletedToast(
+              movedCount,
+              result.skippedAlwaysPresent
+            );
+          });
+        } else {
+          this.showToast(this.languageStateService.t('groceryLists.listCompleted'));
+        }
+        return;
+      }
+      if (pendingAction === 'archive' && pendingList) {
+        await this.archiveList(pendingList, false);
+        if (processedCount > 0) {
+          setTimeout(() => {
+            this.showMovedToPantryAndArchivedToast(
+              movedCount,
+              result.skippedAlwaysPresent
+            );
+          });
+        } else {
+          this.showToast(this.languageStateService.t('groceryLists.listArchived'));
+        }
+        return;
+      }
+      if (processedCount > 0) {
+        setTimeout(() => {
+          this.showMovedToPantryToast(
+            movedCount,
+            result.skippedAlwaysPresent
+          );
+        });
+      }
+    } finally {
+      setTimeout(() => {
+        this.isMovingToPantry = false;
+        this.pantryReviewRows = [];
+        this.pendingPantryList = null;
+        this.pendingPantryAction = null;
+        this.cdr.detectChanges();
+      });
+    }
   }
 
   async undoCompleteList(): Promise<void> {
@@ -788,6 +888,34 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
     this.clearToastState();
     this.cdr.detectChanges();
+  }
+
+  private buildPantryMovePayload(row: PantryMoveReviewRow) {
+    const name = row.pantryName?.trim();
+
+    if (!name) {
+      return null;
+    }
+
+    if (row.reviewMode === 'measured') {
+      return {
+        name,
+        amount: 1,
+        unit: 'measured',
+        size_amount: Number(row.measuredAmount),
+        size_unit: row.measuredUnit,
+        expiry_date: null,
+      };
+    }
+
+    return {
+      name,
+      amount: Number(row.countAmount || 1),
+      unit: 'item',
+      size_amount: row.sizeAmount ? Number(row.sizeAmount) : null,
+      size_unit: row.sizeUnit || null,
+      expiry_date: null,
+    };
   }
 
   showToast(message: string, actionLabel?: string): void {
@@ -837,6 +965,8 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   private buildPantryMoveDefaultRow(item: any): PantryMoveReviewRow {
     const sourceName = item.name || '';
     const parsed = this.parsePantryMoveSource(sourceName);
+    const isInferred = this.isInferredAggregatedRow(sourceName);
+
     return {
       id: item.id,
       sourceName,
@@ -845,18 +975,38 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       reviewMode:
         parsed.moveAs === 'measured'
           ? 'measured'
-          : parsed.amount == null
-            ? 'simple'
-            : 'countable',
+          : 'countable',
       amount: parsed.amount,
       unit: parsed.unit,
       pantryName: parsed.name,
-      measuredAmount: parsed.moveAs === 'measured' ? parsed.amount : null,
-      measuredUnit: parsed.moveAs === 'measured' ? parsed.unit : 'g',
-      countAmount: parsed.moveAs === 'countable' ? parsed.amount : null,
+      measuredAmount:
+        parsed.moveAs === 'measured'
+          ? parsed.amount
+          : null,
+      measuredUnit:
+        parsed.moveAs === 'measured'
+          ? parsed.unit
+          : 'g',
+      countAmount:
+        parsed.moveAs === 'countable'
+          ? isInferred
+            ? null
+            : parsed.amount
+          : null,
       sizeAmount: null,
       sizeUnit: null,
+      isInferredFromList: isInferred,
     };
+  }
+
+  private cleanPantryMoveName(name: string): string {
+    return name
+      .replace(/^[×xх]\s*/i, '')
+      .trim();
+  }
+
+  private isInferredAggregatedRow(value: string): boolean {
+    return /^\s*\d+(?:[.,]\d+)?\s*[×xх]\s*/i.test(value);
   }
 
   private parsePantryMoveSource(value: string): {
@@ -872,7 +1022,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         moveAs: 'countable',
         amount: null,
         unit: null,
-        name: measurementStyle.ingredient,
+        name: this.cleanPantryMoveName(measurementStyle.ingredient),
       };
     }
     const parsed = parseLeadingNumberIngredient(normalized);
@@ -881,7 +1031,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         moveAs: 'measured',
         amount: parsed.amount,
         unit: parsed.unit,
-        name: parsed.name || parsed.suffix,
+        name: this.cleanPantryMoveName(parsed.name || parsed.suffix),
       };
     }
     if (parsed) {
@@ -889,7 +1039,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         moveAs: 'countable',
         amount: parsed.amount,
         unit: null,
-        name: parsed.name,
+        name: this.cleanPantryMoveName(parsed.name),
       };
     }
     return {
@@ -898,10 +1048,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       unit: null,
       name: normalized,
     };
-  }
-
-  private hasRecipeMeasurementStyle(value: string): boolean {
-    return /\b(ч\.л\.|с\.л\.|tsp|tbsp|cup|cups|чаша|чаши)\b/i.test(value);
   }
 
   async onToastAction(): Promise<void> {
@@ -914,34 +1060,69 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  showMovedToPantryToast(count: number): void {
-    this.showToast(
-      count === 1
-        ? this.languageStateService.t('groceryLists.movedOneToPantry')
-        : this.languageStateService
-          .t('groceryLists.movedManyToPantry')
-          .replace('{{count}}', String(count))
-    );
+  showMovedToPantryToast(
+    count: number,
+    skippedAlwaysPresent: number = 0
+  ): void {
+    const message = this.languageStateService
+      .t('groceryLists.movedToPantryResult')
+      .replace('{{count}}', String(count))
+      .replace(
+        '{{alwaysPresent}}',
+        this.getAlwaysPresentPart(skippedAlwaysPresent)
+      );
+
+    this.showToast(message);
   }
 
-  showMovedToPantryAndCompletedToast(count: number): void {
-    this.showToast(
-      count === 1
-        ? this.languageStateService.t('groceryLists.movedOneCompleted')
-        : this.languageStateService
-          .t('groceryLists.movedManyCompleted')
-          .replace('{{count}}', String(count))
-    );
+  showMovedToPantryAndCompletedToast(
+    count: number,
+    skippedAlwaysPresent: number = 0
+  ): void {
+    const message = this.languageStateService
+      .t(
+        count === 1
+          ? 'groceryLists.movedOneCompleted'
+          : 'groceryLists.movedManyCompleted'
+      )
+      .replace('{{count}}', String(count))
+      .replace(
+        '{{alwaysPresent}}',
+        this.getAlwaysPresentPart(skippedAlwaysPresent)
+      );
+
+    this.showToast(message);
   }
 
-  showMovedToPantryAndArchivedToast(count: number): void {
-    this.showToast(
-      count === 1
-        ? this.languageStateService.t('groceryLists.movedOneArchived')
-        : this.languageStateService
-          .t('groceryLists.movedManyArchived')
-          .replace('{{count}}', String(count))
-    );
+  showMovedToPantryAndArchivedToast(
+    count: number,
+    skippedAlwaysPresent: number = 0
+  ): void {
+    const message = this.languageStateService
+      .t(
+        count === 1
+          ? 'groceryLists.movedOneArchived'
+          : 'groceryLists.movedManyArchived'
+      )
+      .replace('{{count}}', String(count))
+      .replace(
+        '{{alwaysPresent}}',
+        this.getAlwaysPresentPart(skippedAlwaysPresent)
+      );
+
+    this.showToast(message);
+  }
+
+  private getAlwaysPresentPart(
+    skippedAlwaysPresent: number
+  ): string {
+    if (skippedAlwaysPresent <= 0) {
+      return '';
+    }
+
+    return this.languageStateService
+      .t('groceryLists.alwaysPresentSkippedResult')
+      .replace('{{count}}', String(skippedAlwaysPresent));
   }
 
   clearToastState(): void {

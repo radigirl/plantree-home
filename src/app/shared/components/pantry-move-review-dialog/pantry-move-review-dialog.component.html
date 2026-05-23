@@ -28,11 +28,7 @@
 
             <button type="button" [class.is-active]="getRowMode(row) === 'countable'"
               (click)="setRowMode(row, 'countable')">
-              {{ 'pantryMoveReview.modeCountable' | translate }}
-            </button>
-
-            <button type="button" [class.is-active]="getRowMode(row) === 'simple'" (click)="setRowMode(row, 'simple')">
-              —
+              {{ 'pantryMoveReview.modeCountable' | translate }} / -
             </button>
           </div>
         </div>
@@ -78,11 +74,6 @@
                 <option value="l">l</option>
               </select>
 
-              <input type="text" [(ngModel)]="row.pantryName" [placeholder]="'pantryMoveReview.namePlaceholder' | translate" />
-            </ng-container>
-
-            <!-- simple -->
-            <ng-container *ngIf="getRowMode(row) === 'simple'">
               <input type="text" [(ngModel)]="row.pantryName" [placeholder]="'pantryMoveReview.namePlaceholder' | translate" />
             </ng-container>
 
