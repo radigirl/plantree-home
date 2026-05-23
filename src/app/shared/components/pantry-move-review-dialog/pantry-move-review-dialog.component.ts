@@ -15,6 +15,10 @@ export interface PantryMoveReviewRow {
   pantryName: string;
   sizeAmount: number | null;
   sizeUnit: string | null;
+  reviewMode: 'measured' | 'countable' | 'simple';
+  measuredAmount: number | null;
+  measuredUnit: string | null;
+  countAmount: number | null;
 }
 
 @Component({
@@ -58,24 +62,27 @@ export class PantryMoveReviewDialogComponent {
 
   getPreviewText(row: PantryMoveReviewRow): string {
     const name = row.pantryName?.trim() || row.sourceName;
-
-    if (row.amount === null || row.amount === undefined) {
+    if (row.reviewMode === 'simple') {
       return name;
     }
-
-    if (row.moveAs === 'measured' && row.unit) {
-      return `${row.amount} ${row.unit} ${name}`;
+    if (row.reviewMode === 'measured') {
+      if (row.measuredAmount === null || row.measuredAmount === undefined) {
+        return name;
+      }
+      return `${row.measuredAmount} ${row.measuredUnit || ''} ${name}`.trim();
     }
-
-    return `${row.amount} ${name}`;
+    // countable
+    if (row.countAmount === null || row.countAmount === undefined) {
+      return name;
+    }
+    if (row.sizeAmount && row.sizeUnit) {
+      return `${row.countAmount} × ${row.sizeAmount} ${row.sizeUnit} ${name}`;
+    }
+    return `${row.countAmount} ${name}`;
   }
 
   getRowMode(row: PantryMoveReviewRow): 'measured' | 'countable' | 'simple' {
-    if (row.moveAs === 'measured') {
-      return 'measured';
-    }
-
-    return row.amount == null ? 'simple' : 'countable';
+    return row.reviewMode;
   }
 
   isPackageValid(row: PantryMoveReviewRow): boolean {
@@ -94,13 +101,37 @@ export class PantryMoveReviewDialogComponent {
     return this.invalidRowId === row.id && !this.isPackageValid(row);
   }
 
+  setRowMode(row: PantryMoveReviewRow, mode: 'measured' | 'countable' | 'simple'): void {
+    row.reviewMode = mode;
+
+    if (mode === 'measured') {
+      row.moveAs = 'measured';
+      row.amount = row.measuredAmount;
+      row.unit = row.measuredUnit || 'g';
+      return;
+    }
+
+    if (mode === 'countable') {
+      row.moveAs = 'countable';
+      row.amount = row.countAmount;
+      row.unit = null;
+      return;
+    }
+
+    row.moveAs = 'countable';
+    row.amount = null;
+    row.unit = null;
+  }
+
   onClose(): void {
     this.closed.emit();
   }
 
   onConfirm(): void {
     const selectedRows = this.rows.filter((row) => row.selected);
-    console.log('PANTRY MOVE REVIEW CONFIRMED', selectedRows);
+
+    console.log('PANTRY MOVE REVIEW - selected rows:', selectedRows);
+
     this.confirmed.emit(selectedRows);
   }
 

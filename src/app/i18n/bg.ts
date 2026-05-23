@@ -319,6 +319,8 @@ export const bg = {
     covers: 'Включва:',
     more: 'още',
     copy: 'копие',
+    movedToPantryResult: '{{count}} продукта са преместени в „Продукти“',
+    alwaysPresentSkippedResult: '{{count}} винаги налични са пропуснати',
   },
   groceryListDetails: {
     backToLists: 'Списъци',

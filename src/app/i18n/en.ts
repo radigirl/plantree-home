@@ -318,6 +318,8 @@ export const en = {
     covers: 'Covers:',
     more: 'more',
     copy: 'copy',
+    movedToPantryResult: '{{count}} products moved to Pantry',
+    alwaysPresentSkippedResult: '{{count}} always present skipped',
   },
   groceryListDetails: {
     backToLists: 'Lists',

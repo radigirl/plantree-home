@@ -759,10 +759,6 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   }
 
   onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): void {
-    console.log('PANTRY MOVE REVIEW SELECTED ROWS:', rows);
-    console.log('PENDING PANTRY LIST:', this.pendingPantryList);
-    console.log('PENDING PANTRY ACTION:', this.pendingPantryAction);
-
     this.closePantryReviewDialog();
   }
 
@@ -846,9 +842,18 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       sourceName,
       selected: true,
       moveAs: parsed.moveAs,
+      reviewMode:
+        parsed.moveAs === 'measured'
+          ? 'measured'
+          : parsed.amount == null
+            ? 'simple'
+            : 'countable',
       amount: parsed.amount,
       unit: parsed.unit,
       pantryName: parsed.name,
+      measuredAmount: parsed.moveAs === 'measured' ? parsed.amount : null,
+      measuredUnit: parsed.moveAs === 'measured' ? parsed.unit : 'g',
+      countAmount: parsed.moveAs === 'countable' ? parsed.amount : null,
       sizeAmount: null,
       sizeUnit: null,
     };
