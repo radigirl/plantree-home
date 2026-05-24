@@ -78,7 +78,7 @@ export class MeasurementConversionSheetComponent {
     }
 
     if (style === 'tsp') {
-      return this.getExampleForSource('1 tsp', {
+      return this.getExampleForSource(this.getSourceLabel('tsp'), {
         g: '5 g',
         kg: '0.005 kg',
         ml: '5 ml',

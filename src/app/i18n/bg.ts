@@ -436,7 +436,7 @@ export const bg = {
     cleanNothingToRemove: 'Няма подходящи продукти за премахване.',
   },
   pantryAction: {
-    archiveAnyway: 'Архивирай въпреки това',
+    archiveAnyway: 'Архивирай',
     moveToPantry: 'Премести',
   },
   pantrySheet: {

@@ -305,6 +305,7 @@ export const en = {
     listArchived: 'List archived',
     undo: 'Undo',
     moveToPantryTitle: 'Move to Pantry?',
+    beforeArchivingTitle: 'Before archiving',
     completePantryMessageOne: 'This list has 1 bought item that can be moved to Pantry.',
     completePantryMessageMany: 'This list has {{count}} bought items that can be moved to Pantry.',
     archivePantryMessageOne: 'This list still has 1 item that can be moved to Pantry.',

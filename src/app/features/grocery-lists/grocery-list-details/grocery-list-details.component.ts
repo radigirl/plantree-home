@@ -1285,28 +1285,40 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     action: 'move' | 'skip' | 'archive' | 'cancel'
   ): Promise<void> {
     const list = this.pendingPantryList;
+
     if (!list) {
       this.closePantryDialog();
       return;
     }
-    this.closePantryDialog();
+
+    if (action === 'cancel') {
+      this.closePantryDialog();
+      return;
+    }
+
     if (action === 'move') {
-      this.pendingPantryList = list;
+      this.isPantryDialogOpen = false;
       await this.openPantryMoveReviewDialog(list);
       return;
     }
+
+    this.closePantryDialog();
+
     if (action === 'skip') {
       const success = await this.groceryService.completeGroceryList(list.id);
+
       if (!success) {
         this.error = this.languageStateService.t('groceryLists.completeError');
         this.cdr.detectChanges();
         return;
       }
+
       this.groceryList = {
         ...this.groceryList!,
         status: 'completed',
         updated_at: new Date().toISOString(),
       };
+
       this.showCompletedUndoToast(this.groceryList);
       this.cdr.detectChanges();
     }
@@ -1344,7 +1356,12 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   closePantryReviewDialog(): void {
     this.isPantryReviewDialogOpen = false;
     this.pantryReviewRows = [];
-    this.pendingPantryList = null;
+
+    if (this.pendingPantryList) {
+      this.isPantryDialogOpen = true;
+    }
+
+    this.cdr.detectChanges();
   }
 
   async onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): Promise<void> {

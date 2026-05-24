@@ -629,41 +629,45 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   ): Promise<void> {
     const list = this.pendingPantryList;
     const pendingAction = this.pendingPantryAction;
+
     if (!list || !pendingAction) {
       this.closePantryDialog();
       return;
     }
-    this.closePantryDialog();
-    if (pendingAction === 'complete') {
-      if (action === 'move') {
-        this.pendingPantryList = list;
-        this.pendingPantryAction = pendingAction;
-        await this.openPantryMoveReviewDialog(list);
-        return;
-      }
-      if (action === 'skip') {
-        await this.completeList(list, true, true);
-      }
-    }
-    if (pendingAction === 'archive') {
-      if (action === 'move') {
-        this.pendingPantryList = list;
-        this.pendingPantryAction = pendingAction;
 
-        await this.openPantryMoveReviewDialog(list);
-        return;
-      }
-      if (action === 'archive') {
-        await this.archiveList(list);
-      }
+    if (action === 'cancel') {
+      this.closePantryDialog();
+      return;
+    }
+
+    if (action === 'move') {
+      this.isPantryDialogOpen = false;
+      await this.openPantryMoveReviewDialog(list);
+      return;
+    }
+
+    this.closePantryDialog();
+
+    if (pendingAction === 'complete' && action === 'skip') {
+      await this.completeList(list, true, true);
+      return;
+    }
+
+    if (pendingAction === 'archive' && action === 'archive') {
+      await this.archiveList(list);
+      return;
     }
   }
 
   closePantryReviewDialog(): void {
     this.isPantryReviewDialogOpen = false;
     this.pantryReviewRows = [];
-    this.pendingPantryList = null;
-    this.pendingPantryAction = null;
+
+    if (this.pendingPantryList && this.pendingPantryAction) {
+      this.isPantryDialogOpen = true;
+    }
+
+    this.cdr.detectChanges();
   }
 
   async onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): Promise<void> {
