@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { MergeCandidate } from '../shared/components/merge-review-sheet/merge-review-sheet.component';
 
 export interface IngredientWordRule {
   id?: string;
@@ -172,6 +173,49 @@ export class IngredientRulesService {
     }
 
     return true;
+  }
+
+  async filterRememberedWordCandidates(
+    spaceId: string,
+    candidates: MergeCandidate[]
+  ): Promise<MergeCandidate[]> {
+    if (!spaceId || !candidates.length) {
+      return [];
+    }
+
+    const rules = await this.getWordRules(spaceId);
+
+    return candidates.filter((candidate) => {
+      const singular = candidate.singularText.trim().toLowerCase();
+      const plural = candidate.pluralText.trim().toLowerCase();
+
+      return !rules.some((rule) => {
+        const ruleSingular = rule.singular_text.trim().toLowerCase();
+        const rulePlural = rule.plural_text.trim().toLowerCase();
+
+        return (
+          ruleSingular === singular &&
+          rulePlural === plural
+        );
+      });
+    });
+  }
+
+  async saveMergeCandidatesAsWordRules(
+    spaceId: string,
+    candidates: MergeCandidate[]
+  ): Promise<boolean> {
+    if (!spaceId || !candidates.length) {
+      return true;
+    }
+
+    return this.saveWordRules(
+      candidates.map((candidate) => ({
+        spaceId,
+        singularText: candidate.singularText,
+        pluralText: candidate.pluralText,
+      }))
+    );
   }
 
 }

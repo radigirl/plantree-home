@@ -1028,12 +1028,9 @@ export class PantryComponent implements OnInit, OnDestroy {
       return;
     }
 
-    await this.ingredientRulesService.saveWordRules(
-      candidates.map((candidate) => ({
-        spaceId,
-        singularText: candidate.singularText,
-        pluralText: candidate.pluralText,
-      }))
+    await this.ingredientRulesService.saveMergeCandidatesAsWordRules(
+      spaceId,
+      candidates
     );
 
     this.rememberedWordRules =

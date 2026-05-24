@@ -1018,18 +1018,15 @@ export class PlanComponent implements OnInit, OnDestroy {
   private async saveRememberedWordRules(
     candidates: MergeCandidate[]
   ): Promise<void> {
-    const space = this.spaceStateService.getCurrentSpace?.();
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
 
-    if (!space?.id || !candidates.length) {
+    if (!spaceId || !candidates.length) {
       return;
     }
 
-    await this.ingredientRulesService.saveWordRules(
-      candidates.map((c) => ({
-        spaceId: space.id,
-        singularText: c.singularText,
-        pluralText: c.pluralText,
-      }))
+    await this.ingredientRulesService.saveMergeCandidatesAsWordRules(
+      spaceId,
+      candidates
     );
   }
 

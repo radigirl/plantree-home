@@ -171,5 +171,15 @@
   </div>
 </div>
 
+<div class="sheet-overlay" *ngIf="isMergeSheetOpen">
+  <div class="sheet-shell">
+    <div class="sheet-handle"></div>
+
+    <app-merge-review-sheet [candidates]="mergeSheetData?.candidates || []" (dismissed)="onMergeSkip()"
+      (skipped)="onMergeSkip()" (mergeApplied)="onMergeApply($event)">
+    </app-merge-review-sheet>
+  </div>
+</div>
+
 <app-snackbar [isVisible]="!!toastMessage" [message]="toastMessage" [actionLabel]="toastActionLabel"
   (actionClicked)="onToastAction()"></app-snackbar>

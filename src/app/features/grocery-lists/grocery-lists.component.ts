@@ -33,6 +33,17 @@ import {
   PantryMoveReviewRow,
 } from '../../shared/components/pantry-move-review-dialog/pantry-move-review-dialog.component';
 import { GroceryPantryMoveService } from '../../services/grocery-pantry-move.service';
+import {
+  MergeReviewSheetComponent,
+  MergeCandidate,
+  MergeApplyValue,
+} from '../../shared/components/merge-review-sheet/merge-review-sheet.component';
+
+import {
+  detectPossibleMergeCandidatesFromRawIngredients,
+} from '../../shared/utils/ingredient-merge.util';
+
+import { IngredientRulesService } from '../../services/ingredient-rules.service';
 
 
 @Component({
@@ -49,6 +60,7 @@ import { GroceryPantryMoveService } from '../../services/grocery-pantry-move.ser
     ConfirmationDialogComponent,
     EditTextDialogComponent,
     TranslatePipe,
+    MergeReviewSheetComponent,
     PantryMoveReviewDialogComponent
   ],
   templateUrl: './grocery-lists.component.html',
@@ -93,6 +105,14 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
 
   isPantryReviewDialogOpen = false;
   pantryReviewRows: PantryMoveReviewRow[] = [];
+  pendingPantryMoveRows: PantryMoveReviewRow[] | null = null;
+
+  isMergeSheetOpen = false;
+  mergeSheetData: {
+    rawIngredients: string[];
+    newItem: string;
+    candidates: MergeCandidate[];
+  } | null = null;
 
   isMovingToPantry = false;
 
@@ -108,6 +128,7 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
     private pantryService: PantryService,
     private languageStateService: LanguageStateService,
     private groceryPantryMoveService: GroceryPantryMoveService,
+    private ingredientRulesService: IngredientRulesService,
   ) { }
 
   @HostListener('document:click')
@@ -671,30 +692,134 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
   }
 
   async onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): Promise<void> {
+    const rowsToMove = rows.filter((row) => row.selected);
+
+    const shouldPauseForWordRules =
+      await this.openPantryMoveMergeSheetIfNeeded(rowsToMove);
+
+    if (shouldPauseForWordRules) {
+      return;
+    }
+
+    await this.continuePantryMove(rowsToMove);
+  }
+
+  private async openPantryMoveMergeSheetIfNeeded(
+    rowsToMove: PantryMoveReviewRow[]
+  ): Promise<boolean> {
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (!spaceId) {
+      return false;
+    }
+
+    const simpleCountableRows = rowsToMove.filter((row) => {
+      const hasSize =
+        row.sizeAmount !== null &&
+        row.sizeAmount !== undefined &&
+        String(row.sizeAmount).trim() !== '';
+
+      const hasUnit = !!row.sizeUnit;
+
+      return (
+        row.reviewMode === 'countable' &&
+        !hasSize &&
+        !hasUnit &&
+        !!row.pantryName?.trim()
+      );
+    });
+
+    if (!simpleCountableRows.length) {
+      return false;
+    }
+
+    const pantryItems = await this.pantryService.getPantryItems();
+
+    const rawIngredients = [
+      ...pantryItems
+        .filter((item: any) => item.unit !== 'measured')
+        .filter((item: any) => !item.size_amount && !item.size_unit)
+        .map((item: any) => {
+          const amount = Number(item.amount ?? 1);
+          return amount > 1 ? `${amount} ${item.name}` : item.name;
+        }),
+
+      ...simpleCountableRows.map((row) => {
+        const amount = Number(row.countAmount ?? 1);
+        const name = row.pantryName.trim();
+        return amount > 1 ? `${amount} ${name}` : name;
+      }),
+    ];
+
+    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+
+    const movedNames = simpleCountableRows.map((row) =>
+      row.pantryName.trim().toLowerCase()
+    );
+
+    const relevantCandidates = candidates.filter((candidate) =>
+      movedNames.includes(candidate.singularText.toLowerCase()) ||
+      movedNames.includes(candidate.pluralText.toLowerCase())
+    );
+
+    const unresolvedCandidates =
+      await this.ingredientRulesService.filterRememberedWordCandidates(
+        spaceId,
+        relevantCandidates
+      );
+
+    if (!unresolvedCandidates.length) {
+      return false;
+    }
+
+    this.pendingPantryMoveRows = rowsToMove;
+    this.isPantryReviewDialogOpen = false;
+
+    this.mergeSheetData = {
+      rawIngredients,
+      newItem: '',
+      candidates: unresolvedCandidates,
+    };
+
+    this.isMergeSheetOpen = true;
+    this.cdr.detectChanges();
+
+    return true;
+  }
+
+  private async continuePantryMove(rowsToMove: PantryMoveReviewRow[]): Promise<void> {
     if (this.isMovingToPantry) {
       return;
     }
+
     this.isMovingToPantry = true;
-    const rowsToMove = rows.filter((row) => row.selected);
+
     const pendingAction = this.pendingPantryAction;
     const pendingList = this.pendingPantryList;
+
     setTimeout(() => {
       this.isPantryReviewDialogOpen = false;
       this.cdr.detectChanges();
     });
+
     setTimeout(() => {
       this.showToast(this.languageStateService.t('groceryLists.movingToPantry'));
     });
+
     try {
       const result = await this.moveReviewedRowsToPantry(rowsToMove);
+
       const movedCount =
         result.added +
         result.skippedExistingInferred;
+
       const processedCount =
         movedCount +
         result.skippedAlwaysPresent;
+
       if (pendingAction === 'complete' && pendingList) {
         await this.completeList(pendingList, false, false);
+
         if (processedCount > 0) {
           setTimeout(() => {
             this.showMovedToPantryAndCompletedToast(
@@ -705,10 +830,13 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         } else {
           this.showToast(this.languageStateService.t('groceryLists.listCompleted'));
         }
+
         return;
       }
+
       if (pendingAction === 'archive' && pendingList) {
         await this.archiveList(pendingList, false);
+
         if (processedCount > 0) {
           setTimeout(() => {
             this.showMovedToPantryAndArchivedToast(
@@ -719,8 +847,10 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
         } else {
           this.showToast(this.languageStateService.t('groceryLists.listArchived'));
         }
+
         return;
       }
+
       if (processedCount > 0) {
         setTimeout(() => {
           this.showMovedToPantryToast(
@@ -733,11 +863,50 @@ export class GroceryListsComponent implements OnInit, OnDestroy {
       setTimeout(() => {
         this.isMovingToPantry = false;
         this.pantryReviewRows = [];
+        this.pendingPantryMoveRows = null;
         this.pendingPantryList = null;
         this.pendingPantryAction = null;
         this.cdr.detectChanges();
       });
     }
+  }
+
+  async onMergeSkip(): Promise<void> {
+    if (!this.pendingPantryMoveRows) {
+      return;
+    }
+
+    const rows = this.pendingPantryMoveRows;
+
+    this.isMergeSheetOpen = false;
+    this.mergeSheetData = null;
+    this.pendingPantryMoveRows = null;
+
+    await this.continuePantryMove(rows);
+  }
+
+  async onMergeApply(value: MergeApplyValue): Promise<void> {
+    if (!this.pendingPantryMoveRows) {
+      return;
+    }
+
+    const rows = this.pendingPantryMoveRows;
+    const { selectedCandidates, remember } = value;
+
+    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
+
+    if (remember && selectedCandidates.length && spaceId) {
+      await this.ingredientRulesService.saveMergeCandidatesAsWordRules(
+        spaceId,
+        selectedCandidates
+      );
+    }
+
+    this.isMergeSheetOpen = false;
+    this.mergeSheetData = null;
+    this.pendingPantryMoveRows = null;
+
+    await this.continuePantryMove(rows);
   }
 
   async undoCompleteList(): Promise<void> {

@@ -151,6 +151,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
 
   isPantryReviewDialogOpen = false;
   pantryReviewRows: PantryMoveReviewRow[] = [];
+  pendingPantryMoveRows: PantryMoveReviewRow[] | null = null;
   isMovingToPantry = false;
 
   private destroy$ = new Subject<void>();
@@ -598,6 +599,17 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onMergeSkip(): Promise<void> {
+    if (this.pendingPantryMoveRows) {
+      const rows = this.pendingPantryMoveRows;
+
+      this.isMergeSheetOpen = false;
+      this.mergeSheetData = null;
+      this.pendingPantryMoveRows = null;
+
+      await this.continuePantryMove(rows);
+      return;
+    }
+
     this.isMergeSheetOpen = false;
 
     if (this.pendingEditItemId && this.pendingEditItemName) {
@@ -624,9 +636,32 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onMergeApply(value: MergeApplyValue): Promise<void> {
+    if (this.pendingPantryMoveRows && this.groceryList) {
+      const rows = this.pendingPantryMoveRows;
+      const { selectedCandidates, remember } = value;
+
+      if (remember && selectedCandidates.length) {
+        await this.ingredientRulesService.saveMergeCandidatesAsWordRules(
+          this.groceryList.space_id,
+          selectedCandidates
+        );
+
+        this.rememberedWordRules =
+          await this.ingredientRulesService.getWordRules(this.groceryList.space_id);
+      }
+
+      this.isMergeSheetOpen = false;
+      this.mergeSheetData = null;
+      this.pendingPantryMoveRows = null;
+
+      await this.continuePantryMove(rows);
+      return;
+    }
+
     if (!this.mergeSheetData || !this.groceryList) {
       return;
     }
+
     const { selectedCandidates, remember } = value;
 
     if (remember && selectedCandidates.length) {
@@ -641,15 +676,18 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
           this.pendingEditItemId,
           this.pendingEditItemName
         );
+
         if (!success) {
           this.error = this.languageStateService.t('groceryListDetails.updateItemError');
           this.cdr.detectChanges();
           return;
         }
+
         this.pendingRevealItemId = this.pendingEditItemId;
         this.pendingEditItemId = null;
         this.pendingEditItemName = '';
         this.mergeSheetData = null;
+
         const items = await this.groceryService.getItemsByListId(this.groceryList.id);
         this.setGroceryItems(items);
         this.cdr.detectChanges();
@@ -673,13 +711,16 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
         revealTargetId = targetId;
       }
     }
+
     this.pendingEditItemId = null;
     this.pendingEditItemName = '';
     this.mergeSheetData = null;
     this.newItemName = '';
+
     const items = await this.groceryService.getItemsByListId(this.groceryList.id);
     this.setGroceryItems(items);
     this.cdr.detectChanges();
+
     if (revealTargetId) {
       this.pendingRevealItemId = revealTargetId;
     }
@@ -1365,11 +1406,109 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }
 
   async onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): Promise<void> {
+    const rowsToMove = rows.filter((row) => row.selected);
+
+    const shouldPauseForWordRules =
+      await this.openPantryMoveMergeSheetIfNeeded(rowsToMove);
+
+    if (shouldPauseForWordRules) {
+      return;
+    }
+
+    await this.continuePantryMove(rowsToMove);
+  }
+
+  private async openPantryMoveMergeSheetIfNeeded(
+    rowsToMove: PantryMoveReviewRow[]
+  ): Promise<boolean> {
+    if (!this.groceryList) {
+      return false;
+    }
+
+    const simpleCountableRows = rowsToMove.filter((row) => {
+      const hasSize =
+        row.sizeAmount !== null &&
+        row.sizeAmount !== undefined &&
+        String(row.sizeAmount).trim() !== '';
+
+      const hasUnit = !!row.sizeUnit;
+
+      return (
+        row.reviewMode === 'countable' &&
+        !hasSize &&
+        !hasUnit &&
+        !!row.pantryName?.trim()
+      );
+    });
+
+    if (!simpleCountableRows.length) {
+      return false;
+    }
+
+    const pantryItems = await this.pantryService.getPantryItems();
+
+    const rawIngredients = [
+      ...pantryItems
+        .filter((item: any) => item.unit !== 'measured')
+        .filter((item: any) => !item.size_amount && !item.size_unit)
+        .map((item: any) => {
+          const amount = Number(item.amount ?? 1);
+          return amount > 1 ? `${amount} ${item.name}` : item.name;
+        }),
+
+      ...simpleCountableRows.map((row) => {
+        const amount = Number(row.countAmount ?? 1);
+        const name = row.pantryName.trim();
+
+        return amount > 1 ? `${amount} ${name}` : name;
+      }),
+    ];
+
+    const candidates = detectPossibleMergeCandidatesFromRawIngredients(rawIngredients);
+
+    if (!candidates.length) {
+      return false;
+    }
+
+    const movedNames = simpleCountableRows.map((row) =>
+      row.pantryName.trim().toLowerCase()
+    );
+
+    const relevantCandidates = candidates.filter((candidate) =>
+      movedNames.includes(candidate.singularText.toLowerCase()) ||
+      movedNames.includes(candidate.pluralText.toLowerCase())
+    );
+
+    const unresolvedCandidates =
+      await this.ingredientRulesService.filterRememberedWordCandidates(
+        this.groceryList.space_id,
+        relevantCandidates
+      );
+
+    if (!unresolvedCandidates.length) {
+      return false;
+    }
+
+    this.pendingPantryMoveRows = rowsToMove;
+    this.isPantryReviewDialogOpen = false;
+
+    this.mergeSheetData = {
+      rawIngredients,
+      newItem: '',
+      candidates: unresolvedCandidates,
+    };
+
+    this.isMergeSheetOpen = true;
+    this.cdr.detectChanges();
+
+    return true;
+  }
+
+  private async continuePantryMove(rowsToMove: PantryMoveReviewRow[]): Promise<void> {
     if (this.isMovingToPantry) return;
 
     this.isMovingToPantry = true;
 
-    const rowsToMove = rows.filter((row) => row.selected);
     const pendingList = this.pendingPantryList;
 
     setTimeout(() => {
@@ -1422,6 +1561,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
       setTimeout(() => {
         this.isMovingToPantry = false;
         this.pantryReviewRows = [];
+        this.pendingPantryMoveRows = null;
         this.pendingPantryList = null;
         this.cdr.detectChanges();
       });
@@ -1714,48 +1854,34 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   private async saveRememberedWordRules(
     candidates: MergeCandidate[]
   ): Promise<void> {
-    if (!this.groceryList?.space_id || !candidates.length) {
+    const spaceId = this.groceryList?.space_id;
+
+    if (!spaceId || !candidates.length) {
       return;
     }
 
-    await this.ingredientRulesService.saveWordRules(
-      candidates.map((candidate) => ({
-        spaceId: this.groceryList!.space_id,
-        singularText: candidate.singularText,
-        pluralText: candidate.pluralText,
-      }))
+    await this.ingredientRulesService.saveMergeCandidatesAsWordRules(
+      spaceId,
+      candidates
     );
 
-    this.rememberedWordRules = await this.ingredientRulesService.getWordRules(
-      this.groceryList.space_id
-    );
+    this.rememberedWordRules =
+      await this.ingredientRulesService.getWordRules(spaceId);
   }
-
 
   private async filterRememberedCandidates(
     candidates: MergeCandidate[]
   ): Promise<MergeCandidate[]> {
-    if (!this.groceryList?.space_id) {
+    const spaceId = this.groceryList?.space_id;
+
+    if (!spaceId) {
       return candidates;
     }
 
-    const rules = await this.ingredientRulesService.getWordRules(
-      this.groceryList.space_id
+    return this.ingredientRulesService.filterRememberedWordCandidates(
+      spaceId,
+      candidates
     );
-
-    this.rememberedWordRules = rules;
-
-    return candidates.filter((candidate) => {
-      const singular = normalizeIngredientKey(candidate.singularText);
-      const plural = normalizeIngredientKey(candidate.pluralText);
-
-      return !rules.some((rule) => {
-        return (
-          normalizeIngredientKey(rule.singular_text) === singular &&
-          normalizeIngredientKey(rule.plural_text) === plural
-        );
-      });
-    });
   }
 
   private async openMergeSheet(data: {
