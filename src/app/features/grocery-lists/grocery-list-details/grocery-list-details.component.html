@@ -71,22 +71,23 @@
 
         <div *ngIf="isReadOnly" class="read-only-inline">
           <p class="read-only-inline__text">
-            {{ ('groceryListDetails.readOnly' | translate).replace('{{status}}', getTranslatedStatus(groceryList.status)) }}
+            {{ ('groceryListDetails.readOnly' | translate).replace('{{status}}',
+            getTranslatedStatus(groceryList.status)) }}
           </p>
         </div>
 
         <div *ngIf="!isReadOnly" class="add-item-block">
           <div class="add-item-row">
-            <input type="text" [(ngModel)]="newItemName" class="input-field" [placeholder]="'groceryListDetails.addItemPlaceholder' | translate"
-              (keydown.enter)="onEnterAddItem()" />
+            <input type="text" [(ngModel)]="newItemName" class="input-field"
+              [placeholder]="'groceryListDetails.addItemPlaceholder' | translate" (keydown.enter)="onEnterAddItem()" />
 
             <button class="action-pill action-pill--primary" (click)="addItem()">
-             {{ 'groceryListDetails.add' | translate }}
+              {{ 'groceryListDetails.add' | translate }}
             </button>
           </div>
 
           <p class="add-item-hint">
-           {{ 'groceryListDetails.addHint' | translate }}
+            {{ 'groceryListDetails.addHint' | translate }}
           </p>
         </div>
 
@@ -107,8 +108,9 @@
 
                 <p class="grocery-item-status" [class.grocery-item-status--bought]="meta.isBought">
                   <span *ngIf="!meta.isBought; else boughtMeta">
-                   {{ 'groceryListDetails.addedBy' | translate }}
-                    <strong *ngIf="meta.isAddedByYou; else addedName">{{ 'groceryListDetails.you' | translate }}</strong>
+                    {{ 'groceryListDetails.addedBy' | translate }}
+                    <strong *ngIf="meta.isAddedByYou; else addedName">{{ 'groceryListDetails.you' | translate
+                      }}</strong>
                     <ng-template #addedName>
                       <strong>{{ meta.addedByName }}</strong>
                     </ng-template>
@@ -117,7 +119,8 @@
                   <ng-template #boughtMeta>
                     <span>
                       {{ 'groceryListDetails.boughtBy' | translate }}
-                      <strong *ngIf="meta.isBoughtByYou; else boughtName">{{ 'groceryListDetails.you' | translate }}</strong>
+                      <strong *ngIf="meta.isBoughtByYou; else boughtName">{{ 'groceryListDetails.you' | translate
+                        }}</strong>
                       <ng-template #boughtName>
                         <strong>{{ meta.boughtByName }}</strong>
                       </ng-template>
@@ -141,7 +144,7 @@
 
               <div *ngIf="openItemMenuId === item.id && !isMobileViewport()" class="grocery-item-menu">
                 <button *ngIf="!isReadOnly" class="grocery-item-menu-item" (click)="openEditDialog($event, item)">
-                 {{ 'groceryListDetails.edit' | translate }}
+                  {{ 'groceryListDetails.edit' | translate }}
                 </button>
 
                 <button *ngIf="!isReadOnly" class="grocery-item-menu-item grocery-item-menu-item--danger"
@@ -167,8 +170,10 @@
 
 <div class="dialog-overlay dialog-overlay--form" *ngIf="isEditDialogOpen" (click)="closeEditDialog()">
   <div class="dialog-shell dialog-shell--form" (click)="$event.stopPropagation()">
-    <app-edit-text-dialog [title]="'groceryListDetails.editItemTitle' | translate" [label]="'groceryListDetails.itemName' | translate" [value]="editItemName"
-      [placeholder]="'groceryListDetails.itemNamePlaceholder' | translate" [confirmLabel]="'mealDialog.save' | translate" [cancelLabel]="'common.cancel' | translate"
+    <app-edit-text-dialog [title]="'groceryListDetails.editItemTitle' | translate"
+      [label]="'groceryListDetails.itemName' | translate" [value]="editItemName"
+      [placeholder]="'groceryListDetails.itemNamePlaceholder' | translate"
+      [confirmLabel]="'mealDialog.save' | translate" [cancelLabel]="'common.cancel' | translate"
       (valueChange)="editItemName = $event" (cancel)="closeEditDialog()"
       (confirm)="confirmEditItem()"></app-edit-text-dialog>
   </div>
@@ -176,9 +181,9 @@
 
 <div class="dialog-overlay" *ngIf="isDeleteDialogOpen" (click)="closeDeleteDialog()">
   <div class="dialog-shell" (click)="$event.stopPropagation()">
-    <app-confirmation-dialog [title]="'groceryListDetails.deleteItemTitle' | translate" [message]="getDeleteMessage()" [cancelLabel]="'common.cancel' | translate"
-      [confirmLabel]="'groceryListDetails.delete' | translate" (cancel)="closeDeleteDialog()"
-      (confirm)="confirmDeleteItem()"></app-confirmation-dialog>
+    <app-confirmation-dialog [title]="'groceryListDetails.deleteItemTitle' | translate" [message]="getDeleteMessage()"
+      [cancelLabel]="'common.cancel' | translate" [confirmLabel]="'groceryListDetails.delete' | translate"
+      (cancel)="closeDeleteDialog()" (confirm)="confirmDeleteItem()"></app-confirmation-dialog>
   </div>
 </div>
 
@@ -193,6 +198,13 @@
 <app-merge-review-sheet *ngIf="isMergeSheetOpen" [candidates]="mergeSheetData?.candidates || []"
   (mergeApplied)="onMergeApply($event)" (dismissed)="onMergeCancel()"
   (skipped)="onMergeSkip()"></app-merge-review-sheet>
+
+<app-pantry-move-review-dialog
+  [isOpen]="isPantryReviewDialogOpen"
+  [rows]="pantryReviewRows"
+  (confirmed)="onPantryReviewConfirmed($event)"
+  (closed)="closePantryReviewDialog()"
+></app-pantry-move-review-dialog>
 
 <div class="sheet-overlay" *ngIf="isMeasurementSheetOpen" (click)="isMeasurementSheetOpen = false">
   <div class="sheet-shell" (click)="$event.stopPropagation()">

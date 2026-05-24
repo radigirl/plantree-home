@@ -515,63 +515,6 @@ export class PantryService {
     return true;
   }
 
-  async addOrIncrementPantryItem(name: string): Promise<PantryItem | null> {
-    const spaceId = this.spaceStateService.getCurrentSpace()?.id;
-    const trimmedName = name.trim();
-    if (!trimmedName || !spaceId) {
-      return null;
-    }
-    const normalizedName = this.normalizeName(trimmedName);
-    const { data: existing, error: fetchError } = await this.supabase
-      .from('pantry_items')
-      .select('*')
-      .eq('normalized_name', normalizedName)
-      .eq('space_id', spaceId)
-      .maybeSingle();
-    if (fetchError) {
-      console.error('Error checking existing pantry item:', fetchError);
-      return null;
-    }
-    if (existing) {
-      const { data, error } = await this.supabase
-        .from('pantry_items')
-        .update({
-          amount: existing.amount + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id)
-        .eq('space_id', spaceId)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error incrementing pantry item:', error);
-        return null;
-      }
-      return data as PantryItem;
-    }
-    const { data, error } = await this.supabase
-      .from('pantry_items')
-      .insert([
-        {
-          name: trimmedName,
-          normalized_name: normalizedName,
-          amount: 1,
-          unit: 'item',
-          size_amount: null,
-          size_unit: null,
-          space_id: spaceId,
-        },
-      ])
-      .select()
-      .single();
-    if (error) {
-      console.error('Error creating pantry item:', error);
-      return null;
-    }
-    return data as PantryItem;
-  }
-
   async addFromMoveToPantry(payload: any): Promise<
     | 'added'
     | 'skipped_always_present'

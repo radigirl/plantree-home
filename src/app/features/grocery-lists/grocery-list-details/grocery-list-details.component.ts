@@ -56,6 +56,11 @@ import { MeasurementConversionSheetComponent } from './measurement-conversion-sh
 import { IngredientRulesService, MeasurementRuleRow } from '../../../services/ingredient-rules.service';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 import { LanguageStateService } from '../../../services/language.state.service';
+import { GroceryPantryMoveService } from '../../../services/grocery-pantry-move.service';
+import {
+  PantryMoveReviewDialogComponent,
+  PantryMoveReviewRow,
+} from '../../../shared/components/pantry-move-review-dialog/pantry-move-review-dialog.component';
 
 
 @Component({
@@ -74,6 +79,7 @@ import { LanguageStateService } from '../../../services/language.state.service';
     LucideAngularModule,
     MeasurementConversionSheetComponent,
     TranslatePipe,
+    PantryMoveReviewDialogComponent,
   ],
   templateUrl: './grocery-list-details.component.html',
   styleUrls: ['./grocery-list-details.component.scss'],
@@ -143,6 +149,10 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
   }> = [];
   rememberedMeasurementRules: MeasurementRuleRow[] = [];
 
+  isPantryReviewDialogOpen = false;
+  pantryReviewRows: PantryMoveReviewRow[] = [];
+  isMovingToPantry = false;
+
   private destroy$ = new Subject<void>();
   private itemsChannel: RealtimeChannel | null = null;
 
@@ -155,6 +165,7 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     private pantryService: PantryService,
     private ingredientRulesService: IngredientRulesService,
     private languageStateService: LanguageStateService,
+    private groceryPantryMoveService: GroceryPantryMoveService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -1274,35 +1285,14 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     action: 'move' | 'skip' | 'archive' | 'cancel'
   ): Promise<void> {
     const list = this.pendingPantryList;
-
     if (!list) {
       this.closePantryDialog();
       return;
     }
-
     this.closePantryDialog();
-
     if (action === 'move') {
-      const movedCount = await this.moveItemsToPantry(list);
-      const success = await this.groceryService.completeGroceryList(list.id);
-      if (!success) {
-        this.error = this.languageStateService.t('groceryLists.completeError');
-        this.cdr.detectChanges();
-        return;
-      }
-      this.groceryList = {
-        ...this.groceryList!,
-        status: 'completed',
-        updated_at: new Date().toISOString(),
-      };
-      this.showToast(
-        movedCount === 1
-          ? this.languageStateService.t('groceryLists.movedOneCompleted')
-          : this.languageStateService
-            .t('groceryLists.movedManyCompleted')
-            .replace('{{count}}', String(movedCount))
-      );
-      this.cdr.detectChanges();
+      this.pendingPantryList = list;
+      await this.openPantryMoveReviewDialog(list);
       return;
     }
     if (action === 'skip') {
@@ -1322,6 +1312,105 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  private getAlwaysPresentPart(skippedAlwaysPresent: number): string {
+    if (skippedAlwaysPresent <= 0) {
+      return '';
+    }
+
+    return this.languageStateService
+      .t('groceryLists.alwaysPresentSkippedResult')
+      .replace('{{count}}', String(skippedAlwaysPresent));
+  }
+
+  showMovedToPantryAndCompletedToast(
+    count: number,
+    skippedAlwaysPresent: number = 0
+  ): void {
+    const message = this.languageStateService
+      .t(
+        count === 1
+          ? 'groceryLists.movedOneCompleted'
+          : 'groceryLists.movedManyCompleted'
+      )
+      .replace('{{count}}', String(count))
+      .replace(
+        '{{alwaysPresent}}',
+        this.getAlwaysPresentPart(skippedAlwaysPresent)
+      );
+
+    this.showToast(message);
+  }
+
+  closePantryReviewDialog(): void {
+    this.isPantryReviewDialogOpen = false;
+    this.pantryReviewRows = [];
+    this.pendingPantryList = null;
+  }
+
+  async onPantryReviewConfirmed(rows: PantryMoveReviewRow[]): Promise<void> {
+    if (this.isMovingToPantry) return;
+
+    this.isMovingToPantry = true;
+
+    const rowsToMove = rows.filter((row) => row.selected);
+    const pendingList = this.pendingPantryList;
+
+    setTimeout(() => {
+      this.isPantryReviewDialogOpen = false;
+      this.cdr.detectChanges();
+    });
+
+    setTimeout(() => {
+      this.showToast(this.languageStateService.t('groceryLists.movingToPantry'));
+    });
+
+    try {
+      const result =
+        await this.groceryPantryMoveService.moveReviewedRowsToPantry(rowsToMove);
+
+      const movedCount = result.added + result.skippedExistingInferred;
+      const processedCount = movedCount + result.skippedAlwaysPresent;
+
+      if (pendingList) {
+        const success = await this.groceryService.completeGroceryList(pendingList.id);
+
+        if (!success) {
+          this.error = this.languageStateService.t('groceryLists.completeError');
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.groceryList = {
+          ...this.groceryList!,
+          status: 'completed',
+          updated_at: new Date().toISOString(),
+        };
+
+        if (processedCount > 0) {
+          setTimeout(() => {
+            this.showMovedToPantryAndCompletedToast(
+              movedCount,
+              result.skippedAlwaysPresent
+            );
+          });
+        } else {
+          setTimeout(() => {
+            this.showToast(this.languageStateService.t('groceryLists.listCompleted'));
+          });
+        }
+
+        this.cdr.detectChanges();
+      }
+    } finally {
+      setTimeout(() => {
+        this.isMovingToPantry = false;
+        this.pantryReviewRows = [];
+        this.pendingPantryList = null;
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
   closePantryDialog(): void {
     this.isPantryDialogOpen = false;
     this.pantryDialogTitle = '';
@@ -1330,26 +1419,14 @@ export class GroceryListDetailsComponent implements OnInit, OnDestroy {
     this.pendingPantryList = null;
   }
 
-  async moveItemsToPantry(list: GroceryList): Promise<number> {
-    try {
-      const items = await this.groceryService.getItemsByListId(list.id);
-      const itemsToMove = items.filter(
-        (item: any) => item.status === 'bought' && !item.moved_to_pantry
-      );
-      for (const item of itemsToMove) {
-        await this.pantryService.addOrIncrementPantryItem(item.name);
-        await this.groceryService.updateGroceryItemMovedToPantry(
-          item.id,
-          true
-        );
-      }
-      return itemsToMove.length;
-    } catch (error) {
-      console.error('Move to pantry failed:', error);
-      this.error = this.languageStateService.t('groceryLists.moveError');
-      this.cdr.detectChanges();
-      return 0;
-    }
+  private async openPantryMoveReviewDialog(list: GroceryList): Promise<void> {
+    const listItems = await this.groceryService.getPendingPantryItems(list.id);
+
+    this.pantryReviewRows =
+      this.groceryPantryMoveService.buildPantryReviewRows(listItems);
+
+    this.isPantryReviewDialogOpen = true;
+    this.cdr.detectChanges();
   }
 
   get coverageDays(): Array<{ label: string; meals: string[] }> {
